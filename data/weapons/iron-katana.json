@@ -8,5 +8,7 @@
   "hit": 90,
   "critical": 0,
   "minRange": 1,
-  "maxRange": 1
+  "maxRange": 1,
+  "effect": [],
+  "sprite": "assets/weapons/Iron_katana/rotations/Iron_katana.png"
 }

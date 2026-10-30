@@ -1,0 +1,14 @@
+{
+  "id": "zanbato",
+  "name": "Zanbato",
+  "type": "Sword",
+  "damageType": "physical",
+  "might": 9,
+  "weight": 10,
+  "hit": 70,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": ["cavalry", "armor"],
+  "sprite": "assets/weapons/Zanbato/rotations/Zanbato.png"
+}

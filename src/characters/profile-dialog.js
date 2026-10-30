@@ -46,6 +46,7 @@ export function createProfileDialog(dialog) {
     const combatStats = [
       ['Weapon', weapon.name],
       ['Type', weapon.type],
+      ['Effective vs', weapon.effect?.length ? weapon.effect.join(', ') : '—'],
       ['Might', weapon.might],
       ['Weight', weapon.weight],
       ['Hit', `${weapon.hit}%`],

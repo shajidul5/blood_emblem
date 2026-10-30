@@ -1,4 +1,5 @@
-import { validateLevel, WALKABLE_TILES } from '../levels/level.js';
+import { validateLevel } from '../levels/level.js';
+import { isLevelTileWalkable } from '../levels/tiles.js';
 import { INVENTORY_ITEMS } from '../characters/inventory.js';
 
 const SAVE_KEY = 'blood-emblem-save';
@@ -75,7 +76,7 @@ export function readSave() {
   if (
     !isIntegerInRange(player.x, 0, level.width - 1) ||
     !isIntegerInRange(player.z, 0, level.height - 1) ||
-    !WALKABLE_TILES.has(level.tiles[player.z][player.x]) ||
+    !isLevelTileWalkable(level, player.x, player.z) ||
     !isIntegerInRange(player.level, 1, 999) ||
     !isIntegerInRange(player.experience, 0, 99) ||
     !FACINGS.has(player.facing) ||
@@ -122,7 +123,7 @@ export function readSave() {
       (enemy.id !== undefined && !['raider', 'bartz'].includes(enemy.id)) ||
       !isIntegerInRange(enemy.x, 0, level.width - 1) ||
       !isIntegerInRange(enemy.z, 0, level.height - 1) ||
-      !WALKABLE_TILES.has(level.tiles[enemy.z][enemy.x]) ||
+      !isLevelTileWalkable(level, enemy.x, enemy.z) ||
       !isIntegerInRange(enemy.hp, 1, 999) ||
       !isIntegerInRange(enemy.maxHp, enemy.hp, 999) ||
       occupiedTiles.has(`${enemy.x},${enemy.z}`)
@@ -139,7 +140,7 @@ export function readSave() {
     (
       !isIntegerInRange(moveOrigin.x, 0, level.width - 1) ||
       !isIntegerInRange(moveOrigin.z, 0, level.height - 1) ||
-      !WALKABLE_TILES.has(level.tiles[moveOrigin.z][moveOrigin.x]) ||
+      !isLevelTileWalkable(level, moveOrigin.x, moveOrigin.z) ||
       occupiedTiles.has(`${moveOrigin.x},${moveOrigin.z}`) ||
       !player.moved ||
       player.acted

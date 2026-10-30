@@ -4,6 +4,12 @@
   "tiles": {
     "image": "ship_oblique_tiles.png",
     "columns": 8,
+    "defaults": {
+      "walkable": false,
+      "avoid": 0,
+      "defense": 0,
+      "elevation": 0
+    },
     "list": [
       {
         "id": "deck_a",
@@ -37,9 +43,11 @@
       },
       {
         "id": "stairs_down",
+        "name": "Stairs",
         "col": 5,
         "row": 0,
-        "walkable": true
+        "walkable": true,
+        "avoid": 10
       },
       {
         "id": "cabin_checker",

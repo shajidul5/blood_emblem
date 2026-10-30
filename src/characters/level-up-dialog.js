@@ -1,4 +1,4 @@
-const ROLL_DELAY_MS = 320;
+const ROLL_DELAY_MS = 380;
 const STAT_LABELS = {
   hp: 'HP',
   strength: 'Strength',
@@ -16,8 +16,13 @@ function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
+function statValue(unit, stat) {
+  return stat === 'hp' ? unit.maxHp : unit[stat];
+}
+
 export function createLevelUpDialog(dialog) {
   const heading = dialog.querySelector('#level-up-heading');
+  const levelLabel = dialog.querySelector('#level-up-level');
   const rollsContainer = dialog.querySelector('#level-up-rolls');
   const continueButton = dialog.querySelector('#level-up-continue');
   let rolling = false;
@@ -29,38 +34,62 @@ export function createLevelUpDialog(dialog) {
     if (rolling) event.preventDefault();
   });
 
-  async function show(characterName, growthRolls) {
+  // The unit already holds its final stats, so work backwards to the starting values.
+  async function show(unit, growthRolls) {
     if (!growthRolls.length) return;
     rolling = true;
     continueButton.disabled = true;
-    heading.textContent = `${characterName} LEVEL UP!`;
+    heading.textContent = `${unit.name} LEVEL UP!`;
     rollsContainer.replaceChildren();
 
-    const rows = [];
-    for (const levelRolls of growthRolls) {
-      const levelHeading = document.createElement('h3');
-      levelHeading.textContent = `LEVEL ${levelRolls[0]?.level ?? ''}`;
-      rollsContainer.append(levelHeading);
-      const list = document.createElement('ul');
-      rollsContainer.append(list);
-      for (const roll of levelRolls) {
-        const row = document.createElement('li');
-        const statName = document.createElement('span');
-        const result = document.createElement('strong');
-        statName.textContent = `${STAT_LABELS[roll.stat] ?? roll.stat} (${roll.growthRate}%)`;
-        result.textContent = 'Rolling…';
-        row.append(statName, result);
-        list.append(row);
-        rows.push({ row, result, roll });
+    const totalGains = {};
+    for (const rolls of growthRolls) {
+      for (const roll of rolls) {
+        if (roll.gained) totalGains[roll.stat] = (totalGains[roll.stat] ?? 0) + 1;
       }
+    }
+    const finalLevel = growthRolls[growthRolls.length - 1][0]?.level ?? unit.level;
+    let displayedLevel = finalLevel - growthRolls.length;
+    levelLabel.textContent = `LV ${displayedLevel}`;
+
+    const list = document.createElement('ul');
+    rollsContainer.append(list);
+    const rows = new Map();
+    for (const { stat } of growthRolls[0]) {
+      const row = document.createElement('li');
+      const name = document.createElement('span');
+      const value = document.createElement('b');
+      const gain = document.createElement('em');
+      name.textContent = STAT_LABELS[stat] ?? stat;
+      const current = statValue(unit, stat) - (totalGains[stat] ?? 0);
+      value.textContent = current;
+      row.append(name, value, gain);
+      list.append(row);
+      rows.set(stat, { row, value, gain, current, gained: 0 });
     }
 
     dialog.showModal();
-    for (const { row, result, roll } of rows) {
-      await wait(ROLL_DELAY_MS);
-      row.classList.add('revealed');
-      result.textContent = roll.gained ? '+1' : '—';
-      row.classList.toggle('gained', roll.gained);
+    await wait(ROLL_DELAY_MS);
+    for (const levelRolls of growthRolls) {
+      displayedLevel++;
+      levelLabel.textContent = `LV ${displayedLevel}`;
+      for (const roll of levelRolls) {
+        const entry = rows.get(roll.stat);
+        if (!entry) continue;
+        entry.row.classList.add('rolling');
+        await wait(ROLL_DELAY_MS);
+        entry.row.classList.remove('rolling');
+        if (!roll.gained) continue;
+        entry.current++;
+        entry.gained++;
+        entry.value.textContent = entry.current;
+        entry.gain.textContent = `+${entry.gained}`;
+        entry.row.classList.add('gained');
+        // Restart the pop animation when a stat rises again on a later level.
+        entry.value.classList.remove('bump');
+        void entry.value.offsetWidth;
+        entry.value.classList.add('bump');
+      }
     }
     rolling = false;
     continueButton.disabled = false;

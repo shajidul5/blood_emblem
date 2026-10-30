@@ -2,6 +2,7 @@
   "id": "maria",
   "name": "Maria",
   "class": "Myrmidon",
+  "type": "infantry",
   "level": 1,
   "experience": 0,
   "weaponId": "iron-katana",

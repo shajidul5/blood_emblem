@@ -3,10 +3,10 @@ import shipTilesUrl from '../../assets/tiles/ship_oblique/ship_oblique_tiles.png
 import shipObjectsUrl from '../../assets/tiles/ship_oblique/ship_objects.png?url';
 import mastUrl from '../../assets/tiles/ship_oblique/mast.png?url';
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
+import { isTileWalkable } from './tiles.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e']);
 export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'escape']);
-export const WALKABLE_TILES = new Set(['d', 'b', 'q', 'w', 'p', 'c', 's', 'e']);
 
 const TILE_SIZE = shipTileset.tileSize;
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
@@ -73,16 +73,6 @@ function atlasTexture(THREE, image, atlas, id) {
   return texture;
 }
 
-function gameplayTile(tileId) {
-  if (tileId.startsWith('water_')) return '.';
-  if (tileId.startsWith('hull_')) return 'h';
-  if (tileId.startsWith('bridge_')) return 'b';
-  if (tileId === 'stairs_down') return 'q';
-  if (tileId === 'mast_base') return 'm';
-  if (tileId.startsWith('bulkhead_')) return 'r';
-  return ATLAS_TILES.get(tileId)?.walkable ? 'd' : 'r';
-}
-
 function readCoordinate(value, width, height, label) {
   const z = value?.z ?? value?.y;
   if (!value || !Number.isInteger(value.x) || !Number.isInteger(z) ||
@@ -111,7 +101,7 @@ export function validateLevel(value) {
 
   const atlasGrid = Array.isArray(sourceTiles) && Array.isArray(sourceTiles[0]);
   let tileIds;
-  let rows;
+  let rows = null;
   if (atlasGrid) {
     if (sourceTiles.length !== height || sourceTiles.some((row) =>
       !Array.isArray(row) || row.length !== width ||
@@ -119,7 +109,6 @@ export function validateLevel(value) {
       throw new Error('Level atlas tile rows must match the dimensions and use known tile IDs.');
     }
     tileIds = sourceTiles.map((row) => [...row]);
-    rows = tileIds.map((row) => row.map(gameplayTile).join(''));
   } else {
     if (!Array.isArray(sourceTiles) || sourceTiles.length !== height ||
         sourceTiles.some((row) => typeof row !== 'string' || row.length !== width ||
@@ -138,7 +127,7 @@ export function validateLevel(value) {
     const x = z < 0 ? -1 : rows[z].indexOf('s');
     if (x >= 0) spawn = { x, z };
   }
-  if (!spawn || !WALKABLE_TILES.has(rows[spawn.z][spawn.x])) {
+  if (!spawn || !isTileWalkable(tileIds[spawn.z][spawn.x])) {
     throw new Error('Level must have a walkable Start coordinate.');
   }
 
@@ -150,14 +139,12 @@ export function validateLevel(value) {
     const x = z < 0 ? -1 : rows[z].indexOf('e');
     if (x >= 0) exit = { x, z };
   }
-  if (!exit || !WALKABLE_TILES.has(rows[exit.z][exit.x])) {
+  if (!exit || !isTileWalkable(tileIds[exit.z][exit.x])) {
     throw new Error('Level must have a walkable Exit coordinate.');
   }
   if (spawn.x === exit.x && spawn.z === exit.z) {
     throw new Error('Start and Exit must use different tiles.');
   }
-  rows[spawn.z] = `${rows[spawn.z].slice(0, spawn.x)}s${rows[spawn.z].slice(spawn.x + 1)}`;
-  rows[exit.z] = `${rows[exit.z].slice(0, exit.x)}e${rows[exit.z].slice(exit.x + 1)}`;
 
   if (!LEVEL_OBJECTIVES.has(objective)) {
     throw new Error('Level objective must be defeat-all-enemies or escape.');
@@ -168,7 +155,7 @@ export function validateLevel(value) {
     return object && Number.isInteger(object.x) && object.x >= 0 && object.x < width &&
       Number.isInteger(z) && z >= 0 && z < height &&
       SHIP_OBJECT_IDS.has(object.id) &&
-      WALKABLE_TILES.has(rows[z][object.x]);
+      isTileWalkable(tileIds[z][object.x]);
   })) {
     throw new Error('Level objects need a known ID and must be placed on walkable tiles.');
   }
@@ -186,7 +173,7 @@ export function validateLevel(value) {
     height,
     spawn,
     exit,
-    tiles: rows,
+    tiles: tileIds,
     tileIds,
     objects: objects.map((object) => ({
       x: object.x,

@@ -35,10 +35,15 @@ import {
   buildLevel,
   loadInitialLevel,
   validateLevel,
-  WALKABLE_TILES,
 } from './levels/level.js';
 import { getTerrain, getTileElevation } from './battle/terrain.js';
 import { initializeAnimatedMenu } from './menu.js';
+import {
+  initializeOceanSound,
+  isOceanSoundEnabled,
+  onOceanSoundChange,
+  setOceanSoundEnabled,
+} from './audio/ocean.js';
 
 initializeAnimatedMenu();
 
@@ -143,8 +148,22 @@ scene.add(levelGroup);
 scene.add(tacticalOverlay);
 const gameState = { mode: 'cursor', phase: 'player', turn: 1, selected: false, defeated: false };
 const cursor = { x: 0, z: 0 };
-const UNIT_SPRITE_HEIGHT = 1.5;
+const UNIT_SPRITE_HEIGHT = 1.15;
 const UNIT_SPRITE_WIDTH = UNIT_SPRITE_HEIGHT;
+// Tilt sprites to face the camera so the angled view doesn't squash them vertically.
+const SPRITE_TILT = new THREE.Euler(-Math.atan2(CAM_OFFSET.y, CAM_OFFSET.z), 0, 0);
+
+function createUnitSpriteGeometry() {
+  const geometry = new THREE.PlaneGeometry(UNIT_SPRITE_WIDTH, UNIT_SPRITE_HEIGHT);
+  // Keep the feet planted where they were when the sprite stood upright.
+  const feet = new THREE.Vector3(0, -UNIT_SPRITE_HEIGHT / 2, 0);
+  const tiltedFeet = feet.clone().applyEuler(SPRITE_TILT);
+  const shift = feet.sub(tiltedFeet).applyQuaternion(
+    new THREE.Quaternion().setFromEuler(SPRITE_TILT).invert(),
+  );
+  geometry.translate(shift.x, shift.y, shift.z);
+  return geometry;
+}
 
 // Per-character scale adjustments to normalize visual sizes
 const CHARACTER_SCALES = {
@@ -183,13 +202,14 @@ cursor.z = player.z;
 // Player
 const characterSprites = await loadCharacterSprites();
 const hero = new THREE.Mesh(
-  new THREE.PlaneGeometry(UNIT_SPRITE_WIDTH, UNIT_SPRITE_HEIGHT),
+  createUnitSpriteGeometry(),
   new THREE.MeshBasicMaterial({
     map: characterSprites.maria.south,
     alphaTest: 0.5,
     side: THREE.DoubleSide,
   }),
 );
+hero.rotation.copy(SPRITE_TILT);
 hero.scale.set(CHARACTER_SCALES.maria, CHARACTER_SCALES.maria, 1);
 const HERO_DECK_HEIGHT = 0.12;
 function unitSpriteHeightAt(x, z) {
@@ -258,7 +278,7 @@ function addUnitHealthBar(mesh, unit) {
 
 addUnitHealthBar(hero, player);
 
-const raiderGeometry = new THREE.PlaneGeometry(UNIT_SPRITE_WIDTH, UNIT_SPRITE_HEIGHT);
+const raiderGeometry = createUnitSpriteGeometry();
 const raiderMaterials = Object.fromEntries(
   Object.entries(characterSprites.raider).map(([direction, texture]) => [
     direction,
@@ -399,6 +419,7 @@ function createEnemy(tileX, tileZ, id = 'raider') {
   const mesh = new THREE.Mesh(raiderGeometry, material);
   const characterScale = id === 'bartz' ? CHARACTER_SCALES.bartz : CHARACTER_SCALES.raider;
   mesh.scale.set(characterScale, characterScale, 1);
+  mesh.rotation.copy(SPRITE_TILT);
   mesh.position.set(
     worldX(tileX),
     unitSpriteHeightAt(tileX, tileZ),
@@ -414,14 +435,12 @@ function createEnemy(tileX, tileZ, id = 'raider') {
 function resetEnemies() {
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = [];
-  const exitZ = activeLevel.tiles.findIndex((row) => row.includes('e'));
-  const exitX = exitZ < 0 ? -1 : activeLevel.tiles[exitZ].indexOf('e');
-  if (exitX < 0) return;
+  const { x: exitX, z: exitZ } = activeLevel.exit;
   const candidates = [];
   for (let z = 0; z < activeLevel.height; z++) {
     for (let x = 0; x < activeLevel.width; x++) {
       if (
-        isWalkable(activeLevel, WALKABLE_TILES, x, z) &&
+        isWalkable(activeLevel, x, z) &&
         (x !== player.x || z !== player.z)
       ) {
         candidates.push({ x, z });
@@ -434,7 +453,7 @@ function resetEnemies() {
   const spawnTiles = [];
   if (
       activeLevel.objective === 'defeat-all-enemies' &&
-      isWalkable(activeLevel, WALKABLE_TILES, exitX, exitZ) &&
+      isWalkable(activeLevel, exitX, exitZ) &&
       (exitX !== player.x || exitZ !== player.z)
   ) {
     spawnTiles.push({ x: exitX, z: exitZ, id: 'bartz' });
@@ -543,7 +562,7 @@ function completeGameOver() {
 function checkEscapeObjective() {
   if (
     activeLevel.objective !== 'escape' ||
-    activeLevel.tiles[player.z][player.x] !== 'e'
+    (player.x !== activeLevel.exit.x || player.z !== activeLevel.exit.z)
   ) return false;
   completeVictory(`${player.name} has escaped. The objective is complete.`);
   return true;
@@ -782,7 +801,7 @@ function updateMovementRoute() {
   ) return;
 
   const blocked = new Set(enemies.map((enemy) => tileKey(enemy.x, enemy.z)));
-  const path = findPath(player, [cursor], blocked, activeLevel, WALKABLE_TILES);
+  const path = findPath(player, [cursor], blocked, activeLevel);
   if (path.length < 2) return;
   movementPathMaterial = new THREE.MeshBasicMaterial({
     color: 0x168cff,
@@ -948,6 +967,23 @@ function renderInventory() {
       description.textContent = `Heals ${item.heal} HP · ${entry.uses}/${item.maxUses} uses remaining`;
     }
     details.append(name, description);
+    if (item.effect?.length) {
+      const effect = document.createElement('span');
+      effect.className = 'item-effect';
+      effect.textContent = `Effective vs ${item.effect.join(', ')}`;
+      details.append(effect);
+    }
+    const icon = document.createElement('div');
+    icon.className = 'item-icon';
+    if (item.spriteUrl) {
+      const image = document.createElement('img');
+      image.src = item.spriteUrl;
+      image.alt = '';
+      icon.append(image);
+    }
+    const info = document.createElement('div');
+    info.className = 'item-info';
+    info.append(icon, details);
     const action = document.createElement('button');
     if (item.itemType === 'weapon') {
       const equipped = player.weapon.id === entry.id;
@@ -959,7 +995,7 @@ function renderInventory() {
       action.disabled = player.hp >= player.maxHp;
       action.addEventListener('click', () => useInventoryItem(entry.id));
     }
-    row.append(details, action);
+    row.append(info, action);
     list.append(row);
   }
   inventoryDialog.querySelector('#inventory-empty').hidden = player.inventory.length > 0;
@@ -1287,7 +1323,7 @@ function openMariaActions() {
 
 function startMove() {
   if (!gameState.selected || player.moved || player.acted) return;
-  movementRange = getMovementRange(player, activeLevel, WALKABLE_TILES, enemies);
+  movementRange = getMovementRange(player, activeLevel, enemies);
   gameState.mode = 'move';
   setCursor(player.x, player.z);
   setMessage('Blue tiles are reachable; the thick blue line previews the route. Select a destination or press Escape.');
@@ -1302,7 +1338,7 @@ function confirmMove() {
   }
   const destination = { x: cursor.x, z: cursor.z };
   const blocked = new Set(enemies.map((enemy) => tileKey(enemy.x, enemy.z)));
-  const path = findPath(player, [destination], blocked, activeLevel, WALKABLE_TILES);
+  const path = findPath(player, [destination], blocked, activeLevel);
   if (path.length < 2) {
     setMessage(`Could not find a valid route for ${player.name}. Choose another reachable tile.`);
     return;
@@ -1331,7 +1367,7 @@ function undoMove() {
   playerMovement = undefined;
   cursor.x = player.x;
   cursor.z = player.z;
-  movementRange = getMovementRange(player, activeLevel, WALKABLE_TILES, enemies);
+  movementRange = getMovementRange(player, activeLevel, enemies);
   gameState.mode = 'move';
   setMessage('Move undone. Choose a different destination or press Escape for actions.');
   renderTacticalUi();
@@ -1470,7 +1506,7 @@ async function showExperienceProgression(progression, amount) {
     finalExperience: player.experience,
   });
   if (progression.levelUps) {
-    await levelUpDialogUi.show(player.name, progression.growthRolls);
+    await levelUpDialogUi.show(player, progression.growthRolls);
   }
 }
 
@@ -1509,131 +1545,78 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   let playerCriticalHits = 0;
   let playerTotalDamage = 0;
   
-  // PLAYER'S FIRST ATTACK
-  setMessage(`${player.name} attacks ${target.name} (1/${playerAttackCount}).`);
-  await attack(player.facing, false);
-  const firstResult = playerStrikeResults[0];
-  if (firstResult.hit) {
-    playerHits++;
-    if (firstResult.critical) playerCriticalHits++;
-    const strikeDamage = Math.min(target.hp, firstResult.critical ? criticalDamage : damage);
-    target.hp -= strikeDamage;
-    playerTotalDamage += strikeDamage;
-    showCombatResult(target, `-${strikeDamage}`, firstResult.critical ? 'critical' : 'hit');
-  } else {
-    showCombatResult(target, 'MISS', 'miss');
+  // Strikes alternate: attacker, then defender's counter, then the next pair.
+  const counterRange = distanceBetween(target.x, target.z, player.x, player.z);
+  const canCounter = isInWeaponRange(target, player, counterRange);
+  let counterDamage = 0;
+  let counterCriticalDamage = 0;
+  let counterAttackCount = 0;
+  let counterResults = [];
+  if (canCounter) {
+    target.facing = getFacing(player.x - target.x, player.z - target.z);
+    if (target.isBoss) target.mesh.material = bartzMaterials[target.facing];
+    const counterTerrain = getTerrain(activeLevel, player.x, player.z);
+    counterDamage = getCombatDamage(target, player, counterTerrain);
+    counterCriticalDamage = getCriticalDamage(target, player, counterTerrain);
+    counterAttackCount = getAttackCount(target, player);
+    const counterHitRate = getHitRate(target, player, counterTerrain);
+    const counterCriticalRate = getCriticalRate(target, player);
+    counterResults = Array.from({ length: counterAttackCount }, () => {
+      const hit = rollHit(counterHitRate);
+      return { hit, critical: hit && rollCritical(counterCriticalRate) };
+    });
   }
-  
-  await wait(400);
-  const defeated = target.hp === 0;
-  if (defeated) {
+
+  const rounds = Math.max(playerAttackCount, counterAttackCount);
+  for (let round = 0; round < rounds && target.hp > 0 && player.hp > 0; round++) {
+    if (round < playerAttackCount) {
+      setMessage(`${player.name} attacks ${target.name} (${round + 1}/${playerAttackCount}).`);
+      await attack(player.facing, round > 0);
+      const result = playerStrikeResults[round];
+      if (result.hit) {
+        playerHits++;
+        if (result.critical) playerCriticalHits++;
+        const strikeDamage = Math.min(target.hp, result.critical ? criticalDamage : damage);
+        target.hp -= strikeDamage;
+        playerTotalDamage += strikeDamage;
+        showCombatResult(target, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+      } else {
+        showCombatResult(target, 'MISS', 'miss');
+      }
+      await wait(400);
+      if (target.hp === 0) break;
+    }
+    if (round < counterAttackCount) {
+      setMessage(`${target.name} retaliates against ${player.name} (${round + 1}/${counterAttackCount}).`);
+      await attackEnemy(target, round > 0);
+      const result = counterResults[round];
+      if (result.hit) {
+        const strikeDamage = Math.min(player.hp, result.critical ? counterCriticalDamage : counterDamage);
+        player.hp -= strikeDamage;
+        showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+      } else {
+        showCombatResult(player, 'MISS', 'miss');
+      }
+      await wait(400);
+      renderTacticalUi();
+    }
+  }
+
+  if (target.hp === 0) {
     scene.remove(target.mesh);
     enemies = enemies.filter((enemy) => enemy !== target);
     const experienceGained = getCombatExperience(target, true);
     const progression = awardExperience(player, experienceGained);
     await showExperienceProgression(progression, experienceGained);
-    setMessage(`${player.name} defeats ${target.name}${target.isBoss ? ' (Boss)' : ''} (+${experienceGained} EXP${progression?.levelUps ? `, Level ${player.level}!` : ''}).`);
+    setMessage(`${player.name} defeats ${target.name}${target.isBoss ? ' (Boss)' : ''} (${playerHits}/${playerAttackCount} hits${playerCriticalHits ? `, ${playerCriticalHits} critical` : ''}, +${experienceGained} EXP${progression?.levelUps ? `, Level ${player.level}!` : ''}).`);
     player.acted = true;
     gameState.mode = 'unit';
     finishUnit();
     return;
   }
-  
-  // ENEMY RETALIATION
-  const counterRange = distanceBetween(target.x, target.z, player.x, player.z);
-  if (isInWeaponRange(target, player, counterRange)) {
-    target.facing = getFacing(player.x - target.x, player.z - target.z);
-    if (target.isBoss) target.mesh.material = bartzMaterials[target.facing];
-    const counterTerrain = getTerrain(activeLevel, player.x, player.z);
-    const counterDamage = getCombatDamage(target, player, counterTerrain);
-    const counterCriticalDamage = getCriticalDamage(target, player, counterTerrain);
-    const counterAttackCount = getAttackCount(target, player);
-    const counterHitRate = getHitRate(target, player, counterTerrain);
-    const counterCriticalRate = getCriticalRate(target, player);
-    const counterResults = Array.from({ length: counterAttackCount }, () => {
-      const hit = rollHit(counterHitRate);
-      return { hit, critical: hit && rollCritical(counterCriticalRate) };
-    });
-    let counterHits = 0;
-    let counterCriticalHits = 0;
-    let counterTotalDamage = 0;
-    
-    setMessage(`${target.name} retaliates against ${player.name} (1/${counterAttackCount}).`);
-    await attackEnemy(target, false);
-    const retalResult = counterResults[0];
-    if (retalResult.hit) {
-      counterHits++;
-      if (retalResult.critical) counterCriticalHits++;
-      const strikeDamage = Math.min(player.hp, retalResult.critical ? counterCriticalDamage : counterDamage);
-      player.hp -= strikeDamage;
-      counterTotalDamage += strikeDamage;
-      showCombatResult(player, `-${strikeDamage}`, retalResult.critical ? 'critical' : 'hit');
-    } else {
-      showCombatResult(player, 'MISS', 'miss');
-    }
-    
-    await wait(400);
-    renderTacticalUi();
-    if (playerTeam.every((unit) => unit.hp <= 0)) {
-      completeGameOver();
-      return;
-    }
-    
-    // PLAYER'S SECOND ATTACK (if eligible based on speed check)
-    if (playerAttackCount >= 2) {
-      setMessage(`${player.name} prepares another strike against ${target.name} (2/${playerAttackCount}).`);
-      await attack(player.facing, true);
-      const secondResult = playerStrikeResults[1];
-      if (secondResult.hit) {
-        playerHits++;
-        if (secondResult.critical) playerCriticalHits++;
-        const strikeDamage = Math.min(target.hp, secondResult.critical ? criticalDamage : damage);
-        target.hp -= strikeDamage;
-        playerTotalDamage += strikeDamage;
-        showCombatResult(target, `-${strikeDamage}`, secondResult.critical ? 'critical' : 'hit');
-      } else {
-        showCombatResult(target, 'MISS', 'miss');
-      }
-      
-      await wait(400);
-      const defeatedAfterSecond = target.hp === 0;
-      if (defeatedAfterSecond) {
-        scene.remove(target.mesh);
-        enemies = enemies.filter((enemy) => enemy !== target);
-        const experienceGained = getCombatExperience(target, true);
-        const progression = awardExperience(player, experienceGained);
-        await showExperienceProgression(progression, experienceGained);
-        setMessage(`${player.name} defeats ${target.name}${target.isBoss ? ' (Boss)' : ''} (${playerHits}/${playerAttackCount} hits${playerCriticalHits ? `, ${playerCriticalHits} critical` : ''}, +${experienceGained} EXP${progression?.levelUps ? `, Level ${player.level}!` : ''}).`);
-        player.acted = true;
-        gameState.mode = 'unit';
-        finishUnit();
-        return;
-      }
-      
-      // ENEMY'S SECOND ATTACK (if eligible)
-      if (counterAttackCount >= 2) {
-        setMessage(`${target.name} prepares another strike against ${player.name} (2/${counterAttackCount}).`);
-        await attackEnemy(target, true);
-        const secondCounterResult = counterResults[1];
-        if (secondCounterResult.hit) {
-          counterHits++;
-          if (secondCounterResult.critical) counterCriticalHits++;
-          const strikeDamage = Math.min(player.hp, secondCounterResult.critical ? counterCriticalDamage : counterDamage);
-          player.hp -= strikeDamage;
-          counterTotalDamage += strikeDamage;
-          showCombatResult(player, `-${strikeDamage}`, secondCounterResult.critical ? 'critical' : 'hit');
-        } else {
-          showCombatResult(player, 'MISS', 'miss');
-        }
-        
-        await wait(400);
-        renderTacticalUi();
-        if (playerTeam.every((unit) => unit.hp <= 0)) {
-          completeGameOver();
-          return;
-        }
-      }
-    }
+  if (playerTeam.every((unit) => unit.hp <= 0)) {
+    completeGameOver();
+    return;
   }
   
   const experienceGained = getCombatExperience(target, false);
@@ -1668,14 +1651,14 @@ async function enemyPhase() {
               player,
               distanceBetween(x, z, player.x, player.z),
             ) &&
-            isWalkable(activeLevel, WALKABLE_TILES, x, z) &&
+            isWalkable(activeLevel, x, z) &&
             !blocked.has(tileKey(x, z))
           ) {
             attackPositions.push({ x, z });
           }
         }
       }
-      const path = findPath(enemy, attackPositions, blocked, activeLevel, WALKABLE_TILES);
+      const path = findPath(enemy, attackPositions, blocked, activeLevel);
       if (path.length > 1) {
         const destination = path[Math.min(enemy.movement, path.length - 1)];
         const movementPath = path.slice(0, path.indexOf(destination) + 1);
@@ -1721,22 +1704,60 @@ async function enemyPhase() {
         return { hit, critical: hit && rollCritical(criticalRate) };
       });
       
-      // Play attack animation for each strike
-      for (let strike = 0; strike < attacks && player.hp > 0; strike++) {
-        await playAttackAnimation(enemy, enemy.facing, strike > 0);
-        const result = strikeResults[strike];
-        if (!result.hit) {
-          showCombatResult(player, 'MISS', 'miss');
-          continue;
+      // Strikes alternate: enemy, then the player's counter, then the next pair.
+      const counterRange = distanceBetween(enemy.x, enemy.z, player.x, player.z);
+      const canCounter = isInWeaponRange(player, enemy, counterRange);
+      const counterTerrain = getTerrain(activeLevel, enemy.x, enemy.z);
+      const counterAttacks = canCounter ? getAttackCount(player, enemy) : 0;
+      const counterDamage = canCounter ? getCombatDamage(player, enemy, counterTerrain) : 0;
+      const counterCriticalDamage = canCounter ? getCriticalDamage(player, enemy, counterTerrain) : 0;
+      const counterHitRate = canCounter ? getHitRate(player, enemy, counterTerrain) : 0;
+      const counterCriticalRate = canCounter ? getCriticalRate(player, enemy) : 0;
+      if (canCounter) player.facing = getFacing(enemy.x - player.x, enemy.z - player.z);
+      const counterResults = Array.from({ length: counterAttacks }, () => {
+        const hit = rollHit(counterHitRate);
+        return { hit, critical: hit && rollCritical(counterCriticalRate) };
+      });
+      let counterHitCount = 0;
+      let counterCriticalCount = 0;
+      let counterTotalDamage = 0;
+
+      const rounds = Math.max(attacks, counterAttacks);
+      for (let round = 0; round < rounds && player.hp > 0 && enemy.hp > 0; round++) {
+        if (round < attacks) {
+          await playAttackAnimation(enemy, enemy.facing, round > 0);
+          const result = strikeResults[round];
+          if (result.hit) {
+            hits++;
+            if (result.critical) criticalHits++;
+            const strikeDamage = Math.min(player.hp, result.critical ? criticalDamage : damage);
+            player.hp -= strikeDamage;
+            totalDamage += strikeDamage;
+            showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+          } else {
+            showCombatResult(player, 'MISS', 'miss');
+          }
+          await wait(400);
+          renderTacticalUi();
+          if (player.hp <= 0) break;
         }
-        hits++;
-        if (result.critical) criticalHits++;
-        const strikeDamage = Math.min(player.hp, result.critical ? criticalDamage : damage);
-        player.hp -= strikeDamage;
-        totalDamage += strikeDamage;
-        showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+        if (round < counterAttacks) {
+          setMessage(`${player.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
+          await attack(player.facing, round > 0);
+          const result = counterResults[round];
+          if (result.hit) {
+            counterHitCount++;
+            if (result.critical) counterCriticalCount++;
+            const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
+            enemy.hp -= strikeDamage;
+            counterTotalDamage += strikeDamage;
+            showCombatResult(enemy, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+          } else {
+            showCombatResult(enemy, 'MISS', 'miss');
+          }
+          await wait(350);
+        }
       }
-      await wait(450);
       setMessage(hits === 0
         ? `${enemy.name} misses ${player.name} (${hitRate}% Hit).`
         : `${enemy.name} hits ${player.name} ${hits}/${attacks} times${criticalHits ? ` (${criticalHits} critical)` : ''} (${hitRate}% Hit, ${totalDamage} damage).`);
@@ -1746,39 +1767,7 @@ async function enemyPhase() {
         return;
       }
 
-      const counterRange = distanceBetween(enemy.x, enemy.z, player.x, player.z);
-      if (isInWeaponRange(player, enemy, counterRange)) {
-        player.facing = getFacing(enemy.x - player.x, enemy.z - player.z);
-        const counterAttacks = getAttackCount(player, enemy);
-        const counterDamage = getCombatDamage(player, enemy, getTerrain(activeLevel, enemy.x, enemy.z));
-        const counterCriticalDamage = getCriticalDamage(player, enemy, getTerrain(activeLevel, enemy.x, enemy.z));
-        const counterHitRate = getHitRate(player, enemy, getTerrain(activeLevel, enemy.x, enemy.z));
-        const counterCriticalRate = getCriticalRate(player, enemy);
-        const counterResults = Array.from({ length: counterAttacks }, () => {
-          const hit = rollHit(counterHitRate);
-          return { hit, critical: hit && rollCritical(counterCriticalRate) };
-        });
-        let counterHitCount = 0;
-        let counterCriticalCount = 0;
-        let counterTotalDamage = 0;
-        for (let strike = 0; strike < counterAttacks && enemy.hp > 0; strike++) {
-          setMessage(strike > 0
-            ? `${player.name} prepares a counterattack against ${enemy.name}.`
-            : `${player.name} counters ${enemy.name} (${strike + 1}/${counterAttacks}).`);
-          await attack(player.facing, strike > 0);
-          const result = counterResults[strike];
-          if (!result.hit) {
-            showCombatResult(enemy, 'MISS', 'miss');
-            continue;
-          }
-          counterHitCount++;
-          if (result.critical) counterCriticalCount++;
-          const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
-          enemy.hp -= strikeDamage;
-          counterTotalDamage += strikeDamage;
-          showCombatResult(enemy, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
-        }
-        await wait(350);
+      if (canCounter) {
         if (enemy.hp === 0) {
           scene.remove(enemy.mesh);
           enemies = enemies.filter((unit) => unit !== enemy);
@@ -1973,6 +1962,13 @@ newGameButton.addEventListener('click', newGame);
 continueButton.addEventListener('click', continueGame);
 document.querySelector('#restart-level').addEventListener('click', restartLevel);
 document.querySelector('#terminal-main-menu').addEventListener('click', returnToMainMenu);
+const oceanToggle = document.querySelector('#toggle-ocean-sound');
+onOceanSoundChange((on) => {
+  oceanToggle.textContent = `Ocean Sound: ${on ? 'On' : 'Off'}`;
+  oceanToggle.setAttribute('aria-pressed', String(on));
+});
+oceanToggle.addEventListener('click', () => setOceanSoundEnabled(!isOceanSoundEnabled()));
+initializeOceanSound();
 document.querySelector('#resume-game').addEventListener('click', closeOptionsMenu);
 document.querySelector('#return-to-menu').addEventListener('click', returnToMainMenu);
 optionsDialog.addEventListener('cancel', () => {

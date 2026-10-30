@@ -1,4 +1,5 @@
 import { isInWeaponRange } from './combat.js';
+import { isLevelTileWalkable } from '../levels/tiles.js';
 
 export const DIRECTIONS = [
   { x: 0, z: -1 },
@@ -11,9 +12,9 @@ export function tileKey(x, z) {
   return `${x},${z}`;
 }
 
-export function isWalkable(level, walkableTiles, x, z) {
+export function isWalkable(level, x, z) {
   return x >= 0 && x < level.width && z >= 0 && z < level.height &&
-    walkableTiles.has(level.tiles[z][x]) &&
+    isLevelTileWalkable(level, x, z) &&
     !level.objects?.some((object) =>
       object.x === x && object.z === z && object.blocksMovement);
 }
@@ -22,7 +23,7 @@ export function findEnemyAt(enemies, x, z) {
   return enemies.find((enemy) => enemy.hp > 0 && enemy.x === x && enemy.z === z);
 }
 
-export function getMovementRange(unit, level, walkableTiles, enemies) {
+export function getMovementRange(unit, level, enemies) {
   const distances = new Map([[tileKey(unit.x, unit.z), 0]]);
   const queue = [{ x: unit.x, z: unit.z }];
   while (queue.length) {
@@ -35,7 +36,7 @@ export function getMovementRange(unit, level, walkableTiles, enemies) {
       const key = tileKey(x, z);
       if (
         distances.has(key) ||
-        !isWalkable(level, walkableTiles, x, z) ||
+        !isWalkable(level, x, z) ||
         findEnemyAt(enemies, x, z)
       ) continue;
       distances.set(key, distance + 1);
@@ -55,7 +56,7 @@ export function getFacing(dx, dz) {
   return dz < 0 ? 'north' : 'south';
 }
 
-export function findPath(start, goals, blocked, level, walkableTiles) {
+export function findPath(start, goals, blocked, level) {
   const startKey = tileKey(start.x, start.z);
   const goalKeys = new Set(goals.map(({ x, z }) => tileKey(x, z)));
   const previous = new Map([[startKey, null]]);
@@ -75,7 +76,7 @@ export function findPath(start, goals, blocked, level, walkableTiles) {
       if (
         previous.has(nextKey) ||
         blocked.has(nextKey) ||
-        !isWalkable(level, walkableTiles, x, z)
+        !isWalkable(level, x, z)
       ) continue;
       previous.set(nextKey, key);
       queue.push({ x, z });

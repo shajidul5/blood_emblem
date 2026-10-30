@@ -8,5 +8,7 @@
   "hit": 85,
   "critical": 10,
   "minRange": 1,
-  "maxRange": 1
+  "maxRange": 1,
+  "effect": [],
+  "sprite": "assets/weapons/Rapier/rotations/Rapier.png"
 }

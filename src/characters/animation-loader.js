@@ -58,6 +58,9 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
   }
   
   if (maxWidth === 0 || maxHeight === 0) return sprites;
+
+  // Sprites are drawn on square planes, so keep the canvas square to avoid stretching.
+  const frameSize = Math.max(maxWidth, maxHeight);
   
   // Normalize all sprites to use the max size
   const normalizedSprites = [];
@@ -71,15 +74,15 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
     }
     
     // Create a new canvas with consistent size
-    const normalizedCanvas = new OffscreenCanvas(maxWidth, maxHeight);
+    const normalizedCanvas = new OffscreenCanvas(frameSize, frameSize);
     const normalizedCtx = normalizedCanvas.getContext('2d');
     
     // Clear with transparent
-    normalizedCtx.clearRect(0, 0, maxWidth, maxHeight);
+    normalizedCtx.clearRect(0, 0, frameSize, frameSize);
     
     // Draw the sprite centered in the new canvas
-    const offsetX = (maxWidth - bounds.width) / 2;
-    const offsetY = (maxHeight - bounds.height) / 2;
+    const offsetX = Math.round((frameSize - bounds.width) / 2);
+    const offsetY = Math.round((frameSize - bounds.height) / 2);
     
     normalizedCtx.drawImage(
       texture.image,

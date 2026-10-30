@@ -37,7 +37,17 @@ export function getCombatDamage(attacker, defender, defenderTerrain = {}) {
   const defenseStat = attacker.weapon.damageType === 'magical'
     ? defender.resistance
     : defender.defense + (defenderTerrain.defense ?? 0);
-  return Math.max(0, attackStat + attacker.weapon.might - defenseStat);
+  return Math.max(0, attackStat + getEffectiveMight(attacker.weapon, defender) - defenseStat);
+}
+
+export const EFFECTIVE_MIGHT_MULTIPLIER = 3;
+
+export function isWeaponEffective(weapon, defender) {
+  return Boolean(defender.type) && (weapon.effect ?? []).includes(defender.type);
+}
+
+export function getEffectiveMight(weapon, defender) {
+  return isWeaponEffective(weapon, defender) ? weapon.might * EFFECTIVE_MIGHT_MULTIPLIER : weapon.might;
 }
 
 export function getCriticalDamage(attacker, defender, defenderTerrain = {}) {

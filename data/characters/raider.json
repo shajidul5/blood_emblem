@@ -2,9 +2,10 @@
   "id": "raider",
   "name": "Raider",
   "class": "Raider",
+  "type": "infantry",
   "level": 1,
   "experience": 0,
-  "weaponId": "raider-axe",
+  "weaponId": "iron-axe",
   "baseStats": {
     "hp": 18,
     "strength": 4,

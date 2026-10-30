@@ -2,9 +2,10 @@
   "id": "bartz",
   "name": "Bartz",
   "class": "Pirate",
+  "type": "infantry",
   "level": 5,
   "experience": 0,
-  "weaponId": "bartz-cutlass",
+  "weaponId": "iron-axe",
   "isBoss": true,
   "baseStats": {
     "hp": 38,
