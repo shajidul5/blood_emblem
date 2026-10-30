@@ -1,0 +1,755 @@
+{
+ "name": "Map 01 - Between Two Ships",
+ "tileset": "/tiles/ship_oblique/ship_oblique_tileset.json",
+ "tileSize": 32,
+ "width": 21,
+ "height": 19,
+ "objective": "defeat-all-enemies",
+ "spawn": {
+  "x": 10,
+  "z": 4
+ },
+ "exit": {
+  "x": 6,
+  "z": 14
+ },
+ "tiles": [
+  [
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_a",
+   "water_a",
+   "water_a",
+   "water_b",
+   "water_b",
+   "water_b"
+  ],
+  [
+   "water_a",
+   "water_b",
+   "hull_nw",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_diag_ne",
+   "water_a",
+   "water_a",
+   "water_b",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "hull_w",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "bulkhead_v",
+   "deck_c",
+   "deck_a",
+   "deck_a",
+   "deck_c",
+   "deck_c",
+   "deck_b",
+   "deck_c",
+   "deck_b",
+   "hull_diag_ne",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "hull_w",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "bulkhead_v",
+   "deck_a",
+   "stairs_down",
+   "deck_a",
+   "deck_a",
+   "deck_c",
+   "deck_worn",
+   "deck_c",
+   "deck_c",
+   "deck_b",
+   "hull_diag_ne",
+   "water_b",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_a",
+   "hull_w",
+   "carpet",
+   "carpet",
+   "carpet",
+   "carpet",
+   "doorway_v",
+   "deck_b",
+   "deck_a",
+   "deck_c",
+   "mast_base",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_b",
+   "deck_a",
+   "hull_e",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "hull_w",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "bulkhead_v",
+   "deck_b",
+   "hatch",
+   "deck_b",
+   "deck_b",
+   "deck_a",
+   "deck_c",
+   "deck_worn",
+   "deck_a",
+   "deck_a",
+   "hull_diag_se",
+   "water_foam",
+   "water_foam",
+   "water_b"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "hull_w",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "bulkhead_v",
+   "deck_b",
+   "deck_c",
+   "deck_b",
+   "deck_b",
+   "deck_c",
+   "deck_a",
+   "deck_c",
+   "deck_a",
+   "hull_diag_se",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "hull_sw",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "bridge_v_l",
+   "bridge_v_r",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_diag_se",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_a",
+   "water_b"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "bridge_v_l",
+   "bridge_v_r",
+   "water_b",
+   "water_b",
+   "water_a",
+   "water_a",
+   "water_foam",
+   "water_b",
+   "water_b",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_b",
+   "water_a",
+   "water_b",
+   "water_a",
+   "water_b",
+   "water_b",
+   "water_a",
+   "water_a",
+   "water_a",
+   "water_b",
+   "bridge_v_l",
+   "bridge_v_r",
+   "water_b",
+   "water_b",
+   "water_b",
+   "water_a",
+   "water_a",
+   "water_a",
+   "water_a",
+   "water_b",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_b",
+   "water_b",
+   "water_b",
+   "water_b",
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "bridge_v_l",
+   "bridge_v_r",
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_b",
+   "water_b",
+   "water_b",
+   "water_b",
+   "water_foam",
+   "hull_diag_nw",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "bridge_v_l",
+   "bridge_v_r",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_ne",
+   "water_foam",
+   "water_b"
+  ],
+  [
+   "water_a",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "hull_diag_nw",
+   "deck_a",
+   "deck_c",
+   "deck_dark",
+   "deck_worn",
+   "deck_a",
+   "deck_worn",
+   "deck_c",
+   "deck_c",
+   "bulkhead_v",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "hull_e",
+   "water_b",
+   "water_b"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "hull_diag_nw",
+   "deck_c",
+   "deck_worn",
+   "deck_a",
+   "deck_dark",
+   "deck_blood",
+   "deck_blood",
+   "deck_dark",
+   "stairs_down",
+   "deck_c",
+   "bulkhead_v",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "hull_e",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "hull_w",
+   "deck_c",
+   "deck_worn",
+   "deck_worn",
+   "deck_c",
+   "deck_a",
+   "deck_worn",
+   "mast_base",
+   "deck_dark",
+   "deck_worn",
+   "deck_a",
+   "doorway_v",
+   "carpet",
+   "carpet",
+   "carpet",
+   "carpet",
+   "hull_e",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "water_b",
+   "hull_diag_sw",
+   "deck_c",
+   "deck_c",
+   "deck_worn",
+   "deck_blood",
+   "deck_worn",
+   "deck_blood",
+   "deck_a",
+   "hatch",
+   "deck_a",
+   "bulkhead_v",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "hull_e",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "hull_diag_sw",
+   "deck_dark",
+   "deck_dark",
+   "deck_a",
+   "deck_c",
+   "deck_dark",
+   "deck_worn",
+   "deck_worn",
+   "deck_dark",
+   "bulkhead_v",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "cabin_checker",
+   "hull_e",
+   "water_a",
+   "water_b"
+  ],
+  [
+   "water_a",
+   "water_a",
+   "water_b",
+   "water_b",
+   "water_foam",
+   "hull_diag_sw",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_se",
+   "water_a",
+   "water_b"
+  ],
+  [
+   "water_a",
+   "water_b",
+   "water_a",
+   "water_a",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_b",
+   "water_foam",
+   "water_b",
+   "water_a",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a"
+  ]
+ ],
+ "objects": [
+  {
+   "x": 9,
+   "y": 3,
+   "id": "candelabra"
+  },
+  {
+   "x": 10,
+   "y": 3,
+   "id": "chest"
+  },
+  {
+   "x": 9,
+   "y": 5,
+   "id": "lantern"
+  },
+  {
+   "x": 8,
+   "y": 2,
+   "id": "ship_wheel"
+  },
+  {
+   "x": 11,
+   "y": 2,
+   "id": "barrel"
+  },
+  {
+   "x": 12,
+   "y": 2,
+   "id": "barrel"
+  },
+  {
+   "x": 14,
+   "y": 2,
+   "id": "cannon_e"
+  },
+  {
+   "x": 8,
+   "y": 5,
+   "id": "crates"
+  },
+  {
+   "x": 13,
+   "y": 5,
+   "id": "rope_coil"
+  },
+  {
+   "x": 12,
+   "y": 5,
+   "id": "lantern"
+  },
+  {
+   "x": 14,
+   "y": 5,
+   "id": "cannon_e"
+  },
+  {
+   "x": 15,
+   "y": 4,
+   "id": "lantern"
+  },
+  {
+   "x": 16,
+   "y": 4,
+   "id": "anchor"
+  },
+  {
+   "x": 14,
+   "y": 12,
+   "id": "chest"
+  },
+  {
+   "x": 17,
+   "y": 12,
+   "id": "candelabra"
+  },
+  {
+   "x": 15,
+   "y": 16,
+   "id": "coffin"
+  },
+  {
+   "x": 17,
+   "y": 16,
+   "id": "coffin"
+  },
+  {
+   "x": 14,
+   "y": 16,
+   "id": "lantern"
+  },
+  {
+   "x": 12,
+   "y": 12,
+   "id": "ship_wheel"
+  },
+  {
+   "x": 9,
+   "y": 12,
+   "id": "lantern"
+  },
+  {
+   "x": 7,
+   "y": 12,
+   "id": "barrel"
+  },
+  {
+   "x": 8,
+   "y": 12,
+   "id": "barrel"
+  },
+  {
+   "x": 6,
+   "y": 12,
+   "id": "cannon_w"
+  },
+  {
+   "x": 6,
+   "y": 16,
+   "id": "cannon_w"
+  },
+  {
+   "x": 12,
+   "y": 16,
+   "id": "crates"
+  },
+  {
+   "x": 8,
+   "y": 16,
+   "id": "torn_sail"
+  },
+  {
+   "x": 10,
+   "y": 16,
+   "id": "rope_coil"
+  },
+  {
+   "x": 9,
+   "y": 13,
+   "id": "blood_pool"
+  },
+  {
+   "x": 8,
+   "y": 15,
+   "id": "bones"
+  },
+  {
+   "x": 7,
+   "y": 13,
+   "id": "chains"
+  },
+  {
+   "x": 3,
+   "y": 14,
+   "id": "anchor"
+  },
+  {
+   "x": 5,
+   "y": 14,
+   "id": "lantern"
+  }
+ ],
+ "bridge": {
+  "tiles": [
+   [
+    10,
+    7
+   ],
+   [
+    11,
+    7
+   ],
+   [
+    10,
+    8
+   ],
+   [
+    11,
+    8
+   ],
+   [
+    10,
+    9
+   ],
+   [
+    11,
+    9
+   ],
+   [
+    10,
+    10
+   ],
+   [
+    11,
+    10
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    11,
+    11
+   ]
+  ],
+  "width": 2,
+  "axis": "vertical"
+ },
+ "ships": {
+  "A": {
+   "role": "player",
+   "bow": "east",
+   "deck": [
+    2,
+    1,
+    18,
+    7
+   ]
+  },
+  "B": {
+   "role": "enemy",
+   "bow": "west",
+   "deck": [
+    2,
+    11,
+    18,
+    17
+   ]
+  }
+ },
+ "deployment": {
+  "player": [
+   [
+    10,
+    6
+   ],
+   [
+    11,
+    6
+   ],
+   [
+    9,
+    6
+   ],
+   [
+    10,
+    5
+   ],
+   [
+    11,
+    5
+   ],
+   [
+    10,
+    4
+   ],
+   [
+    12,
+    5
+   ],
+   [
+    8,
+    5
+   ]
+  ],
+  "enemy": [
+   [
+    10,
+    12
+   ],
+   [
+    11,
+    12
+   ],
+   [
+    10,
+    13
+   ],
+   [
+    10,
+    14
+   ],
+   [
+    11,
+    14
+   ],
+   [
+    12,
+    13
+   ],
+   [
+    8,
+    13
+   ],
+   [
+    10,
+    15
+   ]
+  ]
+ }
+}

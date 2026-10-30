@@ -1,0 +1,81 @@
+{
+  "characters": {
+    "maria": {
+      "name": "Maria",
+      "isBoss": false,
+      "idle": {
+        "basePath": "../../assets/character/Maria/Idle/rotations",
+        "spriteFiles": {
+          "east": "east.png",
+          "west": "west.png",
+          "north": "north.png",
+          "south": "south.png",
+          "north-east": "north-east.png",
+          "north-west": "north-west.png",
+          "south-east": "south-east.png",
+          "south-west": "south-west.png"
+        }
+      },
+      "walking": {
+        "basePath": "../../assets/character/Maria/Idle/animations/Walking",
+        "pattern": "*/frame_*.png"
+      },
+      "attacking": {
+        "basePath": "../../assets/character/Maria/attacking_with_katan/animations",
+        "pattern": "*/*/frame_*.png"
+      }
+    },
+    "bartz": {
+      "name": "Bartz",
+      "isBoss": true,
+      "idle": {
+        "basePath": "../../assets/character/Bartz/Idle/rotations",
+        "spriteFiles": {
+          "east": "east.png",
+          "west": "west.png",
+          "north": "north.png",
+          "south": "south.png",
+          "north-east": "north-east.png",
+          "north-west": "north-west.png",
+          "south-east": "south-east.png",
+          "south-west": "south-west.png"
+        }
+      },
+      "walking": {
+        "basePath": "../../assets/character/Bartz/Idle/animations/Walking",
+        "pattern": "*/frame_*.png"
+      },
+      "attacking": {
+        "basePath": "../../assets/character/Bartz/Idle/animations/Bartz_lunges_forward_and_swings_overhead_with_his",
+        "pattern": "*/frame_*.png"
+      }
+    },
+    "raider": {
+      "name": "Raider",
+      "isBoss": false,
+      "idle": {
+        "basePath": "../../assets/character/Generic_Raider/Idle/rotations",
+        "spriteFiles": {
+          "east": "east.png",
+          "west": "west.png",
+          "north": "north.png",
+          "south": "south.png",
+          "north-east": "north-east.png",
+          "north-west": "north-west.png",
+          "south-east": "south-east.png",
+          "south-west": "south-west.png"
+        }
+      },
+      "walking": {
+        "basePath": "../../assets/character/Generic_Raider/Idle/animations/Walking",
+        "pattern": "*/frame_*.png"
+      },
+      "attacking": {
+        "basePath": "../../assets/character/Generic_Raider/Fighting_stance_with/animations",
+        "pattern": "*/*/frame_*.png"
+      }
+    }
+  },
+  "animationFrameDuration": 0.12,
+  "animationDirections": ["east", "west", "north", "south", "north-east", "north-west", "south-east", "south-west"]
+}

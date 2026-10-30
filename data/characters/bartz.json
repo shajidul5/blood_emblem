@@ -1,0 +1,45 @@
+{
+  "id": "bartz",
+  "name": "Bartz",
+  "class": "Pirate",
+  "level": 5,
+  "experience": 0,
+  "weaponId": "bartz-cutlass",
+  "isBoss": true,
+  "baseStats": {
+    "hp": 38,
+    "strength": 9,
+    "magic": 0,
+    "dexterity": 7,
+    "speed": 6,
+    "luck": 5,
+    "defense": 5,
+    "resistance": 2,
+    "movement": 4,
+    "build": 6
+  },
+  "currentStats": {
+    "hp": 38,
+    "strength": 9,
+    "magic": 0,
+    "dexterity": 7,
+    "speed": 6,
+    "luck": 5,
+    "defense": 5,
+    "resistance": 2,
+    "movement": 4,
+    "build": 6
+  },
+  "growthRates": {
+    "hp": 0,
+    "strength": 0,
+    "magic": 0,
+    "dexterity": 0,
+    "speed": 0,
+    "luck": 0,
+    "defense": 0,
+    "resistance": 0,
+    "movement": 0,
+    "build": 0
+  }
+}

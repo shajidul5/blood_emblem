@@ -1,0 +1,44 @@
+{
+  "id": "maria",
+  "name": "Maria",
+  "class": "Myrmidon",
+  "level": 1,
+  "experience": 0,
+  "weaponId": "iron-katana",
+  "baseStats": {
+    "hp": 24,
+    "strength": 5,
+    "magic": 5,
+    "dexterity": 7,
+    "speed": 7,
+    "luck": 7,
+    "defense": 5,
+    "resistance": 5,
+    "movement": 5,
+    "build": 5
+  },
+  "currentStats": {
+    "hp": 24,
+    "strength": 5,
+    "magic": 5,
+    "dexterity": 7,
+    "speed": 7,
+    "luck": 7,
+    "defense": 5,
+    "resistance": 5,
+    "movement": 5,
+    "build": 5
+  },
+  "growthRates": {
+    "hp": 65,
+    "strength": 40,
+    "magic": 20,
+    "dexterity": 55,
+    "speed": 55,
+    "luck": 70,
+    "defense": 30,
+    "resistance": 25,
+    "movement": 0,
+    "build": 5
+  }
+}

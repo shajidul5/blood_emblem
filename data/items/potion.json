@@ -1,0 +1,7 @@
+{
+  "id": "potion",
+  "name": "Potion",
+  "type": "consumable",
+  "heal": 10,
+  "maxUses": 3
+}

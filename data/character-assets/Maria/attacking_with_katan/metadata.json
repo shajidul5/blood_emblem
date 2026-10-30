@@ -1,0 +1,127 @@
+{
+  "group_id": "bddb5a94-96aa-4c9b-bd29-d903b8704dcf",
+  "states": [
+    {
+      "character": {
+        "id": "14e71f75-c3df-4610-8e55-04f88c6ee693",
+        "name": "attacking with katan",
+        "prompt": "I want a sprite similar to lyn in fire emblem 7 battle animation. But I want the character be similar to lady maria. White hair, pointed hat and long brown coat",
+        "size": {
+          "width": 84,
+          "height": 84
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-26T03:25:18.098476+00:00"
+      },
+      "folder": "attacking_with_katan",
+      "frames": {
+        "rotations": {
+          "south": "attacking_with_katan/rotations/south.png",
+          "south-east": "attacking_with_katan/rotations/south-east.png",
+          "east": "attacking_with_katan/rotations/east.png",
+          "north-east": "attacking_with_katan/rotations/north-east.png",
+          "north": "attacking_with_katan/rotations/north.png",
+          "north-west": "attacking_with_katan/rotations/north-west.png",
+          "west": "attacking_with_katan/rotations/west.png",
+          "south-west": "attacking_with_katan/rotations/south-west.png"
+        },
+        "animations": {
+          "attacking_with_the_katana._This_can_just_be_a_sing": {
+            "north": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north/frame_008.png"
+            ],
+            "north-east": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-east/frame_008.png"
+            ],
+            "west": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/west/frame_008.png"
+            ],
+            "south": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south/frame_008.png"
+            ],
+            "south-west": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-west/frame_008.png"
+            ],
+            "north-west": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/north-west/frame_008.png"
+            ],
+            "south-east": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/south-east/frame_008.png"
+            ],
+            "east": [
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_000.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_001.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_002.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_003.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_004.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_005.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_006.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_007.png",
+              "attacking_with_katan/animations/attacking_with_the_katana._This_can_just_be_a_sing/east/frame_008.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-26T05:56:42.373467"
+}

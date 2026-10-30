@@ -1,0 +1,351 @@
+{
+  "tileSize": 32,
+  "view": "oblique (low top-down)",
+  "tiles": {
+    "image": "ship_oblique_tiles.png",
+    "columns": 8,
+    "list": [
+      {
+        "id": "deck_a",
+        "col": 0,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "deck_b",
+        "col": 1,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "deck_worn",
+        "col": 2,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "deck_blood",
+        "col": 3,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "hatch",
+        "col": 4,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "stairs_down",
+        "col": 5,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "cabin_checker",
+        "col": 6,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "carpet",
+        "col": 7,
+        "row": 0,
+        "walkable": true
+      },
+      {
+        "id": "hull_n",
+        "col": 0,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_s",
+        "col": 1,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_w",
+        "col": 2,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_e",
+        "col": 3,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_nw",
+        "col": 4,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_ne",
+        "col": 5,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_sw",
+        "col": 6,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_se",
+        "col": 7,
+        "row": 1,
+        "walkable": false
+      },
+      {
+        "id": "hull_diag_ne",
+        "col": 0,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "hull_diag_se",
+        "col": 1,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "hull_diag_nw",
+        "col": 2,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "hull_diag_sw",
+        "col": 3,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "cabin_wall",
+        "col": 4,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "doorway_v",
+        "col": 5,
+        "row": 2,
+        "walkable": true
+      },
+      {
+        "id": "mast_base",
+        "col": 6,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "water_a",
+        "col": 7,
+        "row": 2,
+        "walkable": false
+      },
+      {
+        "id": "water_b",
+        "col": 0,
+        "row": 3,
+        "walkable": false
+      },
+      {
+        "id": "water_foam",
+        "col": 1,
+        "row": 3,
+        "walkable": false
+      },
+      {
+        "id": "deck_c",
+        "col": 2,
+        "row": 3,
+        "walkable": true
+      },
+      {
+        "id": "deck_dark",
+        "col": 3,
+        "row": 3,
+        "walkable": true
+      },
+      {
+        "id": "bulkhead_h",
+        "col": 4,
+        "row": 3,
+        "walkable": false
+      },
+      {
+        "id": "bulkhead_v",
+        "col": 5,
+        "row": 3,
+        "walkable": false
+      },
+      {
+        "id": "gangway_h",
+        "col": 6,
+        "row": 3,
+        "walkable": true
+      },
+      {
+        "id": "deck_planks_v",
+        "col": 7,
+        "row": 3,
+        "walkable": true
+      },
+      {
+        "id": "bridge_v_l",
+        "col": 0,
+        "row": 4,
+        "walkable": true
+      },
+      {
+        "id": "bridge_v_r",
+        "col": 1,
+        "row": 4,
+        "walkable": true
+      },
+      {
+        "id": "bridge_h_n",
+        "col": 2,
+        "row": 4,
+        "walkable": true
+      },
+      {
+        "id": "bridge_h_s",
+        "col": 3,
+        "row": 4,
+        "walkable": true
+      },
+      {
+        "id": "hull_n_port",
+        "col": 4,
+        "row": 4,
+        "walkable": false
+      },
+      {
+        "id": "hull_n_window",
+        "col": 5,
+        "row": 4,
+        "walkable": false
+      }
+    ]
+  },
+  "objects": {
+    "image": "ship_objects.png",
+    "columns": 8,
+    "list": [
+      {
+        "id": "barrel",
+        "col": 0,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "crate",
+        "col": 1,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "crates",
+        "col": 2,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "rope_coil",
+        "col": 3,
+        "row": 0,
+        "blocksMovement": false
+      },
+      {
+        "id": "cannon_e",
+        "col": 4,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "cannon_w",
+        "col": 5,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "anchor",
+        "col": 6,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "chest",
+        "col": 7,
+        "row": 0,
+        "blocksMovement": true
+      },
+      {
+        "id": "lantern",
+        "col": 0,
+        "row": 1,
+        "blocksMovement": true
+      },
+      {
+        "id": "candelabra",
+        "col": 1,
+        "row": 1,
+        "blocksMovement": true
+      },
+      {
+        "id": "coffin",
+        "col": 2,
+        "row": 1,
+        "blocksMovement": true
+      },
+      {
+        "id": "ship_wheel",
+        "col": 3,
+        "row": 1,
+        "blocksMovement": true
+      },
+      {
+        "id": "chains",
+        "col": 4,
+        "row": 1,
+        "blocksMovement": false
+      },
+      {
+        "id": "bones",
+        "col": 5,
+        "row": 1,
+        "blocksMovement": false
+      },
+      {
+        "id": "blood_pool",
+        "col": 6,
+        "row": 1,
+        "blocksMovement": false
+      },
+      {
+        "id": "torn_sail",
+        "col": 7,
+        "row": 1,
+        "blocksMovement": false
+      }
+    ]
+  },
+  "tall": [
+    {
+      "id": "mast",
+      "image": "mast.png",
+      "width": 64,
+      "height": 128,
+      "drawAt": "x*32+16-32, y*32+22-118  (tile x,y of its mast_base)",
+      "blocksMovement": true
+    }
+  ],
+  "notes": "Same ids and sheet positions as the original ship tileset; hull_n_port and hull_n_window are appended at the end."
+}

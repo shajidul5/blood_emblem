@@ -1,0 +1,44 @@
+{
+  "id": "raider",
+  "name": "Raider",
+  "class": "Raider",
+  "level": 1,
+  "experience": 0,
+  "weaponId": "raider-axe",
+  "baseStats": {
+    "hp": 18,
+    "strength": 4,
+    "magic": 0,
+    "dexterity": 3,
+    "speed": 3,
+    "luck": 0,
+    "defense": 2,
+    "resistance": 0,
+    "movement": 3,
+    "build": 3
+  },
+  "currentStats": {
+    "hp": 18,
+    "strength": 4,
+    "magic": 0,
+    "dexterity": 3,
+    "speed": 3,
+    "luck": 0,
+    "defense": 2,
+    "resistance": 0,
+    "movement": 3,
+    "build": 3
+  },
+  "growthRates": {
+    "hp": 0,
+    "strength": 0,
+    "magic": 0,
+    "dexterity": 0,
+    "speed": 0,
+    "luck": 0,
+    "defense": 0,
+    "resistance": 0,
+    "movement": 0,
+    "build": 0
+  }
+}

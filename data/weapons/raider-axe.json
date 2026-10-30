@@ -1,0 +1,12 @@
+{
+  "id": "raider-axe",
+  "name": "Raider Axe",
+  "type": "Axe",
+  "damageType": "physical",
+  "might": 5,
+  "weight": 5,
+  "hit": 75,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1
+}

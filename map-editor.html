@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blood-Emblem Map Editor</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        background: #0b0710;
+        color: #eee6e2;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      header, main { width: min(1200px, calc(100% - 32px)); margin: 0 auto; }
+      header { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+      header h1 { margin: 0; color: #d8343c; font-size: 18px; letter-spacing: 3px; }
+      a { color: #d8bd8a; }
+      main { padding-bottom: 28px; }
+      .toolbar, .palette, .editor-card { background: #15131c; border: 1px solid #34303b; border-radius: 10px; }
+      .toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; padding: 14px; }
+      label { display: grid; gap: 5px; color: #aaa5af; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+      input, button, select { min-height: 36px; border: 1px solid #494450; border-radius: 6px; background: #201d27; color: #eee6e2; font: inherit; padding: 7px 10px; }
+      input[type="number"] { width: 76px; }
+      input[type="text"] { width: 190px; }
+      button { cursor: pointer; }
+      button:hover, button:focus-visible { border-color: #d8bd8a; }
+      .primary { background: #59392e; border-color: #8e6044; }
+      .palette { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 12px; }
+      .tool { display: flex; align-items: center; gap: 7px; }
+      .tool[aria-pressed="true"] { outline: 2px solid #d8bd8a; outline-offset: 1px; }
+      .swatch { width: 18px; height: 18px; border: 1px solid #ffffff55; border-radius: 3px; }
+      .editor-card { padding: 12px; }
+      canvas { display: block; width: 100%; height: min(66vh, 680px); min-height: 320px; touch-action: none; cursor: crosshair; }
+      #status { min-height: 20px; margin: 10px 2px 0; color: #c9bd9c; font-size: 12px; }
+      .help { margin: 12px 2px 0; color: #a7a1ad; font-size: 12px; line-height: 1.6; }
+      @media (max-width: 600px) {
+        header, main { width: calc(100% - 20px); }
+        header { align-items: start; gap: 12px; }
+        .toolbar { align-items: stretch; }
+        canvas { height: 56vh; min-height: 260px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>MAP EDITOR</h1>
+      <a href="/">Back to game</a>
+    </header>
+    <main>
+      <section class="toolbar" aria-label="Map settings and actions">
+        <label>Level name <input id="map-name" type="text" maxlength="48" value="Twin Ships" /></label>
+        <label>Objective
+          <select id="map-objective">
+            <option value="defeat-all-enemies">Kill all enemies</option>
+            <option value="escape">Escape</option>
+          </select>
+        </label>
+        <label>Width <input id="map-width" type="number" min="8" max="48" value="24" /></label>
+        <label>Height <input id="map-height" type="number" min="8" max="36" value="16" /></label>
+        <button id="resize">Resize</button>
+        <button id="boat-template">Reset ship template</button>
+        <button id="clear">Clear map</button>
+        <button id="import">Import JSON</button>
+        <button id="export" class="primary">Export JSON</button>
+        <button id="play">Play map</button>
+        <input id="file-input" type="file" accept=".json,application/json" hidden />
+      </section>
+      <section id="palette" class="palette" aria-label="Paint tools"></section>
+      <section class="editor-card">
+        <canvas id="map" aria-label="Tile map. Click or drag to paint."></canvas>
+        <div id="status" role="status" aria-live="polite"></div>
+      </section>
+      <p class="help">Click or drag to paint tiles from the oblique ship atlas. <strong>Start</strong> sets the player spawn; <strong>Exit</strong> marks the level goal and is the escape point for Escape objectives. The two-ship template includes props, some of which block movement. Export a JSON level, then use “Import level” in-game to test it.</p>
+    </main>
+    <script type="module" src="/src/map-editor.js"></script>
+  </body>
+</html>

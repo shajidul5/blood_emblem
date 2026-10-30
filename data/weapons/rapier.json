@@ -1,0 +1,12 @@
+{
+  "id": "rapier",
+  "name": "Rapier",
+  "type": "Sword",
+  "damageType": "physical",
+  "might": 6,
+  "weight": 2,
+  "hit": 85,
+  "critical": 10,
+  "minRange": 1,
+  "maxRange": 1
+}

@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blood-Emblem</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b0710; overflow: hidden; }
+      canvas { display: block; image-rendering: pixelated; }
+      #hud {
+        position: fixed; top: 16px; left: 20px; color: #e8d9d9;
+        font: 700 14px/1.4 ui-monospace, Menlo, Consolas, monospace;
+        letter-spacing: 2px; text-shadow: 0 2px 0 #000; pointer-events: none;
+      }
+      #hud .title { color: #d8343c; font-size: 20px; letter-spacing: 4px; }
+      #hud .hint { opacity: .65; font-size: 12px; margin-top: 4px; }
+      #level-tools {
+        position: fixed; top: 16px; right: 20px; display: grid; justify-items: end;
+        gap: 8px; color: #e8d9d9; font: 12px ui-monospace, Menlo, Consolas, monospace;
+      }
+      #level-tools .actions { display: flex; gap: 8px; pointer-events: auto; }
+      #level-tools a, #level-tools button, #main-menu button, #options-dialog button {
+        border: 1px solid #655467; border-radius: 5px; background: #17121d;
+        color: #e8d9d9; padding: 8px 10px; font: inherit; text-decoration: none; cursor: pointer;
+      }
+      #level-tools a:hover, #level-tools button:hover, #main-menu button:hover, #options-dialog button:hover,
+      #main-menu button:focus-visible, #options-dialog button:focus-visible { border-color: #d8bd8a; }
+      #level-tools button:disabled { opacity: .45; cursor: not-allowed; }
+      #level-status { max-width: 250px; text-align: right; text-shadow: 0 2px 0 #000; }
+      #tactical-hud, #action-panel, #battle-message {
+        position: fixed; z-index: 2; color: #f1e9e3;
+        font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        text-shadow: 0 2px 0 #000;
+      }
+      #tactical-hud {
+        top: 82px; left: 20px; min-width: 190px; padding: 10px 12px;
+        border: 1px solid #655467; border-radius: 6px; background: rgba(16, 12, 20, .88);
+        pointer-events: none;
+      }
+      #phase-label { color: #e2c582; font-weight: 700; letter-spacing: 1px; }
+      #objective-panel, #unit-hover-card {
+        box-sizing: border-box; width: 250px; padding: 8px 12px;
+        border: 1px solid #655467; border-radius: 6px; background: rgba(16, 12, 20, .9);
+        color: #f1e9e3; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        text-align: left; text-shadow: 0 2px 0 #000; pointer-events: none;
+      }
+      #objective-panel[hidden], #unit-hover-card[hidden] { display: none; }
+      #objective-label { display: block; color: #c9bd9c; font-size: 11px; }
+      #unit-hover-card .unit-card-name { display: block; color: #e2c582; font-size: 13px; }
+      #unit-hover-card .unit-card-class { color: #c9bd9c; }
+      #unit-hover-card dl { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; margin: 4px 0 0; }
+      #unit-hover-card dt { color: #c9bd9c; }
+      #unit-hover-card dd { margin: 0; text-align: right; }
+      #unit-list-dialog {
+        width: min(760px, calc(100% - 32px)); padding: 18px;
+        border: 1px solid #76647a; border-radius: 4px; background: #0b101b;
+        color: #f1e9e3; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #unit-list-dialog::backdrop { background: rgba(4, 7, 14, .78); }
+      #unit-list-dialog h2 { margin: 0 0 12px; color: #e2c582; font: 22px Georgia, "Times New Roman", serif; }
+      #unit-list-scroll { max-height: 60vh; overflow: auto; }
+      #unit-list-dialog table { width: 100%; border-collapse: collapse; }
+      #unit-list-dialog th, #unit-list-dialog td {
+        padding: 6px 8px; border-bottom: 1px solid #2b2333; text-align: right; white-space: nowrap;
+      }
+      #unit-list-dialog th { position: sticky; top: 0; background: #0b101b; color: #c9bd9c; }
+      #unit-list-dialog th:nth-child(-n+4), #unit-list-dialog td:nth-child(-n+4) { text-align: left; }
+      #unit-list-dialog td.unit-list-sprite { width: 44px; padding: 2px 8px; }
+      #unit-list-dialog td.unit-list-sprite img { display: block; width: 40px; height: 40px; image-rendering: pixelated; }
+      #unit-list-dialog tr.enemy td:nth-child(2) { color: #ed8f8f; }
+      #unit-list-dialog tr.player td:nth-child(2) { color: #8fc7ed; }
+      #unit-list-dialog .visually-hidden {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+      }
+      #unit-list-dialog button {
+        margin-top: 14px; border: 1px solid #655467; border-radius: 5px; background: #17121d;
+        color: #e8d9d9; padding: 8px 14px; font: inherit; cursor: pointer;
+      }
+      #unit-list-dialog button:hover, #unit-list-dialog button:focus-visible { border-color: #d8bd8a; }
+      #phase-banner {
+        position: fixed; z-index: 5; top: 42%; left: 50%;
+        padding: 14px 28px; border: 1px solid #8a7052; border-radius: 5px;
+        background: rgba(16, 12, 20, .92); color: #f1e2bd;
+        font: 700 20px/1.4 ui-monospace, Menlo, Consolas, monospace;
+        letter-spacing: 2px; text-align: center; text-shadow: 0 2px 0 #000;
+        opacity: 0; pointer-events: none; transform: translate(-50%, -45%);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+      #phase-banner.visible { opacity: 1; transform: translate(-50%, -50%); }
+      #tile-inspection {
+        position: fixed; z-index: 2; right: 20px; bottom: 78px; width: min(270px, calc(100% - 40px));
+        padding: 10px 12px; border: 1px solid #655467; border-radius: 6px;
+        background: rgba(16, 12, 20, .9); color: #f1e9e3;
+        font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        text-shadow: 0 2px 0 #000; pointer-events: none;
+      }
+      #tile-inspection[hidden] { display: none; }
+      #tile-inspection strong { display: block; color: #e2c582; }
+      #tile-inspection span { color: #c9bd9c; }
+      #exp-panel {
+        box-sizing: border-box; width: 250px; padding: 8px 12px;
+        border: 1px solid #655467; border-radius: 6px; background: rgba(16, 12, 20, .9);
+        color: #f1e9e3; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        text-align: left; text-shadow: 0 2px 0 #000; pointer-events: none;
+      }
+      #exp-panel[hidden] { display: none; }
+      #exp-label { color: #c9bd9c; font-size: 11px; }
+      #exp-track {
+        height: 8px; margin-top: 4px; overflow: hidden; border: 1px solid #655467;
+        border-radius: 5px; background: #211a27;
+      }
+      #exp-fill {
+        width: 0%; height: 100%; background: linear-gradient(90deg, #9e6ed8, #e2c582);
+      }
+      #exp-gain {
+        min-height: 0; margin-top: 0; color: #e2c582; font-size: 11px;
+        opacity: 0; transition: opacity 180ms ease;
+      }
+      #exp-panel.gaining #exp-gain { margin-top: 3px; opacity: 1; }
+      #action-panel {
+        left: 20px; bottom: 24px; display: grid; gap: 8px; min-width: 220px;
+        padding: 12px; border: 1px solid #655467; border-radius: 7px;
+        background: rgba(16, 12, 20, .94); text-shadow: none;
+      }
+      #action-panel[hidden] { display: none; }
+      #action-panel .actions { display: flex; flex-wrap: wrap; gap: 7px; }
+      #action-panel button, #battle-message {
+        border: 1px solid #655467; border-radius: 5px; background: #211a27;
+        color: #f1e9e3; padding: 8px 10px; font: inherit; cursor: pointer;
+      }
+      #action-panel button:hover, #action-panel button:focus-visible { border-color: #e2c582; }
+      #action-panel button:disabled { opacity: .45; cursor: not-allowed; }
+      #profile-dialog {
+        width: min(580px, calc(100% - 48px)); max-height: min(88vh, 760px); overflow: auto;
+        padding: 20px; border: 1px solid #76647a; border-radius: 9px;
+        background: #100c14; color: #f1e9e3; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #profile-dialog::backdrop { background: rgba(4, 2, 8, .78); }
+      #profile-dialog .profile-header {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+        margin-bottom: 18px;
+      }
+      #profile-dialog h2, #profile-dialog h3 { margin: 0; }
+      #profile-dialog h2 { color: #e2c582; font-size: 19px; }
+      #profile-dialog h3 { margin: 16px 0 8px; color: #e2c582; font-size: 14px; }
+      #profile-level { margin-top: 4px; color: #c9bd9c; }
+      #profile-dialog button {
+        border: 1px solid #655467; border-radius: 5px; background: #211a27;
+        color: #f1e9e3; padding: 7px 10px; font: inherit; cursor: pointer;
+      }
+      #profile-dialog button:hover, #profile-dialog button:focus-visible { border-color: #e2c582; }
+      #profile-dialog table { width: 100%; border-collapse: collapse; text-align: right; }
+      #profile-dialog th, #profile-dialog td {
+        padding: 6px 8px; border-bottom: 1px solid #392f40; white-space: nowrap;
+      }
+      #profile-dialog thead { color: #c9bd9c; }
+      #profile-dialog tbody th { text-align: left; font-weight: 400; }
+      #profile-weapon {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+      }
+      #profile-weapon > div { padding: 8px; border: 1px solid #392f40; border-radius: 5px; }
+      #profile-weapon dt { color: #c9bd9c; font-size: 11px; }
+      #profile-weapon dd { margin: 2px 0 0; }
+      #profile-combat-note { margin: 10px 0 0; color: #c9bd9c; }
+      #inventory-dialog {
+        width: min(540px, calc(100% - 48px)); padding: 20px;
+        border: 1px solid #76647a; border-radius: 9px; background: #100c14;
+        color: #f1e9e3; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #inventory-dialog::backdrop { background: rgba(4, 2, 8, .78); }
+      #inventory-dialog .inventory-header {
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        margin-bottom: 14px;
+      }
+      #inventory-dialog h2 { margin: 0; color: #e2c582; font-size: 19px; }
+      #inventory-items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+      #inventory-items li {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 10px; border: 1px solid #392f40; border-radius: 5px;
+      }
+      #inventory-items li div { display: grid; gap: 3px; }
+      #inventory-items li span, #inventory-empty { color: #c9bd9c; }
+      #inventory-dialog button {
+        border: 1px solid #655467; border-radius: 5px; background: #211a27;
+        color: #f1e9e3; padding: 7px 10px; font: inherit; cursor: pointer;
+      }
+      #inventory-dialog button:hover, #inventory-dialog button:focus-visible { border-color: #e2c582; }
+      #inventory-dialog button:disabled { opacity: .45; cursor: not-allowed; }
+      #inventory-empty { margin: 10px 0; }
+      #inventory-close { margin-top: 16px; }
+      #combat-forecast {
+        width: min(540px, calc(100% - 48px)); padding: 20px;
+        border: 1px solid #9c7c4c; border-radius: 9px; background: #100c14;
+        color: #f1e9e3; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #combat-forecast::backdrop { background: rgba(4, 2, 8, .78); }
+      #combat-forecast h2 { margin: 0 0 6px; color: #e2c582; font-size: 19px; }
+      #combat-forecast p { margin: 0 0 14px; color: #c9bd9c; }
+      #combat-forecast-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .forecast-side { padding: 12px; border: 1px solid; border-radius: 7px; }
+      .forecast-side.player { border-color: #4f86c9; background: linear-gradient(180deg, #1b3558, #14233b); }
+      .forecast-side.enemy { border-color: #c9524f; background: linear-gradient(180deg, #5a1f24, #3b1519); }
+      .forecast-side h3 { margin: 0; font-size: 15px; }
+      .forecast-side.player h3 { color: #9cc8f5; }
+      .forecast-side.enemy h3 { color: #f5a3a0; }
+      .forecast-side .forecast-class { color: #c9bd9c; font-size: 11px; }
+      .forecast-side dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 10px 0 0; }
+      .forecast-side dt { color: #c9bd9c; }
+      .forecast-side dd { margin: 0; text-align: right; font-weight: 700; }
+      .forecast-side .forecast-note { margin: 10px 0 0; color: #d9c7c7; font-size: 11px; }
+      #combat-forecast .forecast-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+      #combat-forecast button {
+        border: 1px solid #655467; border-radius: 5px; background: #211a27;
+        color: #f1e9e3; padding: 8px 12px; font: inherit; cursor: pointer;
+      }
+      #combat-forecast button:hover, #combat-forecast button:focus-visible { border-color: #e2c582; }
+      @media (max-width: 520px) {
+        #profile-dialog { padding: 14px; }
+        #profile-dialog th, #profile-dialog td { padding: 5px 3px; font-size: 11px; }
+        #profile-weapon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #combat-forecast { padding: 14px; }
+        #combat-forecast-panels { grid-template-columns: 1fr; }
+      }
+      #action-help, #battle-message { color: #c9bd9c; }
+      #battle-message {
+        left: 50%; bottom: 24px; transform: translateX(-50%);
+        max-width: min(420px, calc(100% - 30px)); text-align: center; pointer-events: none;
+      }
+      #main-menu {
+        position: fixed; z-index: 10; inset: 0; display: grid; place-items: center;
+        background: rgba(8, 5, 12, .88); color: #f1e9e3;
+        font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace;
+      }
+      #main-menu[hidden] { display: none; }
+      #main-menu .menu-card {
+        width: min(360px, calc(100% - 40px)); padding: 28px;
+        border: 1px solid #76647a; border-radius: 10px; background: #100c14;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #main-menu h1 { margin: 0 0 22px; color: #d8343c; font-size: 24px; letter-spacing: 4px; }
+      #main-menu .menu-actions { display: grid; gap: 10px; }
+      #main-menu button, #options-dialog button { font-size: inherit; }
+      #main-menu #menu-status { min-height: 1.5em; margin-top: 14px; color: #c9bd9c; font-size: 12px; }
+      #options-dialog {
+        width: min(320px, calc(100% - 48px)); padding: 20px;
+        border: 1px solid #76647a; border-radius: 9px; background: #100c14;
+        color: #f1e9e3; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #options-dialog::backdrop { background: rgba(4, 2, 8, .72); }
+      #options-dialog h2 { margin: 0 0 14px; color: #e2c582; font-size: 18px; }
+      #options-dialog .menu-actions { display: grid; gap: 9px; }
+      #level-up-dialog {
+        width: min(380px, calc(100% - 48px)); max-height: min(84vh, 620px);
+        padding: 20px; border: 1px solid #9c7c4c; border-radius: 9px;
+        background: #100c14; color: #f1e9e3;
+        font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #level-up-dialog::backdrop { background: rgba(4, 2, 8, .78); }
+      #level-up-heading { margin: 0 0 12px; color: #e2c582; font-size: 19px; }
+      #level-up-rolls { max-height: 54vh; overflow-y: auto; }
+      #level-up-rolls h3 { margin: 12px 0 4px; color: #c9bd9c; font-size: 12px; }
+      #level-up-rolls ul { margin: 0; padding: 0; list-style: none; }
+      #level-up-rolls li {
+        display: flex; justify-content: space-between; gap: 12px;
+        padding: 3px 6px; opacity: .4; transition: background 160ms ease, opacity 160ms ease;
+      }
+      #level-up-rolls li.revealed { opacity: 1; }
+      #level-up-rolls li.gained { background: rgba(66, 214, 107, .14); }
+      #level-up-rolls li strong { min-width: 48px; color: #c9bd9c; text-align: right; }
+      #level-up-rolls li.gained strong { color: #6fe38e; }
+      #level-up-continue {
+        width: 100%; margin-top: 16px; padding: 8px;
+        border: 1px solid #655467; border-radius: 5px; background: #211a27;
+        color: #f1e9e3; font: inherit; cursor: pointer;
+      }
+      #level-up-continue:disabled { opacity: .45; cursor: wait; }
+      body.title-screen #hud,
+      body.title-screen #level-tools,
+      body.title-screen #tactical-hud,
+      body.title-screen #tile-inspection,
+      body.title-screen #phase-banner,
+      body.title-screen #action-panel,
+      body.title-screen #battle-message { visibility: hidden; }
+      #main-menu {
+        position: fixed; z-index: 10; inset: 0; display: grid; place-items: center;
+        overflow: hidden; isolation: isolate; color: #f4eee8; background: #080711;
+        font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace;
+      }
+      #main-menu[hidden] { display: none; }
+      #main-menu .menu-background {
+        position: absolute; z-index: 0; inset: 0; display: grid; place-items: center;
+        overflow: hidden; pointer-events: none; background: #000;
+      }
+      #main-menu .menu-background img {
+        width: 100%; height: 100%; object-fit: cover; object-position: center;
+      }
+      #main-menu .menu-background canvas {
+        display: block; width: min(100vw, 177.7778vh); height: min(56.25vw, 100vh);
+        image-rendering: pixelated;
+      }
+      #main-menu .menu-background::after {
+        position: absolute; inset: 0; content: "";
+        background: linear-gradient(90deg, rgba(5, 5, 13, .22), transparent 55%, rgba(5, 5, 13, .12)),
+          linear-gradient(180deg, rgba(5, 5, 13, .18), transparent 35%, rgba(5, 5, 13, .32));
+      }
+      #main-menu .menu-card {
+        position: relative; z-index: 1;
+        width: min(330px, calc(100% - 40px)); padding: 18px 30px 24px;
+        text-align: center; background: linear-gradient(180deg, rgba(8, 12, 24, .38), rgba(5, 9, 17, .76));
+        border: 1px solid rgba(193, 172, 146, .34); border-radius: 3px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, .42);
+        backdrop-filter: blur(3px);
+      }
+      #main-menu .game-logo {
+        display: block; width: min(250px, 100%); height: auto; margin: 0 auto 12px;
+        image-rendering: pixelated; filter: drop-shadow(0 0 12px rgba(190, 54, 62, .28));
+      }
+      #main-menu .menu-actions { display: grid; gap: 9px; }
+      #main-menu button {
+        min-height: 43px; border: 1px solid transparent; border-radius: 2px;
+        background: rgba(12, 17, 27, .52); color: #eee8df;
+        font: 13px Georgia, "Times New Roman", serif; letter-spacing: .2em;
+        text-transform: uppercase; cursor: pointer; transition: .16s ease;
+      }
+      #main-menu button:hover, #main-menu button:focus-visible {
+        border-color: rgba(221, 189, 137, .7); background: rgba(127, 45, 51, .42);
+        color: #fff6e8; outline: none; transform: translateX(3px);
+      }
+      #main-menu button:disabled { opacity: .42; cursor: not-allowed; }
+      #main-menu #menu-status { min-height: 1.5em; margin-top: 12px; color: #c5b99f; font-size: 11px; }
+      #options-dialog {
+        width: min(360px, calc(100% - 48px)); padding: 22px;
+        border: 1px solid #76647a; border-radius: 4px; background: #0b101b;
+        color: #f1e9e3; font: 13px/1.6 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #options-dialog::backdrop { background: rgba(4, 7, 14, .78); }
+      #options-dialog h2 { margin: 0 0 12px; color: #e2c582; font: 22px Georgia, "Times New Roman", serif; }
+      #options-dialog p { margin: 0 0 18px; color: #c9bd9c; }
+      #options-dialog .menu-actions { display: grid; gap: 9px; }
+      #options-dialog button { font-size: 13px; }
+      #terminal-screen {
+        position: fixed; z-index: 20; inset: 0; display: grid; place-items: center;
+        padding: 20px; color: #e8dfd5; opacity: 0;
+        background:
+          radial-gradient(ellipse at 50% 44%, rgba(72, 20, 31, .12), transparent 54%),
+          rgba(4, 3, 8, .94);
+        backdrop-filter: blur(3px);
+        transition: opacity 2.4s ease;
+      }
+      #terminal-screen[hidden] { display: none; }
+      #terminal-screen.visible { opacity: 1; }
+      #terminal-screen .terminal-card {
+        width: min(430px, 100%); padding: 32px 30px 28px; text-align: center;
+        border: 1px solid rgba(153, 104, 91, .58);
+        background: linear-gradient(180deg, rgba(22, 13, 20, .96), rgba(8, 7, 12, .98));
+        box-shadow: 0 0 0 1px rgba(38, 22, 30, .8), 0 25px 100px #000;
+        transform: translateY(10px); transition: transform 2.4s ease;
+      }
+      #terminal-screen.visible .terminal-card { transform: translateY(0); }
+      #terminal-screen .terminal-ornament {
+        color: #8c3b43; font: 22px/1 Georgia, "Times New Roman", serif;
+        letter-spacing: .5em;
+      }
+      #terminal-heading {
+        margin: 18px 0 10px; color: #b64b50;
+        font: 400 clamp(34px, 8vw, 48px)/1 Georgia, "Times New Roman", serif;
+        letter-spacing: .18em; text-shadow: 0 0 26px rgba(120, 28, 40, .35);
+      }
+      #terminal-screen[data-outcome="victory"] #terminal-heading { color: #c9b17f; }
+      #terminal-message {
+        margin: 0 0 24px; color: #b9aa9e;
+        font: 14px/1.7 Georgia, "Times New Roman", serif;
+      }
+      #terminal-screen .terminal-actions { display: grid; gap: 10px; }
+      #terminal-screen button {
+        min-height: 44px; border: 1px solid #59414a; border-radius: 2px;
+        background: rgba(32, 18, 26, .75); color: #e9dfd5;
+        font: 13px Georgia, "Times New Roman", serif; letter-spacing: .18em;
+        text-transform: uppercase; cursor: pointer; transition: .16s ease;
+      }
+      #terminal-screen button:hover, #terminal-screen button:focus-visible {
+        border-color: #b68e70; background: rgba(91, 35, 42, .7); outline: none;
+      }
+      @media (max-width: 600px) {
+        #level-tools { top: 12px; right: 12px; }
+        #hud { top: 12px; left: 12px; }
+        #level-tools .actions { margin-top: 58px; }
+        #tactical-hud { top: 92px; left: 12px; }
+        #action-panel { left: 12px; bottom: 12px; }
+        #battle-message { bottom: 12px; }
+        #tile-inspection { right: 12px; bottom: 64px; width: min(235px, calc(100% - 24px)); }
+      }
+    </style>
+  </head>
+  <body class="title-screen">
+    <div id="hud">
+      <div class="title">BLOOD-EMBLEM</div>
+      <div class="hint">WASD / ARROWS · TAB cycle units · ENTER inspect enemy</div>
+    </div>
+    <div id="level-tools">
+      <div class="actions">
+        <a href="/map-editor.html">Map editor</a>
+        <button id="load-level" type="button">Import level</button>
+        <button id="main-menu-action" type="button">Options</button>
+        <input id="level-file" type="file" accept=".json,application/json" hidden />
+      </div>
+      <div id="level-status" role="status" aria-live="polite"></div>
+      <aside id="objective-panel" aria-label="Map objective">
+        <strong id="objective-label"></strong>
+      </aside>
+      <aside id="unit-hover-card" aria-live="polite" hidden></aside>
+      <aside id="exp-panel" aria-label="Experience" hidden>
+        <div id="exp-label">LV 1 · EXP 0/100</div>
+        <div id="exp-track" role="progressbar" aria-label="Experience to next level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="exp-fill"></div>
+        </div>
+        <div id="exp-gain" aria-live="polite"></div>
+      </aside>
+    </div>
+    <section id="tactical-hud" aria-label="Battle status">
+      <div id="phase-label">PLAYER PHASE - TURN 1</div>
+    </section>
+    <aside id="tile-inspection" aria-live="polite" hidden>
+      <strong id="tile-inspection-name"></strong>
+      <span id="tile-inspection-details"></span>
+    </aside>
+    <div id="phase-banner" role="status" aria-live="polite"></div>
+    <section id="action-panel" aria-label="Unit actions" hidden>
+      <strong>MARIA</strong>
+      <div class="actions">
+        <button id="attack-action" type="button">Attack</button>
+        <button id="inventory-action" type="button">Inventory</button>
+        <button id="profile-action" type="button">Profile</button>
+        <button id="finish-action" type="button">End Unit</button>
+        <button id="cancel-action" type="button">Back</button>
+      </div>
+      <button id="end-phase" type="button">End Phase</button>
+      <div id="action-help"></div>
+    </section>
+    <main id="main-menu" aria-label="Blood Emblem main menu">
+      <div class="menu-background" aria-hidden="true">
+        <canvas id="scene" width="320" height="180"></canvas>
+      </div>
+      <div class="menu-card">
+        <img class="game-logo" src="./assets/ui/logo-4x.png" alt="Blood Emblem" />
+        <div class="menu-actions">
+          <button id="new-game" type="button">New Game</button>
+          <button id="continue-game" type="button" disabled>Continue</button>
+          <button id="title-options" type="button">Options</button>
+        </div>
+        <div id="menu-status" role="status" aria-live="polite"></div>
+      </div>
+    </main>
+    <dialog id="options-dialog" aria-labelledby="options-heading">
+      <h2 id="options-heading">Options</h2>
+      <p>Move with the arrow keys or WASD. Enter or Space selects. Escape goes back.</p>
+      <div class="menu-actions">
+        <button id="open-unit-list" type="button">Unit List</button>
+        <button id="resume-game" type="button">Close</button>
+        <button id="return-to-menu" type="button">Return to Main Menu</button>
+      </div>
+    </dialog>
+    <dialog id="unit-list-dialog" aria-labelledby="unit-list-heading">
+      <h2 id="unit-list-heading">Unit List</h2>
+      <div id="unit-list-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col"><span class="visually-hidden">Unit</span></th>
+              <th scope="col">Name</th>
+              <th scope="col">Class</th>
+              <th scope="col">Weapon</th>
+              <th scope="col">Lv</th>
+              <th scope="col">HP</th>
+              <th scope="col">Str</th>
+              <th scope="col">Mag</th>
+              <th scope="col">Dex</th>
+              <th scope="col">Spd</th>
+              <th scope="col">Lck</th>
+              <th scope="col">Def</th>
+              <th scope="col">Res</th>
+              <th scope="col">Mov</th>
+            </tr>
+          </thead>
+          <tbody id="unit-list-body"></tbody>
+        </table>
+      </div>
+      <button id="unit-list-close" type="button">Close</button>
+    </dialog>
+    <section id="terminal-screen" data-outcome="game-over" role="dialog" aria-modal="true" aria-labelledby="terminal-heading" hidden>
+      <div class="terminal-card">
+        <div class="terminal-ornament" aria-hidden="true">✦ · ✦</div>
+        <h1 id="terminal-heading">GAME OVER</h1>
+        <p id="terminal-message"></p>
+        <div class="terminal-actions">
+          <button id="restart-level" type="button">Restart</button>
+          <button id="terminal-main-menu" type="button">Quit to Main Menu</button>
+        </div>
+      </div>
+    </section>
+    <dialog id="level-up-dialog" aria-labelledby="level-up-heading">
+      <h2 id="level-up-heading"></h2>
+      <div id="level-up-rolls"></div>
+      <button id="level-up-continue" type="button" disabled>Continue</button>
+    </dialog>
+    <dialog id="profile-dialog" aria-labelledby="profile-heading">
+      <div class="profile-header">
+        <div>
+          <h2 id="profile-heading"></h2>
+          <div id="profile-level"></div>
+        </div>
+        <button id="close-profile" type="button" aria-label="Close character profile">Close</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th scope="col">Stat</th><th scope="col">Base</th><th scope="col">Current</th><th scope="col">Growth</th></tr>
+        </thead>
+        <tbody id="profile-stats"></tbody>
+      </table>
+      <h3>Inventory · Equipped weapon</h3>
+      <dl id="profile-weapon"></dl>
+      <p id="profile-combat-note"></p>
+    </dialog>
+    <dialog id="inventory-dialog" aria-labelledby="inventory-heading">
+      <div class="inventory-header">
+        <h2 id="inventory-heading">Maria's Inventory</h2>
+      </div>
+      <ul id="inventory-items"></ul>
+      <p id="inventory-empty" hidden>No items.</p>
+      <button id="inventory-close" type="button">Back</button>
+    </dialog>
+    <dialog id="combat-forecast" aria-labelledby="combat-forecast-heading">
+      <h2 id="combat-forecast-heading">Combat forecast</h2>
+      <p id="combat-forecast-matchup"></p>
+      <div id="combat-forecast-panels">
+        <section class="forecast-side player" aria-label="Player combat stats"></section>
+        <section class="forecast-side enemy" aria-label="Enemy combat stats"></section>
+      </div>
+      <div class="forecast-actions">
+        <button id="cancel-combat" type="button">Cancel</button>
+        <button id="confirm-combat" type="button">Confirm Attack</button>
+      </div>
+    </dialog>
+    <div id="battle-message" role="status" aria-live="polite">Arrow keys move cursor · Enter select · E end phase</div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
