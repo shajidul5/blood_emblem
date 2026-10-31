@@ -1,5 +1,15 @@
 import { attackSpeed, getAvoid, getHitRate, weaponRangeLabel } from '../battle/combat.js';
 
+const PORTRAITS = import.meta.glob('../../assets/character/*/Idle/rotations/south.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+function portraitUrl(unit) {
+  return unit.sprite ? PORTRAITS[`../../${unit.sprite}`] : undefined;
+}
+
 const STAT_ROWS = [
   ['HP', 'hp'],
   ['Strength', 'strength'],
@@ -18,10 +28,16 @@ export function createProfileDialog(dialog) {
   const weaponDetails = dialog.querySelector('#profile-weapon');
 
   function show(unit, opponent, terrain, opponentTerrain) {
-    dialog.querySelector('#profile-heading').textContent =
-      `${unit.name}${unit.isBoss ? ' · Boss' : ''} · ${unit.class}`;
+    dialog.querySelector('#profile-heading').textContent = unit.name;
+    dialog.querySelector('#profile-class').textContent =
+      `${unit.isBoss ? 'Boss · ' : ''}${unit.class}${unit.type ? ` · ${unit.type}` : ''}`;
     dialog.querySelector('#profile-level').textContent =
       `Level ${unit.level} · ${unit.experience} EXP`;
+    const portrait = dialog.querySelector('#profile-portrait');
+    const url = portraitUrl(unit);
+    portrait.hidden = !url;
+    if (url) portrait.src = url;
+    portrait.alt = `${unit.name} portrait`;
     statsBody.replaceChildren();
 
     for (const [label, key] of STAT_ROWS) {
@@ -67,6 +83,13 @@ export function createProfileDialog(dialog) {
       term.textContent = label;
       const description = document.createElement('dd');
       description.textContent = value;
+      if (label === 'Weapon' && weapon.spriteUrl) {
+        const icon = document.createElement('img');
+        icon.src = weapon.spriteUrl;
+        icon.alt = '';
+        description.className = 'weapon-name';
+        description.prepend(icon);
+      }
       item.append(term, description);
       weaponDetails.append(item);
     }

@@ -1,0 +1,47 @@
+{
+  "id": "merfolk",
+  "name": "Merfolk",
+  "class": "Merfolk",
+  "type": "infantry",
+  "spriteSet": "merfolk",
+  "sprite": "assets/character/Merfolk/Idle/rotations/south.png",
+  "level": 2,
+  "experience": 0,
+  "weaponId": "iron-spear",
+  "baseStats": {
+    "hp": 20,
+    "strength": 6,
+    "magic": 0,
+    "dexterity": 5,
+    "speed": 5,
+    "luck": 0,
+    "defense": 3,
+    "resistance": 1,
+    "movement": 4,
+    "build": 4
+  },
+  "currentStats": {
+    "hp": 20,
+    "strength": 6,
+    "magic": 0,
+    "dexterity": 5,
+    "speed": 5,
+    "luck": 0,
+    "defense": 3,
+    "resistance": 1,
+    "movement": 4,
+    "build": 4
+  },
+  "growthRates": {
+    "hp": 0,
+    "strength": 0,
+    "magic": 0,
+    "dexterity": 0,
+    "speed": 0,
+    "luck": 0,
+    "defense": 0,
+    "resistance": 0,
+    "movement": 0,
+    "build": 0
+  }
+}

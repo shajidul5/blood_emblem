@@ -229,16 +229,17 @@ function render() {
       );
     }
   }
+  const objectSize = shipTileset.objects.tileSize ?? tileSize;
   for (const object of map.objects ?? []) {
     const atlasObject = SHIP_OBJECTS.get(object.id);
     const px = offsetX + object.x * cell;
     const py = offsetY + object.z * cell;
     context.drawImage(
       objectAtlas,
-      atlasObject.col * tileSize,
-      atlasObject.row * tileSize,
-      tileSize,
-      tileSize,
+      atlasObject.col * objectSize,
+      atlasObject.row * objectSize,
+      objectSize,
+      objectSize,
       px + cell * 0.1,
       py + cell * 0.1,
       cell * 0.8,

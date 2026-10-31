@@ -1,0 +1,49 @@
+{
+  "id": "merfolk-boss",
+  "name": "Merfolk Warlord",
+  "class": "Merfolk",
+  "type": "infantry",
+  "spriteSet": "merfolk",
+  "scale": 1.12,
+  "sprite": "assets/character/Merfolk/Idle/rotations/south.png",
+  "level": 4,
+  "experience": 0,
+  "weaponId": "steel-spear",
+  "isBoss": true,
+  "baseStats": {
+    "hp": 34,
+    "strength": 8,
+    "magic": 0,
+    "dexterity": 6,
+    "speed": 7,
+    "luck": 3,
+    "defense": 6,
+    "resistance": 3,
+    "movement": 4,
+    "build": 6
+  },
+  "currentStats": {
+    "hp": 34,
+    "strength": 8,
+    "magic": 0,
+    "dexterity": 6,
+    "speed": 7,
+    "luck": 3,
+    "defense": 6,
+    "resistance": 3,
+    "movement": 4,
+    "build": 6
+  },
+  "growthRates": {
+    "hp": 0,
+    "strength": 0,
+    "magic": 0,
+    "dexterity": 0,
+    "speed": 0,
+    "luck": 0,
+    "defense": 0,
+    "resistance": 0,
+    "movement": 0,
+    "build": 0
+  }
+}

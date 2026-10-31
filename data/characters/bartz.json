@@ -3,9 +3,12 @@
   "name": "Bartz",
   "class": "Pirate",
   "type": "infantry",
-  "level": 5,
+  "spriteSet": "bartz",
+  "sprite": "assets/character/Bartz/Idle/rotations/south.png",
+  "level": 2,
   "experience": 0,
   "weaponId": "iron-axe",
+  "inventory": ["iron-axe", "potion"],
   "isBoss": true,
   "baseStats": {
     "hp": 38,
@@ -32,15 +35,15 @@
     "build": 6
   },
   "growthRates": {
-    "hp": 0,
-    "strength": 0,
-    "magic": 0,
-    "dexterity": 0,
-    "speed": 0,
-    "luck": 0,
-    "defense": 0,
-    "resistance": 0,
+    "hp": 85,
+    "strength": 65,
+    "magic": 20,
+    "dexterity": 40,
+    "speed": 40,
+    "luck": 50,
+    "defense": 30,
+    "resistance": 20,
     "movement": 0,
-    "build": 0
+    "build": 10
   }
 }

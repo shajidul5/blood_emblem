@@ -1,14 +1,95 @@
 import initialMapUrl from '../../data/levels/map_01_two_ships.json?url&no-inline';
+import chapterTwoMapUrl from '../../data/levels/map_02_boarders_from_the_deep.json?url&no-inline';
 import shipTilesUrl from '../../assets/tiles/ship_oblique/ship_oblique_tiles.png?url';
 import shipObjectsUrl from '../../assets/tiles/ship_oblique/ship_objects.png?url';
 import mastUrl from '../../assets/tiles/ship_oblique/mast.png?url';
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
-import { isTileWalkable } from './tiles.js';
+import { getTileDef, isTileWalkable } from './tiles.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e']);
 export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'escape']);
 
 const TILE_SIZE = shipTileset.tileSize;
+const WATER_TILE_IDS = new Set(['water_a', 'water_b', 'water_foam']);
+const RETIRED_OBJECT_IDS = new Set([
+  'rope_coil', 'cannon_e', 'cannon_w', 'anchor', 'chest', 'candelabra', 'coffin', 'chains', 'bones', 'blood_pool', 'torn_sail',
+]);
+// Matches the pitch of the tactical camera so upright props face it squarely.
+const OBJECT_TILT = Math.atan2(14, 10);
+const OBJECT_SIZE = 0.82;
+const waterTime = { value: 0 };
+const glowLights = [];
+let glowTexture;
+
+function getGlowTexture(THREE) {
+  if (!glowTexture) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 128;
+    const context = canvas.getContext('2d');
+    const gradient = context.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.95)');
+    gradient.addColorStop(0.25, 'rgba(255,255,255,0.45)');
+    gradient.addColorStop(0.6, 'rgba(255,255,255,0.12)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 128, 128);
+    glowTexture = new THREE.CanvasTexture(canvas);
+  }
+  return glowTexture;
+}
+
+export function updateLevelAnimation(elapsedSeconds) {
+  waterTime.value = elapsedSeconds;
+  for (const glow of glowLights) {
+    const flicker = 0.85 + Math.sin(elapsedSeconds * 9 + glow.phase) * 0.07 + Math.sin(elapsedSeconds * 23 + glow.phase * 2) * 0.05;
+    glow.sprite.material.opacity = glow.intensity * flicker;
+    glow.sprite.scale.setScalar(glow.radius * (0.96 + 0.06 * flicker));
+  }
+}
+
+// Drifting ripples and a shimmer travel across the water using world position, so they flow across tiles seamlessly.
+function createWaterMaterial(THREE, texture) {
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    roughness: 0.9,
+    transparent: true,
+    alphaTest: 0.08,
+    side: THREE.DoubleSide,
+  });
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = waterTime;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+        varying vec2 vTileUv;
+        varying vec2 vWaterPos;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vTileUv = uv;
+        vec4 waterLocal = vec4(position, 1.0);
+        #ifdef USE_INSTANCING
+          waterLocal = instanceMatrix * waterLocal;
+        #endif
+        vWaterPos = (modelMatrix * waterLocal).xz;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        uniform float uTime;
+        varying vec2 vTileUv;
+        varying vec2 vWaterPos;`)
+      .replace('#include <map_fragment>', `
+        vec2 wp = vWaterPos;
+        vec2 wobble = vec2(
+          sin(wp.y * 5.0 + uTime * 1.3) + sin(wp.x * 3.1 - uTime * 0.9),
+          cos(wp.x * 4.3 + uTime * 1.1) + cos(wp.y * 2.7 + uTime * 0.7)
+        ) * 0.025;
+        vec4 sampledDiffuseColor = texture2D(map, clamp(vTileUv + wobble, 0.002, 0.998));
+        float ripple = sin((wp.x * 2.0 + wp.y * 3.0) * 3.0 - uTime * 1.6)
+                     * sin((wp.y * 1.5 - wp.x * 3.0) * 3.0 + uTime * 1.1);
+        float crest = smoothstep(0.7, 0.98, ripple);
+        sampledDiffuseColor.rgb += vec3(0.14, 0.22, 0.32) * crest;
+        sampledDiffuseColor.rgb *= 0.93 + 0.07 * sin(uTime * 0.8 + wp.x * 0.7 + wp.y * 0.5);
+        diffuseColor *= sampledDiffuseColor;`);
+  };
+  return material;
+}
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
 const ATLAS_TILE_IDS = new Set(ATLAS_TILES.keys());
 const BLOCKING_OBJECTS = new Set(
@@ -50,25 +131,28 @@ const [shipTilesImage, shipObjectsImage, mastImage] = await Promise.all([
 function atlasTexture(THREE, image, atlas, id) {
   const tile = atlas.list.find((entry) => entry.id === id);
   if (!tile) throw new Error(`Unknown ship atlas tile "${id}".`);
+  const size = atlas.tileSize ?? TILE_SIZE;
+  const smooth = atlas.filter === 'smooth';
   const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = TILE_SIZE;
+  canvas.width = canvas.height = size;
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Could not create a canvas for the ship atlas.');
   context.drawImage(
     image,
-    tile.col * TILE_SIZE,
-    tile.row * TILE_SIZE,
-    TILE_SIZE,
-    TILE_SIZE,
+    tile.col * size,
+    tile.row * size,
+    size,
+    size,
     0,
     0,
-    TILE_SIZE,
-    TILE_SIZE,
+    size,
+    size,
   );
   const texture = new THREE.CanvasTexture(canvas);
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-  texture.generateMipmaps = false;
+  texture.magFilter = smooth ? THREE.LinearFilter : THREE.NearestFilter;
+  texture.minFilter = smooth ? THREE.LinearMipmapLinearFilter : THREE.NearestFilter;
+  texture.generateMipmaps = smooth;
+  texture.anisotropy = smooth ? 4 : 1;
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
@@ -149,7 +233,8 @@ export function validateLevel(value) {
   if (!LEVEL_OBJECTIVES.has(objective)) {
     throw new Error('Level objective must be defeat-all-enemies or escape.');
   }
-  const objects = value.objects ?? [];
+  // Props removed from the tileset are dropped so older saves and levels still load.
+  const objects = (value.objects ?? []).filter?.((object) => !RETIRED_OBJECT_IDS.has(object?.id)) ?? value.objects;
   if (!Array.isArray(objects) || !objects.every((object) => {
     const z = object?.z ?? object?.y;
     return object && Number.isInteger(object.x) && object.x >= 0 && object.x < width &&
@@ -166,6 +251,35 @@ export function validateLevel(value) {
   })) {
     throw new Error('Blocking objects cannot be placed on the Start or Exit tile.');
   }
+  const readPlacements = (list, label, requireId) => {
+    if (list === undefined) return [];
+    if (!Array.isArray(list) || !list.every((entry) => {
+      const entryZ = entry?.z ?? entry?.y;
+      return entry && typeof entry.id === 'string' &&
+        Number.isInteger(entry.x) && entry.x >= 0 && entry.x < width &&
+        Number.isInteger(entryZ) && entryZ >= 0 && entryZ < height &&
+        isTileWalkable(tileIds[entryZ][entry.x]);
+    })) {
+      throw new Error(`Level ${label} need an ID and must be placed on walkable tiles.`);
+    }
+    return list.map((entry) => ({ id: entry.id, x: entry.x, z: entry.z ?? entry.y }));
+  };
+  const players = readPlacements(value.players, 'players');
+  const enemyPlacements = readPlacements(value.enemies, 'enemies');
+  const startingItems = value.startingItems ?? [];
+  if (!Array.isArray(startingItems) || startingItems.some((id) => typeof id !== 'string')) {
+    throw new Error('Level startingItems must be a list of item IDs.');
+  }
+  const occupied = new Set();
+  for (const unit of [...players, ...enemyPlacements]) {
+    const key = `${unit.x},${unit.z}`;
+    const blocked = objects.some((object) =>
+      BLOCKING_OBJECTS.has(object.id) && object.x === unit.x && (object.z ?? object.y) === unit.z);
+    if (occupied.has(key) || blocked) {
+      throw new Error('Level units cannot share a tile or stand on blocking objects.');
+    }
+    occupied.add(key);
+  }
   return {
     name: name.trim(),
     objective,
@@ -173,6 +287,9 @@ export function validateLevel(value) {
     height,
     spawn,
     exit,
+    players,
+    enemies: enemyPlacements,
+    startingItems,
     tiles: tileIds,
     tileIds,
     objects: objects.map((object) => ({
@@ -182,6 +299,15 @@ export function validateLevel(value) {
       blocksMovement: BLOCKING_OBJECTS.has(object.id),
     })),
   };
+}
+
+const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl];
+export const CHAPTER_COUNT = CHAPTER_URLS.length;
+
+export async function loadChapterLevel(index) {
+  const response = await fetch(CHAPTER_URLS[index]);
+  if (!response.ok) throw new Error(`Could not load chapter ${index + 1} (${response.status}).`);
+  return validateLevel(await response.json());
 }
 
 export async function loadInitialLevel(setStatus) {
@@ -207,8 +333,98 @@ export async function loadInitialLevel(setStatus) {
   }
 }
 
+// Corner heights in NW, NE, SW, SE order. A "rise" of w/e makes a ramp that climbs toward that side.
+export function tileCornerHeights(def) {
+  const top = def.elevation * 2;
+  if (def.rise === 'w') return [top, 0, top, 0];
+  if (def.rise === 'e') return [0, top, 0, top];
+  return [def.elevation, def.elevation, def.elevation, def.elevation];
+}
+
+function addElevatedTiles(THREE, levelGroup, level, cells) {
+  if (!cells.length) return;
+  const sideMaterial = new THREE.MeshStandardMaterial({
+    color: 0x4a2a18,
+    roughness: 1,
+    side: THREE.DoubleSide,
+  });
+  const sidePositions = [];
+  const cornersAt = (x, z) => {
+    const id = level.tileIds[z]?.[x];
+    return id ? tileCornerHeights(getTileDef(id)) : [0, 0, 0, 0];
+  };
+  // [own corner a, own corner b, neighbour corner a, neighbour corner b, dx, dz, edge points]
+  const edges = [
+    { own: [0, 1], nb: [2, 3], dx: 0, dz: -1, p: [[0, 0], [1, 0]] },
+    { own: [2, 3], nb: [0, 1], dx: 0, dz: 1, p: [[0, 1], [1, 1]] },
+    { own: [0, 2], nb: [1, 3], dx: -1, dz: 0, p: [[0, 0], [0, 1]] },
+    { own: [1, 3], nb: [0, 2], dx: 1, dz: 0, p: [[1, 0], [1, 1]] },
+  ];
+  const byAtlas = new Map();
+  for (const cell of cells) {
+    if (!byAtlas.has(cell.atlasId)) byAtlas.set(cell.atlasId, []);
+    byAtlas.get(cell.atlasId).push(cell);
+    const own = cornersAt(cell.x, cell.z);
+    const baseX = cell.x - level.width / 2;
+    const baseZ = cell.z - level.height / 2;
+    for (const edge of edges) {
+      const nb = cornersAt(cell.x + edge.dx, cell.z + edge.dz);
+      const topA = own[edge.own[0]];
+      const topB = own[edge.own[1]];
+      const lowA = Math.min(topA, nb[edge.nb[0]]);
+      const lowB = Math.min(topB, nb[edge.nb[1]]);
+      if (topA - lowA < 0.001 && topB - lowB < 0.001) continue;
+      const [[ax, az], [bx, bz]] = edge.p;
+      const A = [baseX + ax, baseZ + az];
+      const B = [baseX + bx, baseZ + bz];
+      sidePositions.push(
+        A[0], lowA, A[1], B[0], lowB, B[1], B[0], topB, B[1],
+        A[0], lowA, A[1], B[0], topB, B[1], A[0], topA, A[1],
+      );
+    }
+  }
+  for (const [atlasId, group] of byAtlas) {
+    const texture = atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      roughness: 0.9,
+      transparent: true,
+      alphaTest: 0.08,
+      side: THREE.DoubleSide,
+    });
+    const positions = [];
+    const uvs = [];
+    for (const cell of group) {
+      const h = tileCornerHeights(getTileDef(atlasId));
+      const x0 = cell.x - level.width / 2;
+      const z0 = cell.z - level.height / 2;
+      const nw = [x0, h[0], z0];
+      const ne = [x0 + 1, h[1], z0];
+      const sw = [x0, h[2], z0 + 1];
+      const se = [x0 + 1, h[3], z0 + 1];
+      positions.push(...nw, ...sw, ...se, ...nw, ...se, ...ne);
+      uvs.push(0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.computeVertexNormals();
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.receiveShadow = true;
+    levelGroup.add(mesh);
+  }
+  if (sidePositions.length) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(sidePositions, 3));
+    geometry.computeVertexNormals();
+    levelGroup.add(new THREE.Mesh(geometry, sideMaterial));
+  }
+}
+
 export function buildLevel(THREE, levelGroup, value) {
   const level = validateLevel(value);
+  for (const glow of glowLights) glow.sprite.material.dispose();
+  glowLights.length = 0;
   levelGroup.traverse((object) => {
     if (!object.isMesh) return;
     object.geometry.dispose();
@@ -220,9 +436,14 @@ export function buildLevel(THREE, levelGroup, value) {
   levelGroup.clear();
 
   const tileGroups = new Map();
+  const elevatedCells = [];
   for (let z = 0; z < level.height; z++) {
     for (let x = 0; x < level.width; x++) {
       const atlasId = level.tileIds[z][x];
+      if (getTileDef(atlasId).elevation > 0) {
+        elevatedCells.push({ x, z, atlasId });
+        continue;
+      }
       if (!tileGroups.has(atlasId)) tileGroups.set(atlasId, []);
       tileGroups.get(atlasId).push({
         x: x - level.width / 2 + 0.5,
@@ -230,18 +451,21 @@ export function buildLevel(THREE, levelGroup, value) {
       });
     }
   }
+  addElevatedTiles(THREE, levelGroup, level, elevatedCells);
 
   const geometry = new THREE.PlaneGeometry(1, 1);
   geometry.rotateX(-Math.PI / 2);
   for (const [atlasId, cells] of tileGroups) {
     const texture = atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
-    const material = new THREE.MeshStandardMaterial({
-      map: texture,
-      roughness: 0.9,
-      transparent: true,
-      alphaTest: 0.08,
-      side: THREE.DoubleSide,
-    });
+    const material = WATER_TILE_IDS.has(atlasId)
+      ? createWaterMaterial(THREE, texture)
+      : new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.9,
+        transparent: true,
+        alphaTest: 0.08,
+        side: THREE.DoubleSide,
+      });
     const instances = new THREE.InstancedMesh(geometry, material, cells.length);
     const transform = new THREE.Object3D();
     cells.forEach((cell, index) => {
@@ -255,8 +479,11 @@ export function buildLevel(THREE, levelGroup, value) {
   }
 
   const mastTexture = new THREE.Texture(mastImage);
-  mastTexture.magFilter = THREE.NearestFilter;
-  mastTexture.minFilter = THREE.NearestFilter;
+  const mastSmooth = shipTileset.tall?.[0]?.filter === 'smooth';
+  mastTexture.magFilter = mastSmooth ? THREE.LinearFilter : THREE.NearestFilter;
+  mastTexture.minFilter = mastSmooth ? THREE.LinearMipmapLinearFilter : THREE.NearestFilter;
+  mastTexture.generateMipmaps = mastSmooth;
+  mastTexture.anisotropy = mastSmooth ? 4 : 1;
   mastTexture.colorSpace = THREE.SRGBColorSpace;
   mastTexture.needsUpdate = true;
   const mastMaterial = new THREE.MeshBasicMaterial({
@@ -283,24 +510,76 @@ export function buildLevel(THREE, levelGroup, value) {
     levelGroup.add(mast);
   }
 
+  // Solid props stand upright facing the camera; loose floor clutter (ropes, bones, blood) stays flat.
+  // A tileset object can override this with an explicit "upright" flag.
+  const standingGeometry = new THREE.PlaneGeometry(OBJECT_SIZE, OBJECT_SIZE);
+  standingGeometry.translate(0, OBJECT_SIZE / 2, 0);
+  const flatGeometry = new THREE.PlaneGeometry(OBJECT_SIZE, OBJECT_SIZE);
+  const shadowGeometry = new THREE.CircleGeometry(0.4, 20);
+  shadowGeometry.rotateX(-Math.PI / 2);
+  const shadowMaterial = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    opacity: 0.38,
+    depthWrite: false,
+  });
   for (const object of level.objects) {
     const atlasObject = shipTileset.objects.list.find((entry) => entry.id === object.id);
+    const upright = atlasObject.upright ?? atlasObject.blocksMovement;
     const texture = atlasTexture(THREE, shipObjectsImage, shipTileset.objects, object.id);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      alphaTest: 0.1,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-    const sprite = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.82), material);
-    sprite.rotation.x = -Math.PI / 2;
-    sprite.position.set(
-      object.x - level.width / 2 + 0.5,
-      0.15,
-      object.z - level.height / 2 + 0.5,
-    );
-    sprite.renderOrder = 3;
+    const centerX = object.x - level.width / 2 + 0.5;
+    const centerZ = object.z - level.height / 2 + 0.5;
+    const lift = getTileDef(level.tileIds[object.z][object.x]).elevation;
+    let sprite;
+    if (upright) {
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        color: 0xe4d6d2,
+        transparent: true,
+        alphaTest: 0.1,
+        side: THREE.DoubleSide,
+      });
+      sprite = new THREE.Mesh(standingGeometry, material);
+      sprite.rotation.x = -OBJECT_TILT;
+      // Feet sit toward the front of the tile so the prop reads as resting on the deck.
+      sprite.position.set(centerX, 0.12 + lift, centerZ + 0.3);
+      sprite.renderOrder = 3;
+      const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+      shadow.position.set(centerX, 0.12 + lift, centerZ + 0.3);
+      shadow.renderOrder = 2;
+      levelGroup.add(shadow);
+      if (atlasObject.glow) {
+        const material = new THREE.SpriteMaterial({
+          map: getGlowTexture(THREE),
+          color: atlasObject.glow.color ?? '#ffb347',
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const glowSprite = new THREE.Sprite(material);
+        glowSprite.position.set(centerX, 0.12 + lift + (atlasObject.glow.height ?? 0.5), centerZ + 0.4);
+        glowSprite.renderOrder = 4;
+        levelGroup.add(glowSprite);
+        glowLights.push({
+          sprite: glowSprite,
+          radius: atlasObject.glow.radius ?? 1.5,
+          intensity: atlasObject.glow.intensity ?? 0.55,
+          phase: object.x * 1.7 + object.z * 2.3,
+        });
+      }
+    } else {
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        alphaTest: 0.1,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      sprite = new THREE.Mesh(flatGeometry, material);
+      sprite.rotation.x = -Math.PI / 2;
+      sprite.position.set(centerX, 0.15 + lift, centerZ);
+      sprite.renderOrder = 3;
+    }
     sprite.userData.blocksMovement = atlasObject.blocksMovement;
     levelGroup.add(sprite);
   }

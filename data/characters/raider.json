@@ -3,6 +3,8 @@
   "name": "Raider",
   "class": "Raider",
   "type": "infantry",
+  "spriteSet": "raider",
+  "sprite": "assets/character/Generic_Raider/Idle/rotations/south.png",
   "level": 1,
   "experience": 0,
   "weaponId": "iron-axe",

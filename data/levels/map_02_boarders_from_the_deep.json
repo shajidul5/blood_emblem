@@ -1,0 +1,309 @@
+{
+ "name": "Map 02 - Boarders from the Deep",
+ "tileset": "/tiles/ship_oblique/ship_oblique_tileset.json",
+ "tileSize": 32,
+ "width": 21,
+ "height": 9,
+ "objective": "defeat-all-enemies",
+ "spawn": {
+  "x": 4,
+  "z": 3
+ },
+ "exit": {
+  "x": 4,
+  "z": 5
+ },
+ "players": [
+  {
+   "id": "maria",
+   "x": 4,
+   "z": 3
+  },
+  {
+   "id": "bartz",
+   "x": 4,
+   "z": 5
+  }
+ ],
+ "enemies": [
+  {
+   "id": "merfolk-boss",
+   "x": 16,
+   "z": 4
+  },
+  {
+   "id": "merfolk",
+   "x": 15,
+   "z": 3
+  },
+  {
+   "id": "merfolk",
+   "x": 15,
+   "z": 5
+  },
+  {
+   "id": "merfolk",
+   "x": 14,
+   "z": 2
+  },
+  {
+   "id": "merfolk",
+   "x": 14,
+   "z": 6
+  }
+ ],
+ "startingItems": [
+  "potion"
+ ],
+ "tiles": [
+  [
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_b",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "hull_nw",
+   "quarterdeck_rail_n",
+   "quarterdeck_rail_n",
+   "quarterdeck_rail_n",
+   "quarterdeck_rail_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_n",
+   "hull_diag_ne",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_b",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "quarterdeck_rail_w",
+   "quarterdeck_a",
+   "quarterdeck_b",
+   "quarterdeck_a",
+   "quarterdeck_rail_e",
+   "deck_c",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "hull_diag_ne",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_b"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "quarterdeck_rail_w",
+   "quarterdeck_b",
+   "quarterdeck_a",
+   "quarterdeck_b",
+   "stairs_w",
+   "deck_b",
+   "deck_a",
+   "deck_a",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_c",
+   "hull_diag_ne",
+   "water_foam",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "quarterdeck_rail_w",
+   "quarterdeck_a",
+   "quarterdeck_b",
+   "quarterdeck_a",
+   "quarterdeck_rail_e",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "mast_base",
+   "deck_a",
+   "deck_b",
+   "deck_c",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "hull_e",
+   "water_foam",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "quarterdeck_rail_w",
+   "quarterdeck_b",
+   "quarterdeck_a",
+   "quarterdeck_b",
+   "stairs_w",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_c",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "hull_diag_se",
+   "water_foam",
+   "water_foam",
+   "water_b"
+  ],
+  [
+   "water_b",
+   "water_foam",
+   "quarterdeck_rail_w",
+   "quarterdeck_a",
+   "quarterdeck_b",
+   "quarterdeck_a",
+   "quarterdeck_rail_e",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_c",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "deck_a",
+   "deck_b",
+   "hull_diag_se",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_a"
+  ],
+  [
+   "water_a",
+   "water_foam",
+   "hull_sw",
+   "quarterdeck_rail_s",
+   "quarterdeck_rail_s",
+   "quarterdeck_rail_s",
+   "quarterdeck_rail_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_s",
+   "hull_diag_se",
+   "water_foam",
+   "water_foam",
+   "water_a",
+   "water_b",
+   "water_a"
+  ],
+  [
+   "water_b",
+   "water_a",
+   "water_a",
+   "water_b",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_foam",
+   "water_a"
+  ]
+ ],
+ "objects": [
+  {
+   "x": 3,
+   "y": 4,
+   "id": "ship_wheel"
+  },
+  {
+   "x": 5,
+   "y": 2,
+   "id": "lantern"
+  },
+  {
+   "x": 5,
+   "y": 6,
+   "id": "lantern"
+  },
+  {
+   "x": 8,
+   "y": 2,
+   "id": "barrel"
+  },
+  {
+   "x": 9,
+   "y": 2,
+   "id": "barrel"
+  },
+  {
+   "x": 8,
+   "y": 3,
+   "id": "barrel"
+  },
+  {
+   "x": 8,
+   "y": 6,
+   "id": "crates"
+  },
+  {
+   "x": 9,
+   "y": 6,
+   "id": "crate"
+  }
+ ]
+}

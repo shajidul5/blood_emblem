@@ -3,6 +3,8 @@
   "name": "Maria",
   "class": "Myrmidon",
   "type": "infantry",
+  "spriteSet": "maria",
+  "sprite": "assets/character/Maria/Idle/rotations/south.png",
   "level": 1,
   "experience": 0,
   "weaponId": "iron-katana",

@@ -10,5 +10,6 @@
   "minRange": 1,
   "maxRange": 1,
   "effect": ["cavalry", "armor"],
+  "sound": "slash",
   "sprite": "assets/weapons/Zanbato/rotations/Zanbato.png"
 }

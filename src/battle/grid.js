@@ -23,7 +23,8 @@ export function findEnemyAt(enemies, x, z) {
   return enemies.find((enemy) => enemy.hp > 0 && enemy.x === x && enemy.z === z);
 }
 
-export function getMovementRange(unit, level, enemies) {
+// `enemies` block movement; `allies` can be passed through but not stopped on.
+export function getMovementRange(unit, level, enemies, allies = []) {
   const distances = new Map([[tileKey(unit.x, unit.z), 0]]);
   const queue = [{ x: unit.x, z: unit.z }];
   while (queue.length) {
@@ -42,6 +43,9 @@ export function getMovementRange(unit, level, enemies) {
       distances.set(key, distance + 1);
       queue.push({ x, z });
     }
+  }
+  for (const ally of allies) {
+    if (ally !== unit && ally.hp > 0) distances.delete(tileKey(ally.x, ally.z));
   }
   return distances;
 }

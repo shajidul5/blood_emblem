@@ -10,5 +10,6 @@
   "minRange": 1,
   "maxRange": 1,
   "effect": [],
+  "sound": "axe",
   "sprite": "assets/weapons/Iron_Axe/rotations/Iron_Axe.png"
 }

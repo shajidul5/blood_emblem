@@ -119,6 +119,10 @@ const raiderIdleSprites = import.meta.glob('../../assets/character/Generic_Raide
 const raiderWalkingFrames = import.meta.glob('../../assets/character/Generic_Raider/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const raiderAttackFrames = import.meta.glob('../../assets/character/Generic_Raider/Fighting_stance_with/animations/*/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
+const merfolkIdleSprites = import.meta.glob('../../assets/character/Merfolk/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const merfolkWalkingFrames = import.meta.glob('../../assets/character/Merfolk/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const merfolkAttackFrames = import.meta.glob('../../assets/character/Merfolk/Idle/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+
 function getDirectionFromPath(path) {
   const parts = path.split('/');
   // For idle sprites: find filename like "east.png" -> "east"
@@ -311,6 +315,11 @@ export async function loadCharacterSprites() {
   result.raider = raiderData.idle;
   result.raiderWalkingFrames = raiderData.walking;
   result.raiderAttackFrames = raiderData.attacking;
+
+  const merfolkData = await loadCharacterWithAllAnimations('Merfolk', merfolkIdleSprites, merfolkWalkingFrames, merfolkAttackFrames);
+  result.merfolk = merfolkData.idle;
+  result.merfolkWalkingFrames = merfolkData.walking;
+  result.merfolkAttackFrames = merfolkData.attacking;
 
   return result;
 }

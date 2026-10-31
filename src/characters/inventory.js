@@ -2,6 +2,8 @@ import ironKatana from '../../data/weapons/iron-katana.json';
 import rapier from '../../data/weapons/rapier.json';
 import zanbato from '../../data/weapons/zanbato.json';
 import ironAxe from '../../data/weapons/iron-axe.json';
+import ironSpear from '../../data/weapons/iron-spear.json';
+import steelSpear from '../../data/weapons/steel-spear.json';
 import potion from '../../data/items/potion.json';
 
 const WEAPON_SPRITES = import.meta.glob('../../assets/weapons/**/*.png', {
@@ -23,6 +25,8 @@ export const INVENTORY_ITEMS = new Map([
   [rapier.id, createWeaponItem(rapier)],
   [zanbato.id, createWeaponItem(zanbato)],
   [ironAxe.id, createWeaponItem(ironAxe)],
+  [ironSpear.id, createWeaponItem(ironSpear)],
+  [steelSpear.id, createWeaponItem(steelSpear)],
   [potion.id, { ...potion, itemType: 'consumable' }],
 ]);
 
@@ -33,6 +37,26 @@ export function createMariaInventory() {
     { id: zanbato.id, uses: null },
     { id: potion.id, uses: potion.maxUses },
   ];
+}
+
+export function createInventory(itemIds) {
+  return itemIds.map((id) => {
+    const item = INVENTORY_ITEMS.get(id);
+    if (!item) throw new Error(`Unknown inventory item ${id}.`);
+    return { id, uses: item.itemType === 'weapon' ? null : item.maxUses };
+  });
+}
+
+// Gives a fresh consumable, or refills the unit's existing stack.
+export function grantItem(unit, itemId) {
+  const item = INVENTORY_ITEMS.get(itemId);
+  if (!item) throw new Error(`Unknown inventory item ${itemId}.`);
+  const existing = unit.inventory.find((entry) => entry.id === itemId);
+  if (existing) {
+    if (item.itemType === 'consumable') existing.uses = item.maxUses;
+  } else {
+    unit.inventory.push({ id: itemId, uses: item.itemType === 'weapon' ? null : item.maxUses });
+  }
 }
 
 export function restoreMariaInventory(unit, savedInventory, equippedWeaponId) {

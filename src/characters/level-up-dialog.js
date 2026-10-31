@@ -1,3 +1,5 @@
+import { playStatUp } from '../audio/ui-sounds.js';
+
 const ROLL_DELAY_MS = 380;
 const STAT_LABELS = {
   hp: 'HP',
@@ -72,6 +74,7 @@ export function createLevelUpDialog(dialog) {
     await wait(ROLL_DELAY_MS);
     for (const levelRolls of growthRolls) {
       displayedLevel++;
+      let gainsThisLevel = 0;
       levelLabel.textContent = `LV ${displayedLevel}`;
       for (const roll of levelRolls) {
         const entry = rows.get(roll.stat);
@@ -89,6 +92,7 @@ export function createLevelUpDialog(dialog) {
         entry.value.classList.remove('bump');
         void entry.value.offsetWidth;
         entry.value.classList.add('bump');
+        playStatUp(gainsThisLevel++);
       }
     }
     rolling = false;

@@ -48,9 +48,17 @@
       #objective-label { display: block; color: #c9bd9c; font-size: 11px; }
       #unit-hover-card .unit-card-name { display: block; color: #e2c582; font-size: 13px; }
       #unit-hover-card .unit-card-class { color: #c9bd9c; }
-      #unit-hover-card dl { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; margin: 4px 0 0; }
-      #unit-hover-card dt { color: #c9bd9c; }
-      #unit-hover-card dd { margin: 0; text-align: right; }
+      #unit-hover-card .unit-card-hp { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-top: 6px; }
+      #unit-hover-card .unit-card-hp > span:first-child { color: #c9bd9c; }
+      #unit-hover-card .unit-card-hp-bar { height: 9px; border: 1px solid #655467; border-radius: 2px; background: #1a0d12; overflow: hidden; }
+      #unit-hover-card .unit-card-hp-fill { height: 100%; transition: width .2s; background: linear-gradient(#d84a4a, #8c1c28); }
+      #unit-hover-card .unit-card-hp-fill[data-level="high"] { background: linear-gradient(#7fd77a, #2f8a3f); }
+      #unit-hover-card .unit-card-hp-fill[data-level="mid"] { background: linear-gradient(#e8c75a, #a8801c); }
+      #unit-hover-card .unit-card-hp-value { min-width: 46px; text-align: right; }
+      #unit-hover-card .unit-card-weapon { display: grid; grid-template-columns: 24px 1fr; align-items: center; column-gap: 8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid #3a2f3d; }
+      #unit-hover-card .unit-card-weapon:not(:has(img)) { grid-template-columns: 1fr; }
+      #unit-hover-card .unit-card-weapon img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+      #unit-hover-card .unit-card-weapon small { grid-column: 1 / -1; color: #c9a35a; font-size: 10px; }
       #unit-list-dialog {
         width: min(760px, calc(100% - 32px)); padding: 18px;
         border: 1px solid #76647a; border-radius: 4px; background: #0b101b;
@@ -161,38 +169,71 @@
       #action-panel #end-phase:hover, #action-panel #end-phase:focus-visible { padding-left: 12px; color: #ff6b75; }
       #action-panel #action-help { color: #8f8470; font: italic 12px/1.4 Georgia, serif; }
       #profile-dialog {
-        width: min(580px, calc(100% - 48px)); max-height: min(88vh, 760px); overflow: auto;
-        padding: 20px; border: 1px solid #76647a; border-radius: 9px;
-        background: #100c14; color: #f1e9e3; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
-        box-shadow: 0 18px 60px #000b;
+        width: min(600px, calc(100% - 48px)); max-height: min(88vh, 780px); overflow: auto; box-sizing: border-box;
+        padding: 22px 24px; border: 1px solid #5c4a3a; border-radius: 2px;
+        background:
+          linear-gradient(180deg, rgba(60, 14, 20, .45), rgba(10, 6, 8, 0) 30%),
+          radial-gradient(120% 90% at 50% 0%, #1d1214 0%, #0a0708 70%);
+        color: #cdbfa6; font: 14px/1.4 Georgia, "Times New Roman", serif;
+        box-shadow: 0 0 0 1px #000, 0 0 0 3px #1a1210, 0 0 0 4px #4a3a2c, 0 24px 70px #000e, inset 0 0 40px #000a;
       }
-      #profile-dialog::backdrop { background: rgba(4, 2, 8, .78); }
+      #profile-dialog[open] { animation: level-up-in 260ms cubic-bezier(.2, .8, .2, 1); }
+      #profile-dialog::backdrop { background: rgba(2, 1, 3, .82); }
       #profile-dialog .profile-header {
-        display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-        margin-bottom: 18px;
+        display: flex; align-items: center; gap: 18px;
+        margin-bottom: 18px; padding-bottom: 16px;
+        background: linear-gradient(90deg, #8a2430, transparent 85%) bottom / 100% 1px no-repeat;
       }
+      #profile-dialog .profile-portrait-frame {
+        flex: none; width: 96px; height: 112px; display: grid; place-items: end center;
+        border: 1px solid #5c4a3a; outline: 1px solid #000; outline-offset: -2px;
+        background: radial-gradient(90% 70% at 50% 85%, rgba(139, 26, 38, .45), rgba(10, 6, 8, .95) 75%);
+        box-shadow: inset 0 0 18px #000, 0 0 0 2px #1a1210;
+      }
+      #profile-portrait { width: 88px; height: 104px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 4px 6px #000); }
+      #profile-dialog .profile-title { flex: 1; min-width: 0; }
       #profile-dialog h2, #profile-dialog h3 { margin: 0; }
-      #profile-dialog h2 { color: #e2c582; font-size: 19px; }
-      #profile-dialog h3 { margin: 16px 0 8px; color: #e2c582; font-size: 14px; }
-      #profile-level { margin-top: 4px; color: #c9bd9c; }
-      #profile-dialog button {
-        border: 1px solid #655467; border-radius: 5px; background: #211a27;
-        color: #f1e9e3; padding: 7px 10px; font: inherit; cursor: pointer;
+      #profile-dialog h2 {
+        color: #c9a45c; font-size: 24px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase;
+        text-shadow: 0 0 12px #7a1c24;
       }
-      #profile-dialog button:hover, #profile-dialog button:focus-visible { border-color: #e2c582; }
+      #profile-dialog h3 {
+        margin: 18px 0 8px; padding-bottom: 6px; color: #c9a45c; font-size: 13px; font-weight: 400;
+        letter-spacing: 4px; text-transform: uppercase;
+        background: linear-gradient(90deg, #5c4a3a, transparent) bottom / 100% 1px no-repeat;
+      }
+      #profile-class { margin-top: 4px; color: #b8323f; letter-spacing: 3px; text-transform: uppercase; font-size: 12px; }
+      #profile-level { margin-top: 2px; color: #8f8470; letter-spacing: 2px; font-size: 12px; }
+      #profile-dialog button {
+        border: 1px solid #4a3a2c; border-radius: 0; background: transparent; align-self: flex-start;
+        color: #cdbfa6; padding: 6px 12px; font: 12px Georgia, serif; letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+        transition: background .15s, color .15s;
+      }
+      #profile-dialog button:hover, #profile-dialog button:focus-visible {
+        outline: none; color: #f3e3bd; border-color: #b8323f;
+        background: linear-gradient(90deg, rgba(139, 26, 38, .15), rgba(139, 26, 38, .6), rgba(139, 26, 38, .15));
+      }
       #profile-dialog table { width: 100%; border-collapse: collapse; text-align: right; }
       #profile-dialog th, #profile-dialog td {
-        padding: 6px 8px; border-bottom: 1px solid #392f40; white-space: nowrap;
+        padding: 6px 8px; border-bottom: 1px solid rgba(92, 74, 58, .45); white-space: nowrap;
       }
-      #profile-dialog thead { color: #c9bd9c; }
-      #profile-dialog tbody th { text-align: left; font-weight: 400; }
+      #profile-dialog thead { color: #8f8470; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+      #profile-dialog thead th { font-weight: 400; }
+      #profile-dialog tbody th { text-align: left; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; font-size: 13px; }
+      #profile-dialog tbody td { font-variant-numeric: tabular-nums; }
+      #profile-dialog tbody td:nth-child(3) { color: #e8dcc2; font-weight: 700; }
       #profile-weapon {
-        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0;
       }
-      #profile-weapon > div { padding: 8px; border: 1px solid #392f40; border-radius: 5px; }
-      #profile-weapon dt { color: #c9bd9c; font-size: 11px; }
-      #profile-weapon dd { margin: 2px 0 0; }
-      #profile-combat-note { margin: 10px 0 0; color: #c9bd9c; }
+      #profile-weapon > div {
+        padding: 8px 10px; border: 1px solid #3a2d26; border-left: 2px solid #8a2430;
+        background: linear-gradient(90deg, rgba(139, 26, 38, .12), transparent);
+      }
+      #profile-weapon dt { color: #8f8470; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+      #profile-weapon dd { margin: 2px 0 0; color: #e8dcc2; }
+      #profile-weapon .weapon-name { display: flex; align-items: center; gap: 6px; }
+      #profile-weapon .weapon-name img { width: 24px; height: 24px; image-rendering: pixelated; }
+      #profile-combat-note { margin: 12px 0 0; color: #8f8470; font-style: italic; font-size: 12px; }
       #inventory-dialog {
         width: min(540px, calc(100% - 48px)); padding: 20px;
         border: 1px solid #76647a; border-radius: 9px; background: #100c14;
@@ -561,6 +602,7 @@
         <h1 id="terminal-heading">GAME OVER</h1>
         <p id="terminal-message"></p>
         <div class="terminal-actions">
+          <button id="next-chapter" type="button" hidden>Next Chapter</button>
           <button id="restart-level" type="button">Restart</button>
           <button id="terminal-main-menu" type="button">Quit to Main Menu</button>
         </div>
@@ -574,8 +616,10 @@
     </dialog>
     <dialog id="profile-dialog" aria-labelledby="profile-heading">
       <div class="profile-header">
-        <div>
+        <div class="profile-portrait-frame"><img id="profile-portrait" alt="" /></div>
+        <div class="profile-title">
           <h2 id="profile-heading"></h2>
+          <div id="profile-class"></div>
           <div id="profile-level"></div>
         </div>
         <button id="close-profile" type="button" aria-label="Close character profile">Close</button>

@@ -23,17 +23,22 @@ import {
   isWalkable,
   tileKey,
 } from './battle/grid.js';
-import { createBartz, createMaria, createRaider as createRaiderData } from './characters/characters.js';
+import { createBartzAlly, createEnemyUnit, createMaria } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
 import { awardExperience } from './characters/progression.js';
 import { createProfileDialog } from './characters/profile-dialog.js';
-import { INVENTORY_ITEMS, restoreMariaInventory } from './characters/inventory.js';
+import { initializeUiSounds } from './audio/ui-sounds.js';
+import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
+import { grantItem, INVENTORY_ITEMS, restoreMariaInventory } from './characters/inventory.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
-import { createSaveData, readSave, writeSave } from './game/save.js';
+import { createSaveData, readSave, serializeUnit, writeSave } from './game/save.js';
 import {
   buildLevel,
+  CHAPTER_COUNT,
+  loadChapterLevel,
   loadInitialLevel,
+  updateLevelAnimation,
   validateLevel,
 } from './levels/level.js';
 import { getTerrain, getTileElevation } from './battle/terrain.js';
@@ -88,6 +93,20 @@ const camera = new THREE.PerspectiveCamera(
 const pointerRaycaster = new THREE.Raycaster();
 const pointerPosition = new THREE.Vector2();
 const deckPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.11);
+const raisedPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+// Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
+function pickFloorPoint(ray) {
+  for (const elevation of [0.5, 0.25]) {
+    raisedPlane.constant = -(0.11 + elevation);
+    const point = ray.intersectPlane(raisedPlane, new THREE.Vector3());
+    if (!point || !activeLevel) continue;
+    const x = Math.floor(point.x + activeLevel.width / 2);
+    const z = Math.floor(point.z + activeLevel.height / 2);
+    if (getTileElevation(activeLevel, x, z) === elevation) return point;
+  }
+  return ray.intersectPlane(deckPlane, new THREE.Vector3());
+}
 const CAM_OFFSET = new THREE.Vector3(0, 14, 10);
 
 // ---------- Lighting ----------
@@ -137,8 +156,9 @@ const inventoryDialog = document.querySelector('#inventory-dialog');
 const experienceDisplay = createExperienceDisplay(document.querySelector('#exp-panel'));
 const levelUpDialogUi = createLevelUpDialog(document.querySelector('#level-up-dialog'));
 const profileDialogUi = createProfileDialog(profileDialog);
-const player = createMaria();
-const playerTeam = [player];
+const maria = createMaria();
+let player = maria;
+const playerTeam = [maria];
 experienceDisplay.reset(player.level, player.experience);
 let activeLevel;
 let sessionStarted = false;
@@ -170,9 +190,9 @@ const CHARACTER_SCALES = {
   maria: 1.0,
   bartz: 0.9,
   raider: 0.9,
+  merfolk: 0.9,
 };
 let playerMovement;
-let attackAnimation;
 let enemyMovement;
 let cameraFollowTarget;
 let pendingCombatTarget;
@@ -201,23 +221,51 @@ cursor.z = player.z;
 
 // Player
 const characterSprites = await loadCharacterSprites();
-const hero = new THREE.Mesh(
-  createUnitSpriteGeometry(),
-  new THREE.MeshBasicMaterial({
-    map: characterSprites.maria.south,
-    alphaTest: 0.5,
-    side: THREE.DoubleSide,
-  }),
-);
-hero.rotation.copy(SPRITE_TILT);
-hero.scale.set(CHARACTER_SCALES.maria, CHARACTER_SCALES.maria, 1);
+const unitGeometry = createUnitSpriteGeometry();
 const HERO_DECK_HEIGHT = 0.12;
 function unitSpriteHeightAt(x, z) {
   return UNIT_SPRITE_HEIGHT / 2 + HERO_DECK_HEIGHT + getTileElevation(activeLevel, x, z);
 }
 
-hero.position.y = unitSpriteHeightAt(player.x, player.z);
-scene.add(hero);
+function unitTextures(unit) {
+  const set = unit.spriteSet;
+  return {
+    idle: characterSprites[set],
+    walking: characterSprites[`${set}WalkingFrames`],
+    attack: characterSprites[`${set}AttackFrames`],
+  };
+}
+
+// Each unit owns its material, so animation is just swapping the texture.
+function setUnitSprite(unit, texture) {
+  if (!texture || unit.mesh.material.map === texture) return;
+  unit.mesh.material.map = texture;
+  unit.mesh.material.needsUpdate = true;
+}
+
+function setIdleSprite(unit, direction = unit.facing) {
+  setUnitSprite(unit, unitTextures(unit).idle[direction]);
+}
+
+function createUnitMesh(unit, renderOrder = 2) {
+  const mesh = new THREE.Mesh(
+    unitGeometry,
+    new THREE.MeshBasicMaterial({
+      map: unitTextures(unit).idle[unit.facing ?? 'south'],
+      alphaTest: 0.5,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const scale = unit.scale ?? CHARACTER_SCALES[unit.spriteSet] ?? 1;
+  mesh.scale.set(scale, scale, 1);
+  mesh.rotation.copy(SPRITE_TILT);
+  mesh.renderOrder = renderOrder;
+  mesh.position.set(worldX(unit.x), unitSpriteHeightAt(unit.x, unit.z), worldZ(unit.z));
+  scene.add(mesh);
+  unit.mesh = mesh;
+  addUnitHealthBar(mesh, unit);
+  return mesh;
+}
 
 // Health bar layout: bright outline > dark backing > colored fill.
 const HEALTH_BAR_WIDTH = 1.0;
@@ -276,15 +324,11 @@ function addUnitHealthBar(mesh, unit) {
   };
 }
 
-addUnitHealthBar(hero, player);
-
-const raiderGeometry = createUnitSpriteGeometry();
-const raiderMaterials = Object.fromEntries(
-  Object.entries(characterSprites.raider).map(([direction, texture]) => [
-    direction,
-    new THREE.MeshBasicMaterial({ map: texture, alphaTest: 0.5, side: THREE.DoubleSide }),
-  ]),
-);
+createUnitMesh(maria, 0);
+const bartz = createBartzAlly();
+createUnitMesh(bartz, 0);
+let currentChapter = 0;
+let chapterStart = null;
 const cursorPlaneGeometry = new THREE.PlaneGeometry(1, 1);
 const cursorMaterial = new THREE.MeshBasicMaterial({ 
   color: 0xffffff,
@@ -364,77 +408,19 @@ function worldZ(tileZ) {
   return tileZ - activeLevel.height / 2 + 0.5;
 }
 
-const bartzMaterials = Object.fromEntries(
-  Object.entries(characterSprites.bartz).map(([direction, texture]) => [
-    direction,
-    new THREE.MeshBasicMaterial({ map: texture, alphaTest: 0.5, side: THREE.DoubleSide }),
-  ]),
-);
-const bartzWalkingMaterials = Object.fromEntries(
-  Object.entries(characterSprites.bartzWalkingFrames).map(([direction, frames]) => [
-    direction,
-    frames.map((texture) => new THREE.MeshBasicMaterial({
-      map: texture,
-      alphaTest: 0.5,
-      side: THREE.DoubleSide,
-    })),
-  ]),
-);
-const raiderWalkingMaterials = Object.fromEntries(
-  Object.entries(characterSprites.raiderWalkingFrames).map(([direction, frames]) => [
-    direction,
-    frames.map((texture) => new THREE.MeshBasicMaterial({
-      map: texture,
-      alphaTest: 0.5,
-      side: THREE.DoubleSide,
-    })),
-  ]),
-);
-const bartzAttackMaterials = Object.fromEntries(
-  Object.entries(characterSprites.bartzAttackFrames).map(([direction, frames]) => [
-    direction,
-    frames.map((texture) => new THREE.MeshBasicMaterial({
-      map: texture,
-      alphaTest: 0.5,
-      side: THREE.DoubleSide,
-    })),
-  ]),
-);
-const raiderAttackMaterials = Object.fromEntries(
-  Object.entries(characterSprites.raiderAttackFrames).map(([direction, frames]) => [
-    direction,
-    frames.map((texture) => new THREE.MeshBasicMaterial({
-      map: texture,
-      alphaTest: 0.5,
-      side: THREE.DoubleSide,
-    })),
-  ]),
-);
-
 function createEnemy(tileX, tileZ, id = 'raider') {
-  const enemyData = id === 'bartz'
-    ? createBartz(tileX, tileZ)
-    : createRaiderData(tileX, tileZ);
-  const material = enemyData.isBoss ? bartzMaterials.south : raiderMaterials.south;
-  const mesh = new THREE.Mesh(raiderGeometry, material);
-  const characterScale = id === 'bartz' ? CHARACTER_SCALES.bartz : CHARACTER_SCALES.raider;
-  mesh.scale.set(characterScale, characterScale, 1);
-  mesh.rotation.copy(SPRITE_TILT);
-  mesh.position.set(
-    worldX(tileX),
-    unitSpriteHeightAt(tileX, tileZ),
-    worldZ(tileZ),
-  );
-  mesh.renderOrder = 2;
-  scene.add(mesh);
-  const enemy = { ...enemyData, mesh, facing: 'south' };
-  addUnitHealthBar(mesh, enemy);
+  const enemy = { ...createEnemyUnit(id, tileX, tileZ), facing: 'south' };
+  createUnitMesh(enemy);
   return enemy;
 }
 
 function resetEnemies() {
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = [];
+  if (activeLevel.enemies.length) {
+    enemies = activeLevel.enemies.map((entry) => createEnemy(entry.x, entry.z, entry.id));
+    return;
+  }
   const { x: exitX, z: exitZ } = activeLevel.exit;
   const candidates = [];
   for (let z = 0; z < activeLevel.height; z++) {
@@ -486,9 +472,14 @@ function saveCurrentGame() {
   try {
     writeSave(createSaveData(
       activeLevel,
-      player,
+      maria,
       enemies,
       gameState,
+      {
+        allies: playerTeam.filter((unit) => unit !== maria),
+        chapter: currentChapter,
+        chapterStart,
+      },
     ));
     if (!mainMenu.hidden) menuStatus.textContent = 'Game saved in this browser.';
   } catch (error) {
@@ -526,11 +517,14 @@ function showTerminalScreen(outcome, message) {
   terminalScreen.dataset.outcome = outcome;
   terminalHeading.textContent = outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
   terminalMessage.textContent = message;
+  const nextChapterButton = document.querySelector('#next-chapter');
+  nextChapterButton.hidden = !(outcome === 'victory' && hasNextChapter());
   terminalScreen.hidden = false;
   requestAnimationFrame(() => terminalScreen.classList.add('visible'));
   window.clearTimeout(terminalFocusTimeout);
   terminalFocusTimeout = window.setTimeout(() => {
-    document.querySelector('#restart-level').focus({ preventScroll: true });
+    (nextChapterButton.hidden ? document.querySelector('#restart-level') : nextChapterButton)
+      .focus({ preventScroll: true });
   }, 900);
 }
 
@@ -575,15 +569,54 @@ function hideMainMenu() {
   document.activeElement.blur?.();
 }
 
-function startLevel(level) {
+function applyUnitSnapshot(unit, snapshot) {
+  Object.assign(unit, snapshot.stats, {
+    level: snapshot.level,
+    experience: snapshot.experience,
+  });
+  restoreMariaInventory(unit, snapshot.inventory, snapshot.equippedWeaponId);
+  unit.hp = unit.maxHp;
+}
+
+const roster = { maria, bartz };
+
+// Fields the level's listed player units (or Maria alone at the spawn point).
+function deployTeam(level) {
+  const placements = level.players.length
+    ? level.players
+    : [{ id: 'maria', x: level.spawn.x, z: level.spawn.z }];
+  const team = placements.map((placement) => {
+    const unit = roster[placement.id];
+    if (!unit) throw new Error(`Unknown player unit "${placement.id}".`);
+    Object.assign(unit, {
+      x: placement.x,
+      z: placement.z,
+      facing: 'south',
+      hp: unit.maxHp,
+      moved: false,
+      acted: false,
+      moveOrigin: null,
+    });
+    return unit;
+  });
+  playerTeam.length = 0;
+  playerTeam.push(...team);
+  player = team[0];
+  return team;
+}
+
+function startLevel(level, { chapter = null, carry = null } = {}) {
   hideTerminalScreen();
-  const freshPlayer = createMaria();
-  Object.assign(player, freshPlayer);
-  player.moveOrigin = null;
+  currentChapter = chapter;
+  chapterStart = carry;
+  Object.assign(maria, createMaria());
+  Object.assign(bartz, createBartzAlly());
+  if (carry) applyUnitSnapshot(maria, carry);
   activeLevel = buildLevel(THREE, levelGroup, level);
-  player.x = activeLevel.spawn.x;
-  player.z = activeLevel.spawn.z;
-  player.facing = 'south';
+  const team = deployTeam(activeLevel);
+  for (const itemId of activeLevel.startingItems) {
+    for (const unit of team) grantItem(unit, itemId);
+  }
   playerMovement = undefined;
   enemyMovement = undefined;
   cameraFollowTarget = undefined;
@@ -610,32 +643,59 @@ function startLevel(level) {
 }
 
 function newGame() {
-  startLevel(initialLevel);
+  startLevel(initialLevel, { chapter: 0 });
 }
 
 function restartLevel() {
-  startLevel(activeLevel);
+  startLevel(activeLevel, { chapter: currentChapter, carry: chapterStart });
 }
+
+async function startNextChapter() {
+  const next = (currentChapter ?? -1) + 1;
+  if (next >= CHAPTER_COUNT) return;
+  try {
+    const level = await loadChapterLevel(next);
+    startLevel(level, { chapter: next, carry: serializeUnit(maria) });
+  } catch (error) {
+    console.error('Unable to start next chapter:', error);
+    setLevelStatus(`Could not start next chapter: ${error.message}`, true);
+  }
+}
+
+function hasNextChapter() {
+  return currentChapter !== null && currentChapter + 1 < CHAPTER_COUNT;
+}
+
 
 function continueGame() {
   const save = refreshContinueButton();
   if (!save) return;
   activeLevel = buildLevel(THREE, levelGroup, save.level);
-  Object.assign(player, save.player.stats, {
-    x: save.player.x,
-    z: save.player.z,
-    facing: save.player.facing,
-    level: save.player.level,
-    experience: save.player.experience,
-    moved: save.player.moved,
-    acted: save.player.acted,
-    moveOrigin: save.player.moveOrigin ?? null,
-  });
-  restoreMariaInventory(
-    player,
-    save.player.inventory,
-    save.player.equippedWeaponId,
-  );
+  const restoreUnit = (unit, saved) => {
+    Object.assign(unit, saved.stats, {
+      x: saved.x,
+      z: saved.z,
+      facing: saved.facing,
+      level: saved.level,
+      experience: saved.experience,
+      moved: saved.moved,
+      acted: saved.acted,
+      moveOrigin: saved.moveOrigin ?? null,
+    });
+    restoreMariaInventory(unit, saved.inventory, saved.equippedWeaponId);
+  };
+  Object.assign(bartz, createBartzAlly());
+  restoreUnit(maria, save.player);
+  const team = [maria];
+  for (const savedAlly of save.allies) {
+    restoreUnit(bartz, savedAlly);
+    team.push(bartz);
+  }
+  playerTeam.length = 0;
+  playerTeam.push(...team);
+  player = team.find((unit) => unit.hp > 0) ?? maria;
+  currentChapter = save.chapter;
+  chapterStart = save.chapterStart;
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = save.enemies.map((savedEnemy) => {
     const enemy = createEnemy(savedEnemy.x, savedEnemy.z, savedEnemy.id ?? 'raider');
@@ -716,17 +776,18 @@ function closeOptionsMenu() {
   }
 }
 
-const blob = new THREE.Mesh(
-  new THREE.PlaneGeometry(1.1, 1.1),
-  new THREE.MeshBasicMaterial({
-    map: blobShadowTexture(),
-    transparent: true,
-    depthWrite: false,
-  }),
-);
-blob.rotation.x = -Math.PI / 2;
-blob.position.y = 0.02;
-scene.add(blob);
+const blobGeometry = new THREE.PlaneGeometry(1.1, 1.1);
+const blobMaterial = new THREE.MeshBasicMaterial({
+  map: blobShadowTexture(),
+  transparent: true,
+  depthWrite: false,
+});
+for (const unit of [maria, bartz]) {
+  unit.blob = new THREE.Mesh(blobGeometry, blobMaterial);
+  unit.blob.rotation.x = -Math.PI / 2;
+  unit.blob.position.y = 0.02;
+  scene.add(unit.blob);
+}
 const levelFile = document.querySelector('#level-file');
 document.querySelector('#load-level').addEventListener('click', () => levelFile.click());
 levelFile.addEventListener('change', async () => {
@@ -735,14 +796,13 @@ levelFile.addEventListener('change', async () => {
   try {
     const level = validateLevel(JSON.parse(await file.text()));
     activeLevel = buildLevel(THREE, levelGroup, level);
-    player.x = level.spawn.x;
-    player.z = level.spawn.z;
-    player.facing = 'south';
+    currentChapter = null;
+    chapterStart = null;
+    const team = deployTeam(activeLevel);
+    for (const itemId of activeLevel.startingItems) {
+      for (const unit of team) grantItem(unit, itemId);
+    }
     playerMovement = undefined;
-    player.hp = player.maxHp;
-    player.moved = false;
-    player.acted = false;
-    player.moveOrigin = null;
     cursor.x = player.x;
     cursor.z = player.z;
     gameState.mode = 'cursor';
@@ -800,7 +860,7 @@ function updateMovementRoute() {
     (cursor.x === player.x && cursor.z === player.z)
   ) return;
 
-  const blocked = new Set(enemies.map((enemy) => tileKey(enemy.x, enemy.z)));
+  const blocked = new Set(movementObstacles(player).map((unit) => tileKey(unit.x, unit.z)));
   const path = findPath(player, [cursor], blocked, activeLevel);
   if (path.length < 2) return;
   movementPathMaterial = new THREE.MeshBasicMaterial({
@@ -864,7 +924,7 @@ function makeHighlights(tiles, material) {
   const mesh = new THREE.InstancedMesh(rangeGeometry, material, tiles.length);
   const transform = new THREE.Object3D();
   tiles.forEach((tile, index) => {
-    transform.position.set(worldX(tile.x), 0.2, worldZ(tile.z));
+    transform.position.set(worldX(tile.x), 0.2 + getTileElevation(activeLevel, tile.x, tile.z), worldZ(tile.z));
     transform.updateMatrix();
     mesh.setMatrixAt(index, transform.matrix);
   });
@@ -898,7 +958,71 @@ function setMessage(message) {
   battleMessage.textContent = message;
 }
 
+const hitEffects = [];
+let cameraShake = { until: 0, strength: 0 };
+const cameraShakeOffset = new THREE.Vector3();
+let hitFlashTexture;
+
+function getHitFlashTexture() {
+  if (!hitFlashTexture) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 64;
+    const context = canvas.getContext('2d');
+    const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gradient.addColorStop(0, 'rgba(255,255,255,1)');
+    gradient.addColorStop(0.3, 'rgba(255,200,120,0.85)');
+    gradient.addColorStop(1, 'rgba(255,80,40,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 64, 64);
+    hitFlashTexture = new THREE.CanvasTexture(canvas);
+  }
+  return hitFlashTexture;
+}
+
+// Impact burst: a bright flash, flying sparks and a short camera jolt.
+function spawnHitEffect(unit, critical) {
+  const unitPosition = unit.mesh.position;
+  const origin = new THREE.Vector3(unitPosition.x, unitPosition.y + 0.55, unitPosition.z + 0.2);
+  const makeSprite = (color, scale) => {
+    const material = new THREE.SpriteMaterial({
+      map: getHitFlashTexture(),
+      color,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.copy(origin);
+    sprite.scale.setScalar(scale);
+    sprite.renderOrder = 9;
+    scene.add(sprite);
+    return { sprite, material };
+  };
+  const born = clock.elapsedTime;
+  hitEffects.push({ ...makeSprite(critical ? 0xff4a4a : 0xffffff, critical ? 2.2 : 1.5), born, life: 0.22, grow: 1.8 });
+  const sparkCount = critical ? 14 : 8;
+  for (let index = 0; index < sparkCount; index++) {
+    const angle = (index / sparkCount) * Math.PI * 2 + Math.random() * 0.6;
+    const speed = (critical ? 3.6 : 2.6) * (0.6 + Math.random() * 0.7);
+    hitEffects.push({
+      ...makeSprite(critical ? 0xff6a3a : 0xffd27a, 0.22 + Math.random() * 0.12),
+      born,
+      life: 0.3 + Math.random() * 0.2,
+      grow: 0,
+      velocity: new THREE.Vector3(Math.cos(angle) * speed, 1.2 + Math.random() * 1.6, Math.sin(angle) * speed * 0.6),
+    });
+  }
+  cameraShake = { until: born + (critical ? 0.32 : 0.18), strength: critical ? 0.2 : 0.09 };
+}
+
 function showCombatResult(unit, text, type) {
+  if (type === 'miss') {
+    playMissWhiff();
+  } else {
+    playHitImpact({ critical: type === 'critical' });
+    spawnHitEffect(unit, type === 'critical');
+  }
   const canvas = document.createElement('canvas');
   canvas.width = 192;
   canvas.height = 64;
@@ -919,7 +1043,7 @@ function showCombatResult(unit, text, type) {
     depthWrite: false,
   });
   const sprite = new THREE.Sprite(material);
-  const unitPosition = unit.mesh ? unit.mesh.position : hero.position;
+  const unitPosition = unit.mesh.position;
   sprite.position.set(unitPosition.x, unitPosition.y + 1.4, unitPosition.z);
   sprite.scale.set(type === 'critical' ? 1.6 : 1.25, type === 'critical' ? 0.55 : 0.44, 1);
   sprite.renderOrder = 10;
@@ -1052,8 +1176,26 @@ function capitalize(text) {
   return `${text[0].toUpperCase()}${text.slice(1)}`;
 }
 
+function selectableMeshes() {
+  return [...playerTeam.filter((unit) => unit.hp > 0), ...enemies].map((unit) => unit.mesh);
+}
+
+function unitForMesh(mesh) {
+  return [...playerTeam, ...enemies].find((unit) => unit.mesh === mesh) ?? null;
+}
+
+function playerUnitAt(x, z) {
+  return playerTeam.find((unit) => unit.hp > 0 && unit.x === x && unit.z === z) ?? null;
+}
+
+// Only opposing units block movement; teammates can be walked through.
+function movementObstacles() {
+  return enemies.filter((enemy) => enemy.hp > 0);
+}
+
 function unitAtTile(x, z) {
-  if (player.hp > 0 && player.x === x && player.z === z) return player;
+  const friendly = playerUnitAt(x, z);
+  if (friendly) return friendly;
   return findEnemyAt(enemies, x, z);
 }
 
@@ -1066,12 +1208,20 @@ function currentHoverUnit() {
     : null;
 }
 
+let shownExperienceKey = '';
+
 // Experience belongs to player units only; keep it up while a gain animates.
 function updateExperiencePanel() {
-  experiencePanel.hidden = !(
-    sessionStarted &&
-    (playerTeam.includes(currentHoverUnit()) || experiencePanel.classList.contains('gaining'))
-  );
+  const hovered = currentHoverUnit();
+  const gaining = experiencePanel.classList.contains('gaining');
+  experiencePanel.hidden = !(sessionStarted && (playerTeam.includes(hovered) || gaining));
+  if (!gaining && playerTeam.includes(hovered)) {
+    const key = `${hovered.id}:${hovered.level}:${hovered.experience}`;
+    if (key !== shownExperienceKey) {
+      shownExperienceKey = key;
+      experienceDisplay.reset(hovered.level, hovered.experience);
+    }
+  }
 }
 
 function updateUnitHoverCard() {
@@ -1081,26 +1231,54 @@ function updateUnitHoverCard() {
     unitHoverCard.hidden = true;
     return;
   }
-  const rows = [
-    ['HP', `${unit.hp}/${unit.maxHp}`],
-    ['Weapon', unit.weapon?.name ?? 'None'],
-  ];
   unitHoverCard.replaceChildren();
   const name = document.createElement('strong');
   name.className = 'unit-card-name';
   name.textContent = `${unit.name}${unit.isBoss ? ' (Boss)' : ''}`;
   const unitClass = document.createElement('span');
   unitClass.className = 'unit-card-class';
-  unitClass.textContent = capitalize(unit.class);
-  const list = document.createElement('dl');
-  for (const [label, value] of rows) {
-    const term = document.createElement('dt');
-    term.textContent = label;
-    const detail = document.createElement('dd');
-    detail.textContent = value;
-    list.append(term, detail);
+  unitClass.textContent = [capitalize(unit.class), unit.type && capitalize(unit.type)]
+    .filter(Boolean)
+    .join(' · ');
+
+  const hpRatio = unit.maxHp > 0 ? Math.max(0, Math.min(1, unit.hp / unit.maxHp)) : 0;
+  const hp = document.createElement('div');
+  hp.className = 'unit-card-hp';
+  const hpLabel = document.createElement('span');
+  hpLabel.textContent = 'HP';
+  const bar = document.createElement('div');
+  bar.className = 'unit-card-hp-bar';
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', String(unit.maxHp));
+  bar.setAttribute('aria-valuenow', String(unit.hp));
+  const fill = document.createElement('div');
+  fill.className = 'unit-card-hp-fill';
+  fill.style.width = `${hpRatio * 100}%`;
+  fill.dataset.level = hpRatio <= 0.25 ? 'low' : hpRatio <= 0.5 ? 'mid' : 'high';
+  bar.append(fill);
+  const hpValue = document.createElement('span');
+  hpValue.className = 'unit-card-hp-value';
+  hpValue.textContent = `${unit.hp}/${unit.maxHp}`;
+  hp.append(hpLabel, bar, hpValue);
+
+  const weapon = document.createElement('div');
+  weapon.className = 'unit-card-weapon';
+  if (unit.weapon?.spriteUrl) {
+    const icon = document.createElement('img');
+    icon.src = unit.weapon.spriteUrl;
+    icon.alt = '';
+    weapon.append(icon);
   }
-  unitHoverCard.append(name, unitClass, list);
+  const weaponName = document.createElement('span');
+  weaponName.textContent = unit.weapon?.name ?? 'Unarmed';
+  weapon.append(weaponName);
+  if (unit.weapon?.effect?.length) {
+    const effect = document.createElement('small');
+    effect.textContent = `Effective vs ${unit.weapon.effect.join(', ')}`;
+    weapon.append(effect);
+  }
+  unitHoverCard.append(name, unitClass, hp, weapon);
   unitHoverCard.hidden = false;
 }
 
@@ -1110,7 +1288,7 @@ const UNIT_LIST_STATS = [
 const idleSpriteUrls = new Map();
 
 function idleSpriteUrl(unit) {
-  const texture = characterSprites[unit.id]?.south;
+  const texture = characterSprites[unit.spriteSet]?.south;
   if (!texture?.image) return undefined;
   if (!idleSpriteUrls.has(unit.id)) {
     const canvas = document.createElement('canvas');
@@ -1125,9 +1303,9 @@ function idleSpriteUrl(unit) {
 function renderUnitList() {
   const body = unitListDialog.querySelector('#unit-list-body');
   body.replaceChildren();
-  for (const unit of [player, ...enemies]) {
+  for (const unit of [...playerTeam, ...enemies]) {
     const row = document.createElement('tr');
-    row.className = unit === player ? 'player' : 'enemy';
+    row.className = playerTeam.includes(unit) ? 'player' : 'enemy';
     const spriteCell = document.createElement('td');
     spriteCell.className = 'unit-list-sprite';
     const url = idleSpriteUrl(unit);
@@ -1170,6 +1348,7 @@ function renderTacticalUi() {
     ? 'Back · Undo Move'
     : 'Back';
   actionPanel.hidden = !gameState.selected || gameState.mode !== 'unit';
+  actionPanel.querySelector('strong').textContent = player.name.toUpperCase();
   document.querySelector('#attack-action').disabled = player.acted;
   actionHelp.textContent = gameState.mode === 'move'
     ? `Choose a tile within ${player.movement} ${movementUnit}; the blue line previews the route.`
@@ -1232,7 +1411,7 @@ function setCursor(x, z) {
   updateMovementRoute();
   const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
   if (enemy && gameState.mode === 'cursor') {
-    setMessage(`Raider · ${enemy.hp}/${enemy.maxHp} HP`);
+    setMessage(`${enemy.name} · ${enemy.hp}/${enemy.maxHp} HP`);
   } else if (enemy && gameState.mode === 'attack') {
     const terrain = getTerrain(activeLevel, enemy.x, enemy.z);
     const hitRate = getHitRate(player, enemy, terrain);
@@ -1265,7 +1444,7 @@ function finishUnit() {
   cursorOutline.visible = true;
   movementRange.clear();
   renderTacticalUi();
-  if (playerTeam.every((unit) => unit.acted)) void endPlayerPhase();
+  if (playerTeam.every((unit) => unit.hp <= 0 || unit.acted)) void endPlayerPhase();
 }
 
 function cyclePlayerUnits() {
@@ -1274,8 +1453,8 @@ function cyclePlayerUnits() {
     setMessage('All available units have acted this turn.');
     return;
   }
-  if (gameState.selected && availableUnits.length === 1) {
-    setMessage(`${availableUnits[0].name} is the only available unit.`);
+  if (gameState.selected) {
+    setMessage('Finish or cancel the current unit first.');
     return;
   }
 
@@ -1286,7 +1465,8 @@ function cyclePlayerUnits() {
   cursor.x = nextUnit.x;
   cursor.z = nextUnit.z;
   showTileInspection(cursor.x, cursor.z);
-  if (nextUnit === player) selectMaria();
+  player = nextUnit;
+  selectMaria();
 }
 
 function selectMaria() {
@@ -1323,7 +1503,7 @@ function openMariaActions() {
 
 function startMove() {
   if (!gameState.selected || player.moved || player.acted) return;
-  movementRange = getMovementRange(player, activeLevel, enemies);
+  movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam);
   gameState.mode = 'move';
   setCursor(player.x, player.z);
   setMessage('Blue tiles are reachable; the thick blue line previews the route. Select a destination or press Escape.');
@@ -1367,7 +1547,7 @@ function undoMove() {
   playerMovement = undefined;
   cursor.x = player.x;
   cursor.z = player.z;
-  movementRange = getMovementRange(player, activeLevel, enemies);
+  movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam);
   gameState.mode = 'move';
   setMessage('Move undone. Choose a different destination or press Escape for actions.');
   renderTacticalUi();
@@ -1454,59 +1634,33 @@ function wait(milliseconds) {
 async function playAttackAnimation(unit, direction, followUp = false) {
   if (followUp) await wait(1000);
   
-  let frames;
-  if (unit === player) {
-    // Player (Maria) uses marioAttackFrames
-    frames = characterSprites.mariaAttackFrames[direction];
-  } else if (unit.isBoss) {
-    // Bartz uses bartzAttackFrames
-    frames = characterSprites.bartzAttackFrames[direction];
-  } else {
-    // Raiders use raiderAttackFrames
-    frames = characterSprites.raiderAttackFrames[direction];
-  }
-  
+  const frames = unitTextures(unit).attack?.[direction];
   if (frames && frames.length > 0) {
+    const swingFrame = Math.floor(frames.length / 2);
     for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
-      if (unit === player) {
-        attackAnimation = { direction, frameIndex };
-      } else {
-        unit.attackAnimation = { direction: direction, frameIndex };
-      }
+      if (frameIndex === swingFrame) playWeaponSwing(unit.weapon);
+      unit.attackAnimation = { direction, frameIndex };
       await wait(characterSprites.animationFrameDuration * 1000);
     }
   } else {
+    playWeaponSwing(unit.weapon);
     await wait(300);
   }
-  
-  // Clear animation state
-  if (unit === player) {
-    attackAnimation = undefined;
-  } else {
-    unit.attackAnimation = undefined;
-    // Restore idle texture/material
-    if (unit.isBoss) {
-      // Bartz: restore texture on material
-      unit.mesh.material.map = characterSprites.bartz[direction];
-      unit.mesh.material.needsUpdate = true;
-    } else {
-      // Raiders: restore material object
-      unit.mesh.material = raiderMaterials[direction];
-    }
-  }
+  unit.attackAnimation = undefined;
+  setIdleSprite(unit, direction);
 }
 
-async function showExperienceProgression(progression, amount) {
+async function showExperienceProgression(progression, amount, unit = player) {
   await experienceDisplay.showGain({
     level: progression.previousLevel,
     experience: progression.previousExperience,
     amount,
     levelUps: progression.levelUps,
-    finalLevel: player.level,
-    finalExperience: player.experience,
+    finalLevel: unit.level,
+    finalExperience: unit.experience,
   });
   if (progression.levelUps) {
-    await levelUpDialogUi.show(player, progression.growthRolls);
+    await levelUpDialogUi.show(unit, progression.growthRolls);
   }
 }
 
@@ -1554,7 +1708,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   let counterResults = [];
   if (canCounter) {
     target.facing = getFacing(player.x - target.x, player.z - target.z);
-    if (target.isBoss) target.mesh.material = bartzMaterials[target.facing];
+    setIdleSprite(target);
     const counterTerrain = getTerrain(activeLevel, player.x, player.z);
     counterDamage = getCombatDamage(target, player, counterTerrain);
     counterCriticalDamage = getCriticalDamage(target, player, counterTerrain);
@@ -1614,8 +1768,21 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     finishUnit();
     return;
   }
-  if (playerTeam.every((unit) => unit.hp <= 0)) {
-    completeGameOver();
+  if (player.hp <= 0) {
+    if (playerTeam.every((unit) => unit.hp <= 0)) {
+      completeGameOver();
+      return;
+    }
+    const fallen = player;
+    player = playerTeam.find((unit) => unit.hp > 0);
+    gameState.mode = 'cursor';
+    gameState.selected = false;
+    movementRange.clear();
+    cursorOutline.visible = true;
+    setCursor(player.x, player.z);
+    setMessage(`${fallen.name} has fallen in battle.`);
+    renderTacticalUi();
+    if (playerTeam.every((unit) => unit.hp <= 0 || unit.acted)) void endPlayerPhase();
     return;
   }
   
@@ -1638,21 +1805,30 @@ async function enemyPhase() {
   await wait(900);
   for (const enemy of [...enemies]) {
     if (!enemies.includes(enemy)) continue;
+    const livingTeam = playerTeam.filter((unit) => unit.hp > 0);
+    if (!livingTeam.length) break;
+    const foe = livingTeam.reduce((nearest, unit) =>
+      distanceBetween(enemy.x, enemy.z, unit.x, unit.z) < distanceBetween(enemy.x, enemy.z, nearest.x, nearest.z)
+        ? unit : nearest);
     cameraFollowTarget = enemy.mesh.position;
     await wait(500);
-    if (distanceBetween(enemy.x, enemy.z, player.x, player.z) > enemy.weapon.maxRange) {
-      const blocked = new Set(enemies.filter((other) => other !== enemy).map((other) => tileKey(other.x, other.z)));
+    if (distanceBetween(enemy.x, enemy.z, foe.x, foe.z) > enemy.weapon.maxRange) {
+      const blocked = new Set(livingTeam.map((other) => tileKey(other.x, other.z)));
+      const occupied = new Set(enemies
+        .filter((other) => other !== enemy)
+        .map((other) => tileKey(other.x, other.z)));
       const attackPositions = [];
-      for (let z = player.z - enemy.weapon.maxRange; z <= player.z + enemy.weapon.maxRange; z++) {
-        for (let x = player.x - enemy.weapon.maxRange; x <= player.x + enemy.weapon.maxRange; x++) {
+      for (let z = foe.z - enemy.weapon.maxRange; z <= foe.z + enemy.weapon.maxRange; z++) {
+        for (let x = foe.x - enemy.weapon.maxRange; x <= foe.x + enemy.weapon.maxRange; x++) {
           if (
             isInWeaponRange(
               enemy,
-              player,
-              distanceBetween(x, z, player.x, player.z),
+              foe,
+              distanceBetween(x, z, foe.x, foe.z),
             ) &&
             isWalkable(activeLevel, x, z) &&
-            !blocked.has(tileKey(x, z))
+            !blocked.has(tileKey(x, z)) &&
+            !occupied.has(tileKey(x, z))
           ) {
             attackPositions.push({ x, z });
           }
@@ -1660,42 +1836,44 @@ async function enemyPhase() {
       }
       const path = findPath(enemy, attackPositions, blocked, activeLevel);
       if (path.length > 1) {
-        const destination = path[Math.min(enemy.movement, path.length - 1)];
-        const movementPath = path.slice(0, path.indexOf(destination) + 1);
-        enemyMovement = {
-          enemy,
-          path: movementPath,
-          startedAt: clock.elapsedTime,
-          duration: Math.max(0.35, (movementPath.length - 1) * 0.22),
-        };
-        await wait(enemyMovement.duration * 1000);
-        enemyMovement = undefined;
-        enemy.mesh.material = enemy.isBoss
-          ? bartzMaterials[enemy.facing]
-          : raiderMaterials[enemy.facing];
-        enemy.x = destination.x;
-        enemy.z = destination.z;
-        enemy.mesh.position.set(
-          worldX(enemy.x),
-          unitSpriteHeightAt(enemy.x, enemy.z),
-          worldZ(enemy.z),
-        );
+        let stop = Math.min(enemy.movement, path.length - 1);
+        while (stop > 0 && occupied.has(tileKey(path[stop].x, path[stop].z))) stop--;
+        const destination = path[stop];
+        const movementPath = path.slice(0, stop + 1);
+        if (stop > 0) {
+          enemyMovement = {
+            enemy,
+            path: movementPath,
+            startedAt: clock.elapsedTime,
+            duration: Math.max(0.35, (movementPath.length - 1) * 0.22),
+          };
+          await wait(enemyMovement.duration * 1000);
+          enemyMovement = undefined;
+          setIdleSprite(enemy);
+          enemy.x = destination.x;
+          enemy.z = destination.z;
+          enemy.mesh.position.set(
+            worldX(enemy.x),
+            unitSpriteHeightAt(enemy.x, enemy.z),
+            worldZ(enemy.z),
+          );
+        }
       }
     }
-    const range = distanceBetween(enemy.x, enemy.z, player.x, player.z);
-    if (isInWeaponRange(enemy, player, range)) {
-      enemy.facing = getFacing(player.x - enemy.x, player.z - enemy.z);
-      if (enemy.isBoss) enemy.mesh.material = bartzMaterials[enemy.facing];
+    const range = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
+    if (isInWeaponRange(enemy, foe, range)) {
+      enemy.facing = getFacing(foe.x - enemy.x, foe.z - enemy.z);
+      setIdleSprite(enemy);
       gameState.mode = 'combat';
       combatants.add(enemy);
-      combatants.add(player);
+      combatants.add(foe);
       renderTacticalUi();
-      const terrain = getTerrain(activeLevel, player.x, player.z);
-      const damage = getCombatDamage(enemy, player, terrain);
-      const criticalDamage = getCriticalDamage(enemy, player, terrain);
-      const attacks = getAttackCount(enemy, player);
-      const hitRate = getHitRate(enemy, player, terrain);
-      const criticalRate = getCriticalRate(enemy, player);
+      const terrain = getTerrain(activeLevel, foe.x, foe.z);
+      const damage = getCombatDamage(enemy, foe, terrain);
+      const criticalDamage = getCriticalDamage(enemy, foe, terrain);
+      const attacks = getAttackCount(enemy, foe);
+      const hitRate = getHitRate(enemy, foe, terrain);
+      const criticalRate = getCriticalRate(enemy, foe);
       let hits = 0;
       let criticalHits = 0;
       let totalDamage = 0;
@@ -1705,15 +1883,15 @@ async function enemyPhase() {
       });
       
       // Strikes alternate: enemy, then the player's counter, then the next pair.
-      const counterRange = distanceBetween(enemy.x, enemy.z, player.x, player.z);
-      const canCounter = isInWeaponRange(player, enemy, counterRange);
+      const counterRange = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
+      const canCounter = isInWeaponRange(foe, enemy, counterRange);
       const counterTerrain = getTerrain(activeLevel, enemy.x, enemy.z);
-      const counterAttacks = canCounter ? getAttackCount(player, enemy) : 0;
-      const counterDamage = canCounter ? getCombatDamage(player, enemy, counterTerrain) : 0;
-      const counterCriticalDamage = canCounter ? getCriticalDamage(player, enemy, counterTerrain) : 0;
-      const counterHitRate = canCounter ? getHitRate(player, enemy, counterTerrain) : 0;
-      const counterCriticalRate = canCounter ? getCriticalRate(player, enemy) : 0;
-      if (canCounter) player.facing = getFacing(enemy.x - player.x, enemy.z - player.z);
+      const counterAttacks = canCounter ? getAttackCount(foe, enemy) : 0;
+      const counterDamage = canCounter ? getCombatDamage(foe, enemy, counterTerrain) : 0;
+      const counterCriticalDamage = canCounter ? getCriticalDamage(foe, enemy, counterTerrain) : 0;
+      const counterHitRate = canCounter ? getHitRate(foe, enemy, counterTerrain) : 0;
+      const counterCriticalRate = canCounter ? getCriticalRate(foe, enemy) : 0;
+      if (canCounter) foe.facing = getFacing(enemy.x - foe.x, enemy.z - foe.z);
       const counterResults = Array.from({ length: counterAttacks }, () => {
         const hit = rollHit(counterHitRate);
         return { hit, critical: hit && rollCritical(counterCriticalRate) };
@@ -1723,27 +1901,27 @@ async function enemyPhase() {
       let counterTotalDamage = 0;
 
       const rounds = Math.max(attacks, counterAttacks);
-      for (let round = 0; round < rounds && player.hp > 0 && enemy.hp > 0; round++) {
+      for (let round = 0; round < rounds && foe.hp > 0 && enemy.hp > 0; round++) {
         if (round < attacks) {
           await playAttackAnimation(enemy, enemy.facing, round > 0);
           const result = strikeResults[round];
           if (result.hit) {
             hits++;
             if (result.critical) criticalHits++;
-            const strikeDamage = Math.min(player.hp, result.critical ? criticalDamage : damage);
-            player.hp -= strikeDamage;
+            const strikeDamage = Math.min(foe.hp, result.critical ? criticalDamage : damage);
+            foe.hp -= strikeDamage;
             totalDamage += strikeDamage;
-            showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+            showCombatResult(foe, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
           } else {
-            showCombatResult(player, 'MISS', 'miss');
+            showCombatResult(foe, 'MISS', 'miss');
           }
           await wait(400);
           renderTacticalUi();
-          if (player.hp <= 0) break;
+          if (foe.hp <= 0) break;
         }
         if (round < counterAttacks) {
-          setMessage(`${player.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
-          await attack(player.facing, round > 0);
+          setMessage(`${foe.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
+          await playAttackAnimation(foe, foe.facing, round > 0);
           const result = counterResults[round];
           if (result.hit) {
             counterHitCount++;
@@ -1759,31 +1937,35 @@ async function enemyPhase() {
         }
       }
       setMessage(hits === 0
-        ? `${enemy.name} misses ${player.name} (${hitRate}% Hit).`
-        : `${enemy.name} hits ${player.name} ${hits}/${attacks} times${criticalHits ? ` (${criticalHits} critical)` : ''} (${hitRate}% Hit, ${totalDamage} damage).`);
+        ? `${enemy.name} misses ${foe.name} (${hitRate}% Hit).`
+        : `${enemy.name} hits ${foe.name} ${hits}/${attacks} times${criticalHits ? ` (${criticalHits} critical)` : ''} (${hitRate}% Hit, ${totalDamage} damage).`);
       renderTacticalUi();
+      if (foe.hp <= 0) {
+        foe.mesh.visible = false;
+        foe.acted = true;
+      }
       if (playerTeam.every((unit) => unit.hp <= 0)) {
         completeGameOver();
         return;
       }
 
-      if (canCounter) {
+      if (canCounter && foe.hp > 0) {
         if (enemy.hp === 0) {
           scene.remove(enemy.mesh);
           enemies = enemies.filter((unit) => unit !== enemy);
           const experienceGained = getCombatExperience(enemy, true);
-          const progression = awardExperience(player, experienceGained);
-          await showExperienceProgression(progression, experienceGained);
+          const progression = awardExperience(foe, experienceGained);
+          await showExperienceProgression(progression, experienceGained, foe);
           setMessage(
-            `${player.name} counters and defeats ${enemy.name}${enemy.isBoss ? ' (Boss)' : ''} (${counterHitCount}/${counterAttacks} hits${counterCriticalCount ? `, ${counterCriticalCount} critical` : ''}, ${counterTotalDamage} damage, +${experienceGained} EXP${progression.levelUps ? `, Level ${player.level}!` : ''}).`,
+            `${foe.name} counters and defeats ${enemy.name}${enemy.isBoss ? ' (Boss)' : ''} (${counterHitCount}/${counterAttacks} hits${counterCriticalCount ? `, ${counterCriticalCount} critical` : ''}, ${counterTotalDamage} damage, +${experienceGained} EXP${progression.levelUps ? `, Level ${foe.level}!` : ''}).`,
           );
         } else {
           const experienceGained = getCombatExperience(enemy, false);
-          const progression = awardExperience(player, experienceGained);
-          await showExperienceProgression(progression, experienceGained);
+          const progression = awardExperience(foe, experienceGained);
+          await showExperienceProgression(progression, experienceGained, foe);
           setMessage(counterHitCount > 0
-            ? `${player.name} counters ${enemy.name} ${counterHitCount}/${counterAttacks} times (${counterTotalDamage} damage, +${experienceGained} EXP).`
-            : `${player.name} misses the counterattack against ${enemy.name} (+${experienceGained} EXP).`);
+            ? `${foe.name} counters ${enemy.name} ${counterHitCount}/${counterAttacks} times (${counterTotalDamage} damage, +${experienceGained} EXP).`
+            : `${foe.name} misses the counterattack against ${enemy.name} (+${experienceGained} EXP).`);
         }
       }
       gameState.mode = 'cursor';
@@ -1803,6 +1985,7 @@ async function enemyPhase() {
     unit.acted = false;
     unit.moveOrigin = null;
   }
+  player = playerTeam.find((unit) => unit.hp > 0) ?? player;
   gameState.mode = 'cursor';
   gameState.selected = false;
   cameraFollowTarget = undefined;
@@ -1876,8 +2059,10 @@ function confirmCursor() {
   if (gameState.mode === 'cursor') {
     const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
     if (enemy) openEnemyProfile(enemy);
-    else if (cursor.x === player.x && cursor.z === player.z) selectMaria();
-    else openOptionsMenu();
+    else if (playerUnitAt(cursor.x, cursor.z)) {
+      player = playerUnitAt(cursor.x, cursor.z);
+      selectMaria();
+    } else openOptionsMenu();
   } else if (gameState.mode === 'move') {
     if (cursor.x === player.x && cursor.z === player.z) openMariaActions();
     else confirmMove();
@@ -1899,27 +2084,21 @@ function clickBattlefield(event) {
   pointerRaycaster.setFromCamera(pointerPosition, camera);
   // Sprite quads have transparent margins; only the central band counts as clicking the unit.
   const spriteHit = pointerRaycaster.intersectObjects(
-    [hero, ...enemies.map((enemy) => enemy.mesh)],
+    selectableMeshes(),
     false,
   ).find((hit) => hit.uv && hit.uv.x > 0.3 && hit.uv.x < 0.7 && hit.uv.y < 0.9);
   const point = spriteHit
     ? spriteHit.object.position
-    : pointerRaycaster.ray.intersectPlane(deckPlane, new THREE.Vector3());
+    : pickFloorPoint(pointerRaycaster.ray);
   if (!point) return;
-  const x = spriteHit?.object === hero
-    ? player.x
-    : spriteHit
-      ? enemies.find((enemy) => enemy.mesh === spriteHit.object).x
-      : Math.floor(point.x + activeLevel.width / 2);
-  const z = spriteHit?.object === hero
-    ? player.z
-    : spriteHit
-      ? enemies.find((enemy) => enemy.mesh === spriteHit.object).z
-      : Math.floor(point.z + activeLevel.height / 2);
+  const hitUnit = spriteHit ? unitForMesh(spriteHit.object) : null;
+  const x = hitUnit ? hitUnit.x : Math.floor(point.x + activeLevel.width / 2);
+  const z = hitUnit ? hitUnit.z : Math.floor(point.z + activeLevel.height / 2);
   if (x < 0 || x >= activeLevel.width || z < 0 || z >= activeLevel.height) return;
   setCursor(x, z);
   if (gameState.mode === 'cursor') {
-    if (x === player.x && z === player.z) {
+    if (playerUnitAt(x, z)) {
+      player = playerUnitAt(x, z);
       selectMaria();
     } else if (spriteHit) {
       const enemy = enemies.find((unit) => unit.mesh === spriteHit.object);
@@ -1928,7 +2107,7 @@ function clickBattlefield(event) {
       openOptionsMenu();
     }
   } else if (gameState.mode === 'move') {
-    if (spriteHit?.object === hero) {
+    if (hitUnit === player) {
       openMariaActions();
     } else {
       confirmMove();
@@ -1961,6 +2140,7 @@ document.querySelector('#title-options').addEventListener('click', openTitleOpti
 newGameButton.addEventListener('click', newGame);
 continueButton.addEventListener('click', continueGame);
 document.querySelector('#restart-level').addEventListener('click', restartLevel);
+document.querySelector('#next-chapter').addEventListener('click', startNextChapter);
 document.querySelector('#terminal-main-menu').addEventListener('click', returnToMainMenu);
 const oceanToggle = document.querySelector('#toggle-ocean-sound');
 onOceanSoundChange((on) => {
@@ -1969,6 +2149,7 @@ onOceanSoundChange((on) => {
 });
 oceanToggle.addEventListener('click', () => setOceanSoundEnabled(!isOceanSoundEnabled()));
 initializeOceanSound();
+initializeUiSounds();
 document.querySelector('#resume-game').addEventListener('click', closeOptionsMenu);
 document.querySelector('#return-to-menu').addEventListener('click', returnToMainMenu);
 optionsDialog.addEventListener('cancel', () => {
@@ -1990,14 +2171,14 @@ renderer.domElement.addEventListener('pointermove', (event) => {
   );
   pointerRaycaster.setFromCamera(pointerPosition, camera);
   const unitHit = pointerRaycaster.intersectObjects(
-    [hero, ...enemies.map((enemy) => enemy.mesh)],
+    selectableMeshes(),
     false,
   )[0];
   pointerHoveredUnit = unitHit
-    ? unitHit.object === hero ? player : enemies.find((enemy) => enemy.mesh === unitHit.object) ?? null
+    ? unitForMesh(unitHit.object)
     : null;
   updateUnitHoverCard();
-  const point = pointerRaycaster.ray.intersectPlane(deckPlane, new THREE.Vector3());
+  const point = pickFloorPoint(pointerRaycaster.ray);
   if (!point) {
     tileInspection.hidden = true;
     return;
@@ -2016,6 +2197,61 @@ document.querySelector('#open-unit-list').addEventListener('click', openUnitList
 document.querySelector('#unit-list-close').addEventListener('click', () => unitListDialog.close());
 const savedGame = refreshContinueButton();
 (savedGame ? continueButton : newGameButton).focus();
+
+
+// Universal back: closes the top dialog or steps out of the current tactical mode.
+let backCtrlPending = false;
+
+function goBack() {
+  if (document.querySelector('#level-up-dialog')?.open) return false;
+  if (combatForecastDialog.open) {
+    cancelCombatForecast();
+    return true;
+  }
+  if (inventoryDialog.open) {
+    closeInventory();
+    return true;
+  }
+  if (profileDialog.open) {
+    profileDialog.close();
+    return true;
+  }
+  if (unitListDialog.open) {
+    unitListDialog.close();
+    return true;
+  }
+  if (optionsDialog.open) {
+    closeOptionsMenu();
+    return true;
+  }
+  if (
+    !sessionStarted || !mainMenu.hidden || !terminalScreen.hidden || gameState.defeated ||
+    gameState.phase !== 'player' || playerMovement
+  ) {
+    return false;
+  }
+  if (gameState.mode === 'unit' && gameState.selected && player.moveOrigin && player.moved && !player.acted) {
+    undoMove();
+    return true;
+  }
+  if (['unit', 'move', 'attack'].includes(gameState.mode)) {
+    cancelAction();
+    return true;
+  }
+  return false;
+}
+
+window.addEventListener('contextmenu', (event) => {
+  if (!sessionStarted) return;
+  event.preventDefault();
+  goBack();
+});
+window.addEventListener('keyup', (event) => {
+  if ((event.code === 'ControlLeft' || event.code === 'ControlRight') && backCtrlPending) {
+    backCtrlPending = false;
+    goBack();
+  }
+});
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat) return;
@@ -2039,6 +2275,14 @@ window.addEventListener('keydown', (event) => {
       return;
     }
   }
+  if (event.code === 'Escape' || event.code === 'Backspace') {
+    if (goBack()) {
+      event.preventDefault();
+      return;
+    }
+  }
+  if (event.code !== 'ControlLeft' && event.code !== 'ControlRight') backCtrlPending = false;
+  else backCtrlPending = true;
   if (!terminalScreen.hidden) {
     if (event.code === 'Enter' || event.code === 'Space') {
       event.preventDefault();
@@ -2156,15 +2400,8 @@ function update(dt, t) {
     const from = path[stepIndex];
     const to = path[stepIndex + 1];
     enemy.facing = getFacing(to.x - from.x, to.z - from.z);
-    if (enemy.isBoss) {
-      const frames = bartzWalkingMaterials[enemy.facing];
-      const frameIndex = Math.floor((t - startedAt) / 0.09) % frames.length;
-      enemy.mesh.material = frames[frameIndex];
-    } else {
-      const frames = raiderWalkingMaterials[enemy.facing];
-      const frameIndex = Math.floor((t - startedAt) / 0.09) % frames.length;
-      enemy.mesh.material = frames[frameIndex];
-    }
+    const walkFrames = unitTextures(enemy).walking[enemy.facing];
+    setUnitSprite(enemy, walkFrames[Math.floor((t - startedAt) / 0.09) % walkFrames.length]);
     enemy.mesh.position.set(
       THREE.MathUtils.lerp(worldX(from.x), worldX(to.x), stepProgress),
       THREE.MathUtils.lerp(
@@ -2174,26 +2411,29 @@ function update(dt, t) {
       THREE.MathUtils.lerp(worldZ(from.z), worldZ(to.z), stepProgress),
     );
   }
-  for (const enemy of enemies) {
-    if (enemy.attackAnimation) {
-      const { direction, frameIndex } = enemy.attackAnimation;
-      if (enemy.isBoss) {
-        // Bartz: use texture swapping like Maria
-        const frames = characterSprites.bartzAttackFrames[direction];
-        if (frames && frameIndex < frames.length) {
-          enemy.mesh.material.map = frames[frameIndex];
-          enemy.mesh.material.needsUpdate = true;
-        }
-      } else {
-        // Raiders: use material swapping
-        const attackMaterials = raiderAttackMaterials[direction];
-        if (attackMaterials && frameIndex < attackMaterials.length) {
-          enemy.mesh.material = attackMaterials[frameIndex];
-        }
-      }
+  for (const unit of enemies) {
+    if (unit.attackAnimation) {
+      const { direction, frameIndex } = unit.attackAnimation;
+      setUnitSprite(unit, unitTextures(unit).attack[direction]?.[frameIndex]);
     }
   }
-  const attacking = Boolean(attackAnimation);
+  for (let index = hitEffects.length - 1; index >= 0; index--) {
+    const effect = hitEffects[index];
+    const progress = (t - effect.born) / effect.life;
+    if (progress >= 1) {
+      scene.remove(effect.sprite);
+      effect.material.dispose();
+      hitEffects.splice(index, 1);
+      continue;
+    }
+    if (effect.velocity) {
+      effect.velocity.y -= dt * 7;
+      effect.sprite.position.addScaledVector(effect.velocity, dt);
+    } else {
+      effect.sprite.scale.setScalar(effect.sprite.scale.x + dt * effect.grow * 4);
+    }
+    effect.material.opacity = 1 - progress;
+  }
   for (let index = floatingCombatTexts.length - 1; index >= 0; index--) {
     const floatingText = floatingCombatTexts[index];
     const age = t - floatingText.startedAt;
@@ -2207,21 +2447,29 @@ function update(dt, t) {
     floatingText.sprite.position.y += dt * 0.8;
     floatingText.material.opacity = 1 - age / 1.1;
   }
-  const pose = moving ? 'walking' : 'idle';
-  const walkingFrames = characterSprites.mariaWalkingFrames[player.facing];
   const walkingTime = playerMovement ? t - playerMovement.startedAt : t;
-  const walkingFrame = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];
-  const attackFrames = attacking
-    ? characterSprites.mariaAttackFrames[attackAnimation.direction]
-    : undefined;
-  const sprite = attacking ? attackFrames[attackAnimation.frameIndex]
-    : moving ? walkingFrame
-      : characterSprites.maria[player.facing];
-  if (hero.material.map !== sprite) {
-    hero.material.map = sprite;
-    hero.material.needsUpdate = true;
+  for (const unit of [maria, bartz]) {
+    const fielded = playerTeam.includes(unit) && unit.hp > 0;
+    unit.mesh.visible = fielded;
+    unit.blob.visible = fielded;
+    if (!fielded) continue;
+    const textures = unitTextures(unit);
+    const unitMoving = unit === player && moving;
+    let sprite = textures.idle[unit.facing];
+    if (unit.attackAnimation) {
+      sprite = textures.attack[unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
+    } else if (unitMoving) {
+      const walkingFrames = textures.walking[unit.facing];
+      sprite = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];
+    }
+    setUnitSprite(unit, sprite);
+    const unitX = unit === player ? playerWorldX : worldX(unit.x);
+    const unitY = unit === player ? playerWorldY : unitSpriteHeightAt(unit.x, unit.z);
+    const unitZ = unit === player ? playerWorldZ : worldZ(unit.z);
+    unit.mesh.position.set(unitX, unitY + (unitMoving ? Math.abs(Math.sin(t * 28)) * 0.08 : 0), unitZ);
+    unit.blob.position.set(unitX, unitY - UNIT_SPRITE_HEIGHT / 2 - HERO_DECK_HEIGHT + 0.02, unitZ);
   }
-  const healthBarMeshes = [hero, ...enemies.map((enemy) => enemy.mesh)];
+  const healthBarMeshes = [...playerTeam, ...enemies].map((unit) => unit.mesh);
   updateExperiencePanel();
   if (gameState.mode !== 'combat' && combatants.size) {
     for (const mesh of healthBarMeshes) {
@@ -2254,15 +2502,6 @@ function update(dt, t) {
       healthRatio > 0.6 ? 0x42d66b : healthRatio > 0.3 ? 0xf0c541 : 0xed4b4b,
     );
   }
-  hero.position.set(
-    playerWorldX,
-    playerWorldY + (moving ? Math.abs(Math.sin(t * 28)) * 0.08 : 0),
-    playerWorldZ,
-  );
-  blob.position.x = playerWorldX;
-  blob.position.y = playerWorldY - UNIT_SPRITE_HEIGHT / 2 - HERO_DECK_HEIGHT + 0.02;
-  blob.position.z = playerWorldZ;
-
   cursorOutline.visible =
     sessionStarted &&
     !gameState.defeated &&
@@ -2286,7 +2525,19 @@ function update(dt, t) {
         : new THREE.Vector3(0, 0.8, 0);
   const cameraScale = Math.max(0.55, activeLevel.width / 21, activeLevel.height / 19);
   const desired = target.clone().addScaledVector(CAM_OFFSET, cameraScale);
+  camera.position.sub(cameraShakeOffset);
   camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
+  if (t < cameraShake.until) {
+    const falloff = (cameraShake.until - t) / 0.3;
+    cameraShakeOffset.set(
+      (Math.random() - 0.5) * cameraShake.strength * Math.min(1, falloff),
+      (Math.random() - 0.5) * cameraShake.strength * Math.min(1, falloff),
+      0,
+    );
+  } else {
+    cameraShakeOffset.set(0, 0, 0);
+  }
+  camera.position.add(cameraShakeOffset);
   camera.lookAt(target);
 }
 
@@ -2299,6 +2550,7 @@ const clock = new THREE.Clock();
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   update(dt, clock.elapsedTime);
+  updateLevelAnimation(clock.elapsedTime);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
@@ -2309,3 +2561,12 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// Dev shortcut: ?chapter=2 jumps straight into that chapter with a fresh Maria.
+const requestedChapter = Number(new URLSearchParams(window.location.search).get('chapter'));
+if (Number.isInteger(requestedChapter) && requestedChapter >= 2 && requestedChapter <= CHAPTER_COUNT) {
+  startLevel(await loadChapterLevel(requestedChapter - 1), {
+    chapter: requestedChapter - 1,
+    carry: serializeUnit(createMaria()),
+  });
+}

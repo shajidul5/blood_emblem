@@ -1,0 +1,15 @@
+{
+  "id": "steel-spear",
+  "name": "Steel Spear",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 9,
+  "weight": 8,
+  "hit": 75,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "slash",
+  "sprite": "assets/weapons/Steel_Spear/rotations/Steel_Spear.png"
+}

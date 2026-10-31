@@ -1,6 +1,7 @@
-import { validateLevel } from '../levels/level.js';
+import { validateLevel, CHAPTER_COUNT } from '../levels/level.js';
 import { isLevelTileWalkable } from '../levels/tiles.js';
 import { INVENTORY_ITEMS } from '../characters/inventory.js';
+import { ENEMY_IDS } from '../characters/characters.js';
 
 const SAVE_KEY = 'blood-emblem-save';
 const PLAYER_STATS = [
@@ -27,23 +28,48 @@ const FACINGS = new Set([
   'north-west',
 ]);
 
-export function createSaveData(level, player, enemies, gameState) {
+export function serializeUnit(player) {
+  return {
+    id: player.id,
+    x: player.x,
+    z: player.z,
+    facing: player.facing,
+    level: player.level,
+    experience: player.experience,
+    moved: player.moved,
+    acted: player.acted,
+    moveOrigin: player.moveOrigin ?? null,
+    inventory: player.inventory.map(({ id, uses }) => ({ id, uses })),
+    equippedWeaponId: player.weapon.id,
+    stats: Object.fromEntries(PLAYER_STATS.map((stat) => [stat, player[stat]])),
+  };
+}
+
+function validInventory(inventory, equippedWeaponId) {
+  const inventoryIds = new Set();
+  return Array.isArray(inventory) &&
+    inventory.length <= 20 &&
+    inventory.every((entry) => {
+      const item = entry && INVENTORY_ITEMS.get(entry.id);
+      if (!item || inventoryIds.has(entry.id)) return false;
+      inventoryIds.add(entry.id);
+      return item.itemType === 'weapon'
+        ? entry.uses === null
+        : Number.isInteger(entry.uses) && entry.uses > 0 && entry.uses <= item.maxUses;
+    }) &&
+    typeof equippedWeaponId === 'string' &&
+    inventoryIds.has(equippedWeaponId) &&
+    INVENTORY_ITEMS.get(equippedWeaponId)?.itemType === 'weapon';
+}
+
+export function createSaveData(level, player, enemies, gameState, extras = {}) {
   return {
     version: 1,
     level,
-    player: {
-      x: player.x,
-      z: player.z,
-      facing: player.facing,
-      level: player.level,
-      experience: player.experience,
-      moved: player.moved,
-      acted: player.acted,
-      moveOrigin: player.moveOrigin ?? null,
-      inventory: player.inventory.map(({ id, uses }) => ({ id, uses })),
-      equippedWeaponId: player.weapon.id,
-      stats: Object.fromEntries(PLAYER_STATS.map((stat) => [stat, player[stat]])),
-    },
+    player: serializeUnit(player),
+    allies: (extras.allies ?? []).map(serializeUnit),
+    chapter: extras.chapter ?? null,
+    chapterStart: extras.chapterStart ?? null,
     enemies: enemies.map(({ id, x, z, hp, maxHp }) => ({ id, x, z, hp, maxHp })),
     turn: gameState.turn,
     phase: gameState.phase,
@@ -116,11 +142,52 @@ export function readSave() {
     }
   }
 
-  const occupiedTiles = new Set([`${player.x},${player.z}`]);
+  const occupiedTiles = new Set(player.stats.hp > 0 ? [`${player.x},${player.z}`] : []);
+  const allies = save.allies ?? [];
+  if (!Array.isArray(allies) || allies.length > 3) throw new Error('Saved allies are invalid.');
+  for (const ally of allies) {
+    if (
+      !ally || ally.id !== 'bartz' ||
+      !isIntegerInRange(ally.x, 0, level.width - 1) ||
+      !isIntegerInRange(ally.z, 0, level.height - 1) ||
+      !isIntegerInRange(ally.level, 1, 999) ||
+      !isIntegerInRange(ally.experience, 0, 99) ||
+      !FACINGS.has(ally.facing) ||
+      typeof ally.moved !== 'boolean' ||
+      typeof ally.acted !== 'boolean' ||
+      !ally.stats ||
+      !PLAYER_STATS.every((stat) => Number.isInteger(ally.stats[stat])) ||
+      !isIntegerInRange(ally.stats.hp, 0, ally.stats.maxHp) ||
+      !isIntegerInRange(ally.stats.maxHp, 1, 999) ||
+      !validInventory(ally.inventory, ally.equippedWeaponId)
+    ) {
+      throw new Error('Saved ally state is invalid.');
+    }
+    if (ally.stats.hp > 0) {
+      const key = `${ally.x},${ally.z}`;
+      if (!isLevelTileWalkable(level, ally.x, ally.z) || occupiedTiles.has(key)) {
+        throw new Error('Saved ally state is invalid.');
+      }
+      occupiedTiles.add(key);
+    }
+  }
+  if (
+    save.chapter !== undefined && save.chapter !== null &&
+    !isIntegerInRange(save.chapter, 0, CHAPTER_COUNT - 1)
+  ) {
+    throw new Error('Saved chapter is invalid.');
+  }
+  const start = save.chapterStart;
+  const chapterStart = start &&
+    isIntegerInRange(start.level, 1, 999) &&
+    isIntegerInRange(start.experience, 0, 99) &&
+    start.stats && PLAYER_STATS.every((stat) => Number.isInteger(start.stats[stat])) &&
+    validInventory(start.inventory, start.equippedWeaponId)
+    ? start : null;
   for (const enemy of save.enemies) {
     if (
       !enemy ||
-      (enemy.id !== undefined && !['raider', 'bartz'].includes(enemy.id)) ||
+      (enemy.id !== undefined && !ENEMY_IDS.has(enemy.id)) ||
       !isIntegerInRange(enemy.x, 0, level.width - 1) ||
       !isIntegerInRange(enemy.z, 0, level.height - 1) ||
       !isLevelTileWalkable(level, enemy.x, enemy.z) ||
@@ -149,5 +216,5 @@ export function readSave() {
     throw new Error('Saved movement undo state is invalid.');
   }
 
-  return { ...save, level };
+  return { ...save, level, allies, chapter: save.chapter ?? null, chapterStart };
 }
