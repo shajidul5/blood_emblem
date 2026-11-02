@@ -1,0 +1,122 @@
+{
+  "name": "Chapter 3 - The Fishing Village",
+  "tileset": "/tiles/ship_oblique/ship_oblique_tileset.json",
+  "tileSize": 32,
+  "width": 20,
+  "height": 14,
+  "objective": "defeat-all-enemies",
+  "extendEdges": true,
+  "spawn": { "x": 2, "z": 1 },
+  "exit": { "x": 4, "z": 1 },
+  "players": [
+    { "id": "maria", "x": 2, "z": 1 },
+    { "id": "bartz", "x": 3, "z": 1 },
+    { "id": "cypher", "x": 2, "z": 7 }
+  ],
+  "enemies": [
+    { "id": "merfolk", "level": 6, "x": 11, "z": 5 },
+    { "id": "merfolk", "level": 6, "x": 13, "z": 4 },
+    { "id": "merfolk", "level": 6, "x": 9, "z": 8 },
+    { "id": "merfolk", "level": 6, "x": 12, "z": 8 },
+    { "id": "merfolk", "level": 6, "x": 14, "z": 6 }
+  ],
+  "houses": [
+    {
+      "id": "fisher-cottage-1",
+      "name": "Fisher's Cottage",
+      "x": 10,
+      "z": 1,
+      "width": 3,
+      "height": 2,
+      "door": { "x": 11, "z": 3 },
+      "rewardId": "potion"
+    },
+    {
+      "id": "fisher-cottage-2",
+      "name": "Harbor Mage's House",
+      "x": 5,
+      "z": 6,
+      "width": 3,
+      "height": 2,
+      "door": { "x": 6, "z": 8 },
+      "rewardId": "thunder-tome"
+    },
+    {
+      "id": "fisher-cottage-3",
+      "name": "Netmaker's House",
+      "x": 10,
+      "z": 10,
+      "width": 3,
+      "height": 2,
+      "door": { "x": 11, "z": 12 },
+      "rewardId": "zanbato"
+    }
+  ],
+  "decorativeHouses": [
+    { "id": "no-entry-cottage-1", "x": 4, "z": 2, "width": 3, "height": 2 },
+    { "id": "no-entry-cottage-2", "x": 1, "z": 4, "width": 3, "height": 2 },
+    { "id": "no-entry-cottage-3", "x": 3, "z": 9, "width": 3, "height": 2 }
+  ],
+  "objects": [
+    { "id": "crate", "x": 5, "z": 4 },
+    { "id": "crates", "x": 6, "z": 9 },
+    { "id": "barrel", "x": 9, "z": 10 },
+    { "id": "crate", "x": 4, "z": 11 },
+    { "id": "crates", "x": 7, "z": 3 },
+    { "id": "barrel", "x": 8, "z": 12 }
+  ],
+  "reinforcements": [
+    {
+      "turn": 2,
+      "units": [
+        { "id": "merfolk", "level": 6, "x": 14, "z": 2 },
+        { "id": "merfolk", "level": 6, "x": 13, "z": 3 }
+      ]
+    },
+    {
+      "turn": 4,
+      "units": [
+        { "id": "merfolk", "level": 6, "x": 14, "z": 9 },
+        { "id": "merfolk", "level": 6, "x": 13, "z": 11 }
+      ]
+    },
+    {
+      "turn": 6,
+      "units": [
+        { "id": "merfolk", "level": 7, "x": 13, "z": 2 },
+        { "id": "merfolk", "level": 7, "x": 14, "z": 4 },
+        { "id": "merfolk-chieftain", "x": 14, "z": 7 }
+      ]
+    },
+    {
+      "turn": 8,
+      "units": [
+        { "id": "merfolk", "level": 7, "x": 13, "z": 8 },
+        { "id": "merfolk", "level": 7, "x": 14, "z": 11 }
+      ]
+    },
+    {
+      "turn": 10,
+      "units": [
+        { "id": "merfolk", "level": 8, "x": 13, "z": 6 },
+        { "id": "merfolk", "level": 8, "x": 14, "z": 12 }
+      ]
+    }
+  ],
+  "tiles": [
+    "ggGnggGgjnggGggfoooo",
+    "gGggngggGgBBBggfoooo",
+    "ggggBBBgggBBBggfoooo",
+    "GggnBBBgGggjgggfoooo",
+    "gBBBGggngggGgggfoooo",
+    "gBBBnggggggngggfoooo",
+    "ggggGBBBggGngggfoooo",
+    "GggngBBBGggjgggfoooo",
+    "gggjGggngggGgggfoooo",
+    "ggGBBBGgjnggGggfoooo",
+    "gGgBBBggGgBBBggfoooo",
+    "ggggGgjgggBBBggfoooo",
+    "GggnggggGggjgggfoooo",
+    "gggjGggngggGgggfoooo"
+  ]
+}

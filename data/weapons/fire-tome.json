@@ -1,0 +1,17 @@
+{
+  "id": "fire-tome",
+  "lore": "Cypher's own. The margins are crowded with tide tables and a name crossed out so many times the paper has worn through.",
+  "name": "Fire",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 5,
+  "weight": 4,
+  "hit": 90,
+  "critical": 0,
+  "maxUses": 10,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": ["beast"],
+  "sound": "magic",
+  "sprite": "assets/weapons/Fire_tome/rotations/Fire_tome.png"
+}

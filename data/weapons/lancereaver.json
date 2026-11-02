@@ -1,0 +1,17 @@
+{
+  "id": "lancereaver",
+  "name": "Lancereaver",
+  "lore": "A knight's sword with a notched, hooked guard made to catch a lance and wrench it aside. The order forged it for the hunt in this village and then locked it in the mayor's strongroom, as if even they feared what it was used for. Dried salt crusts the fuller where a spear's shaft once splintered against it.",
+  "type": "Sword",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 8,
+  "hit": 75,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "reaves": ["Spear"],
+  "sound": "slash",
+  "sprite": "assets/weapons/Lancereaver/rotations/Lancereaver.png"
+}

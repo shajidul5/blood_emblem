@@ -1,0 +1,372 @@
+{
+    "name":  "Chapter 5 - Escape from the Village",
+    "tileset":  "/tiles/ship_oblique/ship_oblique_tileset.json",
+    "tileSize":  32,
+    "width":  32,
+    "height":  16,
+    "objective":  "escape",
+    "extendEdges":  true,
+    "spawn":  {
+                  "x":  2,
+                  "z":  7
+              },
+    "exit":  {
+                 "x":  30,
+                 "z":  7
+             },
+    "exitTiles":  [
+                      {
+                          "x":  29,
+                          "z":  7
+                      },
+                      {
+                          "x":  29,
+                          "z":  8
+                      },
+                      {
+                          "x":  30,
+                          "z":  8
+                      },
+                      {
+                          "x":  30,
+                          "z":  6
+                      }
+                  ],
+    "players":  [
+                    {
+                        "id":  "maria",
+                        "x":  2,
+                        "z":  7
+                    },
+                    {
+                        "id":  "bartz",
+                        "x":  2,
+                        "z":  8
+                    },
+                    {
+                        "id":  "cypher",
+                        "x":  1,
+                        "z":  8
+                    }
+                ],
+    "enemies":  [
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  9,
+                        "z":  6,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  12,
+                        "z":  3,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  14,
+                        "z":  10,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  16,
+                        "z":  6,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  17,
+                        "z":  11,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  20,
+                        "z":  3,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  20,
+                        "z":  13,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  24,
+                        "z":  7,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  25,
+                        "z":  11,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  26,
+                        "z":  6,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  22,
+                        "z":  14,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  7,
+                        "z":  14,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  4,
+                        "z":  13,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "merfolk",
+                        "level":  9,
+                        "x":  14,
+                        "z":  1,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "deep-merfolk",
+                        "level":  11,
+                        "x":  28,
+                        "z":  6,
+                        "ai":  "guard"
+                    },
+                    {
+                        "id":  "deep-merfolk",
+                        "level":  11,
+                        "x":  28,
+                        "z":  9,
+                        "ai":  "guard"
+                    }
+                ],
+    "houses":  [
+                   {
+                       "id":  "fishermans-house",
+                       "name":  "Fisherman\u0027s House",
+                       "x":  2,
+                       "z":  2,
+                       "width":  3,
+                       "height":  2,
+                       "door":  {
+                                    "x":  3,
+                                    "z":  4
+                                },
+                       "rewardId":  "potion"
+                   },
+                   {
+                       "id":  "net-mender-house",
+                       "name":  "Net Mender\u0027s House",
+                       "x":  16,
+                       "z":  2,
+                       "width":  3,
+                       "height":  2,
+                       "door":  {
+                                    "x":  17,
+                                    "z":  4
+                                },
+                       "rewardId":  "master-emblem"
+                   },
+                   {
+                       "id":  "herbalist-house",
+                       "name":  "Herbalist\u0027s House",
+                       "x":  8,
+                       "z":  11,
+                       "width":  3,
+                       "height":  2,
+                       "door":  {
+                                    "x":  9,
+                                    "z":  13
+                                },
+                       "recruitId":  "seymour"
+                   }
+               ],
+    "decorativeHouses":  [
+                             {
+                                 "id":  "no-entry-cottage-1",
+                                 "x":  5,
+                                 "z":  3,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-2",
+                                 "x":  11,
+                                 "z":  5,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-3",
+                                 "x":  11,
+                                 "z":  9,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-4",
+                                 "x":  14,
+                                 "z":  12,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-5",
+                                 "x":  21,
+                                 "z":  6,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-6",
+                                 "x":  22,
+                                 "z":  10,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-7",
+                                 "x":  23,
+                                 "z":  2,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-8",
+                                 "x":  25,
+                                 "z":  13,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-9",
+                                 "x":  6,
+                                 "z":  6,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-10",
+                                 "x":  18,
+                                 "z":  8,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-11",
+                                 "x":  28,
+                                 "z":  2,
+                                 "width":  3,
+                                 "height":  2
+                             },
+                             {
+                                 "id":  "no-entry-cottage-12",
+                                 "x":  28,
+                                 "z":  13,
+                                 "width":  3,
+                                 "height":  2
+                             }
+                         ],
+    "objects":  [
+                    {
+                        "id":  "crate",
+                        "x":  4,
+                        "z":  10
+                    },
+                    {
+                        "id":  "crates",
+                        "x":  9,
+                        "z":  4
+                    },
+                    {
+                        "id":  "barrel",
+                        "x":  13,
+                        "z":  7
+                    },
+                    {
+                        "id":  "crate",
+                        "x":  19,
+                        "z":  12
+                    },
+                    {
+                        "id":  "barrel",
+                        "x":  24,
+                        "z":  8
+                    },
+                    {
+                        "id":  "crates",
+                        "x":  26,
+                        "z":  4
+                    },
+                    {
+                        "id":  "barrel",
+                        "x":  15,
+                        "z":  14
+                    },
+                    {
+                        "id":  "crate",
+                        "x":  8,
+                        "z":  8
+                    }
+                ],
+    "reinforcements":  [
+                           {
+                               "turn":  10,
+                               "units":  [
+                                             {
+                                                 "id":  "deep-merfolk",
+                                                 "level":  18,
+                                                 "x":  0,
+                                                 "z":  3
+                                             },
+                                             {
+                                                 "id":  "deep-merfolk",
+                                                 "level":  18,
+                                                 "x":  0,
+                                                 "z":  12
+                                             }
+                                         ]
+                           }
+                       ],
+    "tiles":  [
+                  "gjgnjggggngggGgnggngngjGGgngGggj",
+                  "ggngngggnGgGggggjggggggjggGjgGgg",
+                  "gGBBBggggGjjgGngBBBGngnBBBggBBBj",
+                  "ggBBBBBBgGGgggGgBBBggngBBBgnBBBg",
+                  "GGggjBBBnnGgggngGggjnjggggggnGgg",
+                  "nGggGGgGgjnBBBggngnjggjgjgGgjngG",
+                  "ggggnnBBBggBBBgGgggggBBBgGnngjGg",
+                  "nGngggBBBGnggGnjjggjgBBBgggjgggg",
+                  "ggGggnGgGngggGnGggBBBggnGngjnggg",
+                  "GgjjjggngngBBBgjjgBBBGgnGgnGnGgG",
+                  "njgGnjjgnnnBBBnggjnGggBBBjGgnGgg",
+                  "ggjGgggnBBBGgGgGgGnGgGBBBngggggn",
+                  "GGgGgjGGBBBgggBBBngGnjngnGggngGg",
+                  "ggjnggjggjngggBBBgGgGjjgGBBBBBBn",
+                  "gGGgjngggjGgjGjnnggGjgnngBBBBBBj",
+                  "GjnnjjggnnnjgGggGjggggGgGjGgnjgj"
+              ]
+}

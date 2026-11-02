@@ -1,5 +1,6 @@
 {
   "id": "iron-katana",
+  "lore": "Traded from a distant port. Its owner scored a tally of notches into the scabbard, and stopped counting at a number he never spoke of.",
   "name": "Iron Katana",
   "type": "Sword",
   "damageType": "physical",

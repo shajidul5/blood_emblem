@@ -1,0 +1,63 @@
+{
+  "escape": {
+    "pages": [
+      {
+        "kicker": "Chapter 5",
+        "title": "Escape from the Village",
+        "paragraphs": [
+          "Killian's body slumps in the mayor's chair, and the hall is silent. Then a low horn sounds from the harbor, answered by another, and another. Through the broken windows, wet shapes are climbing the piers by the dozen.",
+          "Cypher closes his tome. \"Whatever the village knew, it died with him, or it's buried too deep to dig up tonight.\" Maria looks at the lanterns going out one by one. Her husband's trail does not end here. It leads inland, to the city at the island's heart.",
+          "The only road runs through the forbidden forest beyond the village gate. First, they have to get there alive."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Objective",
+        "title": "Escape the Village",
+        "paragraphs": [
+          "This is an escape. Every living unit must reach the green exit tiles at the far end of the map. Nobody can be left behind, and a fallen ally ends the run.",
+          "Merfolk hold the streets and two Deep Merfolk wait at the gate. Most of them are on guard, so plan a route that pulls enemies a few at a time.",
+          "Do not dawdle. At turn 10, a far stronger pair of Deep Merfolk will come out of the sea behind you."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Exploration",
+        "title": "Houses Along the Way",
+        "paragraphs": [
+          "Three houses on the route can be visited, each marked by a green tile. They hold supplies the villagers hid, including a second Orders Emblem, and one of them shelters a traveler who may join you. The nearest is just beside your starting position.",
+          "Visiting takes a unit's turn, so weigh each stop against the clock."
+        ],
+        "button": "Run"
+      }
+    ],
+    "ending": {
+      "heading": "END OF PART ONE",
+      "message": "The village gate groans shut behind them, and the horns fade into the surf. Ahead, the forbidden forest breathes in the dark, and beyond it the city at the island's heart. Maria came for a husband. She is beginning to suspect the island has been waiting for her, and that whatever drowned this place is not finished with it.\n\nThe forest holds its own secrets. The city holds the answers. Part Two begins soon."
+    }
+  },
+  "seymour": {
+    "pages": [
+      {
+        "kicker": "Herbalist's House",
+        "title": "A Priest in the Dark",
+        "paragraphs": [
+          "The door opens before Maria can knock. A man in a travel-stained vestment stands among drying herbs, a staff in one hand and a lantern in the other. He does not look surprised to see outsiders, only relieved.",
+          "\"Seymour,\" he says. \"I came out from the city to see how the village fared. It has not fared well.\" Cypher asks who sent him. Seymour smiles and says only that the church likes to know things.",
+          "He glances once at the sea, then at Maria's wedding ring, and says nothing about either. \"The road inland is not safe alone. I would rather walk it with you.\""
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "New Ally",
+        "title": "Seymour Joins",
+        "paragraphs": [
+          "Seymour is a Priest. He cannot attack, but with his Heal Staff he restores an adjacent ally's HP (10 plus his Magic). Choose Heal from his action menu while standing next to a wounded ally.",
+          "Every heal earns him a flat 20 EXP, so keep him busy. Stronger staves later in the game will grant more.",
+          "Healing and magic are limited. His Heal Staff has 6 uses and each anima tome has 10, spent once per fight. They are all refilled at the start of every chapter."
+        ],
+        "button": "Continue"
+      }
+    ]
+  }
+}

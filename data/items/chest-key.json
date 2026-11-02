@@ -1,0 +1,10 @@
+{
+  "id": "chest-key",
+  "lore": "Cold and slick with salt, its teeth worn smooth. Someone locked things away with it, again and again, until the locking became a habit.",
+  "name": "Chest Key",
+  "type": "consumable",
+  "effect": "key",
+  "description": "Opens a locked chest.",
+  "maxUses": 1,
+  "sprite": "assets/items/Chest_Key/chest_key.svg"
+}

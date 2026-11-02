@@ -1,7 +1,11 @@
 import { validateLevel, CHAPTER_COUNT } from '../levels/level.js';
 import { isLevelTileWalkable } from '../levels/tiles.js';
-import { INVENTORY_ITEMS } from '../characters/inventory.js';
+import { INVENTORY_ITEMS, MAX_INVENTORY_SIZE } from '../characters/inventory.js';
 import { ENEMY_IDS } from '../characters/characters.js';
+import { validWeaponExp } from '../characters/weapon-levels.js';
+import { CLASSES } from '../characters/classes.js';
+
+const validClassId = (classId) => classId === undefined || CLASSES.has(classId);
 
 const SAVE_KEY = 'blood-emblem-save';
 const PLAYER_STATS = [
@@ -36,30 +40,39 @@ export function serializeUnit(player) {
     facing: player.facing,
     level: player.level,
     experience: player.experience,
+    classId: player.classId,
+    weaponExp: { ...player.weaponExp },
     moved: player.moved,
     acted: player.acted,
     moveOrigin: player.moveOrigin ?? null,
     inventory: player.inventory.map(({ id, uses }) => ({ id, uses })),
-    equippedWeaponId: player.weapon.id,
+    equippedWeaponId: player.weapon?.id ?? null,
     stats: Object.fromEntries(PLAYER_STATS.map((stat) => [stat, player[stat]])),
   };
 }
 
 function validInventory(inventory, equippedWeaponId) {
-  const inventoryIds = new Set();
   return Array.isArray(inventory) &&
-    inventory.length <= 20 &&
-    inventory.every((entry) => {
-      const item = entry && INVENTORY_ITEMS.get(entry.id);
-      if (!item || inventoryIds.has(entry.id)) return false;
-      inventoryIds.add(entry.id);
-      return item.itemType === 'weapon'
-        ? entry.uses === null
-        : Number.isInteger(entry.uses) && entry.uses > 0 && entry.uses <= item.maxUses;
-    }) &&
-    typeof equippedWeaponId === 'string' &&
-    inventoryIds.has(equippedWeaponId) &&
-    INVENTORY_ITEMS.get(equippedWeaponId)?.itemType === 'weapon';
+    inventory.length <= MAX_INVENTORY_SIZE &&
+    inventory.every(validInventoryEntry) &&
+    (equippedWeaponId === null || (
+      typeof equippedWeaponId === 'string' &&
+      inventory.some((entry) => entry.id === equippedWeaponId) &&
+      INVENTORY_ITEMS.get(equippedWeaponId)?.itemType === 'weapon'));
+}
+
+function validInventoryEntry(entry) {
+  const item = entry && INVENTORY_ITEMS.get(entry.id);
+  if (!item) return false;
+  return item.itemType === 'weapon'
+    ? (entry.uses === null || (item.maxUses && Number.isInteger(entry.uses) && entry.uses >= 0 && entry.uses <= item.maxUses))
+    : Number.isInteger(entry.uses) && entry.uses > 0 && entry.uses <= item.maxUses;
+}
+
+function validConvoy(convoy) {
+  return Array.isArray(convoy) && convoy.length <= 99 && convoy.every(validInventoryEntry)
+    ? convoy.map(({ id, uses }) => ({ id, uses }))
+    : [];
 }
 
 export function createSaveData(level, player, enemies, gameState, extras = {}) {
@@ -68,9 +81,10 @@ export function createSaveData(level, player, enemies, gameState, extras = {}) {
     level,
     player: serializeUnit(player),
     allies: (extras.allies ?? []).map(serializeUnit),
+    convoy: (extras.convoy ?? []).map(({ id, uses }) => ({ id, uses })),
     chapter: extras.chapter ?? null,
     chapterStart: extras.chapterStart ?? null,
-    enemies: enemies.map(({ id, x, z, hp, maxHp }) => ({ id, x, z, hp, maxHp })),
+    enemies: enemies.map(({ id, x, z, hp, maxHp, level, ai, drop }) => ({ id, x, z, hp, maxHp, level, ai, ...(drop ? { drop } : {}) })),
     turn: gameState.turn,
     phase: gameState.phase,
     defeated: gameState.defeated,
@@ -105,6 +119,8 @@ export function readSave() {
     !isLevelTileWalkable(level, player.x, player.z) ||
     !isIntegerInRange(player.level, 1, 999) ||
     !isIntegerInRange(player.experience, 0, 99) ||
+    !validWeaponExp(player.weaponExp) ||
+    !validClassId(player.classId) ||
     !FACINGS.has(player.facing) ||
     typeof player.moved !== 'boolean' ||
     typeof player.acted !== 'boolean' ||
@@ -121,23 +137,7 @@ export function readSave() {
   }
 
   if (player.inventory !== undefined || player.equippedWeaponId !== undefined) {
-    const inventoryIds = new Set();
-    if (
-      player.inventory === undefined ||
-      !Array.isArray(player.inventory) ||
-      player.inventory.length > 20 ||
-      !player.inventory.every((entry) => {
-        const item = entry && INVENTORY_ITEMS.get(entry.id);
-        if (!item || inventoryIds.has(entry.id)) return false;
-        inventoryIds.add(entry.id);
-        return item.itemType === 'weapon'
-          ? entry.uses === null
-          : Number.isInteger(entry.uses) && entry.uses > 0 && entry.uses <= item.maxUses;
-      }) ||
-      typeof player.equippedWeaponId !== 'string' ||
-      !inventoryIds.has(player.equippedWeaponId) ||
-      INVENTORY_ITEMS.get(player.equippedWeaponId)?.itemType !== 'weapon'
-    ) {
+    if (!validInventory(player.inventory, player.equippedWeaponId)) {
       throw new Error('Saved player inventory is invalid.');
     }
   }
@@ -147,11 +147,13 @@ export function readSave() {
   if (!Array.isArray(allies) || allies.length > 3) throw new Error('Saved allies are invalid.');
   for (const ally of allies) {
     if (
-      !ally || ally.id !== 'bartz' ||
+      !ally || !['bartz', 'cypher', 'seymour'].includes(ally.id) ||
       !isIntegerInRange(ally.x, 0, level.width - 1) ||
       !isIntegerInRange(ally.z, 0, level.height - 1) ||
       !isIntegerInRange(ally.level, 1, 999) ||
       !isIntegerInRange(ally.experience, 0, 99) ||
+      !validWeaponExp(ally.weaponExp) ||
+      !validClassId(ally.classId) ||
       !FACINGS.has(ally.facing) ||
       typeof ally.moved !== 'boolean' ||
       typeof ally.acted !== 'boolean' ||
@@ -181,9 +183,23 @@ export function readSave() {
   const chapterStart = start &&
     isIntegerInRange(start.level, 1, 999) &&
     isIntegerInRange(start.experience, 0, 99) &&
+    validWeaponExp(start.weaponExp) &&
+    validClassId(start.classId) &&
     start.stats && PLAYER_STATS.every((stat) => Number.isInteger(start.stats[stat])) &&
     validInventory(start.inventory, start.equippedWeaponId)
-    ? start : null;
+    ? {
+      ...start,
+      convoy: validConvoy(start.convoy),
+      allies: (Array.isArray(start.allies) ? start.allies : []).filter((ally) =>
+        ally && ['bartz', 'cypher', 'seymour'].includes(ally.id) &&
+        isIntegerInRange(ally.level, 1, 999) &&
+        isIntegerInRange(ally.experience, 0, 99) &&
+        validWeaponExp(ally.weaponExp) &&
+        validClassId(ally.classId) &&
+        ally.stats && PLAYER_STATS.every((stat) => Number.isInteger(ally.stats[stat])) &&
+        validInventory(ally.inventory, ally.equippedWeaponId)),
+    }
+    : null;
   for (const enemy of save.enemies) {
     if (
       !enemy ||
@@ -193,6 +209,9 @@ export function readSave() {
       !isLevelTileWalkable(level, enemy.x, enemy.z) ||
       !isIntegerInRange(enemy.hp, 1, 999) ||
       !isIntegerInRange(enemy.maxHp, enemy.hp, 999) ||
+      (enemy.level !== undefined && !isIntegerInRange(enemy.level, 1, 99)) ||
+      (enemy.ai !== undefined && !['mobile', 'guard', 'stationary'].includes(enemy.ai)) ||
+      (enemy.drop !== undefined && !INVENTORY_ITEMS.has(enemy.drop)) ||
       occupiedTiles.has(`${enemy.x},${enemy.z}`)
     ) {
       throw new Error('Saved enemy state is invalid.');
@@ -216,5 +235,5 @@ export function readSave() {
     throw new Error('Saved movement undo state is invalid.');
   }
 
-  return { ...save, level, allies, chapter: save.chapter ?? null, chapterStart };
+  return { ...save, level, allies, convoy: validConvoy(save.convoy), chapter: save.chapter ?? null, chapterStart };
 }

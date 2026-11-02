@@ -1,0 +1,39 @@
+{
+  "village": {
+    "pages": [
+      {
+        "kicker": "Chapter 3",
+        "title": "The Fishing Village",
+        "paragraphs": [
+          "Maria and Bartz step onto the dock of {island}. Lanterns burn in every window, yet the streets are empty, and the few locals they pass will not meet their eyes. A strange chill follows them from the harbor.",
+          "In the tavern they find a lone mage with a tome at his elbow: Cypher, who is here for reasons of his own. Maria asks after her husband, but the townsfolk are on edge. Shutters slam and doors are barred against the outsiders.",
+          "Then the bells ring, and the water boils with more Merfolk. Cypher rises and offers his fire. The village is under raid."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "New Ally",
+        "title": "Cypher Joins the Party",
+        "paragraphs": [
+          "Cypher is a Mage who wields anima magic tomes. His Fire Tome is accurate and effective against beasts, while a Thunder Tome crits more often and is effective against aqua foes like the Merfolk.",
+          "Magic ignores a target's Defense and strikes against Resistance instead, but mages are frail. Keep him behind Bartz."
+        ],
+        "button": "To Arms"
+      }
+    ]
+  },
+  "houses": {
+    "pages": [
+      {
+        "kicker": "Exploration",
+        "title": "Visiting Houses",
+        "paragraphs": [
+          "The bright green tile marks a door you can visit. Move a unit onto it, choose Visit from the action menu, and the household will reward you with an item.",
+          "Each house can only be visited once, and a unit must be standing on its door tile. Reach them before the raiders do."
+        ],
+        "dock": true,
+        "button": "Back to Battle"
+      }
+    ]
+  }
+}

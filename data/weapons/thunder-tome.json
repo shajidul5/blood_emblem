@@ -1,0 +1,17 @@
+{
+  "id": "thunder-tome",
+  "lore": "The village hedge-mage's book. Its sigils were drawn to make the sea flinch, and the final pages, on warding the water, are dog-eared and shaky.",
+  "name": "Thunder",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 6,
+  "weight": 5,
+  "hit": 70,
+  "critical": 10,
+  "maxUses": 10,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": ["aqua"],
+  "sound": "magic",
+  "sprite": "assets/weapons/Thunder_tome/rotations/Thunder_tome.png"
+}

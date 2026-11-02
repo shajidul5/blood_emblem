@@ -1,0 +1,20 @@
+{
+  "id": "heal-staff",
+  "lore": "Carved from driftwood that washed ashore after the sea turned. Its soft glow is salt-light, not holy, and it hums when the tide is high.",
+  "name": "Heal",
+  "type": "Staff",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 2,
+  "hit": 100,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "E",
+  "heal": 10,
+  "healExperience": 20,
+  "maxUses": 6,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Heal_Staff/heal_staff.svg"
+}

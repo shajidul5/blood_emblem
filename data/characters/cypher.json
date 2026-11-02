@@ -1,0 +1,49 @@
+{
+  "id": "cypher",
+  "name": "Cypher",
+  "classId": "mage",
+  "type": "infantry",
+  "spriteSet": "cypher",
+  "sprite": "assets/character/Cypher/Idle/rotations/south.png",
+  "level": 2,
+  "experience": 0,
+  "weaponId": "fire-tome",
+  "weaponExp": { "Anima": 0 },
+  "inventory": ["fire-tome", "potion"],
+  "baseStats": {
+    "hp": 20,
+    "strength": 0,
+    "magic": 7,
+    "dexterity": 7,
+    "speed": 6,
+    "luck": 4,
+    "defense": 2,
+    "resistance": 5,
+    "movement": 5,
+    "build": 4
+  },
+  "currentStats": {
+    "hp": 20,
+    "strength": 0,
+    "magic": 7,
+    "dexterity": 7,
+    "speed": 6,
+    "luck": 4,
+    "defense": 2,
+    "resistance": 5,
+    "movement": 5,
+    "build": 4
+  },
+  "growthRates": {
+    "hp": 60,
+    "strength": 0,
+    "magic": 55,
+    "dexterity": 45,
+    "speed": 45,
+    "luck": 50,
+    "defense": 20,
+    "resistance": 40,
+    "movement": 0,
+    "build": 0
+  }
+}

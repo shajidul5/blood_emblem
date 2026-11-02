@@ -30,6 +30,20 @@ function buildDefinition(entry) {
 }
 
 export const TILE_DEFS = new Map(shipTileset.tiles.list.map((entry) => [entry.id, buildDefinition(entry)]));
+export const VILLAGE_GRAVEL_TILE_IDS = new Set([
+  'village_gravel_a',
+  'village_gravel_b',
+  'village_gravel_c',
+  'village_building',
+]);
+for (const id of VILLAGE_GRAVEL_TILE_IDS) {
+  const building = id === 'village_building';
+  TILE_DEFS.set(id, buildDefinition({
+    id,
+    name: building ? 'Building' : 'Village Gravel',
+    walkable: !building,
+  }));
+}
 
 export const UNKNOWN_TILE = Object.freeze({
   ...DEFAULTS,
@@ -47,5 +61,8 @@ export function isTileWalkable(tileId) {
 }
 
 export function isLevelTileWalkable(level, x, z) {
-  return isTileWalkable(level?.tileIds?.[z]?.[x]);
+  return isTileWalkable(level?.tileIds?.[z]?.[x]) &&
+    ![...(level?.houses ?? []), ...(level?.decorativeHouses ?? [])].some((house) =>
+      x >= house.x && x < house.x + house.width &&
+      z >= house.z && z < house.z + house.height);
 }

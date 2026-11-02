@@ -1,0 +1,146 @@
+{
+  "classes": [
+    {
+      "id": "hunter",
+      "name": "Hunter",
+      "tier": "base",
+      "weaponTypes": ["Sword"],
+      "promotesTo": "ravager",
+      "promotionBonuses": {
+        "hp": 4,
+        "strength": 2,
+        "magic": 0,
+        "dexterity": 2,
+        "speed": 3,
+        "luck": 0,
+        "defense": 2,
+        "resistance": 1,
+        "movement": 1,
+        "build": 1
+      }
+    },
+    {
+      "id": "ravager",
+      "name": "Ravager",
+      "tier": "advanced",
+      "weaponTypes": ["Sword", "Gun"],
+      "sprites": {
+        "maria": {
+          "spriteSet": "ravagerMaria",
+          "sprite": "assets/character/Ravage_Maria/rotations/south.png"
+        }
+      },
+      "abilities": [
+        {
+          "id": "beast-slayer",
+          "name": "Beast Slayer",
+          "description": "Deals effective damage against beast units.",
+          "effectiveAgainst": ["beast"]
+        }
+      ]
+    },
+    {
+      "id": "pirate",
+      "name": "Pirate",
+      "tier": "base",
+      "weaponTypes": ["Axe"],
+      "promotesTo": "berserker",
+      "promotionBonuses": {
+        "hp": 6,
+        "strength": 5,
+        "magic": 0,
+        "dexterity": 1,
+        "speed": 2,
+        "luck": 0,
+        "defense": 1,
+        "resistance": 0,
+        "movement": 1,
+        "build": 2
+      }
+    },
+    {
+      "id": "berserker",
+      "name": "Berserker",
+      "tier": "advanced",
+      "weaponTypes": ["Axe"], "sprites": { "bartz": { "spriteSet": "berserkerBartz", "sprite": "assets/character/Berserker_Bartz/rotations/south.png" } },
+      "abilities": [
+        {
+          "id": "bloodlust",
+          "name": "Bloodlust",
+          "description": "+30% critical chance in combat.",
+          "critBonus": 30
+        }
+      ]
+    },
+    {
+      "id": "mage",
+      "name": "Mage",
+      "tier": "base",
+      "weaponTypes": ["Anima"],
+      "promotesTo": "sage",
+      "promotionWeaponRanks": { "Staff": "D" },
+      "promotionBonuses": {
+        "hp": 3,
+        "strength": 0,
+        "magic": 4,
+        "dexterity": 2,
+        "speed": 2,
+        "luck": 1,
+        "defense": 1,
+        "resistance": 4,
+        "movement": 1,
+        "build": 0
+      }
+    },
+    {
+      "id": "sage",
+      "name": "Sage",
+      "tier": "advanced",
+      "weaponTypes": ["Anima", "Staff"], "sprites": { "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Sage_Cypher/rotations/south.png" } }
+    },
+    {
+      "id": "priest",
+      "name": "Priest",
+      "tier": "base",
+      "weaponTypes": ["Staff"],
+      "promotesTo": "bishop",
+      "promotionBonuses": {
+        "hp": 4,
+        "strength": 0,
+        "magic": 3,
+        "dexterity": 2,
+        "speed": 1,
+        "luck": 2,
+        "defense": 1,
+        "resistance": 4,
+        "movement": 1,
+        "build": 0
+      }
+    },
+    {
+      "id": "bishop",
+      "name": "Bishop",
+      "tier": "advanced",
+      "weaponTypes": ["Staff", "Light"],
+      "sprites": { "seymour": { "spriteSet": "bishopSeymour", "sprite": "assets/character/Bishop_Seymour/rotations/south.png" } }
+    },
+    {
+      "id": "merfolk",
+      "name": "Merfolk",
+      "tier": "monster",
+      "weaponTypes": ["Spear"]
+    },
+    {
+      "id": "raider",
+      "name": "Raider",
+      "tier": "monster",
+      "weaponTypes": ["Axe"]
+    },
+    {
+      "id": "deep-merfolk",
+      "name": "Deep Merfolk",
+      "tier": "advanced",
+      "weaponTypes": ["Axe", "Spear"]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 {
   "id": "steel-spear",
+  "lore": "Better kept than the rest, with the ghost of an order mark ground off the blade. Whoever carried it was an officer, and wanted that forgotten.",
   "name": "Steel Spear",
   "type": "Spear",
   "damageType": "physical",

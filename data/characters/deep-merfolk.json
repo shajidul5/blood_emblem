@@ -1,0 +1,48 @@
+{
+  "id": "deep-merfolk",
+  "name": "Deep Merfolk",
+  "classId": "deep-merfolk",
+  "type": "aqua",
+  "spriteSet": "killian",
+  "scale": 1.0,
+  "sprite": "assets/character/Killian/rotations/south.png",
+  "level": 10,
+  "experience": 0,
+  "weaponId": "tentacle",
+  "baseStats": {
+    "hp": 36,
+    "strength": 10,
+    "magic": 0,
+    "dexterity": 8,
+    "speed": 7,
+    "luck": 3,
+    "defense": 7,
+    "resistance": 4,
+    "movement": 4,
+    "build": 6
+  },
+  "currentStats": {
+    "hp": 36,
+    "strength": 10,
+    "magic": 0,
+    "dexterity": 8,
+    "speed": 7,
+    "luck": 3,
+    "defense": 7,
+    "resistance": 4,
+    "movement": 4,
+    "build": 6
+  },
+  "growthRates": {
+    "hp": 100,
+    "strength": 65,
+    "magic": 0,
+    "dexterity": 55,
+    "speed": 50,
+    "luck": 30,
+    "defense": 60,
+    "resistance": 50,
+    "movement": 0,
+    "build": 0
+  }
+}

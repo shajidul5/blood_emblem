@@ -1,0 +1,36 @@
+{
+  "boarders": {
+    "pages": [
+      {
+        "kicker": "Chapter 2",
+        "title": "Boarders from the Deep",
+        "paragraphs": [
+          "Bartz's pirates lie broken on the deck, and Bartz himself is in irons at Maria's mercy. But the sea is not finished with either of them.",
+          "In the dead of night, wet shapes claw over the rails: fishlike men with glassy eyes and barbed spears. Their raid does not care whose ship this is.",
+          "Maria frees Bartz. Their quarrel can wait: they will fight side by side until they reach {island}, where Maria will hand him over to the authorities."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "New Ally",
+        "title": "Bartz Joins the Party",
+        "paragraphs": [
+          "Bartz is now under your command. Select him like any other unit, and press Tab to cycle between your units.",
+          "Maria and Bartz each start this chapter with a Potion. Use it from the Inventory menu on a wounded unit."
+        ],
+        "icon": "potion",
+        "button": "Continue"
+      },
+      {
+        "kicker": "Tactics",
+        "title": "Axes Beat Spears",
+        "paragraphs": [
+          "The Merfolk fight with Spears, and Bartz wields an Axe. Axes beat Spears, so Bartz gains {hit} Hit and {avoid} Avoid and deals {damage} more damage against them.",
+          "Maria's Rapier is a Sword, and Spears beat Swords. Let Bartz take the Merfolk head-on, and keep Maria for finishing blows."
+        ],
+        "diagram": "weapon-triangle",
+        "button": "To Arms"
+      }
+    ]
+  }
+}

@@ -4,13 +4,37 @@ import zanbato from '../../data/weapons/zanbato.json';
 import ironAxe from '../../data/weapons/iron-axe.json';
 import ironSpear from '../../data/weapons/iron-spear.json';
 import steelSpear from '../../data/weapons/steel-spear.json';
+import fireTome from '../../data/weapons/fire-tome.json';
+import thunderTome from '../../data/weapons/thunder-tome.json';
+import handAxe from '../../data/weapons/hand-axe.json';
+import lancereaver from '../../data/weapons/lancereaver.json';
+import tentacle from '../../data/weapons/tentacle.json';
+import lightTome from '../../data/weapons/light-tome.json';
+import healStaff from '../../data/weapons/heal-staff.json';
 import potion from '../../data/items/potion.json';
+import chestKey from '../../data/items/chest-key.json';
+import masterEmblem from '../../data/items/master-emblem.json';
+import bloodEmblem from '../../data/items/blood-emblem.json';
 
-const WEAPON_SPRITES = import.meta.glob('../../assets/weapons/**/*.png', {
+const WEAPON_SPRITES = import.meta.glob('../../assets/weapons/**/*.{png,svg}', {
   eager: true,
   query: '?url',
   import: 'default',
 });
+
+const ITEM_SPRITES = import.meta.glob('../../assets/items/**/*.{png,svg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+function createConsumableItem(consumable) {
+  const spriteUrl = consumable.sprite ? ITEM_SPRITES[`../../${consumable.sprite}`] : undefined;
+  if (consumable.sprite && !spriteUrl) {
+    throw new Error(`Item ${consumable.id} references missing sprite ${consumable.sprite}.`);
+  }
+  return { ...consumable, spriteUrl, itemType: 'consumable' };
+}
 
 function createWeaponItem(weapon) {
   const spriteUrl = weapon.sprite ? WEAPON_SPRITES[`../../${weapon.sprite}`] : undefined;
@@ -27,15 +51,24 @@ export const INVENTORY_ITEMS = new Map([
   [ironAxe.id, createWeaponItem(ironAxe)],
   [ironSpear.id, createWeaponItem(ironSpear)],
   [steelSpear.id, createWeaponItem(steelSpear)],
-  [potion.id, { ...potion, itemType: 'consumable' }],
+  [fireTome.id, createWeaponItem(fireTome)],
+  [thunderTome.id, createWeaponItem(thunderTome)],
+  [handAxe.id, createWeaponItem(handAxe)],
+  [lancereaver.id, createWeaponItem(lancereaver)],
+  [tentacle.id, createWeaponItem(tentacle)],
+  [lightTome.id, createWeaponItem(lightTome)],
+  [healStaff.id, createWeaponItem(healStaff)],
+  [potion.id, createConsumableItem(potion)],
+  [chestKey.id, createConsumableItem(chestKey)],
+  [masterEmblem.id, createConsumableItem(masterEmblem)],
+  [bloodEmblem.id, createConsumableItem(bloodEmblem)],
 ]);
 
 export function createMariaInventory() {
   return [
-    { id: ironKatana.id, uses: null },
     { id: rapier.id, uses: null },
-    { id: zanbato.id, uses: null },
     { id: potion.id, uses: potion.maxUses },
+    { id: bloodEmblem.id, uses: bloodEmblem.maxUses },
   ];
 }
 
@@ -43,28 +76,73 @@ export function createInventory(itemIds) {
   return itemIds.map((id) => {
     const item = INVENTORY_ITEMS.get(id);
     if (!item) throw new Error(`Unknown inventory item ${id}.`);
-    return { id, uses: item.itemType === 'weapon' ? null : item.maxUses };
+    return { id, uses: freshUses(item) };
   });
 }
 
-// Gives a fresh consumable, or refills the unit's existing stack.
+// Consumables and magic (tomes, staves) have limited uses; other weapons never run out.
+function freshUses(item) {
+  return item.maxUses ?? null;
+}
+
+// Refills every limited-use weapon, run at the start of each chapter.
+export function refreshMagicUses(entries) {
+  for (const entry of entries) {
+    const item = INVENTORY_ITEMS.get(entry.id);
+    if (item?.itemType === 'weapon' && item.maxUses) entry.uses = item.maxUses;
+  }
+}
+
+// Spends one use of the unit's equipped weapon, if it is limited.
+export function spendWeaponUse(unit) {
+  const entry = unit.inventory?.find((candidate) => candidate.id === unit.weapon?.id);
+  if (entry && Number.isInteger(entry.uses) && entry.uses > 0) entry.uses--;
+}
+
+export const MAX_INVENTORY_SIZE = 5;
+
+// Items that did not fit in a unit's inventory. Shared by the whole party.
+export const convoy = [];
+
+export function setConvoy(entries) {
+  convoy.length = 0;
+  convoy.push(...(entries ?? []).map(({ id, uses }) => legacyEntry({ id, uses })));
+}
+
+// Saves from before tomes and staves had limited uses stored null; treat that as full.
+function legacyEntry(entry) {
+  const item = INVENTORY_ITEMS.get(entry.id);
+  return item?.itemType === 'weapon' && item.maxUses && entry.uses === null
+    ? { id: entry.id, uses: item.maxUses }
+    : entry;
+}
+
+// Adds a fresh copy of the item (units may hold duplicates). When the unit already carries
+// MAX_INVENTORY_SIZE items it goes to the convoy instead. Returns { item, toConvoy }.
 export function grantItem(unit, itemId) {
   const item = INVENTORY_ITEMS.get(itemId);
   if (!item) throw new Error(`Unknown inventory item ${itemId}.`);
-  const existing = unit.inventory.find((entry) => entry.id === itemId);
-  if (existing) {
-    if (item.itemType === 'consumable') existing.uses = item.maxUses;
-  } else {
-    unit.inventory.push({ id: itemId, uses: item.itemType === 'weapon' ? null : item.maxUses });
-  }
+  const entry = { id: itemId, uses: freshUses(item) };
+  const toConvoy = unit.inventory.length >= MAX_INVENTORY_SIZE;
+  (toConvoy ? convoy : unit.inventory).push(entry);
+  return { item, toConvoy };
 }
 
 export function restoreMariaInventory(unit, savedInventory, equippedWeaponId) {
   unit.inventory = savedInventory
-    ? savedInventory.map((entry) => ({ ...entry }))
+    ? savedInventory.map((entry) => legacyEntry({ ...entry }))
     : createMariaInventory();
+  // Older saves predate the Blood Emblem; Maria always carries it.
+  if (!unit.inventory.some((entry) => entry.id === bloodEmblem.id)) {
+    unit.inventory.push({ id: bloodEmblem.id, uses: bloodEmblem.maxUses });
+  }
 
-  const weaponId = equippedWeaponId ?? ironKatana.id;
+  // null means deliberately unarmed; undefined falls back to Maria's rapier.
+  if (equippedWeaponId === null) {
+    unit.weapon = null;
+    return;
+  }
+  const weaponId = equippedWeaponId ?? rapier.id;
   const equippedEntry = unit.inventory.find((entry) => entry.id === weaponId);
   const equippedItem = INVENTORY_ITEMS.get(weaponId);
   if (!equippedEntry || equippedItem?.itemType !== 'weapon') {

@@ -1,0 +1,55 @@
+{
+  "island": "Mournhollow",
+  "intro": {
+    "pages": [
+      {
+        "kicker": "Prologue",
+        "title": "The Tide Remembers",
+        "paragraphs": [
+          "Three moons have passed since her husband's ship slipped beneath a starless sky. The last letter to reach Maria spoke of an island on no chart: {island}, where the fog hums like a choir and the tide runs the color of old wine.",
+          "She has bought passage on a lone merchant ship, and tonight, in the dead hour, black sails slide out of the mist. Bartz and his pirates have come to board.",
+          "Whatever waits on {island} will have to wait a little longer."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Tactics",
+        "title": "The Weapon Triangle",
+        "paragraphs": [
+          "Weapons have a rivalry. Maria's Rapier is a Sword, and Swords beat Axes, which is what these raiders carry.",
+          "With weapon advantage, Maria gains {hit} Hit and {avoid} Avoid and deals {damage} more damage. With disadvantage she suffers the same penalties, so choose your fights."
+        ],
+        "diagram": "weapon-triangle",
+        "button": "To Arms"
+      }
+    ]
+  },
+  "potion": {
+    "pages": [
+      {
+        "kicker": "Tactics",
+        "title": "Healing Potions",
+        "paragraphs": [
+          "Battle leaves its mark. Maria carries a Potion that restores {heal} HP.",
+          "Select a wounded unit, open Inventory from the action menu and press Use on the Potion. Using an item takes that unit's action, and a Potion has {uses} uses before it is gone."
+        ],
+        "icon": "potion",
+        "button": "Understood"
+      }
+    ]
+  },
+  "stairs": {
+    "pages": [
+      {
+        "kicker": "Terrain",
+        "title": "Stairs",
+        "paragraphs": [
+          "The cursor marks a flight of stairs. A unit standing on stairs gains {bonus}, making it harder to hit.",
+          "Move the cursor over any tile to read its bonuses, then use the ground to your advantage."
+        ],
+        "dock": true,
+        "button": "Back to Battle"
+      }
+    ]
+  }
+}

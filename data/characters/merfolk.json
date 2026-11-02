@@ -1,8 +1,8 @@
 {
   "id": "merfolk",
   "name": "Merfolk",
-  "class": "Merfolk",
-  "type": "infantry",
+  "classId": "merfolk",
+  "type": "aqua",
   "spriteSet": "merfolk",
   "sprite": "assets/character/Merfolk/Idle/rotations/south.png",
   "level": 2,
@@ -33,14 +33,14 @@
     "build": 4
   },
   "growthRates": {
-    "hp": 0,
-    "strength": 0,
+    "hp": 100,
+    "strength": 60,
     "magic": 0,
-    "dexterity": 0,
-    "speed": 0,
-    "luck": 0,
-    "defense": 0,
-    "resistance": 0,
+    "dexterity": 55,
+    "speed": 50,
+    "luck": 30,
+    "defense": 55,
+    "resistance": 45,
     "movement": 0,
     "build": 0
   }

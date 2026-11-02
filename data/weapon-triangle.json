@@ -1,0 +1,10 @@
+{
+  "beats": {
+    "Spear": "Sword",
+    "Sword": "Axe",
+    "Axe": "Spear"
+  },
+  "hit": 10,
+  "avoid": 10,
+  "damage": 1
+}

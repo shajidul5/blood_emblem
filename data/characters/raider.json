@@ -1,7 +1,7 @@
 {
   "id": "raider",
   "name": "Raider",
-  "class": "Raider",
+  "classId": "raider",
   "type": "infantry",
   "spriteSet": "raider",
   "sprite": "assets/character/Generic_Raider/Idle/rotations/south.png",

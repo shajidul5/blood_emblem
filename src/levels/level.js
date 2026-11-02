@@ -1,12 +1,18 @@
 import initialMapUrl from '../../data/levels/map_01_two_ships.json?url&no-inline';
 import chapterTwoMapUrl from '../../data/levels/map_02_boarders_from_the_deep.json?url&no-inline';
+import chapterThreeMapUrl from '../../data/levels/map_03_fishing_village.json?url&no-inline';
+import chapterFourMapUrl from '../../data/levels/map_04_mansion.json?url&no-inline';
+import chapterFiveMapUrl from '../../data/levels/map_05_escape.json?url&no-inline';
+import chestUrl from '../../assets/tiles/Chest/chest.svg?url';
 import shipTilesUrl from '../../assets/tiles/ship_oblique/ship_oblique_tiles.png?url';
 import shipObjectsUrl from '../../assets/tiles/ship_oblique/ship_objects.png?url';
 import mastUrl from '../../assets/tiles/ship_oblique/mast.png?url';
+import greyHouseUrl from '../../assets/tiles/Grey_house/rotations/Grey_house.png?url';
+import greyHouseNoEntryUrl from '../../assets/tiles/Grey_house_No_entry/rotations/Grey_house_No_entry.png?url';
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
-import { getTileDef, isTileWalkable } from './tiles.js';
+import { getTileDef, isTileWalkable, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
 
-const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e']);
+const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B']);
 export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'escape']);
 
 const TILE_SIZE = shipTileset.tileSize;
@@ -91,7 +97,7 @@ function createWaterMaterial(THREE, texture) {
   return material;
 }
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
-const ATLAS_TILE_IDS = new Set(ATLAS_TILES.keys());
+const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS]);
 const BLOCKING_OBJECTS = new Set(
   shipTileset.objects.list
     .filter((object) => object.blocksMovement)
@@ -100,8 +106,18 @@ const BLOCKING_OBJECTS = new Set(
 const SHIP_OBJECT_IDS = new Set(shipTileset.objects.list.map((object) => object.id));
 const LEGACY_ATLAS_TILES = {
   '.': 'water_a',
+  o: 'water_b',
+  f: 'water_foam',
+  g: 'village_gravel_a',
+  G: 'village_gravel_b',
+  j: 'village_gravel_c',
+  n: 'village_gravel_a',
+  B: 'village_building',
   h: 'hull_n',
   d: 'deck_a',
+  a: 'deck_b',
+  v: 'deck_worn',
+  k: 'deck_dark',
   b: 'bridge_v_l',
   q: 'stairs_down',
   w: 'deck_c',
@@ -122,10 +138,13 @@ function loadImage(url) {
   });
 }
 
-const [shipTilesImage, shipObjectsImage, mastImage] = await Promise.all([
+const [shipTilesImage, shipObjectsImage, mastImage, greyHouseImage, greyHouseNoEntryImage, chestImage] = await Promise.all([
   loadImage(shipTilesUrl),
   loadImage(shipObjectsUrl),
   loadImage(mastUrl),
+  loadImage(greyHouseUrl),
+  loadImage(greyHouseNoEntryUrl),
+  loadImage(chestUrl),
 ]);
 
 function atlasTexture(THREE, image, atlas, id) {
@@ -157,6 +176,40 @@ function atlasTexture(THREE, image, atlas, id) {
   return texture;
 }
 
+function gravelTexture(THREE, variant) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = TILE_SIZE;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Could not create a canvas for village gravel.');
+  const palettes = [
+    ['#756f62', '#918878', '#5f5a51', '#a09888'],
+    ['#706d65', '#8c8578', '#55564f', '#9c978a'],
+    ['#7a7469', '#999080', '#5d5955', '#a69d8c'],
+  ];
+  const paletteIndex = [...variant].reduce((sum, character) => sum + character.charCodeAt(0), 0) % palettes.length;
+  const [base, light, dark, pale] = palettes[paletteIndex];
+  context.fillStyle = base;
+  context.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+  let seed = paletteIndex + 1;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 0x100000000;
+  };
+  for (let index = 0; index < 38; index++) {
+    const color = [light, dark, pale][Math.floor(random() * 3)];
+    const x = Math.floor(random() * TILE_SIZE);
+    const y = Math.floor(random() * TILE_SIZE);
+    context.fillStyle = color;
+    context.fillRect(x, y, random() > 0.72 ? 3 : 2, random() > 0.72 ? 2 : 1);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 function readCoordinate(value, width, height, label) {
   const z = value?.z ?? value?.y;
   if (!value || !Number.isInteger(value.x) || !Number.isInteger(z) ||
@@ -164,6 +217,15 @@ function readCoordinate(value, width, height, label) {
     throw new Error(`Level needs a valid ${label} coordinate.`);
   }
   return { x: value.x, z };
+}
+
+// Optional per-placement level; enemies are scaled up from their character sheet to this level.
+function isValidUnitLevel(level) {
+  return level === undefined || (Number.isInteger(level) && level >= 1 && level <= 99);
+}
+
+function isValidUnitAi(ai) {
+  return ai === undefined || ['mobile', 'guard', 'stationary'].includes(ai);
 }
 
 function legacyTileIds(rows) {
@@ -229,6 +291,19 @@ export function validateLevel(value) {
   if (spawn.x === exit.x && spawn.z === exit.z) {
     throw new Error('Start and Exit must use different tiles.');
   }
+  // Escape levels can mark extra exit tiles so every unit has room to stand in the zone.
+  const extraExitTiles = value.exitTiles ?? [];
+  if (!Array.isArray(extraExitTiles)) throw new Error('Level exitTiles must be a list of coordinates.');
+  const exitZone = [exit];
+  for (const tile of extraExitTiles) {
+    const coordinate = readCoordinate(tile, width, height, 'Exit tile');
+    if (!isTileWalkable(tileIds[coordinate.z][coordinate.x])) {
+      throw new Error('Exit tiles must be walkable.');
+    }
+    if (!exitZone.some((entry) => entry.x === coordinate.x && entry.z === coordinate.z)) {
+      exitZone.push(coordinate);
+    }
+  }
 
   if (!LEVEL_OBJECTIVES.has(objective)) {
     throw new Error('Level objective must be defeat-all-enemies or escape.');
@@ -258,11 +333,21 @@ export function validateLevel(value) {
       return entry && typeof entry.id === 'string' &&
         Number.isInteger(entry.x) && entry.x >= 0 && entry.x < width &&
         Number.isInteger(entryZ) && entryZ >= 0 && entryZ < height &&
-        isTileWalkable(tileIds[entryZ][entry.x]);
+        isTileWalkable(tileIds[entryZ][entry.x]) &&
+        isValidUnitLevel(entry.level) &&
+        isValidUnitAi(entry.ai) &&
+        (entry.drop === undefined || typeof entry.drop === 'string');
     })) {
       throw new Error(`Level ${label} need an ID and must be placed on walkable tiles.`);
     }
-    return list.map((entry) => ({ id: entry.id, x: entry.x, z: entry.z ?? entry.y }));
+    return list.map((entry) => ({
+      id: entry.id,
+      x: entry.x,
+      z: entry.z ?? entry.y,
+      ...(entry.level === undefined ? {} : { level: entry.level }),
+      ...(entry.ai === undefined ? {} : { ai: entry.ai }),
+      ...(entry.drop === undefined ? {} : { drop: entry.drop }),
+    }));
   };
   const players = readPlacements(value.players, 'players');
   const enemyPlacements = readPlacements(value.enemies, 'enemies');
@@ -270,6 +355,186 @@ export function validateLevel(value) {
   if (!Array.isArray(startingItems) || startingItems.some((id) => typeof id !== 'string')) {
     throw new Error('Level startingItems must be a list of item IDs.');
   }
+  const houses = value.houses ?? [];
+  const houseIds = new Set();
+  const houseTiles = new Set();
+  if (!Array.isArray(houses) || !houses.every((house) => {
+    if (
+      !house ||
+      typeof house.id !== 'string' ||
+      houseIds.has(house.id) ||
+      typeof house.name !== 'string' ||
+      !Number.isInteger(house.x) ||
+      !Number.isInteger(house.z) ||
+      house.width !== 3 ||
+      house.height !== 2 ||
+      (typeof house.rewardId !== 'string' && typeof house.recruitId !== 'string') ||
+      (house.visited !== undefined && typeof house.visited !== 'boolean')
+    ) return false;
+    houseIds.add(house.id);
+    const door = house.door ?? house.entrance;
+    const doorZ = door?.z ?? door?.y;
+    if (
+      house.x < 0 ||
+      house.z < 0 ||
+      house.x + house.width > width ||
+      house.z + house.height > height ||
+      !door ||
+      !Number.isInteger(door.x) ||
+      !Number.isInteger(doorZ) ||
+      door.x < 0 ||
+      door.x >= width ||
+      doorZ < 0 ||
+      doorZ >= height
+    ) return false;
+    for (let z = house.z; z < house.z + house.height; z++) {
+      for (let x = house.x; x < house.x + house.width; x++) {
+        const key = `${x},${z}`;
+        if (isTileWalkable(tileIds[z][x]) || houseTiles.has(key)) return false;
+        houseTiles.add(key);
+      }
+    }
+    return true;
+  })) {
+    throw new Error('Level houses need unique IDs, a 3×2 walkable footprint, and valid reward and recipient IDs.');
+  }
+  const normalizedHouses = houses.map((house) => ({
+    id: house.id,
+    name: house.name,
+    x: house.x,
+    z: house.z,
+    width: house.width,
+    height: house.height,
+    door: {
+      x: (house.door ?? house.entrance).x,
+      z: (house.door ?? house.entrance).z ?? (house.door ?? house.entrance).y,
+    },
+    rewardId: house.rewardId,
+    ...(house.recruitId ? { recruitId: house.recruitId } : {}),
+    visited: house.visited ?? false,
+  }));
+  const decorativeHouses = value.decorativeHouses ?? [];
+  if (!Array.isArray(decorativeHouses) || !decorativeHouses.every((house) => {
+    if (
+      !house ||
+      typeof house.id !== 'string' ||
+      houseIds.has(house.id) ||
+      !Number.isInteger(house.x) ||
+      !Number.isInteger(house.z) ||
+      house.width !== 3 ||
+      house.height !== 2 ||
+      house.x < 0 ||
+      house.z < 0 ||
+      house.x + house.width > width ||
+      house.z + house.height > height
+    ) return false;
+    houseIds.add(house.id);
+    for (let z = house.z; z < house.z + house.height; z++) {
+      for (let x = house.x; x < house.x + house.width; x++) {
+        const key = `${x},${z}`;
+        if (isTileWalkable(tileIds[z][x]) || houseTiles.has(key)) return false;
+        houseTiles.add(key);
+      }
+    }
+    return true;
+  })) {
+    throw new Error('Decorative houses need unique IDs and a 3×2 non-walkable footprint.');
+  }
+  const normalizedDecorativeHouses = decorativeHouses.map((house) => ({
+    id: house.id,
+    x: house.x,
+    z: house.z,
+    width: house.width,
+    height: house.height,
+  }));
+  const isHouseFrontTile = (house, x, z) => {
+    let distance = Infinity;
+    for (let tileZ = house.z; tileZ < house.z + house.height; tileZ++) {
+      for (let tileX = house.x; tileX < house.x + house.width; tileX++) {
+        distance = Math.min(distance, Math.abs(tileX - x) + Math.abs(tileZ - z));
+      }
+    }
+    return distance === 1;
+  };
+  const housesOverlapSpecialTiles = (x, z) => houseTiles.has(`${x},${z}`);
+  if (
+    normalizedHouses.some((house) => {
+      const { x, z } = house.door;
+      return !isHouseFrontTile(house, x, z) ||
+        housesOverlapSpecialTiles(x, z) ||
+        !isTileWalkable(tileIds[z][x]) ||
+        objects.some((object) =>
+          BLOCKING_OBJECTS.has(object.id) && object.x === x && (object.z ?? object.y) === z);
+    }) ||
+    normalizedHouses.some((house) =>
+      objects.some((object) =>
+        BLOCKING_OBJECTS.has(object.id) &&
+        object.x === house.door.x && (object.z ?? object.y) === house.door.z)) ||
+    housesOverlapSpecialTiles(spawn.x, spawn.z) ||
+    housesOverlapSpecialTiles(exit.x, exit.z) ||
+    [...players, ...enemyPlacements].some((unit) => housesOverlapSpecialTiles(unit.x, unit.z)) ||
+    objects.some((object) =>
+      BLOCKING_OBJECTS.has(object.id) && housesOverlapSpecialTiles(object.x, object.z ?? object.y))
+  ) {
+    throw new Error('House footprints and entrances cannot overlap units, blocked tiles, the Start, or the Exit.');
+  }
+  const chests = value.chests ?? [];
+  const chestIds = new Set();
+  if (!Array.isArray(chests) || !chests.every((chest) => {
+    const z = chest?.z ?? chest?.y;
+    if (
+      !chest || typeof chest.id !== 'string' || chestIds.has(chest.id) ||
+      typeof chest.name !== 'string' || typeof chest.rewardId !== 'string' ||
+      !Number.isInteger(chest.x) || chest.x < 0 || chest.x >= width ||
+      !Number.isInteger(z) || z < 0 || z >= height ||
+      !isTileWalkable(tileIds[z][chest.x])
+    ) return false;
+    chestIds.add(chest.id);
+    return true;
+  })) {
+    throw new Error('Level chests need unique IDs, a name, a reward, and a walkable tile.');
+  }
+  const normalizedChests = chests.map((chest) => ({
+    id: chest.id,
+    name: chest.name,
+    x: chest.x,
+    z: chest.z ?? chest.y,
+    rewardId: chest.rewardId,
+    opened: chest.opened ?? false,
+  }));
+  const reinforcements = value.reinforcements ?? [];
+  if (!Array.isArray(reinforcements) || !reinforcements.every((wave) =>
+    wave &&
+    Number.isInteger(wave.turn) && wave.turn > 1 &&
+    Array.isArray(wave.units) && wave.units.length > 0 &&
+    (wave.spawned === undefined || typeof wave.spawned === 'boolean') &&
+    wave.units.every((unit) => {
+      const z = unit?.z ?? unit?.y;
+      return unit && typeof unit.id === 'string' &&
+        Number.isInteger(unit.x) && unit.x >= 0 && unit.x < width &&
+        Number.isInteger(z) && z >= 0 && z < height &&
+        isTileWalkable(tileIds[z][unit.x]) &&
+        isValidUnitLevel(unit.level) &&
+        isValidUnitAi(unit.ai) &&
+        !housesOverlapSpecialTiles(unit.x, z);
+    }) &&
+    (wave.spawnedCount === undefined ||
+      Number.isInteger(wave.spawnedCount) && wave.spawnedCount >= 0 && wave.spawnedCount <= wave.units.length)
+  )) {
+    throw new Error('Level reinforcements need a turn and valid unit placements.');
+  }
+  const normalizedReinforcements = reinforcements.map((wave) => ({
+    turn: wave.turn,
+    units: wave.units.map((unit) => ({
+      id: unit.id,
+      x: unit.x,
+      z: unit.z ?? unit.y,
+      ...(unit.level === undefined ? {} : { level: unit.level }),
+      ...(unit.ai === undefined ? {} : { ai: unit.ai }),
+    })),
+    spawned: wave.spawned ?? false,
+    spawnedCount: wave.spawnedCount ?? 0,
+  }));
   const occupied = new Set();
   for (const unit of [...players, ...enemyPlacements]) {
     const key = `${unit.x},${unit.z}`;
@@ -283,13 +548,19 @@ export function validateLevel(value) {
   return {
     name: name.trim(),
     objective,
+    extendEdges: value.extendEdges === true,
     width,
     height,
     spawn,
     exit,
+    exitTiles: exitZone,
     players,
     enemies: enemyPlacements,
     startingItems,
+    houses: normalizedHouses,
+    decorativeHouses: normalizedDecorativeHouses,
+    chests: normalizedChests,
+    reinforcements: normalizedReinforcements,
     tiles: tileIds,
     tileIds,
     objects: objects.map((object) => ({
@@ -301,7 +572,7 @@ export function validateLevel(value) {
   };
 }
 
-const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl];
+const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl];
 export const CHAPTER_COUNT = CHAPTER_URLS.length;
 
 export async function loadChapterLevel(index) {
@@ -421,6 +692,41 @@ function addElevatedTiles(THREE, levelGroup, level, cells) {
   }
 }
 
+// Wooden fence along every land edge of an open-air map, marking where the playable area ends.
+function addBoundaryFence(THREE, levelGroup, level) {
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 0.95 });
+  const postGeometry = new THREE.BoxGeometry(0.14, 0.85, 0.14);
+  const railX = new THREE.BoxGeometry(1, 0.09, 0.07);
+  const railZ = new THREE.BoxGeometry(0.07, 0.09, 1);
+  const edges = [];
+  for (let i = 0; i < level.height; i++) {
+    edges.push({ x: 0, z: i, side: 'w' }, { x: level.width - 1, z: i, side: 'e' });
+  }
+  for (let i = 0; i < level.width; i++) {
+    edges.push({ x: i, z: 0, side: 'n' }, { x: i, z: level.height - 1, side: 's' });
+  }
+  for (const edge of edges) {
+    if (WATER_TILE_IDS.has(level.tileIds[edge.z][edge.x])) continue;
+    const cx = edge.x - level.width / 2 + 0.5;
+    const cz = edge.z - level.height / 2 + 0.5;
+    const alongZ = edge.side === 'w' || edge.side === 'e';
+    const px = edge.side === 'w' ? cx - 0.5 : edge.side === 'e' ? cx + 0.5 : cx;
+    const pz = edge.side === 'n' ? cz - 0.5 : edge.side === 's' ? cz + 0.5 : cz;
+    for (const height of [0.3, 0.62]) {
+      const rail = new THREE.Mesh(alongZ ? railZ : railX, wood);
+      rail.position.set(px, height, pz);
+      rail.castShadow = true;
+      levelGroup.add(rail);
+    }
+    for (const offset of [-0.5, 0.5]) {
+      const post = new THREE.Mesh(postGeometry, wood);
+      post.position.set(alongZ ? px : px + offset, 0.42, alongZ ? pz + offset : pz);
+      post.castShadow = true;
+      levelGroup.add(post);
+    }
+  }
+}
+
 export function buildLevel(THREE, levelGroup, value) {
   const level = validateLevel(value);
   for (const glow of glowLights) glow.sprite.material.dispose();
@@ -453,10 +759,34 @@ export function buildLevel(THREE, levelGroup, value) {
   }
   addElevatedTiles(THREE, levelGroup, level, elevatedCells);
 
+  // Open-air levels repeat their edge terrain outward so the camera never sees past the map.
+  if (level.extendEdges) {
+    const pad = 26;
+    for (let z = -pad; z < level.height + pad; z++) {
+      for (let x = -pad; x < level.width + pad; x++) {
+        if (x >= 0 && x < level.width && z >= 0 && z < level.height) continue;
+        const edgeId = level.tileIds[Math.min(Math.max(z, 0), level.height - 1)][
+          Math.min(Math.max(x, 0), level.width - 1)];
+        const atlasId = getTileDef(edgeId).elevation > 0 || edgeId === 'village_building'
+          ? 'village_gravel_a'
+          : edgeId;
+        if (!tileGroups.has(atlasId)) tileGroups.set(atlasId, []);
+        tileGroups.get(atlasId).push({
+          x: x - level.width / 2 + 0.5,
+          z: z - level.height / 2 + 0.5,
+        });
+      }
+    }
+  }
+
+  if (level.extendEdges) addBoundaryFence(THREE, levelGroup, level);
+
   const geometry = new THREE.PlaneGeometry(1, 1);
   geometry.rotateX(-Math.PI / 2);
   for (const [atlasId, cells] of tileGroups) {
-    const texture = atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
+    const texture = VILLAGE_GRAVEL_TILE_IDS.has(atlasId)
+      ? gravelTexture(THREE, atlasId)
+      : atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
     const material = WATER_TILE_IDS.has(atlasId)
       ? createWaterMaterial(THREE, texture)
       : new THREE.MeshStandardMaterial({
@@ -582,6 +912,125 @@ export function buildLevel(THREE, levelGroup, value) {
     }
     sprite.userData.blocksMovement = atlasObject.blocksMovement;
     levelGroup.add(sprite);
+  }
+
+  const greyHouseTexture = new THREE.Texture(greyHouseImage);
+  greyHouseTexture.magFilter = THREE.NearestFilter;
+  greyHouseTexture.minFilter = THREE.NearestFilter;
+  greyHouseTexture.generateMipmaps = false;
+  greyHouseTexture.colorSpace = THREE.SRGBColorSpace;
+  greyHouseTexture.needsUpdate = true;
+  const greyHouseMaterial = new THREE.MeshBasicMaterial({
+    map: greyHouseTexture,
+    alphaTest: 0.1,
+    depthTest: true,
+    depthWrite: true,
+    side: THREE.DoubleSide,
+  });
+  const houseWidth = 3;
+  const houseHeight = 3;
+  const houseGeometry = new THREE.PlaneGeometry(houseWidth, houseHeight);
+  houseGeometry.translate(0, houseHeight / 2, 0);
+  for (const house of level.houses) {
+    const houseSprite = new THREE.Mesh(houseGeometry, greyHouseMaterial);
+    houseSprite.rotation.x = -OBJECT_TILT;
+    houseSprite.position.set(
+      house.x + house.width / 2 - level.width / 2,
+      0.12,
+      house.door.z - level.height / 2 - 0.5,
+    );
+    houseSprite.renderOrder = 1;
+    levelGroup.add(houseSprite);
+  }
+  const greyHouseNoEntryTexture = new THREE.Texture(greyHouseNoEntryImage);
+  greyHouseNoEntryTexture.magFilter = THREE.NearestFilter;
+  greyHouseNoEntryTexture.minFilter = THREE.NearestFilter;
+  greyHouseNoEntryTexture.generateMipmaps = false;
+  greyHouseNoEntryTexture.colorSpace = THREE.SRGBColorSpace;
+  greyHouseNoEntryTexture.needsUpdate = true;
+  const greyHouseNoEntryMaterial = new THREE.MeshBasicMaterial({
+    map: greyHouseNoEntryTexture,
+    alphaTest: 0.1,
+    depthTest: true,
+    depthWrite: true,
+    side: THREE.DoubleSide,
+  });
+  for (const house of level.decorativeHouses) {
+    const houseSprite = new THREE.Mesh(houseGeometry, greyHouseNoEntryMaterial);
+    houseSprite.rotation.x = -OBJECT_TILT;
+    houseSprite.position.set(
+      house.x + house.width / 2 - level.width / 2,
+      0.12,
+      house.z + house.height - level.height / 2 - 0.5,
+    );
+    houseSprite.renderOrder = 1;
+    levelGroup.add(houseSprite);
+  }
+  const chestTexture = new THREE.Texture(chestImage);
+  chestTexture.colorSpace = THREE.SRGBColorSpace;
+  chestTexture.needsUpdate = true;
+  const chestGeometry = new THREE.PlaneGeometry(0.9, 0.9);
+  chestGeometry.translate(0, 0.45, 0);
+  for (const chest of level.chests) {
+    const material = new THREE.MeshBasicMaterial({
+      map: chestTexture,
+      transparent: true,
+      alphaTest: 0.1,
+      opacity: chest.opened ? 0.35 : 1,
+      side: THREE.DoubleSide,
+    });
+    const chestSprite = new THREE.Mesh(chestGeometry, material);
+    chestSprite.rotation.x = -OBJECT_TILT;
+    chestSprite.position.set(
+      chest.x + 0.5 - level.width / 2,
+      0.12 + getTileDef(level.tileIds[chest.z][chest.x]).elevation,
+      chest.z + 0.5 - level.height / 2 + 0.2,
+    );
+    chestSprite.renderOrder = 1;
+    Object.defineProperty(chest, 'mesh', { value: chestSprite, enumerable: false });
+    levelGroup.add(chestSprite);
+  }
+  levelGroup.userData.houseMarkers = [];
+  const doorGeometry = new THREE.PlaneGeometry(0.94, 0.94);
+  doorGeometry.rotateX(-Math.PI / 2);
+  const doorMaterial = new THREE.MeshBasicMaterial({
+    color: 0x39ff6a,
+    transparent: true,
+    opacity: 0.6,
+    depthWrite: false,
+  });
+  for (const house of level.houses) {
+    const marker = new THREE.Mesh(doorGeometry, doorMaterial);
+    marker.position.set(
+      house.door.x + 0.5 - level.width / 2,
+      0.1 + getTileDef(level.tileIds[house.door.z][house.door.x]).elevation,
+      house.door.z + 0.5 - level.height / 2,
+    );
+    marker.renderOrder = 2;
+    marker.userData.houseId = house.id;
+    marker.visible = !house.visited;
+    levelGroup.userData.houseMarkers.push(marker);
+    levelGroup.add(marker);
+  }
+  if (level.objective === 'escape') {
+    const exitGeometry = new THREE.PlaneGeometry(0.94, 0.94);
+    exitGeometry.rotateX(-Math.PI / 2);
+    const exitMaterial = new THREE.MeshBasicMaterial({
+      color: 0x57e38a,
+      transparent: true,
+      opacity: 0.38,
+      depthWrite: false,
+    });
+    for (const tile of level.exitTiles) {
+      const marker = new THREE.Mesh(exitGeometry, exitMaterial);
+      marker.position.set(
+        tile.x + 0.5 - level.width / 2,
+        0.1 + getTileDef(level.tileIds[tile.z][tile.x]).elevation,
+        tile.z + 0.5 - level.height / 2,
+      );
+      marker.renderOrder = 2;
+      levelGroup.add(marker);
+    }
   }
   return level;
 }

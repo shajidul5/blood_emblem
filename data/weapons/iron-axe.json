@@ -1,5 +1,6 @@
 {
   "id": "iron-axe",
+  "lore": "A pirate's boarding axe, its edge chipped from rail and rigging. Bartz has never once sharpened it, and never needed to.",
   "name": "Iron Axe",
   "type": "Axe",
   "damageType": "physical",

@@ -1,0 +1,22 @@
+{
+  "group_id": "48095df1-2a5b-4e6b-837b-0fe9ffef913a",
+  "objects": [
+    {
+      "id": "63761fe9-80d1-405f-b717-0475bb68d0ac",
+      "name": "base",
+      "prompt": "Iron katana",
+      "size": {
+        "width": 48,
+        "height": 48
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/Lancereaver.png"
+      },
+      "animations": {}
+    }
+  ],
+  "export_version": "1.1",
+  "export_date": "2026-11-02T16:15:29.691717"
+}

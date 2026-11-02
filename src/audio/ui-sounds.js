@@ -100,6 +100,21 @@ export function playStatUp(index = 0) {
   noise({ decay: 0.02, volume: 0.06, frequency: 5000 });
 }
 
+// Item discovery: a low tolling note, a rising pentatonic arpeggio and a glassy shimmer.
+export function playItemDiscovery() {
+  if (!ensureContext()) return;
+  lastConfirmAt = performance.now();
+  tone({ type: 'sine', from: 147, to: 110, decay: 0.5, volume: 0.28 });
+  [523, 659, 784, 1047, 1319].forEach((note, index) => {
+    const start = 0.05 + index * 0.085;
+    tone({ type: 'triangle', from: note, start, decay: 0.34, volume: 0.15 });
+    tone({ type: 'sine', from: note * 2, start: start + 0.01, decay: 0.22, volume: 0.05 });
+  });
+  tone({ type: 'sine', from: 2637, start: 0.5, decay: 0.7, volume: 0.06 });
+  tone({ type: 'sine', from: 3136, start: 0.56, decay: 0.6, volume: 0.04 });
+  noise({ start: 0.45, decay: 0.3, volume: 0.05, frequency: 6500, type: 'highpass' });
+}
+
 function isCancelButton(button) {
   return /(^|-)(back|close|cancel)(-|$)/i.test(button.id) ||
     /^(back|close|cancel)$/i.test(button.textContent.trim());

@@ -1,0 +1,49 @@
+{
+  "id": "merfolk-chieftain",
+  "name": "Merfolk Chieftain",
+  "classId": "merfolk",
+  "type": "aqua",
+  "spriteSet": "merfolk",
+  "scale": 1.18,
+  "sprite": "assets/character/Merfolk/Idle/rotations/south.png",
+  "level": 7,
+  "experience": 0,
+  "weaponId": "steel-spear",
+  "isBoss": true,
+  "baseStats": {
+    "hp": 46,
+    "strength": 11,
+    "magic": 0,
+    "dexterity": 9,
+    "speed": 8,
+    "luck": 5,
+    "defense": 8,
+    "resistance": 6,
+    "movement": 5,
+    "build": 7
+  },
+  "currentStats": {
+    "hp": 46,
+    "strength": 11,
+    "magic": 0,
+    "dexterity": 9,
+    "speed": 8,
+    "luck": 5,
+    "defense": 8,
+    "resistance": 6,
+    "movement": 5,
+    "build": 7
+  },
+  "growthRates": {
+    "hp": 0,
+    "strength": 0,
+    "magic": 0,
+    "dexterity": 0,
+    "speed": 0,
+    "luck": 0,
+    "defense": 0,
+    "resistance": 0,
+    "movement": 0,
+    "build": 0
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "light-tome",
+  "name": "Light",
+  "lore": "A heavy book bound in pale vellum that gives off a steady glow. Its verses are a litany to a sky the island has forgotten. The sea seems to avoid its light.",
+  "type": "Light",
+  "damageType": "magical",
+  "might": 4,
+  "weight": 6,
+  "hit": 75,
+  "critical": 0,
+  "maxUses": 10,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": ["undead"],
+  "sound": "magic",
+  "sprite": "assets/weapons/light_tome/rotations/light_tome.png"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "tentacle",
+  "lore": "Not a weapon, but a limb that remembers being something else. Look closely and the suckers are ringed with the faint print of fingers.",
+  "name": "Tentacle",
+  "type": "Axe",
+  "damageType": "physical",
+  "might": 12,
+  "weight": 6,
+  "hit": 85,
+  "critical": 10,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Tentacle/tentacle.svg"
+}

@@ -1,10 +1,19 @@
 import { attackSpeed, getAvoid, getHitRate, weaponRangeLabel } from '../battle/combat.js';
+import { getWeaponExp, getWeaponRank, MAX_WEAPON_EXP, rankForExp, WEAPON_RANKS } from './weapon-levels.js';
 
-const PORTRAITS = import.meta.glob('../../assets/character/*/Idle/rotations/south.png', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-});
+function formatWeaponLevel(unit, weapon) {
+  if (!weapon.type || weapon.type === '—') return '—';
+  const rank = getWeaponRank(unit, weapon);
+  const exp = getWeaponExp(unit, weapon.type);
+  const next = WEAPON_RANKS[WEAPON_RANKS.indexOf(rankForExp(exp)) + 1];
+  const progress = exp >= MAX_WEAPON_EXP ? 'MAX' : `${exp}/${next.exp}`;
+  return `${rank.id} (${progress}) · +${rank.hit} Hit, +${rank.avoid} Avoid`;
+}
+
+const PORTRAITS = import.meta.glob(
+  ['../../assets/character/*/Idle/rotations/south.png', '../../assets/character/Ravage_Maria/rotations/south.png', '../../assets/character/Berserker_Bartz/rotations/south.png', '../../assets/character/Sage_Cypher/rotations/south.png', '../../assets/character/Bishop_Seymour/rotations/south.png'],
+  { eager: true, query: '?url', import: 'default' },
+);
 
 function portraitUrl(unit) {
   return unit.sprite ? PORTRAITS[`../../${unit.sprite}`] : undefined;
@@ -57,11 +66,14 @@ export function createProfileDialog(dialog) {
       statsBody.append(row);
     }
 
-    const weapon = unit.weapon;
+  const weapon = unit.weapon ?? {
+    name: 'Unarmed', type: '—', effect: [], might: 0, weight: 0, hit: 0, critical: 0, minRange: 0, maxRange: 0,
+  };
     weaponDetails.replaceChildren();
     const combatStats = [
       ['Weapon', weapon.name],
       ['Type', weapon.type],
+      ['Weapon Level', unit.weaponExp ? formatWeaponLevel(unit, weapon) : '—'],
       ['Effective vs', weapon.effect?.length ? weapon.effect.join(', ') : '—'],
       ['Might', weapon.might],
       ['Weight', weapon.weight],
@@ -94,7 +106,7 @@ export function createProfileDialog(dialog) {
       weaponDetails.append(item);
     }
     dialog.querySelector('#profile-combat-note').textContent =
-      'Displayed Hit = weapon Hit + 2×Dexterity + floor(Luck/2) − enemy Avoid, clamped to 0–100. Avoid = 2×Attack Speed + Luck + terrain Avoid. Actual Hit averages two random rolls. Terrain Defense reduces physical damage. Doubles at a 4+ Attack Speed advantage.';
+      'Displayed Hit = weapon Hit + 2×Dexterity + floor(Luck/2) + weapon level Hit − enemy Avoid, clamped to 0–100. Avoid = 2×Attack Speed + Luck + terrain Avoid + weapon level Avoid. Each hit earns 1 weapon EXP. Actual Hit averages two random rolls. Terrain Defense reduces physical damage. Doubles at a 4+ Attack Speed advantage.';
     dialog.showModal();
   }
 

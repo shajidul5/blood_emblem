@@ -1,0 +1,49 @@
+{
+  "id": "seymour",
+  "name": "Seymour",
+  "classId": "priest",
+  "type": "infantry",
+  "spriteSet": "seymour",
+  "sprite": "assets/character/Seymour/Idle/rotations/south.png",
+  "level": 5,
+  "experience": 0,
+  "weaponId": "heal-staff",
+  "weaponExp": { "Staff": 30 },
+  "inventory": ["heal-staff"],
+  "baseStats": {
+    "hp": 22,
+    "strength": 0,
+    "magic": 6,
+    "dexterity": 5,
+    "speed": 5,
+    "luck": 6,
+    "defense": 2,
+    "resistance": 6,
+    "movement": 5,
+    "build": 3
+  },
+  "currentStats": {
+    "hp": 22,
+    "strength": 0,
+    "magic": 6,
+    "dexterity": 5,
+    "speed": 5,
+    "luck": 6,
+    "defense": 2,
+    "resistance": 6,
+    "movement": 5,
+    "build": 3
+  },
+  "growthRates": {
+    "hp": 55,
+    "strength": 0,
+    "magic": 50,
+    "dexterity": 35,
+    "speed": 40,
+    "luck": 55,
+    "defense": 25,
+    "resistance": 55,
+    "movement": 0,
+    "build": 0
+  }
+}

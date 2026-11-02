@@ -1,0 +1,11 @@
+{
+  "id": "blood-emblem",
+  "name": "Blood Emblem",
+  "type": "consumable",
+  "effect": "keepsake",
+  "description": "A keepsake. It does nothing, yet it is never cold.",
+  "lore": "A drop-shaped seal of dark metal, warm as a living hand. It was given to Maria before she sailed and she has never learned why it feels so heavy. Faint grooves on its face run like veins, and on this island they seem to move toward the sea.",
+  "maxUses": 1,
+  "bound": true,
+  "sprite": "assets/items/Blood_Emblem/blood_emblem.svg"
+}

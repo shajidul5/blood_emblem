@@ -1,13 +1,14 @@
 {
   "id": "bartz",
   "name": "Bartz",
-  "class": "Pirate",
+  "classId": "pirate",
   "type": "infantry",
   "spriteSet": "bartz",
   "sprite": "assets/character/Bartz/Idle/rotations/south.png",
   "level": 2,
   "experience": 0,
   "weaponId": "iron-axe",
+  "weaponExp": { "Axe": 0 },
   "inventory": ["iron-axe", "potion"],
   "isBoss": true,
   "baseStats": {

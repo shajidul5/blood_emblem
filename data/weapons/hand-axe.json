@@ -1,0 +1,16 @@
+{
+  "id": "hand-axe",
+  "lore": "Short-hafted and nicked along the edge, the grip wrapped in sailcloth. Dark stains in the grain never scrub out. Too small for a woodcutter, too clean for a fisherman.",
+  "name": "Hand Axe",
+  "type": "Axe",
+  "damageType": "physical",
+  "might": 5,
+  "weight": 4,
+  "hit": 70,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Hand_Axe/hand_axe.svg"
+}

@@ -1,13 +1,14 @@
 {
   "id": "maria",
   "name": "Maria",
-  "class": "Myrmidon",
+  "classId": "hunter",
   "type": "infantry",
   "spriteSet": "maria",
   "sprite": "assets/character/Maria/Idle/rotations/south.png",
   "level": 1,
   "experience": 0,
-  "weaponId": "iron-katana",
+  "weaponId": "rapier",
+  "weaponExp": { "Sword": 0 },
   "baseStats": {
     "hp": 24,
     "strength": 5,

@@ -4,9 +4,11 @@ import {
   getAvoid,
   getCriticalRate,
   getCriticalDamage,
+  canAttack,
   getCombatExperience,
   getCombatDamage,
   getHitRate,
+  getTriangleAdvantage,
   isInWeaponRange,
   rollCritical,
   rollHit,
@@ -23,14 +25,18 @@ import {
   isWalkable,
   tileKey,
 } from './battle/grid.js';
-import { createBartzAlly, createEnemyUnit, createMaria } from './characters/characters.js';
+import { createBartzAlly, createCypherAlly, createEnemyUnit, createMaria, createSeymourAlly } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
+import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit } from './characters/classes.js';
+import { awardWeaponExp } from './characters/weapon-levels.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
+import { createItemPopup } from './characters/item-popup.js';
+import { createTutorialPopup, PART_ONE_ENDING, setTutorialsEnabled, TRIANGLE_EFFECTS, tutorialsEnabled } from './game/tutorial.js';
 import { awardExperience } from './characters/progression.js';
 import { createProfileDialog } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
 import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
-import { grantItem, INVENTORY_ITEMS, restoreMariaInventory } from './characters/inventory.js';
+import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, refreshMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import { createSaveData, readSave, serializeUnit, writeSave } from './game/save.js';
 import {
@@ -69,6 +75,61 @@ function blobShadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+async function visitHouse() {
+  if (!gameState.selected || gameState.phase !== 'player' || player.acted) return;
+  const house = houseAvailableToVisit(player);
+  if (!house) {
+    setMessage(`${player.name} must stand in front of an unvisited house to visit it.`);
+    return;
+  }
+  if (house.recruitId) {
+    await recruitFromHouse(house);
+    return;
+  }
+  const { item, toConvoy } = grantItem(player, house.rewardId);
+  house.visited = true;
+  player.acted = true;
+  setMessage(toConvoy
+    ? `${player.name} visited ${house.name}. Their inventory is full, so ${item.name} was sent to the convoy.`
+    : `${player.name} visited ${house.name} and received ${item.name}.`);
+  renderTacticalUi();
+  await itemPopup.show([{ unit: player, item, toConvoy }]);
+  finishUnit();
+}
+
+// Nearest free walkable tile to the house door, where a recruit steps out.
+function recruitSpawnTile(house) {
+  const taken = new Set([
+    ...playerTeam.filter((unit) => unit.hp > 0).map((unit) => tileKey(unit.x, unit.z)),
+    ...enemies.map((enemy) => tileKey(enemy.x, enemy.z)),
+  ]);
+  let best = null;
+  for (let z = 0; z < activeLevel.height; z++) {
+    for (let x = 0; x < activeLevel.width; x++) {
+      if (!isWalkable(activeLevel, x, z) || taken.has(tileKey(x, z))) continue;
+      const distance = distanceBetween(house.door.x, house.door.z, x, z);
+      if (!best || distance < best.distance) best = { x, z, distance };
+    }
+  }
+  return best;
+}
+
+async function recruitFromHouse(house) {
+  const recruit = roster[house.recruitId];
+  const tile = recruitSpawnTile(house);
+  if (!recruit || !tile) throw new Error(`House ${house.id} cannot recruit "${house.recruitId}".`);
+  house.visited = true;
+  player.acted = true;
+  Object.assign(recruit, { x: tile.x, z: tile.z, facing: 'south', hp: recruit.maxHp, moved: false, acted: false, moveOrigin: null });
+  recruit.mesh.position.set(worldX(recruit.x), unitSpriteHeightAt(recruit.x, recruit.z), worldZ(recruit.z));
+  playerTeam.push(recruit);
+  setIdleSprite(recruit);
+  setMessage(`${player.name} visited ${house.name}. ${recruit.name} joins the party!`);
+  renderTacticalUi();
+  await tutorialPopup.show(house.recruitId);
+  finishUnit();
+}
+
 // ---------- Renderer / scene / camera ----------
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -94,6 +155,73 @@ const pointerRaycaster = new THREE.Raycaster();
 const pointerPosition = new THREE.Vector2();
 const deckPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.11);
 const raisedPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+function createNightBackdrop() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Could not create the night-sky backdrop.');
+  const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, '#10182d');
+  gradient.addColorStop(0.55, '#26304a');
+  gradient.addColorStop(1, '#51415a');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  let seed = 120319;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 0x100000000;
+  };
+  for (let index = 0; index < 220; index++) {
+    const radius = random() > 0.94 ? 2 : 1;
+    context.globalAlpha = 0.35 + random() * 0.65;
+    context.fillStyle = random() > 0.35 ? '#e2e8ff' : '#f7d8b1';
+    context.beginPath();
+    context.arc(random() * canvas.width, random() * canvas.height * 0.78, radius, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.globalAlpha = 1;
+  const moonGlow = context.createRadialGradient(790, 105, 10, 790, 105, 105);
+  moonGlow.addColorStop(0, 'rgba(217, 229, 255, .42)');
+  moonGlow.addColorStop(1, 'rgba(217, 229, 255, 0)');
+  context.fillStyle = moonGlow;
+  context.fillRect(680, 0, 220, 220);
+  context.fillStyle = '#e1e8f4';
+  context.beginPath();
+  context.arc(790, 105, 34, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = 'rgba(95, 111, 143, .25)';
+  for (const [x, y, radius] of [[778, 94, 5], [803, 113, 7], [785, 122, 3]]) {
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fill();
+  }
+  for (const [y, alpha, width] of [[340, 0.22, 450], [390, 0.28, 380], [445, 0.34, 520]]) {
+    const cloud = context.createLinearGradient(0, y - 25, 0, y + 32);
+    cloud.addColorStop(0, 'rgba(181, 190, 218, 0)');
+    cloud.addColorStop(0.5, `rgba(181, 190, 218, ${alpha})`);
+    cloud.addColorStop(1, 'rgba(181, 190, 218, 0)');
+    context.fillStyle = cloud;
+    context.beginPath();
+    context.ellipse(250 + random() * 500, y, width / 2, 28, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const backdrop = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: texture,
+    transparent: false,
+    depthTest: false,
+    depthWrite: false,
+    fog: false,
+  }));
+  backdrop.renderOrder = -1000;
+  scene.add(backdrop);
+  return backdrop;
+}
+
+const nightBackdrop = createNightBackdrop();
 
 // Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
 function pickFloorPoint(ray) {
@@ -145,18 +273,107 @@ const mainMenu = document.querySelector('#main-menu');
 const terminalScreen = document.querySelector('#terminal-screen');
 const terminalHeading = document.querySelector('#terminal-heading');
 const terminalMessage = document.querySelector('#terminal-message');
+const terminalSubtitle = document.querySelector('#terminal-subtitle');
 const menuStatus = document.querySelector('#menu-status');
 const continueButton = document.querySelector('#continue-game');
 const newGameButton = document.querySelector('#new-game');
 const optionsDialog = document.querySelector('#options-dialog');
 const combatForecastDialog = document.querySelector('#combat-forecast');
 const actionButtons = [...actionPanel.querySelectorAll('button')];
+const visitActionButton = document.querySelector('#visit-action');
+const chestActionButton = document.querySelector('#chest-action');
 const profileDialog = document.querySelector('#profile-dialog');
 const inventoryDialog = document.querySelector('#inventory-dialog');
+const enemyMenuDialog = document.querySelector('#enemy-menu-dialog');
+const enemyInventoryDialog = document.querySelector('#enemy-inventory-dialog');
 const experienceDisplay = createExperienceDisplay(document.querySelector('#exp-panel'));
 const levelUpDialogUi = createLevelUpDialog(document.querySelector('#level-up-dialog'));
+const itemPopup = createItemPopup(document.querySelector('#item-popup-dialog'));
+const tutorialPopup = createTutorialPopup(document.querySelector('#tutorial-dialog'), {
+  itemSprite: (id) => INVENTORY_ITEMS.get(id)?.spriteUrl ?? null,
+});
+// Story and teaching popups for chapters 1 and 2. Each step shows once per run of the chapter.
+const tutorialProgress = { active: false, running: false, intro: true, potion: true, stairs: true, houses: true, combatSeen: false };
+
+function resetTutorials(chapter) {
+  Object.assign(tutorialProgress, {
+    active: chapter <= 4,
+    chapter,
+    running: false,
+    intro: false,
+    potion: chapter !== 0,
+    stairs: chapter >= 1,
+    houses: chapter !== 2,
+    combatSeen: false,
+  });
+}
+
+function nearestStairs(unit) {
+  let best = null;
+  for (let z = 0; z < activeLevel.height; z++) {
+    for (let x = 0; x < activeLevel.width; x++) {
+      if (!String(activeLevel.tileIds[z][x]).startsWith('stairs')) continue;
+      const distance = distanceBetween(unit.x, unit.z, x, z);
+      if (!best || distance < best.distance) best = { x, z, distance };
+    }
+  }
+  return best;
+}
+
+// Shows any tutorial step that is due, but only while the player has control of the cursor.
+async function runTutorials() {
+  const { active, running } = tutorialProgress;
+  const inControl = gameState.phase === 'player' && gameState.mode === 'cursor' && !gameState.selected &&
+    !gameState.defeated && !playerMovement && !itemPopup.open;
+  if (!active || running || !inControl) return;
+  tutorialProgress.running = true;
+  try {
+    if (!tutorialProgress.intro) {
+      tutorialProgress.intro = true;
+      await tutorialPopup.show(['intro', 'boarders', 'village', 'mansion', 'escape'][tutorialProgress.chapter], TRIANGLE_EFFECTS);
+    }
+    if (!tutorialProgress.houses) {
+      tutorialProgress.houses = true;
+      const house = activeLevel.houses.filter((entry) => !entry.visited)
+        .sort((a, b) => distanceBetween(player.x, player.z, a.door.x, a.door.z) - distanceBetween(player.x, player.z, b.door.x, b.door.z))[0];
+      if (house) {
+        setCursor(house.door.x, house.door.z);
+        await tutorialPopup.show('houses');
+        setCursor(player.x, player.z);
+      }
+    }
+    if (tutorialProgress.combatSeen && !tutorialProgress.potion) {
+      tutorialProgress.potion = true;
+      const potion = INVENTORY_ITEMS.get('potion');
+      await tutorialPopup.show('potion', { heal: potion?.heal, uses: potion?.maxUses });
+    }
+    const stairs = tutorialProgress.potion && !tutorialProgress.stairs ? nearestStairs(player) : null;
+    if (stairs) {
+      tutorialProgress.stairs = true;
+      setCursor(stairs.x, stairs.z);
+      await tutorialPopup.show('stairs', { bonus: getTerrain(activeLevel, stairs.x, stairs.z).bonus });
+      setCursor(player.x, player.z);
+    }
+  } finally {
+    tutorialProgress.running = false;
+  }
+}
+
+// Hands the level's starting items to every unit and announces each pickup in turn.
+function grantStartingItems(team) {
+  const receipts = [];
+  for (const itemId of activeLevel.startingItems) {
+    for (const unit of team) receipts.push({ unit, ...grantItem(unit, itemId) });
+  }
+  window.setTimeout(async () => {
+    await runTutorials();
+    if (receipts.length) await itemPopup.show(receipts);
+  }, 700);
+}
 const profileDialogUi = createProfileDialog(profileDialog);
 const maria = createMaria();
+const cypher = createCypherAlly();
+const seymour = createSeymourAlly();
 let player = maria;
 const playerTeam = [maria];
 experienceDisplay.reset(player.level, player.experience);
@@ -191,6 +408,12 @@ const CHARACTER_SCALES = {
   bartz: 0.9,
   raider: 0.9,
   merfolk: 0.9,
+  cypher: 0.85,
+  seymour: 0.85,
+  ravagerMaria: 1.0,
+  berserkerBartz: 0.9,
+  sageCypher: 0.85,
+  bishopSeymour: 0.85,
 };
 let playerMovement;
 let enemyMovement;
@@ -202,8 +425,11 @@ let terminalFocusTimeout;
 let movementRange = new Map();
 let enemies = [];
 let cursorOutline;
+let showAllEnemyRanges = false;
 let moveHighlights;
 let targetHighlights;
+let attackRangeHighlights;
+let enemyRangeHighlights = [];
 let movementPathMeshes = [];
 let movementPathMaterial;
 
@@ -233,6 +459,7 @@ function unitTextures(unit) {
     idle: characterSprites[set],
     walking: characterSprites[`${set}WalkingFrames`],
     attack: characterSprites[`${set}AttackFrames`],
+    staff: characterSprites[`${set}StaffFrames`],
   };
 }
 
@@ -265,6 +492,14 @@ function createUnitMesh(unit, renderOrder = 2) {
   unit.mesh = mesh;
   addUnitHealthBar(mesh, unit);
   return mesh;
+}
+
+// Re-syncs a unit's mesh with its current sprite set (after a promotion or a restored save).
+function refreshUnitAppearance(unit) {
+  if (!unit.mesh) return;
+  const scale = unit.scale ?? CHARACTER_SCALES[unit.spriteSet] ?? 1;
+  unit.mesh.scale.set(scale, scale, 1);
+  setIdleSprite(unit);
 }
 
 // Health bar layout: bright outline > dark backing > colored fill.
@@ -327,6 +562,8 @@ function addUnitHealthBar(mesh, unit) {
 createUnitMesh(maria, 0);
 const bartz = createBartzAlly();
 createUnitMesh(bartz, 0);
+createUnitMesh(cypher, 0);
+createUnitMesh(seymour, 0);
 let currentChapter = 0;
 let chapterStart = null;
 const cursorPlaneGeometry = new THREE.PlaneGeometry(1, 1);
@@ -408,17 +645,69 @@ function worldZ(tileZ) {
   return tileZ - activeLevel.height / 2 + 0.5;
 }
 
-function createEnemy(tileX, tileZ, id = 'raider') {
-  const enemy = { ...createEnemyUnit(id, tileX, tileZ), facing: 'south' };
+function getAttackRangeTiles(unit) {
+  const tiles = [];
+  if (!canAttack(unit)) return tiles;
+  for (let z = 0; z < activeLevel.height; z++) {
+    for (let x = 0; x < activeLevel.width; x++) {
+      const distance = distanceBetween(unit.x, unit.z, x, z);
+      if (
+        distance >= unit.weapon.minRange &&
+        distance <= unit.weapon.maxRange &&
+        isWalkable(activeLevel, x, z)
+      ) tiles.push({ x, z });
+    }
+  }
+  return tiles;
+}
+
+function createEnemy(tileX, tileZ, id = 'raider', options = {}) {
+  const enemy = { ...createEnemyUnit(id, tileX, tileZ, options), facing: 'south' };
   createUnitMesh(enemy);
+  if (enemy.drop) addDropMarker(enemy);
   return enemy;
+}
+
+let dropMarkerTexture;
+
+// A pulsing gold gem above enemies that carry a drop, so the player knows who to hunt.
+function addDropMarker(enemy) {
+  if (!dropMarkerTexture) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 64;
+    const context = canvas.getContext('2d');
+    context.translate(32, 32);
+    context.shadowColor = '#ffd75e';
+    context.shadowBlur = 10;
+    context.fillStyle = '#f6c744';
+    context.strokeStyle = '#fff3c4';
+    context.lineWidth = 3;
+    context.beginPath();
+    context.moveTo(0, -20);
+    context.lineTo(15, 0);
+    context.lineTo(0, 20);
+    context.lineTo(-15, 0);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    dropMarkerTexture = new THREE.CanvasTexture(canvas);
+    dropMarkerTexture.colorSpace = THREE.SRGBColorSpace;
+  }
+  const marker = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: dropMarkerTexture, transparent: true, depthTest: false, depthWrite: false, fog: false,
+  }));
+  marker.scale.set(0.3, 0.3, 1);
+  marker.position.set(0, enemy.mesh.geometry.parameters.height / 2 + 0.5, 0.08);
+  marker.renderOrder = 11;
+  enemy.mesh.add(marker);
+  enemy.mesh.userData.dropMarker = marker;
 }
 
 function resetEnemies() {
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = [];
   if (activeLevel.enemies.length) {
-    enemies = activeLevel.enemies.map((entry) => createEnemy(entry.x, entry.z, entry.id));
+    enemies = activeLevel.enemies.map((entry) => createEnemy(entry.x, entry.z, entry.id, entry));
     return;
   }
   const { x: exitX, z: exitZ } = activeLevel.exit;
@@ -477,6 +766,7 @@ function saveCurrentGame() {
       gameState,
       {
         allies: playerTeam.filter((unit) => unit !== maria),
+        convoy,
         chapter: currentChapter,
         chapterStart,
       },
@@ -503,8 +793,22 @@ function refreshContinueButton() {
   }
 }
 
+function hasPendingReinforcements() {
+  return activeLevel.reinforcements.some((wave) => !wave.spawned);
+}
+
+function checkDefeatAllVictory() {
+  if (
+    activeLevel.objective !== 'defeat-all-enemies' ||
+    enemies.length > 0 ||
+    hasPendingReinforcements()
+  ) return false;
+  completeVictory('All enemies have fallen. The objective is complete.');
+  return true;
+}
+
 function objectiveDescription(level = activeLevel) {
-  return level.objective === 'escape' ? 'Escape through the marked exit' : 'Kill all enemies';
+  return level.objective === 'escape' ? 'Get every unit to the marked exit' : 'Kill all enemies';
 }
 
 function hideTerminalScreen() {
@@ -513,12 +817,21 @@ function hideTerminalScreen() {
   terminalScreen.hidden = true;
 }
 
-function showTerminalScreen(outcome, message) {
+// At the end of part one the plain victory card comes first; its Continue button opens the ending card.
+let showingPartOneVictory = false;
+
+function showTerminalScreen(outcome, message, { ending = false } = {}) {
   terminalScreen.dataset.outcome = outcome;
-  terminalHeading.textContent = outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
-  terminalMessage.textContent = message;
+  const partEnd = outcome === 'victory' && !hasNextChapter();
+  showingPartOneVictory = partEnd && !ending;
+  terminalHeading.textContent = ending ? PART_ONE_ENDING.heading : outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
+  terminalSubtitle.hidden = !ending;
+  terminalSubtitle.textContent = ending ? PART_ONE_ENDING.welcome : '';
+  terminalMessage.textContent = ending ? PART_ONE_ENDING.message : message;
   const nextChapterButton = document.querySelector('#next-chapter');
-  nextChapterButton.hidden = !(outcome === 'victory' && hasNextChapter());
+  nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartOneVictory));
+  nextChapterButton.textContent = showingPartOneVictory ? 'Continue' : 'Next Chapter';
+  terminalScreen.classList.remove('visible');
   terminalScreen.hidden = false;
   requestAnimationFrame(() => terminalScreen.classList.add('visible'));
   window.clearTimeout(terminalFocusTimeout);
@@ -554,11 +867,12 @@ function completeGameOver() {
 }
 
 function checkEscapeObjective() {
-  if (
-    activeLevel.objective !== 'escape' ||
-    (player.x !== activeLevel.exit.x || player.z !== activeLevel.exit.z)
-  ) return false;
-  completeVictory(`${player.name} has escaped. The objective is complete.`);
+  if (activeLevel.objective !== 'escape') return false;
+  const living = playerTeam.filter((unit) => unit.hp > 0);
+  const escaped = living.filter((unit) =>
+    activeLevel.exitTiles.some((tile) => tile.x === unit.x && tile.z === unit.z));
+  if (!living.length || escaped.length < living.length) return false;
+  completeVictory('Everyone has reached the exit. The objective is complete.');
   return true;
 }
 
@@ -574,11 +888,14 @@ function applyUnitSnapshot(unit, snapshot) {
     level: snapshot.level,
     experience: snapshot.experience,
   });
+  if (snapshot.weaponExp) unit.weaponExp = { ...snapshot.weaponExp };
+  if (snapshot.classId) applyClass(unit, snapshot.classId);
+  refreshUnitAppearance(unit);
   restoreMariaInventory(unit, snapshot.inventory, snapshot.equippedWeaponId);
   unit.hp = unit.maxHp;
 }
 
-const roster = { maria, bartz };
+const roster = { maria, bartz, cypher, seymour };
 
 // Fields the level's listed player units (or Maria alone at the spawn point).
 function deployTeam(level) {
@@ -605,18 +922,33 @@ function deployTeam(level) {
   return team;
 }
 
+function serializeCarry() {
+  const allies = new Map((chapterStart?.allies ?? []).map((ally) => [ally.id, ally]));
+  for (const unit of playerTeam) {
+    if (unit !== maria && roster[unit.id]) allies.set(unit.id, serializeUnit(unit));
+  }
+  return { ...serializeUnit(maria), allies: [...allies.values()], convoy: convoy.map(({ id, uses }) => ({ id, uses })) };
+}
+
 function startLevel(level, { chapter = null, carry = null } = {}) {
   hideTerminalScreen();
   currentChapter = chapter;
   chapterStart = carry;
+  resetTutorials(chapter);
   Object.assign(maria, createMaria());
   Object.assign(bartz, createBartzAlly());
-  if (carry) applyUnitSnapshot(maria, carry);
+  Object.assign(cypher, createCypherAlly());
+  Object.assign(seymour, createSeymourAlly());
+  setConvoy(carry?.convoy);
+  if (carry) {
+    applyUnitSnapshot(maria, carry);
+    for (const savedAlly of carry.allies ?? []) {
+      if (roster[savedAlly.id] && roster[savedAlly.id] !== maria) applyUnitSnapshot(roster[savedAlly.id], savedAlly);
+    }
+  }
+  refreshMagicUses([...maria.inventory, ...bartz.inventory, ...cypher.inventory, ...seymour.inventory, ...convoy]);
   activeLevel = buildLevel(THREE, levelGroup, level);
   const team = deployTeam(activeLevel);
-  for (const itemId of activeLevel.startingItems) {
-    for (const unit of team) grantItem(unit, itemId);
-  }
   playerMovement = undefined;
   enemyMovement = undefined;
   cameraFollowTarget = undefined;
@@ -640,6 +972,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   hideMainMenu();
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  grantStartingItems(team);
 }
 
 function newGame() {
@@ -647,7 +980,16 @@ function newGame() {
 }
 
 function restartLevel() {
-  startLevel(activeLevel, { chapter: currentChapter, carry: chapterStart });
+  startLevel({
+    ...activeLevel,
+    houses: activeLevel.houses.map((house) => ({ ...house, visited: false })),
+    chests: activeLevel.chests.map((chest) => ({ ...chest, opened: false })),
+    reinforcements: activeLevel.reinforcements.map((wave) => ({
+      ...wave,
+      spawned: false,
+      spawnedCount: 0,
+    })),
+  }, { chapter: currentChapter, carry: chapterStart });
 }
 
 async function startNextChapter() {
@@ -655,7 +997,7 @@ async function startNextChapter() {
   if (next >= CHAPTER_COUNT) return;
   try {
     const level = await loadChapterLevel(next);
-    startLevel(level, { chapter: next, carry: serializeUnit(maria) });
+    startLevel(level, { chapter: next, carry: serializeCarry() });
   } catch (error) {
     console.error('Unable to start next chapter:', error);
     setLevelStatus(`Could not start next chapter: ${error.message}`, true);
@@ -682,23 +1024,32 @@ function continueGame() {
       acted: saved.acted,
       moveOrigin: saved.moveOrigin ?? null,
     });
+    if (saved.weaponExp) unit.weaponExp = { ...saved.weaponExp };
+    if (saved.classId) applyClass(unit, saved.classId);
+    refreshUnitAppearance(unit);
     restoreMariaInventory(unit, saved.inventory, saved.equippedWeaponId);
   };
   Object.assign(bartz, createBartzAlly());
+  Object.assign(cypher, createCypherAlly());
+  Object.assign(seymour, createSeymourAlly());
   restoreUnit(maria, save.player);
   const team = [maria];
   for (const savedAlly of save.allies) {
-    restoreUnit(bartz, savedAlly);
-    team.push(bartz);
+    const ally = roster[savedAlly.id];
+    if (!ally) throw new Error(`Unknown saved ally "${savedAlly.id}".`);
+    restoreUnit(ally, savedAlly);
+    team.push(ally);
   }
   playerTeam.length = 0;
   playerTeam.push(...team);
   player = team.find((unit) => unit.hp > 0) ?? maria;
   currentChapter = save.chapter;
   chapterStart = save.chapterStart;
+  resetTutorials(null);
+  setConvoy(save.convoy);
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = save.enemies.map((savedEnemy) => {
-    const enemy = createEnemy(savedEnemy.x, savedEnemy.z, savedEnemy.id ?? 'raider');
+    const enemy = createEnemy(savedEnemy.x, savedEnemy.z, savedEnemy.id ?? 'raider', savedEnemy);
     enemy.hp = savedEnemy.hp;
     enemy.maxHp = savedEnemy.maxHp;
     return enemy;
@@ -733,7 +1084,7 @@ function continueGame() {
 }
 
 function returnToMainMenu() {
-  if (!sessionStarted) {
+  if (!sessionStarted && !mainMenu.hidden) {
     optionsDialog.close();
     document.querySelector('#title-options').focus();
     return;
@@ -746,7 +1097,11 @@ function returnToMainMenu() {
   movementRange.clear();
   playerMovement = undefined;
   sessionStarted = false;
-  renderTacticalUi();
+  try {
+    renderTacticalUi();
+  } catch (error) {
+    console.error('Unable to refresh the battle UI before returning to the menu:', error);
+  }
   refreshContinueButton();
   mainMenu.hidden = false;
   document.body.classList.add('title-screen');
@@ -756,6 +1111,8 @@ function returnToMainMenu() {
 function openTitleOptions() {
   if (sessionStarted || optionsDialog.open) return;
   document.querySelector('#open-unit-list').hidden = true;
+  document.querySelector('#options-end-phase').hidden = true;
+  document.querySelector('#options-restart').hidden = true;
   optionsDialog.showModal();
   document.querySelector('#resume-game').focus();
 }
@@ -764,6 +1121,8 @@ function openOptionsMenu() {
   if (!sessionStarted || gameState.mode === 'options' || gameState.mode === 'combat' || playerMovement) return;
   gameState.mode = 'options';
   document.querySelector('#open-unit-list').hidden = false;
+  document.querySelector('#options-end-phase').hidden = false;
+  document.querySelector('#options-restart').hidden = false;
   renderTacticalUi();
   optionsDialog.showModal();
 }
@@ -782,7 +1141,7 @@ const blobMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   depthWrite: false,
 });
-for (const unit of [maria, bartz]) {
+for (const unit of [maria, bartz, cypher, seymour]) {
   unit.blob = new THREE.Mesh(blobGeometry, blobMaterial);
   unit.blob.rotation.x = -Math.PI / 2;
   unit.blob.position.y = 0.02;
@@ -790,6 +1149,13 @@ for (const unit of [maria, bartz]) {
 }
 const levelFile = document.querySelector('#level-file');
 document.querySelector('#load-level').addEventListener('click', () => levelFile.click());
+const enemyRangeToggle = document.querySelector('#toggle-enemy-range');
+enemyRangeToggle.addEventListener('click', () => {
+  showAllEnemyRanges = !showAllEnemyRanges;
+  enemyRangeToggle.setAttribute('aria-pressed', String(showAllEnemyRanges));
+  enemyRangeToggle.blur();
+  refreshHighlights();
+});
 levelFile.addEventListener('change', async () => {
   const [file] = levelFile.files;
   if (!file) return;
@@ -799,9 +1165,6 @@ levelFile.addEventListener('change', async () => {
     currentChapter = null;
     chapterStart = null;
     const team = deployTeam(activeLevel);
-    for (const itemId of activeLevel.startingItems) {
-      for (const unit of team) grantItem(unit, itemId);
-    }
     playerMovement = undefined;
     cursor.x = player.x;
     cursor.z = player.z;
@@ -818,6 +1181,7 @@ levelFile.addEventListener('change', async () => {
     setLevelStatus(`Loaded ${level.name}`);
     setMessage(`${level.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
     renderTacticalUi();
+    grantStartingItems(team);
   } catch (error) {
     console.error('Unable to import level:', error);
     setLevelStatus(`Could not import level: ${error.message}`, true);
@@ -840,6 +1204,16 @@ function clearHighlights() {
     targetHighlights.dispose();
     targetHighlights = undefined;
   }
+  if (attackRangeHighlights) {
+    tacticalOverlay.remove(attackRangeHighlights);
+    attackRangeHighlights.dispose();
+    attackRangeHighlights = undefined;
+  }
+  for (const mesh of enemyRangeHighlights) {
+    tacticalOverlay.remove(mesh);
+    mesh.dispose();
+  }
+  enemyRangeHighlights = [];
 }
 
 function clearMovementRoute() {
@@ -865,6 +1239,7 @@ function updateMovementRoute() {
   if (path.length < 2) return;
   movementPathMaterial = new THREE.MeshBasicMaterial({
     color: 0x168cff,
+    transparent: true,
     depthTest: false,
     depthWrite: false,
   });
@@ -905,14 +1280,14 @@ function updateMovementRoute() {
     getTileElevation(activeLevel, destination.x, destination.z),
   );
   const tip = new THREE.Mesh(
-    new THREE.ConeGeometry(0.2, 0.34, 4),
+    new THREE.ConeGeometry(0.32, 0.55, 4),
     movementPathMaterial,
   );
   tip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
   tip.position.set(
-    worldX(destination.x) - direction.x * 0.09,
+    worldX(destination.x) - direction.x * 0.02,
     elevation + 0.3,
-    worldZ(destination.z) - direction.z * 0.09,
+    worldZ(destination.z) - direction.z * 0.02,
   );
   tip.renderOrder = 7;
   scene.add(tip);
@@ -946,7 +1321,31 @@ function refreshHighlights() {
       rangeMaterial,
     );
   }
+  const cursorInspecting = gameState.mode === 'cursor' && !gameState.selected;
+  if (gameState.phase === 'player' && (showAllEnemyRanges || cursorInspecting)) {
+    const inspected = cursorInspecting ? findEnemyAt(enemies, cursor.x, cursor.z) : undefined;
+    const shown = showAllEnemyRanges ? enemies.filter((enemy) => enemy.hp > 0) : inspected ? [inspected] : [];
+    const moveTiles = new Map();
+    const threatTiles = new Map();
+    for (const enemy of shown) {
+      const reach = getEnemyReach(enemy);
+      if (enemy.ai !== 'stationary') {
+        for (const key of reach.keys()) {
+          const [x, z] = key.split(',').map(Number);
+          moveTiles.set(key, { x, z });
+        }
+      }
+      for (const tile of getEnemyThreatTiles(enemy, reach)) threatTiles.set(tileKey(tile.x, tile.z), tile);
+    }
+    for (const key of moveTiles.keys()) threatTiles.delete(key);
+    enemyRangeHighlights = [
+      makeHighlights([...moveTiles.values()], rangeMaterial),
+      makeHighlights([...threatTiles.values()], targetMaterial),
+    ].filter(Boolean);
+    for (const mesh of enemyRangeHighlights) mesh.renderOrder = 3;
+  }
   if (gameState.mode === 'attack') {
+    attackRangeHighlights = makeHighlights(getAttackRangeTiles(player), rangeMaterial);
     targetHighlights = makeHighlights(
       getAttackTargets(player, enemies).map(({ x, z }) => ({ x, z })),
       targetMaterial,
@@ -1020,8 +1419,10 @@ function showCombatResult(unit, text, type) {
   if (type === 'miss') {
     playMissWhiff();
   } else {
-    playHitImpact({ critical: type === 'critical' });
-    spawnHitEffect(unit, type === 'critical');
+    if (type !== 'heal') {
+      playHitImpact({ critical: type === 'critical' });
+      spawnHitEffect(unit, type === 'critical');
+    }
   }
   const canvas = document.createElement('canvas');
   canvas.width = 192;
@@ -1033,7 +1434,7 @@ function showCombatResult(unit, text, type) {
   context.lineWidth = 7;
   context.strokeStyle = 'rgba(20, 12, 16, 0.9)';
   context.strokeText(text, 96, 32);
-  context.fillStyle = type === 'critical' ? '#72101d' : type === 'miss' ? '#ffffff' : '#ffe14a';
+  context.fillStyle = type === 'heal' ? '#5dff8a' : type === 'critical' ? '#72101d' : type === 'miss' ? '#ffffff' : '#ffe14a';
   context.fillText(text, 96, 32);
   const texture = new THREE.CanvasTexture(canvas);
   const material = new THREE.SpriteMaterial({
@@ -1074,55 +1475,301 @@ function openInventory() {
   inventoryDialog.querySelector('button:not(:disabled)')?.focus();
 }
 
+function itemInfoElement(entry) {
+  const item = INVENTORY_ITEMS.get(entry.id);
+  const details = document.createElement('div');
+  const name = document.createElement('strong');
+  name.textContent = item.name;
+  const description = document.createElement('span');
+  if (item.itemType === 'weapon') {
+    description.textContent =
+      `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}`;
+    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${item.maxRange}`;
+    if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${item.maxUses} uses`;
+  } else if (item.heal) {
+    description.textContent = `Heals ${item.heal} HP · ${entry.uses}/${item.maxUses} uses remaining`;
+  } else {
+    description.textContent = item.description ?? '';
+  }
+  details.append(name, description);
+  if (Array.isArray(item.effect) && item.effect.length) {
+    const effect = document.createElement('span');
+    effect.className = 'item-effect';
+    effect.textContent = `Effective vs ${item.effect.join(', ')}`;
+    details.append(effect);
+  }
+  if (item.reaves?.length) {
+    const reaves = document.createElement('span');
+    reaves.className = 'item-effect';
+    reaves.textContent = `Double triangle bonus vs ${item.reaves.join(', ')}`;
+    details.append(reaves);
+  }
+  if (item.lore) {
+    const lore = document.createElement('span');
+    lore.className = 'item-lore';
+    lore.textContent = item.lore;
+    details.append(lore);
+  }
+  const icon = document.createElement('div');
+  icon.className = 'item-icon';
+  if (item.spriteUrl) {
+    const image = document.createElement('img');
+    image.src = item.spriteUrl;
+    image.alt = '';
+    icon.append(image);
+  }
+  const info = document.createElement('div');
+  info.className = 'item-info';
+  info.append(icon, details);
+  return info;
+}
+
+function itemRow(entry, label, disabled, onClick) {
+  const row = document.createElement('li');
+  const action = document.createElement('button');
+  action.textContent = label;
+  action.disabled = disabled;
+  if (onClick) action.addEventListener('click', onClick);
+  row.append(itemInfoElement(entry), action);
+  return row;
+}
+
 function renderInventory() {
+  inventoryDialog.querySelector('#inventory-heading').textContent = `${player.name}'s Inventory`;
   const list = inventoryDialog.querySelector('#inventory-items');
   list.replaceChildren();
-  for (const entry of player.inventory) {
+  const equippedIndex = player.inventory.findIndex((entry) => entry.id === player.weapon?.id);
+  for (const [slot, entry] of player.inventory.entries()) {
     const item = INVENTORY_ITEMS.get(entry.id);
-    const row = document.createElement('li');
-    const details = document.createElement('div');
-    const name = document.createElement('strong');
-    name.textContent = item.name;
-    const description = document.createElement('span');
-    if (item.itemType === 'weapon') {
-      description.textContent =
-        `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}`;
+    if (item.type === 'Staff') {
+      const blocked = equipBlockReason(player, item);
+      const ready = !blocked && healTargets(player).length > 0;
+      list.append(itemRow(entry, blocked ?? (ready ? 'Use' : 'No one to heal'), !ready, () => {
+        closeInventory();
+        openHeal();
+      }));
+    } else if (item.itemType === 'weapon') {
+      const equipped = slot === equippedIndex;
+      if (!equipped && !canEquipWeapon(player, item)) {
+        list.append(itemRow(entry, equipBlockReason(player, item), true));
+      } else {
+        list.append(itemRow(entry, equipped ? 'Equipped' : 'Equip', equipped, () => equipInventoryWeapon(entry.id)));
+      }
+    } else if (item.effect === 'keepsake') {
+      list.append(itemRow(entry, 'Keepsake', true));
+    } else if (item.effect === 'key') {
+      list.append(itemRow(entry, 'Opens chests', true));
+    } else if (item.effect === 'promote') {
+      const ready = player.level >= 10 && canPromote(player);
+      list.append(itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 10' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
     } else {
-      description.textContent = `Heals ${item.heal} HP · ${entry.uses}/${item.maxUses} uses remaining`;
+      list.append(itemRow(entry, 'Use', player.hp >= player.maxHp, () => useInventoryItem(entry)));
     }
-    details.append(name, description);
-    if (item.effect?.length) {
-      const effect = document.createElement('span');
-      effect.className = 'item-effect';
-      effect.textContent = `Effective vs ${item.effect.join(', ')}`;
-      details.append(effect);
-    }
-    const icon = document.createElement('div');
-    icon.className = 'item-icon';
-    if (item.spriteUrl) {
-      const image = document.createElement('img');
-      image.src = item.spriteUrl;
-      image.alt = '';
-      icon.append(image);
-    }
-    const info = document.createElement('div');
-    info.className = 'item-info';
-    info.append(icon, details);
-    const action = document.createElement('button');
-    if (item.itemType === 'weapon') {
-      const equipped = player.weapon.id === entry.id;
-      action.textContent = equipped ? 'Equipped' : 'Equip';
-      action.disabled = equipped;
-      action.addEventListener('click', () => equipInventoryWeapon(entry.id));
-    } else {
-      action.textContent = 'Use';
-      action.disabled = player.hp >= player.maxHp;
-      action.addEventListener('click', () => useInventoryItem(entry.id));
-    }
-    row.append(info, action);
-    list.append(row);
   }
   inventoryDialog.querySelector('#inventory-empty').hidden = player.inventory.length > 0;
+  inventoryDialog.querySelector('#inventory-capacity').textContent =
+    `${player.inventory.length}/${MAX_INVENTORY_SIZE} items · Convoy: ${convoy.length}`;
+
+  // Only the leader can reach the convoy.
+  const convoySection = inventoryDialog.querySelector('#convoy-section');
+  convoySection.hidden = player !== maria;
+  const convoyList = convoySection.querySelector('#convoy-items');
+  convoyList.replaceChildren();
+  const full = player.inventory.length >= MAX_INVENTORY_SIZE;
+  for (const entry of convoy) {
+    convoyList.append(itemRow(entry, full ? 'Inventory full' : 'Take', full, () => withdrawFromConvoy(entry)));
+  }
+  convoySection.querySelector('#convoy-empty').hidden = convoy.length > 0;
+}
+
+function withdrawFromConvoy(entry) {
+  const index = convoy.indexOf(entry);
+  if (player !== maria || index < 0 || player.inventory.length >= MAX_INVENTORY_SIZE) return;
+  convoy.splice(index, 1);
+  player.inventory.push(entry);
+  renderInventory();
+  inventoryDialog.querySelector('button:not(:disabled)')?.focus();
+  setMessage(`${player.name} took ${INVENTORY_ITEMS.get(entry.id).name} from the convoy.`);
+  saveCurrentGame();
+}
+
+const tradeDialog = document.querySelector('#trade-dialog');
+let tradePartner = null;
+
+function adjacentAllies(unit) {
+  return playerTeam.filter((ally) =>
+    ally !== unit && ally.hp > 0 && Math.abs(ally.x - unit.x) + Math.abs(ally.z - unit.z) === 1);
+}
+
+function openTrade() {
+  if (!gameState.selected || gameState.mode !== 'unit') return;
+  const partners = adjacentAllies(player);
+  if (!partners.length) return;
+  tradePartner = partners.length === 1 ? partners[0] : null;
+  gameState.mode = 'trade';
+  renderTacticalUi();
+  renderTrade();
+  tradeDialog.showModal();
+  tradeDialog.querySelector('button:not(:disabled)')?.focus();
+}
+
+function renderTradeColumn(side, owner, other) {
+  tradeDialog.querySelector(`#trade-${side}-name`).textContent = `${owner.name}`;
+  const list = tradeDialog.querySelector(`#trade-${side}-items`);
+  list.replaceChildren();
+  const equippedIndex = owner.inventory.findIndex((entry) => entry.id === owner.weapon?.id);
+  const otherFull = other.inventory.length >= MAX_INVENTORY_SIZE;
+  for (const [slot, entry] of owner.inventory.entries()) {
+    const equipped = slot === equippedIndex;
+    const bound = INVENTORY_ITEMS.get(entry.id).bound;
+    const label = bound ? 'Cannot be traded' : otherFull ? `${other.name} is full` : `Give to ${other.name}${equipped ? ' (equipped)' : ''}`;
+    list.append(itemRow(entry, label, bound || otherFull, () => tradeItem(owner, other, entry)));
+  }
+  tradeDialog.querySelector(`#trade-${side}-capacity`).textContent =
+    `${owner.inventory.length}/${MAX_INVENTORY_SIZE} items`;
+}
+
+function renderTrade() {
+  const partners = adjacentAllies(player);
+  const choosing = !tradePartner;
+  tradeDialog.querySelector('#trade-heading').textContent = choosing
+    ? `Trade: choose who ${player.name} trades with`
+    : `Trade: ${player.name} ↔ ${tradePartner.name}`;
+  tradeDialog.querySelector('.trade-columns').hidden = choosing;
+  tradeDialog.querySelector('#trade-note').hidden = choosing;
+  let switcher = tradeDialog.querySelector('#trade-partners');
+  if (!switcher) {
+    switcher = document.createElement('div');
+    switcher.id = 'trade-partners';
+    tradeDialog.querySelector('.trade-columns').before(switcher);
+  }
+  switcher.replaceChildren();
+  if (partners.length > 1) {
+    for (const partner of partners) {
+      const button = document.createElement('button');
+      button.textContent = partner.name;
+      button.disabled = partner === tradePartner;
+      button.addEventListener('click', () => {
+        tradePartner = partner;
+        renderTrade();
+        tradeDialog.querySelector('.trade-columns button:not(:disabled)')?.focus();
+      });
+      switcher.append(button);
+    }
+  }
+  if (choosing) return;
+  renderTradeColumn('left', player, tradePartner);
+  renderTradeColumn('right', tradePartner, player);
+}
+
+function tradeItem(from, to, entry) {
+  const index = from.inventory.indexOf(entry);
+  if (index < 0 || to.inventory.length >= MAX_INVENTORY_SIZE || INVENTORY_ITEMS.get(entry.id).bound) return;
+  from.inventory.splice(index, 1);
+  to.inventory.push(entry);
+  const item = INVENTORY_ITEMS.get(entry.id);
+  let note = '';
+  // A unit that no longer holds its equipped weapon is unarmed until it equips another.
+  if (from.weapon && !from.inventory.some((held) => held.id === from.weapon.id)) {
+    from.weapon = null;
+    note = ` ${from.name} is now unarmed.`;
+  }
+  if (item.itemType === 'weapon' && !item.heal && !to.weapon && canEquipWeapon(to, item)) {
+    to.weapon = item;
+    note += ` ${to.name} equipped it.`;
+  }
+  renderTrade();
+  tradeDialog.querySelector('button:not(:disabled)')?.focus();
+  setMessage(`${from.name} gave ${item.name} to ${to.name}.${note}`);
+  saveCurrentGame();
+}
+
+function closeTrade() {
+  if (tradeDialog.open) tradeDialog.close();
+  if (gameState.mode === 'trade') {
+    gameState.mode = 'unit';
+    renderTacticalUi();
+    focusActionMenu();
+  }
+}
+
+const healDialog = document.querySelector('#heal-dialog');
+
+// Staves are used from the action menu or inventory; the unit keeps its real weapon equipped.
+function healStaffFor(unit) {
+  for (const entry of unit.inventory) {
+    const item = INVENTORY_ITEMS.get(entry.id);
+    if (item?.type === 'Staff' && item.heal && entry.uses !== 0 && canEquipWeapon(unit, item)) return item;
+  }
+  return undefined;
+}
+
+function healTargets(unit) {
+  const staff = healStaffFor(unit);
+  if (!staff || unit.acted) return [];
+  return playerTeam.filter((ally) => {
+    const distance = distanceBetween(unit.x, unit.z, ally.x, ally.z);
+    return ally !== unit && ally.hp > 0 && ally.hp < ally.maxHp &&
+      distance >= staff.minRange && distance <= staff.maxRange;
+  });
+}
+function openHeal() {
+  if (!gameState.selected || gameState.mode !== 'unit') return;
+  const targets = healTargets(player);
+  if (!targets.length) return;
+  gameState.mode = 'heal';
+  renderTacticalUi();
+  const list = healDialog.querySelector('#heal-targets');
+  list.replaceChildren();
+  for (const target of targets) {
+    const row = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = `${target.name} · ${target.hp}/${target.maxHp} HP`;
+    button.addEventListener('click', () => void useHealStaff(target));
+    row.append(button);
+    list.append(row);
+  }
+  healDialog.showModal();
+  list.querySelector('button')?.focus();
+}
+
+function closeHeal() {
+  if (healDialog.open) healDialog.close();
+  if (gameState.mode === 'heal') {
+    gameState.mode = 'unit';
+    renderTacticalUi();
+    focusActionMenu();
+  }
+}
+
+async function useHealStaff(target) {
+  const staff = healStaffFor(player);
+  if (!staff || !healTargets(player).includes(target)) return;
+  if (healDialog.open) healDialog.close();
+  gameState.mode = 'combat';
+  combatants.add(player);
+  combatants.add(target);
+  renderTacticalUi();
+  player.facing = getFacing(target.x - player.x, target.z - player.z);
+  const casting = playAttackAnimation(player, player.facing, false, true);
+  await wait(450);
+  const healed = Math.min(staff.heal + player.magic, target.maxHp - target.hp);
+  target.hp += healed;
+  showCombatResult(target, `+${healed}`, 'heal');
+  const staffEntry = player.inventory.find((entry) => entry.id === staff.id && entry.uses !== 0);
+  if (Number.isInteger(staffEntry?.uses)) staffEntry.uses--;
+  const rankUps = [];
+  const staffRank = awardWeaponExp(player, staff);
+  if (staffRank) rankUps.push(`${player.name}'s Staff level rose to ${staffRank.id}!`);
+  setMessage(withRankUps(`${player.name} healed ${target.name} for ${healed} HP.`, rankUps));
+  await casting;
+  await wait(1100);
+  const experienceGained = staff.healExperience ?? 20;
+  const progression = awardExperience(player, experienceGained);
+  await showExperienceProgression(progression, experienceGained);
+  gameState.mode = 'unit';
+  finishUnit();
 }
 
 function closeInventory() {
@@ -1138,7 +1785,10 @@ function equipInventoryWeapon(itemId) {
   const entry = player.inventory.find((item) => item.id === itemId);
   const weapon = INVENTORY_ITEMS.get(itemId);
   if (!entry || weapon?.itemType !== 'weapon') {
-    throw new Error(`Cannot equip ${itemId}: weapon is not in Maria's inventory.`);
+    throw new Error(`Cannot equip ${itemId}: weapon is not in ${player.name}'s inventory.`);
+  }
+  if (!canEquipWeapon(player, weapon)) {
+    throw new Error(`${player.class} cannot equip ${weapon.type} weapons.`);
   }
   player.weapon = weapon;
   closeInventory();
@@ -1146,11 +1796,9 @@ function equipInventoryWeapon(itemId) {
   renderTacticalUi();
 }
 
-async function useInventoryItem(itemId) {
-  const index = player.inventory.findIndex((entry) => entry.id === itemId);
-  const entry = player.inventory[index];
-  const item = INVENTORY_ITEMS.get(itemId);
-  if (!entry || item?.itemType !== 'consumable' || player.hp >= player.maxHp) return;
+async function useInventoryItem(entry) {
+  const item = INVENTORY_ITEMS.get(entry.id);
+  if (!player.inventory.includes(entry) || item?.itemType !== 'consumable' || player.hp >= player.maxHp) return;
 
   closeInventory();
   // Combat mode keeps the bar visible and blocks input while the heal animates.
@@ -1172,6 +1820,32 @@ function openEnemyProfile(enemy) {
   openUnitProfile(enemy, player);
 }
 
+let menuEnemy = null;
+
+function openEnemyMenu(enemy) {
+  menuEnemy = enemy;
+  enemyMenuDialog.querySelector('#enemy-menu-heading').textContent = enemy.name;
+  enemyMenuDialog.querySelector('#enemy-menu-summary').textContent =
+    `${enemy.name} · Lv ${enemy.level} · HP ${enemy.hp}/${enemy.maxHp}`;
+  enemyMenuDialog.showModal();
+  enemyMenuDialog.querySelector('#enemy-menu-profile').focus();
+}
+
+function openEnemyInventory(enemy) {
+  const list = enemyInventoryDialog.querySelector('#enemy-inventory-items');
+  list.replaceChildren();
+  enemyInventoryDialog.querySelector('#enemy-inventory-heading').textContent = `${enemy.name}'s Inventory`;
+  const entries = [];
+  if (enemy.weapon) entries.push({ entry: { id: enemy.weapon.id, uses: null }, label: 'Equipped' });
+  if (enemy.drop) entries.push({ entry: { id: enemy.drop, uses: INVENTORY_ITEMS.get(enemy.drop)?.maxUses ?? null }, label: 'Drops on defeat' });
+  for (const { entry, label } of entries) list.append(itemRow(entry, label, true));
+  enemyInventoryDialog.querySelector('#enemy-inventory-note').textContent = enemy.drop
+    ? 'Defeat this enemy to claim its drop.'
+    : 'This enemy carries nothing of value.';
+  enemyInventoryDialog.showModal();
+  enemyInventoryDialog.querySelector('#enemy-inventory-close').focus();
+}
+
 function capitalize(text) {
   return `${text[0].toUpperCase()}${text.slice(1)}`;
 }
@@ -1186,6 +1860,133 @@ function unitForMesh(mesh) {
 
 function playerUnitAt(x, z) {
   return playerTeam.find((unit) => unit.hp > 0 && unit.x === x && unit.z === z) ?? null;
+}
+
+function houseAvailableToVisit(unit) {
+  return activeLevel.houses.find((house) =>
+    !house.visited &&
+    unit.x === house.door.x && unit.z === house.door.z);
+}
+
+function chestAvailableToOpen(unit) {
+  return activeLevel.chests.find((chest) =>
+    !chest.opened && unit.x === chest.x && unit.z === chest.z);
+}
+
+async function openChest() {
+  if (!gameState.selected || gameState.phase !== 'player' || player.acted) return;
+  const chest = chestAvailableToOpen(player);
+  if (!chest) return;
+  const keyIndex = player.inventory.findIndex((entry) => entry.id === 'chest-key');
+  if (keyIndex < 0) {
+    setMessage(`${chest.name} is locked. ${player.name} needs a Chest Key.`);
+    return;
+  }
+  player.inventory.splice(keyIndex, 1);
+  const { item, toConvoy } = grantItem(player, chest.rewardId);
+  chest.opened = true;
+  chest.mesh.material.opacity = 0.35;
+  player.acted = true;
+  setMessage(toConvoy
+    ? `${player.name} unlocked the chest. Their inventory is full, so ${item.name} was sent to the convoy.`
+    : `${player.name} unlocked the chest and found ${item.name}.`);
+  renderTacticalUi();
+  await itemPopup.show([{ unit: player, item, toConvoy }]);
+  finishUnit();
+}
+
+// Golden aura that swells around the unit, with sparkles rising off it. Resolves at the
+// moment of the sprite swap (the aura's peak); the aura then fades out on its own.
+async function playPromotionGlow(unit, applyChange) {
+  const position = unit.mesh.position;
+  const origin = new THREE.Vector3(position.x, position.y + 0.1, position.z + 0.2);
+  const born = clock.elapsedTime;
+  const makeSprite = (color, scale) => {
+    const material = new THREE.SpriteMaterial({
+      map: getHitFlashTexture(),
+      color,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 0,
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.copy(origin);
+    sprite.scale.setScalar(scale);
+    sprite.renderOrder = 9;
+    scene.add(sprite);
+    return { sprite, material };
+  };
+  hitEffects.push({
+    ...makeSprite(0xffd45a, 1),
+    born,
+    life: 2.6,
+    pulse: (p) => 1.3 + Math.min(p / 0.6, 1) * 1.1 + Math.sin(p * 40) * 0.08,
+    opacity: (p) => (p < 0.6 ? 0.25 + (p / 0.6) * 0.75 : Math.max(0, 1 - (p - 0.6) / 0.4)),
+  });
+  hitEffects.push({
+    ...makeSprite(0xfff6d0, 0.9),
+    born,
+    life: 2.6,
+    pulse: (p) => 0.7 + Math.sin(p * 30) * 0.12 + p * 0.5,
+    opacity: (p) => (p < 0.6 ? p / 0.6 : Math.max(0, 1 - (p - 0.6) / 0.4)),
+  });
+  for (let index = 0; index < 26; index++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 0.25 + Math.random() * 0.35;
+    const spark = makeSprite(index % 2 ? 0xffe08a : 0xfff6d0, 0.16 + Math.random() * 0.12);
+    spark.sprite.position.set(origin.x + Math.cos(angle) * radius, origin.y - 0.3, origin.z + Math.sin(angle) * radius * 0.6);
+    hitEffects.push({
+      ...spark,
+      born: born + Math.random() * 1.1,
+      life: 0.9 + Math.random() * 0.5,
+      velocity: new THREE.Vector3(0, 0.9 + Math.random() * 0.9, 0),
+      gravity: 0,
+      opacity: (p) => Math.sin(p * Math.PI),
+    });
+  }
+  await wait(1500);
+  applyChange();
+  hitEffects.push({
+    ...makeSprite(0xffffff, 1.5),
+    born: clock.elapsedTime,
+    life: 0.45,
+    pulse: (p) => 1.5 + p * 2.5,
+    opacity: (p) => 1 - p,
+  });
+  cameraShake = { until: clock.elapsedTime + 0.2, strength: 0.07 };
+  await wait(1100);
+}
+
+async function useMasterEmblem(entry) {
+  if (player.level < 10 || !canPromote(player)) return;
+  closeInventory();
+  gameState.mode = 'combat';
+  combatants.add(player);
+  renderTacticalUi();
+  setMessage(`${player.name} raises the Orders Emblem...`);
+  let result;
+  await playPromotionGlow(player, () => {
+    result = promoteUnit(player);
+    refreshUnitAppearance(player);
+    player.inventory.splice(player.inventory.indexOf(entry), 1);
+  });
+  const gains = Object.entries(result.gains)
+    .map(([stat, bonus]) => `${capitalize(stat)} +${bonus}`)
+    .join(', ');
+  setMessage(`${player.name} promoted from ${result.from} to ${result.to}! ${gains}.`);
+  renderTacticalUi();
+  await wait(1200);
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+// Defeated enemies carrying an item hand it to whoever landed the final blow.
+async function collectEnemyDrop(enemy, recipient) {
+  if (!enemy.drop) return;
+  const { item, toConvoy } = grantItem(recipient, enemy.drop);
+  await itemPopup.show([{ unit: recipient, item, toConvoy }]);
 }
 
 // Only opposing units block movement; teammates can be walked through.
@@ -1278,6 +2079,16 @@ function updateUnitHoverCard() {
     effect.textContent = `Effective vs ${unit.weapon.effect.join(', ')}`;
     weapon.append(effect);
   }
+  if (unit.weapon?.reaves?.length) {
+    const reaves = document.createElement('small');
+    reaves.textContent = `Double triangle bonus vs ${unit.weapon.reaves.join(', ')}`;
+    weapon.append(reaves);
+  }
+  if (unit.drop) {
+    const carries = document.createElement('small');
+    carries.textContent = `Drops ${INVENTORY_ITEMS.get(unit.drop)?.name ?? unit.drop}`;
+    weapon.append(carries);
+  }
   unitHoverCard.append(name, unitClass, hp, weapon);
   unitHoverCard.hidden = false;
 }
@@ -1290,14 +2101,14 @@ const idleSpriteUrls = new Map();
 function idleSpriteUrl(unit) {
   const texture = characterSprites[unit.spriteSet]?.south;
   if (!texture?.image) return undefined;
-  if (!idleSpriteUrls.has(unit.id)) {
+  if (!idleSpriteUrls.has(unit.spriteSet)) {
     const canvas = document.createElement('canvas');
     canvas.width = texture.image.width;
     canvas.height = texture.image.height;
     canvas.getContext('2d').drawImage(texture.image, 0, 0);
-    idleSpriteUrls.set(unit.id, canvas.toDataURL());
+    idleSpriteUrls.set(unit.spriteSet, canvas.toDataURL());
   }
-  return idleSpriteUrls.get(unit.id);
+  return idleSpriteUrls.get(unit.spriteSet);
 }
 
 function renderUnitList() {
@@ -1349,12 +2160,18 @@ function renderTacticalUi() {
     : 'Back';
   actionPanel.hidden = !gameState.selected || gameState.mode !== 'unit';
   actionPanel.querySelector('strong').textContent = player.name.toUpperCase();
-  document.querySelector('#attack-action').disabled = player.acted;
+  document.querySelector('#attack-action').disabled = player.acted || !canAttack(player);
+  const house = houseAvailableToVisit(player);
+  visitActionButton.hidden = !house;
+  const chestHere = chestAvailableToOpen(player);
+  chestActionButton.hidden = !chestHere;
+  document.querySelector('#trade-action').hidden = !gameState.selected || adjacentAllies(player).length === 0;
+  document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
   actionHelp.textContent = gameState.mode === 'move'
     ? `Choose a tile within ${player.movement} ${movementUnit}; the blue line previews the route.`
     : gameState.mode === 'attack'
       ? `Choose a target in weapon range ${rangeText}, then press Space or Enter.`
-      : `${player.moved ? 'Movement complete' : 'Choose an action'} · ${player.moveOrigin && !player.acted ? 'Undo Move is available' : player.acted ? 'Acted' : 'Attack, inventory, profile, or end unit'}`;
+      : `${player.moved ? 'Movement complete' : 'Choose an action'} · ${player.moveOrigin && !player.acted ? 'Undo Move is available' : player.acted ? 'Acted' : `Attack, inventory, profile${house ? ', visit house' : ''}${adjacentAllies(player).length ? ', trade' : ''}, or end unit`}`;
   refreshHighlights();
   saveCurrentGame();
 }
@@ -1402,6 +2219,12 @@ function moveActionFocus(container, direction) {
   closest?.focus({ preventScroll: true });
 }
 
+const AI_LABELS = {
+  mobile: 'Aggressive',
+  guard: 'Holds until approached',
+  stationary: 'Stationary',
+};
+
 function setCursor(x, z) {
   cursor.x = Math.max(0, Math.min(activeLevel.width - 1, x));
   cursor.z = Math.max(0, Math.min(activeLevel.height - 1, z));
@@ -1410,12 +2233,15 @@ function setCursor(x, z) {
   updateUnitHoverCard();
   updateMovementRoute();
   const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
+  if (gameState.mode === 'cursor') refreshHighlights();
   if (enemy && gameState.mode === 'cursor') {
-    setMessage(`${enemy.name} · ${enemy.hp}/${enemy.maxHp} HP`);
+    setMessage(`${enemy.name} · ${enemy.hp}/${enemy.maxHp} HP · ${AI_LABELS[enemy.ai]}`);
   } else if (enemy && gameState.mode === 'attack') {
     const terrain = getTerrain(activeLevel, enemy.x, enemy.z);
     const hitRate = getHitRate(player, enemy, terrain);
-    setMessage(`${enemy.name} · ${hitRate}% displayed Hit · Space / Enter to attack`);
+    const advantage = getTriangleAdvantage(player.weapon, enemy.weapon);
+    const arrow = advantage > 0 ? ' ▲ Weapon advantage' : advantage < 0 ? ' ▼ Weapon disadvantage' : '';
+    setMessage(`${enemy.name} · ${hitRate}% displayed Hit${arrow} · Space / Enter to attack`);
   } else if (gameState.mode === 'cursor' && !gameState.selected) {
     setMessage(`WASD / Arrows move · Space / Enter select ${player.name} · Click an empty tile for options`);
   }
@@ -1445,6 +2271,7 @@ function finishUnit() {
   movementRange.clear();
   renderTacticalUi();
   if (playerTeam.every((unit) => unit.hp <= 0 || unit.acted)) void endPlayerPhase();
+  else void runTutorials();
 }
 
 function cyclePlayerUnits() {
@@ -1554,18 +2381,19 @@ function undoMove() {
 }
 
 function startAttack() {
-  if (!gameState.selected || player.acted) return;
+  if (!gameState.selected || player.acted || !canAttack(player)) return;
   const targets = getAttackTargets(player, enemies);
-  if (!targets.length) {
-    setMessage(`No enemies in weapon range (${player.weapon.minRange}-${player.weapon.maxRange}). Move closer or end the unit turn.`);
-    return;
-  }
   gameState.mode = 'attack';
-  setCursor(targets[0].x, targets[0].z);
-  const targetTerrain = getTerrain(activeLevel, targets[0].x, targets[0].z);
-  setMessage(
-    `Red tiles are in range. ${targets[0].name}: ${getHitRate(player, targets[0], targetTerrain)}% Hit · ${getCriticalRate(player, targets[0])}% Critical.`,
-  );
+  const firstTile = targets[0] ?? getAttackRangeTiles(player)[0];
+  if (firstTile) setCursor(firstTile.x, firstTile.z);
+  if (targets.length) {
+    const targetTerrain = getTerrain(activeLevel, targets[0].x, targets[0].z);
+    setMessage(
+      `Blue tiles show range ${weaponRangeLabel(player.weapon)}; red tiles are targets. ${targets[0].name}: ${getHitRate(player, targets[0], targetTerrain)}% Hit · ${getCriticalRate(player, targets[0])}% Critical.`,
+    );
+  } else {
+    setMessage(`Blue tiles show range ${weaponRangeLabel(player.weapon)}. No enemies are in range; move closer or press Escape.`);
+  }
   renderTacticalUi();
 }
 
@@ -1605,6 +2433,16 @@ function showCombatForecast(target) {
       term.textContent = label;
       const detail = document.createElement('dd');
       detail.textContent = value;
+      if (label === 'Weapon' && opponent) {
+        const advantage = getTriangleAdvantage(unit.weapon, opponent.weapon);
+        if (advantage) {
+          const arrow = document.createElement('span');
+          arrow.className = `triangle-arrow ${advantage > 0 ? 'advantage' : 'disadvantage'}`;
+          arrow.textContent = advantage > 0 ? ' ▲' : ' ▼';
+          arrow.title = advantage > 0 ? 'Weapon triangle advantage' : 'Weapon triangle disadvantage';
+          detail.append(arrow);
+        }
+      }
       list.append(term, detail);
     }
     panel.append(list);
@@ -1631,18 +2469,19 @@ function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-async function playAttackAnimation(unit, direction, followUp = false) {
+async function playAttackAnimation(unit, direction, followUp = false, staff = false) {
   if (followUp) await wait(1000);
   
-  const frames = unitTextures(unit).attack?.[direction];
+  const textures = unitTextures(unit);
+  const frames = staff ? textures.staff?.[direction] : textures.attack?.[direction];
   if (frames && frames.length > 0) {
     const swingFrame = Math.floor(frames.length / 2);
     for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
-      if (frameIndex === swingFrame) playWeaponSwing(unit.weapon);
-      unit.attackAnimation = { direction, frameIndex };
+      if (frameIndex === swingFrame && !staff) playWeaponSwing(unit.weapon);
+      unit.attackAnimation = { direction, frameIndex, staff };
       await wait(characterSprites.animationFrameDuration * 1000);
     }
-  } else {
+  } else if (!staff) {
     playWeaponSwing(unit.weapon);
     await wait(300);
   }
@@ -1678,12 +2517,14 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     setMessage(`Choose a valid target within ${weaponRangeLabel(player.weapon)} range.`);
     return;
   }
+  spendWeaponUse(player);
   player.facing = getFacing(target.x - player.x, target.z - player.z);
   player.moveOrigin = null;
   gameState.mode = 'combat';
   cursorOutline.visible = false;
   combatants.add(player);
   combatants.add(target);
+  tutorialProgress.combatSeen = true;
   renderTacticalUi();
   const terrain = getTerrain(activeLevel, target.x, target.z);
   const damage = getCombatDamage(player, target, terrain);
@@ -1698,7 +2539,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   let playerHits = 0;
   let playerCriticalHits = 0;
   let playerTotalDamage = 0;
-  
+  const rankUps = [];
   // Strikes alternate: attacker, then defender's counter, then the next pair.
   const counterRange = distanceBetween(target.x, target.z, player.x, player.z);
   const canCounter = isInWeaponRange(target, player, counterRange);
@@ -1729,6 +2570,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
       const result = playerStrikeResults[round];
       if (result.hit) {
         playerHits++;
+        recordWeaponHit(player, rankUps);
         if (result.critical) playerCriticalHits++;
         const strikeDamage = Math.min(target.hp, result.critical ? criticalDamage : damage);
         target.hp -= strikeDamage;
@@ -1762,7 +2604,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     const experienceGained = getCombatExperience(target, true);
     const progression = awardExperience(player, experienceGained);
     await showExperienceProgression(progression, experienceGained);
-    setMessage(`${player.name} defeats ${target.name}${target.isBoss ? ' (Boss)' : ''} (${playerHits}/${playerAttackCount} hits${playerCriticalHits ? `, ${playerCriticalHits} critical` : ''}, +${experienceGained} EXP${progression?.levelUps ? `, Level ${player.level}!` : ''}).`);
+    await collectEnemyDrop(target, player);
+    setMessage(withRankUps(`${player.name} defeats ${target.name}${target.isBoss ? ' (Boss)' : ''} (${playerHits}/${playerAttackCount} hits${playerCriticalHits ? `, ${playerCriticalHits} critical` : ''}, +${experienceGained} EXP${progression?.levelUps ? `, Level ${player.level}!` : ''}).`, rankUps));
     player.acted = true;
     gameState.mode = 'unit';
     finishUnit();
@@ -1789,11 +2632,69 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   const experienceGained = getCombatExperience(target, false);
   const progression = awardExperience(player, experienceGained);
   await showExperienceProgression(progression, experienceGained);
-  setMessage(`${player.name} hits ${target.name} ${playerHits}/${playerAttackCount} times${playerCriticalHits ? ` (${playerCriticalHits} critical)` : ''} (${hitRate}% Hit, ${playerTotalDamage} damage, +${experienceGained} EXP).`);
+  setMessage(withRankUps(`${player.name} hits ${target.name} ${playerHits}/${playerAttackCount} times${playerCriticalHits ? ` (${playerCriticalHits} critical)` : ''} (${hitRate}% Hit, ${playerTotalDamage} damage, +${experienceGained} EXP).`, rankUps));
   
   player.acted = true;
   gameState.mode = 'unit';
   finishUnit();
+}
+
+function recordWeaponHit(unit, rankUps) {
+  const rank = awardWeaponExp(unit, unit.weapon);
+  if (rank) rankUps.push(`${unit.name}'s ${unit.weapon.type} level rose to ${rank.id}!`);
+}
+
+function withRankUps(message, rankUps) {
+  return rankUps.length ? `${message} ${rankUps.join(' ')}` : message;
+}
+
+// Tiles an enemy can stop on this turn. Stationary enemies never leave their tile.
+function getEnemyReach(enemy) {
+  if (enemy.ai === 'stationary') return new Map([[tileKey(enemy.x, enemy.z), 0]]);
+  return getMovementRange(
+    enemy,
+    activeLevel,
+    playerTeam.filter((unit) => unit.hp > 0),
+    enemies.filter((other) => other !== enemy),
+  );
+}
+
+// Walkable tiles the enemy could hit from any reachable tile, excluding the reachable tiles themselves.
+function getEnemyThreatTiles(enemy, reach) {
+  const threat = new Map();
+  for (const key of reach.keys()) {
+    const [originX, originZ] = key.split(',').map(Number);
+    for (let z = originZ - enemy.weapon.maxRange; z <= originZ + enemy.weapon.maxRange; z++) {
+      for (let x = originX - enemy.weapon.maxRange; x <= originX + enemy.weapon.maxRange; x++) {
+        const tile = tileKey(x, z);
+        if (
+          !reach.has(tile) && !threat.has(tile) &&
+          isWalkable(activeLevel, x, z) &&
+          isInWeaponRange(enemy, enemy, distanceBetween(originX, originZ, x, z))
+        ) threat.set(tile, { x, z });
+      }
+    }
+  }
+  return [...threat.values()];
+}
+
+// Picks who an enemy attacks this turn; null means it holds position.
+function chooseEnemyTarget(enemy, livingTeam) {
+  const reach = [...getEnemyReach(enemy).keys()].map((key) => key.split(',').map(Number));
+  const attackable = livingTeam.filter((unit) =>
+    reach.some(([x, z]) => isInWeaponRange(enemy, unit, distanceBetween(x, z, unit.x, unit.z))));
+  if (attackable.length) {
+    const damageTo = (unit) => getCombatDamage(enemy, unit, getTerrain(activeLevel, unit.x, unit.z));
+    return attackable.reduce((best, unit) => {
+      const difference = damageTo(unit) - damageTo(best);
+      if (difference !== 0) return difference > 0 ? unit : best;
+      return unit.hp < best.hp ? unit : best;
+    });
+  }
+  if (enemy.ai !== 'mobile') return null;
+  return livingTeam.reduce((nearest, unit) =>
+    distanceBetween(enemy.x, enemy.z, unit.x, unit.z) < distanceBetween(enemy.x, enemy.z, nearest.x, nearest.z)
+      ? unit : nearest);
 }
 
 async function enemyPhase() {
@@ -1807,12 +2708,12 @@ async function enemyPhase() {
     if (!enemies.includes(enemy)) continue;
     const livingTeam = playerTeam.filter((unit) => unit.hp > 0);
     if (!livingTeam.length) break;
-    const foe = livingTeam.reduce((nearest, unit) =>
-      distanceBetween(enemy.x, enemy.z, unit.x, unit.z) < distanceBetween(enemy.x, enemy.z, nearest.x, nearest.z)
-        ? unit : nearest);
+    const foe = chooseEnemyTarget(enemy, livingTeam);
+    if (!foe) continue;
     cameraFollowTarget = enemy.mesh.position;
     await wait(500);
-    if (distanceBetween(enemy.x, enemy.z, foe.x, foe.z) > enemy.weapon.maxRange) {
+    if (enemy.ai !== 'stationary' &&
+        !isInWeaponRange(enemy, foe, distanceBetween(enemy.x, enemy.z, foe.x, foe.z))) {
       const blocked = new Set(livingTeam.map((other) => tileKey(other.x, other.z)));
       const occupied = new Set(enemies
         .filter((other) => other !== enemy)
@@ -1867,6 +2768,7 @@ async function enemyPhase() {
       gameState.mode = 'combat';
       combatants.add(enemy);
       combatants.add(foe);
+      tutorialProgress.combatSeen = true;
       renderTacticalUi();
       const terrain = getTerrain(activeLevel, foe.x, foe.z);
       const damage = getCombatDamage(enemy, foe, terrain);
@@ -1891,7 +2793,10 @@ async function enemyPhase() {
       const counterCriticalDamage = canCounter ? getCriticalDamage(foe, enemy, counterTerrain) : 0;
       const counterHitRate = canCounter ? getHitRate(foe, enemy, counterTerrain) : 0;
       const counterCriticalRate = canCounter ? getCriticalRate(foe, enemy) : 0;
-      if (canCounter) foe.facing = getFacing(enemy.x - foe.x, enemy.z - foe.z);
+      if (canCounter) {
+        foe.facing = getFacing(enemy.x - foe.x, enemy.z - foe.z);
+        spendWeaponUse(foe);
+      }
       const counterResults = Array.from({ length: counterAttacks }, () => {
         const hit = rollHit(counterHitRate);
         return { hit, critical: hit && rollCritical(counterCriticalRate) };
@@ -1899,6 +2804,7 @@ async function enemyPhase() {
       let counterHitCount = 0;
       let counterCriticalCount = 0;
       let counterTotalDamage = 0;
+      const rankUps = [];
 
       const rounds = Math.max(attacks, counterAttacks);
       for (let round = 0; round < rounds && foe.hp > 0 && enemy.hp > 0; round++) {
@@ -1925,6 +2831,7 @@ async function enemyPhase() {
           const result = counterResults[round];
           if (result.hit) {
             counterHitCount++;
+            recordWeaponHit(foe, rankUps);
             if (result.critical) counterCriticalCount++;
             const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
             enemy.hp -= strikeDamage;
@@ -1956,16 +2863,18 @@ async function enemyPhase() {
           const experienceGained = getCombatExperience(enemy, true);
           const progression = awardExperience(foe, experienceGained);
           await showExperienceProgression(progression, experienceGained, foe);
-          setMessage(
+          await collectEnemyDrop(enemy, foe);
+          setMessage(withRankUps(
             `${foe.name} counters and defeats ${enemy.name}${enemy.isBoss ? ' (Boss)' : ''} (${counterHitCount}/${counterAttacks} hits${counterCriticalCount ? `, ${counterCriticalCount} critical` : ''}, ${counterTotalDamage} damage, +${experienceGained} EXP${progression.levelUps ? `, Level ${foe.level}!` : ''}).`,
-          );
+            rankUps,
+          ));
         } else {
           const experienceGained = getCombatExperience(enemy, false);
           const progression = awardExperience(foe, experienceGained);
           await showExperienceProgression(progression, experienceGained, foe);
-          setMessage(counterHitCount > 0
+          setMessage(withRankUps(counterHitCount > 0
             ? `${foe.name} counters ${enemy.name} ${counterHitCount}/${counterAttacks} times (${counterTotalDamage} damage, +${experienceGained} EXP).`
-            : `${foe.name} misses the counterattack against ${enemy.name} (+${experienceGained} EXP).`);
+            : `${foe.name} misses the counterattack against ${enemy.name} (+${experienceGained} EXP).`, rankUps));
         }
       }
       gameState.mode = 'cursor';
@@ -1974,10 +2883,7 @@ async function enemyPhase() {
       setMessage(`${enemy.name} advances across the ships.`);
     }
   }
-  if (activeLevel.objective === 'defeat-all-enemies' && enemies.length === 0) {
-    completeVictory('All enemies have fallen. The objective is complete.');
-    return;
-  }
+  if (checkDefeatAllVictory()) return;
   gameState.turn++;
   gameState.phase = 'player';
   for (const unit of playerTeam) {
@@ -1993,8 +2899,60 @@ async function enemyPhase() {
   cursor.z = player.z;
   cursorOutline.visible = true;
   setCursor(player.x, player.z);
+  const reinforcementResult = spawnTurnReinforcements();
+  if (reinforcementResult.error) {
+    console.error('Unable to spawn chapter reinforcements:', reinforcementResult.error);
+    setLevelStatus(`Could not spawn reinforcements: ${reinforcementResult.error.message}`, true);
+    setMessage(reinforcementResult.error.message);
+  } else if (reinforcementResult.units.length) {
+    const boss = reinforcementResult.units.find((unit) => unit.isBoss);
+    setMessage(boss
+      ? `${boss.name} has arrived with reinforcements!`
+      : `${reinforcementResult.units.length} Merfolk reinforcements have arrived!`);
+  }
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  window.setTimeout(() => void runTutorials(), 1300);
+}
+
+function spawnTurnReinforcements() {
+  const createdUnits = [];
+  const occupied = new Set(
+    [...playerTeam, ...enemies]
+      .filter((unit) => unit.hp > 0)
+      .map((unit) => tileKey(unit.x, unit.z)),
+  );
+  for (const wave of activeLevel.reinforcements) {
+    if (wave.turn > gameState.turn || wave.spawned) continue;
+    while (wave.spawnedCount < wave.units.length) {
+      const placement = wave.units[wave.spawnedCount];
+      const candidates = [];
+      for (let z = 0; z < activeLevel.height; z++) {
+        for (let x = 0; x < activeLevel.width; x++) {
+          if (isWalkable(activeLevel, x, z) && !occupied.has(tileKey(x, z))) {
+            candidates.push({ x, z });
+          }
+        }
+      }
+      candidates.sort((first, second) =>
+        distanceBetween(first.x, first.z, placement.x, placement.z) -
+        distanceBetween(second.x, second.z, placement.x, placement.z));
+      const [spawnTile] = candidates;
+      if (!spawnTile) {
+        return {
+          units: createdUnits,
+          error: new Error(`No open tile is available for ${placement.id} reinforcements.`),
+        };
+      }
+      const unit = createEnemy(spawnTile.x, spawnTile.z, placement.id, placement);
+      enemies.push(unit);
+      occupied.add(tileKey(unit.x, unit.z));
+      wave.spawnedCount++;
+      createdUnits.push(unit);
+    }
+    wave.spawned = true;
+  }
+  return { units: createdUnits, error: null };
 }
 
 async function endPlayerPhase() {
@@ -2009,10 +2967,7 @@ async function endPlayerPhase() {
   gameState.mode = 'cursor';
   setMessage('Player phase ended.');
   renderTacticalUi();
-  if (activeLevel.objective === 'defeat-all-enemies' && enemies.length === 0) {
-    completeVictory('All enemies have fallen. The objective is complete.');
-    return;
-  }
+  if (checkDefeatAllVictory()) return;
   await enemyPhase();
 }
 
@@ -2029,7 +2984,7 @@ function cancelAction() {
   } else if (gameState.mode === 'unit') {
     gameState.mode = 'cursor';
     gameState.selected = false;
-    setMessage(`${player.name} deselected. Move the cursor and press Enter to select her.`);
+    setMessage(`${player.name} deselected. Move the cursor and press Enter to select that unit.`);
     renderTacticalUi();
   }
 }
@@ -2058,7 +3013,7 @@ function confirmCursor() {
   if (gameState.phase !== 'player' || gameState.defeated) return;
   if (gameState.mode === 'cursor') {
     const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
-    if (enemy) openEnemyProfile(enemy);
+    if (enemy) openEnemyMenu(enemy);
     else if (playerUnitAt(cursor.x, cursor.z)) {
       player = playerUnitAt(cursor.x, cursor.z);
       selectMaria();
@@ -2070,6 +3025,7 @@ function confirmCursor() {
   else if (gameState.mode === 'attack') {
     const target = findEnemyAt(enemies, cursor.x, cursor.z);
     if (target) showCombatForecast(target);
+    else setMessage(`Choose a red target tile within weapon range ${weaponRangeLabel(player.weapon)}, or press Escape.`);
   }
 }
 
@@ -2102,7 +3058,7 @@ function clickBattlefield(event) {
       selectMaria();
     } else if (spriteHit) {
       const enemy = enemies.find((unit) => unit.mesh === spriteHit.object);
-      if (enemy) openEnemyProfile(enemy);
+      if (enemy) openEnemyMenu(enemy);
     } else {
       openOptionsMenu();
     }
@@ -2115,21 +3071,46 @@ function clickBattlefield(event) {
   } else if (gameState.mode === 'attack') {
     const target = findEnemyAt(enemies, cursor.x, cursor.z);
     if (target) showCombatForecast(target);
+    else setMessage(`Choose a red target tile within weapon range ${weaponRangeLabel(player.weapon)}, or press Escape.`);
   }
 }
 
 document.querySelector('#attack-action').addEventListener('click', startAttack);
 document.querySelector('#inventory-action').addEventListener('click', openInventory);
+document.querySelector('#trade-action').addEventListener('click', openTrade);
+document.querySelector('#trade-close').addEventListener('click', closeTrade);
+document.querySelector('#heal-action').addEventListener('click', openHeal);
+document.querySelector('#heal-close').addEventListener('click', closeHeal);
+healDialog.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeHeal();
+});
+tradeDialog.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeTrade();
+});
 document.querySelector('#confirm-combat').addEventListener('click', confirmCombatForecast);
 document.querySelector('#cancel-combat').addEventListener('click', cancelCombatForecast);
 document.querySelector('#profile-action').addEventListener('click', openCharacterProfile);
 document.querySelector('#finish-action').addEventListener('click', finishUnit);
+visitActionButton.addEventListener('click', () => void visitHouse());
+chestActionButton.addEventListener('click', () => void openChest());
 backActionButton.addEventListener('click', () => {
   if (player.moveOrigin && player.moved && !player.acted) undoMove();
   else cancelAction();
 });
 document.querySelector('#end-phase').addEventListener('click', endPlayerPhase);
 document.querySelector('#close-profile').addEventListener('click', () => profileDialog.close());
+document.querySelector('#enemy-menu-profile').addEventListener('click', () => {
+  enemyMenuDialog.close();
+  openEnemyProfile(menuEnemy);
+});
+document.querySelector('#enemy-menu-inventory').addEventListener('click', () => {
+  enemyMenuDialog.close();
+  openEnemyInventory(menuEnemy);
+});
+document.querySelector('#enemy-menu-close').addEventListener('click', () => enemyMenuDialog.close());
+document.querySelector('#enemy-inventory-close').addEventListener('click', () => enemyInventoryDialog.close());
 document.querySelector('#inventory-close').addEventListener('click', closeInventory);
 inventoryDialog.addEventListener('cancel', (event) => {
   event.preventDefault();
@@ -2140,7 +3121,10 @@ document.querySelector('#title-options').addEventListener('click', openTitleOpti
 newGameButton.addEventListener('click', newGame);
 continueButton.addEventListener('click', continueGame);
 document.querySelector('#restart-level').addEventListener('click', restartLevel);
-document.querySelector('#next-chapter').addEventListener('click', startNextChapter);
+document.querySelector('#next-chapter').addEventListener('click', () => {
+  if (showingPartOneVictory) showTerminalScreen('victory', '', { ending: true });
+  else void startNextChapter();
+});
 document.querySelector('#terminal-main-menu').addEventListener('click', returnToMainMenu);
 const oceanToggle = document.querySelector('#toggle-ocean-sound');
 onOceanSoundChange((on) => {
@@ -2149,6 +3133,21 @@ onOceanSoundChange((on) => {
 });
 oceanToggle.addEventListener('click', () => setOceanSoundEnabled(!isOceanSoundEnabled()));
 initializeOceanSound();
+const tutorialToggle = document.querySelector('#toggle-tutorials');
+function renderTutorialToggle() {
+  tutorialToggle.textContent = `Tutorial Popups: ${tutorialsEnabled() ? 'On' : 'Off'}`;
+  tutorialToggle.setAttribute('aria-pressed', String(tutorialsEnabled()));
+}
+renderTutorialToggle();
+tutorialToggle.addEventListener('click', () => {
+  setTutorialsEnabled(!tutorialsEnabled());
+  renderTutorialToggle();
+});
+document.querySelector('#options-restart').addEventListener('click', () => {
+  if (!window.confirm('Restart this chapter? Progress in it will be lost.')) return;
+  closeOptionsMenu();
+  restartLevel();
+});
 initializeUiSounds();
 document.querySelector('#resume-game').addEventListener('click', closeOptionsMenu);
 document.querySelector('#return-to-menu').addEventListener('click', returnToMainMenu);
@@ -2194,6 +3193,10 @@ renderer.domElement.addEventListener('pointerleave', () => {
   showTileInspection(cursor.x, cursor.z);
 });
 document.querySelector('#open-unit-list').addEventListener('click', openUnitList);
+document.querySelector('#options-end-phase').addEventListener('click', () => {
+  closeOptionsMenu();
+  endPlayerPhase();
+});
 document.querySelector('#unit-list-close').addEventListener('click', () => unitListDialog.close());
 const savedGame = refreshContinueButton();
 (savedGame ? continueButton : newGameButton).focus();
@@ -2203,13 +3206,29 @@ const savedGame = refreshContinueButton();
 let backCtrlPending = false;
 
 function goBack() {
-  if (document.querySelector('#level-up-dialog')?.open) return false;
+  if (document.querySelector('#level-up-dialog')?.open || itemPopup.open || tutorialPopup.open) return false;
   if (combatForecastDialog.open) {
     cancelCombatForecast();
     return true;
   }
   if (inventoryDialog.open) {
     closeInventory();
+    return true;
+  }
+  if (enemyInventoryDialog.open) {
+    enemyInventoryDialog.close();
+    return true;
+  }
+  if (enemyMenuDialog.open) {
+    enemyMenuDialog.close();
+    return true;
+  }
+  if (tradeDialog.open) {
+    closeTrade();
+    return true;
+  }
+  if (healDialog.open) {
+    closeHeal();
     return true;
   }
   if (profileDialog.open) {
@@ -2295,7 +3314,10 @@ window.addEventListener('keydown', (event) => {
   if (gameState.phase !== 'player') return;
   if (playerMovement || gameState.mode === 'combat') return;
   if (profileDialog.open) return;
+  if (enemyMenuDialog.open || enemyInventoryDialog.open) return;
+  if (itemPopup.open || tutorialPopup.open) return;
   if (inventoryDialog.open) return;
+  if (tradeDialog.open || healDialog.open) return;
   if (optionsDialog.open) return;
   if (combatForecastDialog.open) return;
   if (event.code === 'Tab') {
@@ -2359,6 +3381,11 @@ window.addEventListener('keydown', (event) => {
 });
 
 function update(dt, t) {
+  for (const marker of levelGroup.userData.houseMarkers ?? []) {
+    const house = activeLevel.houses.find((entry) => entry.id === marker.userData.houseId);
+    marker.visible = Boolean(house) && !house.visited;
+    marker.material.opacity = 0.75 + 0.2 * Math.sin(t * 3);
+  }
   let playerWorldX = worldX(player.x);
   let playerWorldZ = worldZ(player.z);
   let playerWorldY = unitSpriteHeightAt(player.x, player.z);
@@ -2370,7 +3397,7 @@ function update(dt, t) {
       playerMovement = undefined;
       gameState.mode = 'unit';
       if (checkEscapeObjective()) return;
-      setMessage(`${player.name} moved. You can still attack in range or end her unit turn.`);
+      setMessage(`${player.name} moved. You can still attack in range or end their unit turn.`);
       renderTacticalUi();
       focusActionMenu();
       moving = false;
@@ -2420,6 +3447,11 @@ function update(dt, t) {
   for (let index = hitEffects.length - 1; index >= 0; index--) {
     const effect = hitEffects[index];
     const progress = (t - effect.born) / effect.life;
+    if (progress < 0) {
+      effect.sprite.visible = false;
+      continue;
+    }
+    effect.sprite.visible = true;
     if (progress >= 1) {
       scene.remove(effect.sprite);
       effect.material.dispose();
@@ -2427,12 +3459,14 @@ function update(dt, t) {
       continue;
     }
     if (effect.velocity) {
-      effect.velocity.y -= dt * 7;
+      effect.velocity.y -= dt * (effect.gravity ?? 7);
       effect.sprite.position.addScaledVector(effect.velocity, dt);
+    } else if (effect.pulse) {
+      effect.sprite.scale.setScalar(effect.pulse(progress));
     } else {
       effect.sprite.scale.setScalar(effect.sprite.scale.x + dt * effect.grow * 4);
     }
-    effect.material.opacity = 1 - progress;
+    effect.material.opacity = effect.opacity ? effect.opacity(progress) : 1 - progress;
   }
   for (let index = floatingCombatTexts.length - 1; index >= 0; index--) {
     const floatingText = floatingCombatTexts[index];
@@ -2448,7 +3482,7 @@ function update(dt, t) {
     floatingText.material.opacity = 1 - age / 1.1;
   }
   const walkingTime = playerMovement ? t - playerMovement.startedAt : t;
-  for (const unit of [maria, bartz]) {
+  for (const unit of [maria, bartz, cypher, seymour]) {
     const fielded = playerTeam.includes(unit) && unit.hp > 0;
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
@@ -2457,7 +3491,7 @@ function update(dt, t) {
     const unitMoving = unit === player && moving;
     let sprite = textures.idle[unit.facing];
     if (unit.attackAnimation) {
-      sprite = textures.attack[unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
+      sprite = (textures[unit.attackAnimation.staff ? 'staff' : 'attack'])[unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
     } else if (unitMoving) {
       const walkingFrames = textures.walking[unit.facing];
       sprite = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];
@@ -2470,6 +3504,10 @@ function update(dt, t) {
     unit.blob.position.set(unitX, unitY - UNIT_SPRITE_HEIGHT / 2 - HERO_DECK_HEIGHT + 0.02, unitZ);
   }
   const healthBarMeshes = [...playerTeam, ...enemies].map((unit) => unit.mesh);
+  for (const enemy of enemies) {
+    const marker = enemy.mesh.userData.dropMarker;
+    if (marker) marker.material.opacity = 0.75 + Math.sin(t * 4) * 0.25;
+  }
   updateExperiencePanel();
   if (gameState.mode !== 'combat' && combatants.size) {
     for (const mesh of healthBarMeshes) {
@@ -2539,6 +3577,11 @@ function update(dt, t) {
   }
   camera.position.add(cameraShakeOffset);
   camera.lookAt(target);
+  const backdropDistance = 90;
+  const backdropDirection = camera.getWorldDirection(new THREE.Vector3());
+  const backdropHeight = 2 * backdropDistance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  nightBackdrop.position.copy(camera.position).addScaledVector(backdropDirection, backdropDistance);
+  nightBackdrop.scale.set(backdropHeight * camera.aspect, backdropHeight, 1);
 }
 
 setMessage(`WASD / Arrows move · Enter inspects enemies · Select ${player.name} · Click empty tiles for options`);

@@ -1,5 +1,6 @@
 {
   "id": "iron-spear",
+  "lore": "A fisherman's spear, the shaft worn smooth by years of salt and palms. Every household here kept one for the night catch. The grip is wrapped in net-twine, and some of those hands still seem to remember it.",
   "name": "Iron Spear",
   "type": "Spear",
   "damageType": "physical",

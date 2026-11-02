@@ -3,5 +3,7 @@
   "name": "Potion",
   "type": "consumable",
   "heal": 10,
-  "maxUses": 3
+  "lore": "Brewed from brine and something the apothecaries won't name. Wounds close faster than they should, and sometimes the new skin comes back faintly scaled.",
+  "maxUses": 3,
+  "sprite": "assets/items/Red_Potion/Red_Potion.png"
 }

@@ -1,8 +1,8 @@
 {
   "id": "merfolk-boss",
   "name": "Merfolk Warlord",
-  "class": "Merfolk",
-  "type": "infantry",
+  "classId": "merfolk",
+  "type": "aqua",
   "spriteSet": "merfolk",
   "scale": 1.12,
   "sprite": "assets/character/Merfolk/Idle/rotations/south.png",

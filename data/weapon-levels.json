@@ -1,0 +1,11 @@
+{
+  "ranks": [
+    { "id": "E", "exp": 0, "hit": 0, "avoid": 0 },
+    { "id": "D", "exp": 30, "hit": 3, "avoid": 2 },
+    { "id": "C", "exp": 70, "hit": 6, "avoid": 4 },
+    { "id": "B", "exp": 120, "hit": 9, "avoid": 6 },
+    { "id": "A", "exp": 180, "hit": 12, "avoid": 8 },
+    { "id": "S", "exp": 250, "hit": 15, "avoid": 10 }
+  ],
+  "expPerHit": 2
+}
