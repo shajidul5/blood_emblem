@@ -133,7 +133,7 @@ async function recruitFromHouse(house) {
 // ---------- Renderer / scene / camera ----------
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -297,7 +297,7 @@ const tutorialProgress = { active: false, running: false, intro: true, potion: t
 
 function resetTutorials(chapter) {
   Object.assign(tutorialProgress, {
-    active: chapter <= 4,
+    active: chapter !== null && chapter <= 4,
     chapter,
     running: false,
     intro: false,
@@ -1045,7 +1045,9 @@ function continueGame() {
   player = team.find((unit) => unit.hp > 0) ?? maria;
   currentChapter = save.chapter;
   chapterStart = save.chapterStart;
-  resetTutorials(null);
+  resetTutorials(currentChapter);
+  tutorialProgress.intro = true;
+  tutorialProgress.combatSeen = save.turn > 1 || save.enemies.some((enemy) => enemy.hp < enemy.maxHp);
   setConvoy(save.convoy);
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = save.enemies.map((savedEnemy) => {
@@ -3591,7 +3593,7 @@ renderTacticalUi();
 
 const clock = new THREE.Clock();
 function frame() {
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const dt = Math.min(clock.getDelta(), 0.1);
   update(dt, clock.elapsedTime);
   updateLevelAnimation(clock.elapsedTime);
   renderer.render(scene, camera);
