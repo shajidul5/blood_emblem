@@ -1,369 +1,1099 @@
 {
-    "tileSize":  32,
-    "view":  "oblique (low top-down)",
-    "tiles":  {
-                  "image":  "ship_oblique_tiles.png",
-                  "columns":  8,
-                  "defaults":  {
-                                   "walkable":  false,
-                                   "avoid":  0,
-                                   "defense":  0,
-                                   "elevation":  0
-                               },
-                  "list":  [
-                               {
-                                   "id":  "deck_a",
-                                   "col":  0,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "deck_b",
-                                   "col":  1,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "deck_worn",
-                                   "col":  2,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "deck_blood",
-                                   "col":  3,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "hatch",
-                                   "col":  4,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "stairs_down",
-                                   "name":  "Stairs",
-                                   "col":  5,
-                                   "row":  0,
-                                   "walkable":  true,
-                                   "avoid":  20
-                               },
-                               {
-                                   "id":  "quarterdeck_a",
-                                   "name":  "Quarterdeck",
-                                   "col":  0,
-                                   "row":  5,
-                                   "walkable":  true,
-                                   "elevation":  0.5
-                               },
-                               {
-                                   "id":  "quarterdeck_b",
-                                   "name":  "Quarterdeck",
-                                   "col":  1,
-                                   "row":  5,
-                                   "walkable":  true,
-                                   "elevation":  0.5
-                               },
-                               {
-                                   "id":  "stairs_w",
-                                   "name":  "Stairs",
-                                   "col":  2,
-                                   "row":  5,
-                                   "walkable":  true,
-                                   "avoid":  20,
-                                   "elevation":  0.25,
-                                   "rise":  "w"
-                               },
-                               {
-                                   "id":  "stairs_e",
-                                   "name":  "Stairs",
-                                   "col":  3,
-                                   "row":  5,
-                                   "walkable":  true,
-                                   "avoid":  20,
-                                   "elevation":  0.25,
-                                   "rise":  "e"
-                               },
-                               {
-                                   "id":  "quarterdeck_rail_e",
-                                   "name":  "Railing",
-                                   "col":  4,
-                                   "row":  5,
-                                   "walkable":  false,
-                                   "elevation":  0.5
-                               },
-                               {
-                                   "id":  "quarterdeck_rail_n",
-                                   "name":  "Railing",
-                                   "col":  6,
-                                   "row":  5,
-                                   "walkable":  false,
-                                   "elevation":  0.5
-                               },
-                               {
-                                   "id":  "quarterdeck_rail_s",
-                                   "name":  "Railing",
-                                   "col":  7,
-                                   "row":  5,
-                                   "walkable":  false,
-                                   "elevation":  0.5
-                               },
-                               {
-                                   "id":  "quarterdeck_rail_w",
-                                   "name":  "Railing",
-                                   "col":  5,
-                                   "row":  5,
-                                   "walkable":  false,
-                                   "elevation":  0.5
-                               },
-                               {
-                                   "id":  "cabin_checker",
-                                   "col":  6,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "carpet",
-                                   "col":  7,
-                                   "row":  0,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "hull_n",
-                                   "col":  0,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_s",
-                                   "col":  1,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_w",
-                                   "col":  2,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_e",
-                                   "col":  3,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_nw",
-                                   "col":  4,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_ne",
-                                   "col":  5,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_sw",
-                                   "col":  6,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_se",
-                                   "col":  7,
-                                   "row":  1,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_diag_ne",
-                                   "col":  0,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_diag_se",
-                                   "col":  1,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_diag_nw",
-                                   "col":  2,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_diag_sw",
-                                   "col":  3,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "cabin_wall",
-                                   "col":  4,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "doorway_v",
-                                   "col":  5,
-                                   "row":  2,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "mast_base",
-                                   "col":  6,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "water_a",
-                                   "col":  7,
-                                   "row":  2,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "water_b",
-                                   "col":  0,
-                                   "row":  3,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "water_foam",
-                                   "col":  1,
-                                   "row":  3,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "deck_c",
-                                   "col":  2,
-                                   "row":  3,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "deck_dark",
-                                   "col":  3,
-                                   "row":  3,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "bulkhead_h",
-                                   "col":  4,
-                                   "row":  3,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "bulkhead_v",
-                                   "col":  5,
-                                   "row":  3,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "gangway_h",
-                                   "col":  6,
-                                   "row":  3,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "deck_planks_v",
-                                   "col":  7,
-                                   "row":  3,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "bridge_v_l",
-                                   "col":  0,
-                                   "row":  4,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "bridge_v_r",
-                                   "col":  1,
-                                   "row":  4,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "bridge_h_n",
-                                   "col":  2,
-                                   "row":  4,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "bridge_h_s",
-                                   "col":  3,
-                                   "row":  4,
-                                   "walkable":  true
-                               },
-                               {
-                                   "id":  "hull_n_port",
-                                   "col":  4,
-                                   "row":  4,
-                                   "walkable":  false
-                               },
-                               {
-                                   "id":  "hull_n_window",
-                                   "col":  5,
-                                   "row":  4,
-                                   "walkable":  false
-                               }
-                           ]
-              },
-    "objects":  {
-                    "image":  "ship_objects.png",
-                    "tileSize":  48,
-                    "filter":  "nearest",
-                    "columns":  5,
-                    "list":  [
-                                 {
-                                     "id":  "barrel",
-                                     "col":  0,
-                                     "row":  0,
-                                     "blocksMovement":  true
-                                 },
-                                 {
-                                     "id":  "crate",
-                                     "col":  1,
-                                     "row":  0,
-                                     "blocksMovement":  true
-                                 },
-                                 {
-                                     "id":  "crates",
-                                     "col":  2,
-                                     "row":  0,
-                                     "blocksMovement":  true
-                                 },
-                                 {
-                                     "id":  "lantern",
-                                     "col":  3,
-                                     "row":  0,
-                                     "blocksMovement":  true,
-                                     "glow":  {
-                                                  "color":  "#ffb347",
-                                                  "radius":  1.7,
-                                                  "height":  0.5
-                                              }
-                                 },
-                                 {
-                                     "id":  "ship_wheel",
-                                     "col":  4,
-                                     "row":  0,
-                                     "blocksMovement":  true
-                                 }
-                             ]
-                },
-    "tall":  [
-                 {
-                     "id":  "mast",
-                     "image":  "mast.png",
-                     "width":  64,
-                     "height":  128,
-                     "drawAt":  "x*32+16-32, y*32+22-118  (tile x,y of its mast_base)",
-                     "blocksMovement":  true,
-                     "filter":  "nearest"
-                 }
-             ],
-    "notes":  "Props are 48px pixel art (mast 64x128) drawn with nearest-neighbour filtering to match the 64px character sprites; set \"filter\": \"smooth\" on a sheet for painted art, or add a \"glow\" block to an object for a flickering light halo."
+ "tileSize": 32,
+ "view": "oblique (low top-down)",
+ "tiles": {
+  "image": "ship_oblique_tiles.png",
+  "columns": 8,
+  "defaults": {
+   "walkable": false,
+   "avoid": 0,
+   "defense": 0,
+   "elevation": 0
+  },
+  "list": [
+   {
+    "id": "deck_a",
+    "col": 0,
+    "row": 0,
+    "walkable": true
+   },
+   {
+    "id": "deck_b",
+    "col": 1,
+    "row": 0,
+    "walkable": true
+   },
+   {
+    "id": "deck_worn",
+    "col": 2,
+    "row": 0,
+    "walkable": true
+   },
+   {
+    "id": "stairs_down",
+    "name": "Stairs",
+    "col": 5,
+    "row": 0,
+    "walkable": true,
+    "avoid": 20
+   },
+   {
+    "id": "quarterdeck_a",
+    "name": "Quarterdeck",
+    "col": 0,
+    "row": 5,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "quarterdeck_b",
+    "name": "Quarterdeck",
+    "col": 1,
+    "row": 5,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "stairs_w",
+    "name": "Stairs",
+    "col": 2,
+    "row": 5,
+    "walkable": true,
+    "avoid": 20,
+    "elevation": 0.25,
+    "rise": "w"
+   },
+   {
+    "id": "stairs_e",
+    "name": "Stairs",
+    "col": 3,
+    "row": 5,
+    "walkable": true,
+    "avoid": 20,
+    "elevation": 0.25,
+    "rise": "e"
+   },
+   {
+    "id": "stairs_n",
+    "name": "Stairs",
+    "col": 0,
+    "row": 6,
+    "walkable": true,
+    "avoid": 20,
+    "elevation": 0.25,
+    "rise": "n"
+   },
+   {
+    "id": "stairs_s",
+    "name": "Stairs",
+    "col": 1,
+    "row": 6,
+    "walkable": true,
+    "avoid": 20,
+    "elevation": 0.25,
+    "rise": "s"
+   },
+   {
+    "id": "cabin_checker",
+    "col": 6,
+    "row": 0,
+    "walkable": true
+   },
+   {
+    "id": "carpet",
+    "col": 7,
+    "row": 0,
+    "walkable": true
+   },
+   {
+    "id": "hull_n",
+    "col": 0,
+    "row": 1,
+    "walkable": false
+   },
+   {
+    "id": "cabin_wall",
+    "col": 4,
+    "row": 2,
+    "walkable": false
+   },
+   {
+    "id": "mast_base",
+    "col": 6,
+    "row": 2,
+    "walkable": false
+   },
+   {
+    "id": "water_a",
+    "col": 7,
+    "row": 2,
+    "walkable": false
+   },
+   {
+    "id": "water_b",
+    "col": 0,
+    "row": 3,
+    "walkable": false
+   },
+   {
+    "id": "water_foam",
+    "col": 1,
+    "row": 3,
+    "walkable": false
+   },
+   {
+    "id": "deck_c",
+    "col": 2,
+    "row": 3,
+    "walkable": true
+   },
+   {
+    "id": "deck_dark",
+    "col": 3,
+    "row": 3,
+    "walkable": true
+   },
+   {
+    "id": "bulkhead_v",
+    "col": 5,
+    "row": 3,
+    "walkable": false
+   },
+   {
+    "id": "bridge_v_l",
+    "col": 0,
+    "row": 4,
+    "walkable": true
+   },
+   {
+    "id": "bridge_h_n",
+    "col": 2,
+    "row": 4,
+    "walkable": true
+   },
+   {
+    "id": "bridge_h_s",
+    "col": 3,
+    "row": 4,
+    "walkable": true
+   },
+   {
+    "id": "rail_h",
+    "name": "Railing",
+    "col": 2,
+    "row": 6,
+    "walkable": false
+   },
+   {
+    "id": "qrail_h",
+    "name": "Railing",
+    "col": 2,
+    "row": 6,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "rail_v",
+    "name": "Railing",
+    "col": 3,
+    "row": 6,
+    "walkable": false
+   },
+   {
+    "id": "qrail_v",
+    "name": "Railing",
+    "col": 3,
+    "row": 6,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "rail_c_ne",
+    "name": "Railing",
+    "col": 4,
+    "row": 6,
+    "walkable": false
+   },
+   {
+    "id": "qrail_c_ne",
+    "name": "Railing",
+    "col": 4,
+    "row": 6,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "rail_c_se",
+    "name": "Railing",
+    "col": 5,
+    "row": 6,
+    "walkable": false
+   },
+   {
+    "id": "qrail_c_se",
+    "name": "Railing",
+    "col": 5,
+    "row": 6,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "rail_c_sw",
+    "name": "Railing",
+    "col": 6,
+    "row": 6,
+    "walkable": false
+   },
+   {
+    "id": "qrail_c_sw",
+    "name": "Railing",
+    "col": 6,
+    "row": 6,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "rail_c_nw",
+    "name": "Railing",
+    "col": 7,
+    "row": 6,
+    "walkable": false
+   },
+   {
+    "id": "qrail_c_nw",
+    "name": "Railing",
+    "col": 7,
+    "row": 6,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "ground_a",
+    "name": "Village Ground",
+    "col": 0,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_b",
+    "name": "Village Ground",
+    "col": 1,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_c",
+    "name": "Village Ground",
+    "col": 2,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_d",
+    "name": "Village Ground",
+    "col": 3,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_cobble_a",
+    "name": "Village Ground",
+    "col": 4,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_cobble_b",
+    "name": "Village Ground",
+    "col": 5,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_flag",
+    "name": "Village Ground",
+    "col": 6,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_mix",
+    "name": "Village Ground",
+    "col": 7,
+    "row": 7,
+    "walkable": true
+   },
+   {
+    "id": "ground_shell",
+    "name": "Village Ground",
+    "col": 0,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_h_a",
+    "name": "Boardwalk",
+    "col": 1,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_h_b",
+    "name": "Boardwalk",
+    "col": 2,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_h_c",
+    "name": "Boardwalk",
+    "col": 3,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_v_a",
+    "name": "Boardwalk",
+    "col": 4,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_v_b",
+    "name": "Boardwalk",
+    "col": 5,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_v_c",
+    "name": "Boardwalk",
+    "col": 6,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "dock_post",
+    "name": "Boardwalk",
+    "col": 7,
+    "row": 8,
+    "walkable": true
+   },
+   {
+    "id": "tree_a",
+    "name": "Dark Forest",
+    "col": 0,
+    "row": 9,
+    "walkable": false
+   },
+   {
+    "id": "tree_b",
+    "name": "Dark Forest",
+    "col": 1,
+    "row": 9,
+    "walkable": false
+   },
+   {
+    "id": "tree_c",
+    "name": "Dark Forest",
+    "col": 2,
+    "row": 9,
+    "walkable": false
+   },
+   {
+    "id": "tree_d",
+    "name": "Dark Forest",
+    "col": 3,
+    "row": 9,
+    "walkable": false
+   },
+   {
+    "id": "tree_e",
+    "name": "Dark Forest",
+    "col": 4,
+    "row": 9,
+    "walkable": false
+   },
+   {
+    "id": "forest_floor_a",
+    "name": "Forest Floor",
+    "col": 5,
+    "row": 9,
+    "walkable": true
+   },
+   {
+    "id": "forest_floor_b",
+    "name": "Forest Floor",
+    "col": 6,
+    "row": 9,
+    "walkable": true
+   },
+   {
+    "id": "bush",
+    "name": "Thicket",
+    "col": 7,
+    "row": 9,
+    "walkable": false
+   },
+   {
+    "id": "ground_building",
+    "name": "Building",
+    "col": 0,
+    "row": 7,
+    "walkable": false
+   },
+   {
+    "id": "mans_floor_oak_a",
+    "name": "Oak Floor",
+    "col": 0,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_floor_oak_v",
+    "name": "Oak Floor",
+    "col": 1,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_floor_oak_h",
+    "name": "Oak Floor",
+    "col": 2,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_marble_a",
+    "name": "Marble Floor",
+    "col": 3,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_marble_b",
+    "name": "Marble Floor",
+    "col": 4,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_carpet_c",
+    "name": "Crimson Carpet",
+    "col": 5,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_carpet_worn",
+    "name": "Worn Carpet",
+    "col": 6,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_carpet_el",
+    "name": "Crimson Carpet",
+    "col": 7,
+    "row": 10,
+    "walkable": true
+   },
+   {
+    "id": "mans_carpet_er",
+    "name": "Crimson Carpet",
+    "col": 0,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_flagstone",
+    "name": "Flagstone",
+    "col": 1,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_blood",
+    "name": "Bloodstained Floor",
+    "col": 2,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_cobweb",
+    "name": "Cobwebbed Floor",
+    "col": 3,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_rug",
+    "name": "Ornate Rug",
+    "col": 4,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_broken",
+    "name": "Broken Floor",
+    "col": 5,
+    "row": 11,
+    "walkable": false
+   },
+   {
+    "id": "mans_petals",
+    "name": "Rose Petals",
+    "col": 6,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_glow",
+    "name": "Candlelit Floor",
+    "col": 7,
+    "row": 11,
+    "walkable": true
+   },
+   {
+    "id": "mans_wall_stone",
+    "name": "Stone Wall",
+    "col": 0,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_wain",
+    "name": "Paneled Wall",
+    "col": 1,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_shelf",
+    "name": "Bookshelf",
+    "col": 2,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_fire",
+    "name": "Fireplace",
+    "col": 3,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_window",
+    "name": "Gothic Window",
+    "col": 4,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_door_closed",
+    "name": "Locked Door",
+    "col": 5,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_door_open",
+    "name": "Open Doorway",
+    "col": 6,
+    "row": 12,
+    "walkable": true
+   },
+   {
+    "id": "mans_wall_portrait",
+    "name": "Portrait",
+    "col": 7,
+    "row": 12,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_sconce",
+    "name": "Candle Sconces",
+    "col": 0,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_banner",
+    "name": "Tattered Banner",
+    "col": 1,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_cracked",
+    "name": "Cracked Wall",
+    "col": 2,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_pillar",
+    "name": "Stone Pillar",
+    "col": 3,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_wall_stained",
+    "name": "Stained Glass",
+    "col": 4,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_stairs_dark",
+    "name": "Dark Stairwell",
+    "col": 5,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_stairs_wood",
+    "name": "Wooden Stairs",
+    "col": 6,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_gate",
+    "name": "Iron Gate",
+    "col": 7,
+    "row": 13,
+    "walkable": false
+   },
+   {
+    "id": "mans_table",
+    "name": "Dining Table",
+    "col": 0,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_chair",
+    "name": "Chair",
+    "col": 1,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_bed",
+    "name": "Four-Poster Bed",
+    "col": 2,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_sarcophagus",
+    "name": "Sarcophagus",
+    "col": 3,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_candelabra",
+    "name": "Candelabra",
+    "col": 4,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_desk",
+    "name": "Study Desk",
+    "col": 5,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_armor",
+    "name": "Suit of Armor",
+    "col": 6,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_piano",
+    "name": "Grand Piano",
+    "col": 7,
+    "row": 14,
+    "walkable": false
+   },
+   {
+    "id": "mans_mirror",
+    "name": "Gilded Mirror",
+    "col": 0,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_round_table",
+    "name": "Round Table",
+    "col": 1,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_chandelier",
+    "name": "Fallen Chandelier",
+    "col": 2,
+    "row": 15,
+    "walkable": true
+   },
+   {
+    "id": "mans_gargoyle",
+    "name": "Gargoyle",
+    "col": 3,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_rubble",
+    "name": "Broken Furniture",
+    "col": 4,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_cage",
+    "name": "Iron Cage",
+    "col": 5,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_alchemy",
+    "name": "Alchemy Table",
+    "col": 6,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_sofa",
+    "name": "Velvet Sofa",
+    "col": 7,
+    "row": 15,
+    "walkable": false
+   },
+   {
+    "id": "mans_stairs_w",
+    "name": "Stairs",
+    "col": 0,
+    "row": 16,
+    "walkable": true,
+    "avoid": 20,
+    "elevation": 0.25,
+    "rise": "w"
+   },
+   {
+    "id": "mans_stairs_e",
+    "name": "Stairs",
+    "col": 1,
+    "row": 16,
+    "walkable": true,
+    "avoid": 20,
+    "elevation": 0.25,
+    "rise": "e"
+   },
+   {
+    "id": "mans_desk_hi",
+    "name": "Study Desk",
+    "col": 5,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_chair_hi",
+    "name": "Chair",
+    "col": 1,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_floor_oak_a_hi",
+    "name": "Oak Floor",
+    "col": 0,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_floor_oak_h_hi",
+    "name": "Oak Floor",
+    "col": 2,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_floor_oak_v_hi",
+    "name": "Oak Floor",
+    "col": 1,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_armor_hi",
+    "name": "Suit of Armor",
+    "col": 6,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_marble_b_hi",
+    "name": "Marble Floor",
+    "col": 4,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_gargoyle_hi",
+    "name": "Gargoyle",
+    "col": 3,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_carpet_el_hi",
+    "name": "Crimson Carpet",
+    "col": 7,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_carpet_er_hi",
+    "name": "Crimson Carpet",
+    "col": 0,
+    "row": 11,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_marble_a_hi",
+    "name": "Marble Floor",
+    "col": 3,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_candelabra_hi",
+    "name": "Candelabra",
+    "col": 4,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_flagstone_hi",
+    "name": "Flagstone",
+    "col": 1,
+    "row": 11,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_sarcophagus_hi",
+    "name": "Sarcophagus",
+    "col": 3,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_cobweb_hi",
+    "name": "Cobwebbed Floor",
+    "col": 3,
+    "row": 11,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_blood_hi",
+    "name": "Bloodstained Floor",
+    "col": 2,
+    "row": 11,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_alchemy_hi",
+    "name": "Alchemy Table",
+    "col": 6,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_rug_hi",
+    "name": "Ornate Rug",
+    "col": 4,
+    "row": 11,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_rubble_hi",
+    "name": "Broken Furniture",
+    "col": 4,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_cage_hi",
+    "name": "Iron Cage",
+    "col": 5,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_petals_hi",
+    "name": "Rose Petals",
+    "col": 6,
+    "row": 11,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_mirror_hi",
+    "name": "Gilded Mirror",
+    "col": 0,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_chandelier_hi",
+    "name": "Fallen Chandelier",
+    "col": 2,
+    "row": 15,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_carpet_worn_hi",
+    "name": "Worn Carpet",
+    "col": 6,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_carpet_c_hi",
+    "name": "Crimson Carpet",
+    "col": 5,
+    "row": 10,
+    "walkable": true,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_bed_hi",
+    "name": "Four-Poster Bed",
+    "col": 2,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_piano_hi",
+    "name": "Grand Piano",
+    "col": 7,
+    "row": 14,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_round_table_hi",
+    "name": "Round Table",
+    "col": 1,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   },
+   {
+    "id": "mans_sofa_hi",
+    "name": "Velvet Sofa",
+    "col": 7,
+    "row": 15,
+    "walkable": false,
+    "elevation": 0.5
+   }
+  ]
+ },
+ "objects": {
+  "image": "ship_objects.png",
+  "tileSize": 48,
+  "filter": "nearest",
+  "columns": 9,
+  "list": [
+   {
+    "id": "barrel",
+    "col": 0,
+    "row": 0,
+    "blocksMovement": true
+   },
+   {
+    "id": "crate",
+    "col": 1,
+    "row": 0,
+    "blocksMovement": true
+   },
+   {
+    "id": "crates",
+    "col": 2,
+    "row": 0,
+    "blocksMovement": true
+   },
+   {
+    "id": "lantern",
+    "col": 3,
+    "row": 0,
+    "blocksMovement": true,
+    "glow": {
+     "color": "#ffb347",
+     "radius": 1.7,
+     "height": 0.5
+    }
+   },
+   {
+    "id": "ship_wheel",
+    "col": 4,
+    "row": 0,
+    "blocksMovement": true
+   },
+   {
+    "id": "railing",
+    "col": 5,
+    "row": 0,
+    "blocksMovement": false,
+    "upright": true,
+    "decor": true,
+    "scale": 1.22
+   }
+  ]
+ },
+ "tall": [
+  {
+   "id": "mast",
+   "image": "mast.png",
+   "width": 128,
+   "height": 128,
+   "drawAt": "x*32+16-32, y*32+22-118  (tile x,y of its mast_base)",
+   "blocksMovement": true,
+   "filter": "nearest"
+  }
+ ],
+ "notes": "Props are 48px pixel art (mast 64x128) drawn with nearest-neighbour filtering to match the 64px character sprites; set \"filter\": \"smooth\" on a sheet for painted art, or add a \"glow\" block to an object for a flickering light halo."
 }

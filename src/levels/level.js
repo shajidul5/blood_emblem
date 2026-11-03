@@ -3,9 +3,10 @@ import chapterTwoMapUrl from '../../data/levels/map_02_boarders_from_the_deep.js
 import chapterThreeMapUrl from '../../data/levels/map_03_fishing_village.json?url&no-inline';
 import chapterFourMapUrl from '../../data/levels/map_04_mansion.json?url&no-inline';
 import chapterFiveMapUrl from '../../data/levels/map_05_escape.json?url&no-inline';
-import chestUrl from '../../assets/tiles/Chest/chest.svg?url';
+import chestUrl from '../../assets/tiles/Chest/chest.png?url';
 import shipTilesUrl from '../../assets/tiles/ship_oblique/ship_oblique_tiles.png?url';
 import shipObjectsUrl from '../../assets/tiles/ship_oblique/ship_objects.png?url';
+import waterRippleUrl from '../../assets/tiles/ocean_ripple/water_ripple.png?url';
 import mastUrl from '../../assets/tiles/ship_oblique/mast.png?url';
 import greyHouseUrl from '../../assets/tiles/Grey_house/rotations/Grey_house.png?url';
 import greyHouseNoEntryUrl from '../../assets/tiles/Grey_house_No_entry/rotations/Grey_house_No_entry.png?url';
@@ -53,7 +54,24 @@ export function updateLevelAnimation(elapsedSeconds) {
   }
 }
 
-// Drifting ripples and a shimmer travel across the water using world position, so they flow across tiles seamlessly.
+// Water plays the Pixel Lab ripple frames back and forth; each tile starts at its own point in the loop.
+const WATER_FRAMES = 9;
+const WATER_STEPS = (WATER_FRAMES - 1) * 2;
+const WATER_FPS = 5;
+let waterStripTextureCache;
+
+function waterStripTexture(THREE) {
+  if (!waterStripTextureCache) {
+    waterStripTextureCache = new THREE.Texture(waterRippleImage);
+    waterStripTextureCache.magFilter = THREE.NearestFilter;
+    waterStripTextureCache.minFilter = THREE.NearestFilter;
+    waterStripTextureCache.generateMipmaps = false;
+    waterStripTextureCache.colorSpace = THREE.SRGBColorSpace;
+    waterStripTextureCache.needsUpdate = true;
+  }
+  return waterStripTextureCache;
+}
+
 function createWaterMaterial(THREE, texture) {
   const material = new THREE.MeshStandardMaterial({
     map: texture,
@@ -82,16 +100,12 @@ function createWaterMaterial(THREE, texture) {
         varying vec2 vWaterPos;`)
       .replace('#include <map_fragment>', `
         vec2 wp = vWaterPos;
-        vec2 wobble = vec2(
-          sin(wp.y * 5.0 + uTime * 1.3) + sin(wp.x * 3.1 - uTime * 0.9),
-          cos(wp.x * 4.3 + uTime * 1.1) + cos(wp.y * 2.7 + uTime * 0.7)
-        ) * 0.025;
-        vec4 sampledDiffuseColor = texture2D(map, clamp(vTileUv + wobble, 0.002, 0.998));
-        float ripple = sin((wp.x * 2.0 + wp.y * 3.0) * 3.0 - uTime * 1.6)
-                     * sin((wp.y * 1.5 - wp.x * 3.0) * 3.0 + uTime * 1.1);
-        float crest = smoothstep(0.7, 0.98, ripple);
-        sampledDiffuseColor.rgb += vec3(0.14, 0.22, 0.32) * crest;
-        sampledDiffuseColor.rgb *= 0.93 + 0.07 * sin(uTime * 0.8 + wp.x * 0.7 + wp.y * 0.5);
+        vec2 cell = floor(wp);
+        float phase = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453) * ${WATER_STEPS}.0;
+        float loopStep = mod(floor(uTime * ${WATER_FPS}.0 + phase), ${WATER_STEPS}.0);
+        float frame = loopStep < ${WATER_FRAMES}.0 ? loopStep : ${WATER_STEPS}.0 - loopStep;
+        vec2 frameUv = vec2((clamp(vTileUv.x, 0.001, 0.999) + frame) / ${WATER_FRAMES}.0, vTileUv.y);
+        vec4 sampledDiffuseColor = texture2D(map, frameUv);
         diffuseColor *= sampledDiffuseColor;`);
   };
   return material;
@@ -104,6 +118,8 @@ const BLOCKING_OBJECTS = new Set(
     .map((object) => object.id),
 );
 const SHIP_OBJECT_IDS = new Set(shipTileset.objects.list.map((object) => object.id));
+// Decor (such as hull railings) can sit on tiles units never enter.
+const DECOR_OBJECT_IDS = new Set(shipTileset.objects.list.filter((object) => object.decor).map((object) => object.id));
 const LEGACY_ATLAS_TILES = {
   '.': 'water_a',
   o: 'water_b',
@@ -138,8 +154,9 @@ function loadImage(url) {
   });
 }
 
-const [shipTilesImage, shipObjectsImage, mastImage, greyHouseImage, greyHouseNoEntryImage, chestImage] = await Promise.all([
+const [shipTilesImage, waterRippleImage, shipObjectsImage, mastImage, greyHouseImage, greyHouseNoEntryImage, chestImage] = await Promise.all([
   loadImage(shipTilesUrl),
+  loadImage(waterRippleUrl),
   loadImage(shipObjectsUrl),
   loadImage(mastUrl),
   loadImage(greyHouseUrl),
@@ -315,7 +332,7 @@ export function validateLevel(value) {
     return object && Number.isInteger(object.x) && object.x >= 0 && object.x < width &&
       Number.isInteger(z) && z >= 0 && z < height &&
       SHIP_OBJECT_IDS.has(object.id) &&
-      isTileWalkable(tileIds[z][object.x]);
+      (DECOR_OBJECT_IDS.has(object.id) || isTileWalkable(tileIds[z][object.x]));
   })) {
     throw new Error('Level objects need a known ID and must be placed on walkable tiles.');
   }
@@ -549,6 +566,10 @@ export function validateLevel(value) {
     name: name.trim(),
     objective,
     extendEdges: value.extendEdges === true,
+    forestEdges: value.forestEdges === true,
+    noFence: value.noFence === true,
+    groundRing: Number.isInteger(value.groundRing) ? Math.max(0, value.groundRing) : 0,
+    extendSides: value.extendSides === true,
     width,
     height,
     spawn,
@@ -567,6 +588,8 @@ export function validateLevel(value) {
       x: object.x,
       z: object.z ?? object.y,
       id: object.id,
+      ox: object.ox,
+      oz: object.oz,
       blocksMovement: BLOCKING_OBJECTS.has(object.id),
     })),
   };
@@ -604,11 +627,13 @@ export async function loadInitialLevel(setStatus) {
   }
 }
 
-// Corner heights in NW, NE, SW, SE order. A "rise" of w/e makes a ramp that climbs toward that side.
+// Corner heights in NW, NE, SW, SE order. A "rise" of n/s/w/e makes a ramp that climbs toward that side.
 export function tileCornerHeights(def) {
   const top = def.elevation * 2;
   if (def.rise === 'w') return [top, 0, top, 0];
   if (def.rise === 'e') return [0, top, 0, top];
+  if (def.rise === 'n') return [top, top, 0, 0];
+  if (def.rise === 's') return [0, 0, top, top];
   return [def.elevation, def.elevation, def.elevation, def.elevation];
 }
 
@@ -693,6 +718,18 @@ function addElevatedTiles(THREE, levelGroup, level, cells) {
 }
 
 // Wooden fence along every land edge of an open-air map, marking where the playable area ends.
+const FOREST_TILES = [
+  'tree_a', 'tree_b', 'tree_c', 'tree_a', 'tree_b', 'tree_d', 'tree_c', 'tree_e',
+  'bush', 'forest_floor_a', 'tree_a', 'tree_b', 'forest_floor_b', 'tree_c',
+];
+
+function forestTileAt(x, z) {
+  const hash = (Math.imul(x + 101, 73856093) ^ Math.imul(z + 101, 19349663)) >>> 0;
+  return FOREST_TILES[hash % FOREST_TILES.length];
+}
+
+const GROUND_RING_TILES = ['ground_a', 'ground_b', 'ground_c', 'ground_d', 'ground_cobble_a', 'ground_mix'];
+
 function addBoundaryFence(THREE, levelGroup, level) {
   const wood = new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 0.95 });
   const postGeometry = new THREE.BoxGeometry(0.14, 0.85, 0.14);
@@ -755,21 +792,38 @@ export function buildLevel(THREE, levelGroup, value) {
         x: x - level.width / 2 + 0.5,
         z: z - level.height / 2 + 0.5,
       });
+      // Diagonal hull tiles are partly transparent and need animated water beneath them.
+      if (atlasId.startsWith('hull_diag_')) {
+        if (!tileGroups.has('water_a')) tileGroups.set('water_a', []);
+        tileGroups.get('water_a').push({
+          x: x - level.width / 2 + 0.5,
+          z: z - level.height / 2 + 0.5,
+          y: -0.01,
+        });
+      }
     }
   }
   addElevatedTiles(THREE, levelGroup, level, elevatedCells);
 
   // Open-air levels repeat their edge terrain outward so the camera never sees past the map.
-  if (level.extendEdges) {
+  if (level.extendEdges || level.extendSides) {
     const pad = 26;
-    for (let z = -pad; z < level.height + pad; z++) {
+    const padZ = level.extendSides ? 0 : pad;
+    const padSouth = level.extendSides ? 14 : pad;
+    for (let z = -padZ; z < level.height + padSouth; z++) {
       for (let x = -pad; x < level.width + pad; x++) {
         if (x >= 0 && x < level.width && z >= 0 && z < level.height) continue;
         const edgeId = level.tileIds[Math.min(Math.max(z, 0), level.height - 1)][
           Math.min(Math.max(x, 0), level.width - 1)];
-        const atlasId = getTileDef(edgeId).elevation > 0 || edgeId === 'village_building'
+        let atlasId = getTileDef(edgeId).elevation > 0 || edgeId === 'village_building'
           ? 'village_gravel_a'
           : edgeId;
+        if (level.forestEdges && !WATER_TILE_IDS.has(atlasId)) {
+          const ringDistance = Math.max(-x, x - level.width + 1, -z, z - level.height + 1);
+          atlasId = ringDistance <= level.groundRing
+            ? GROUND_RING_TILES[((Math.imul(x + 101, 73856093) ^ Math.imul(z + 101, 19349663)) >>> 0) % GROUND_RING_TILES.length]
+            : forestTileAt(x, z);
+        }
         if (!tileGroups.has(atlasId)) tileGroups.set(atlasId, []);
         tileGroups.get(atlasId).push({
           x: x - level.width / 2 + 0.5,
@@ -779,15 +833,18 @@ export function buildLevel(THREE, levelGroup, value) {
     }
   }
 
-  if (level.extendEdges) addBoundaryFence(THREE, levelGroup, level);
+  if (level.extendEdges && !level.noFence) addBoundaryFence(THREE, levelGroup, level);
 
   const geometry = new THREE.PlaneGeometry(1, 1);
   geometry.rotateX(-Math.PI / 2);
   for (const [atlasId, cells] of tileGroups) {
-    const texture = VILLAGE_GRAVEL_TILE_IDS.has(atlasId)
-      ? gravelTexture(THREE, atlasId)
-      : atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
-    const material = WATER_TILE_IDS.has(atlasId)
+    const isWater = WATER_TILE_IDS.has(atlasId);
+    const texture = isWater
+      ? waterStripTexture(THREE)
+      : VILLAGE_GRAVEL_TILE_IDS.has(atlasId)
+        ? gravelTexture(THREE, atlasId)
+        : atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
+    const material = isWater
       ? createWaterMaterial(THREE, texture)
       : new THREE.MeshStandardMaterial({
         map: texture,
@@ -799,7 +856,7 @@ export function buildLevel(THREE, levelGroup, value) {
     const instances = new THREE.InstancedMesh(geometry, material, cells.length);
     const transform = new THREE.Object3D();
     cells.forEach((cell, index) => {
-      transform.position.set(cell.x, 0, cell.z);
+      transform.position.set(cell.x, cell.y ?? 0, cell.z);
       transform.updateMatrix();
       instances.setMatrixAt(index, transform.matrix);
     });
@@ -830,10 +887,10 @@ export function buildLevel(THREE, levelGroup, value) {
     }
   }
   for (const base of mastBases) {
-    const mast = new THREE.Mesh(new THREE.PlaneGeometry(2, 4), mastMaterial);
+    const mast = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), mastMaterial);
     mast.position.set(
       base.x - level.width / 2 + 0.5,
-      2,
+      1.5,
       base.z - level.height / 2 + 0.5,
     );
     mast.renderOrder = 2;
@@ -871,8 +928,9 @@ export function buildLevel(THREE, levelGroup, value) {
       });
       sprite = new THREE.Mesh(standingGeometry, material);
       sprite.rotation.x = -OBJECT_TILT;
+      if (atlasObject.scale) sprite.scale.setScalar(atlasObject.scale);
       // Feet sit toward the front of the tile so the prop reads as resting on the deck.
-      sprite.position.set(centerX, 0.12 + lift, centerZ + 0.3);
+      sprite.position.set(centerX + (object.ox ?? 0), 0.12 + lift, centerZ + 0.3 + (object.oz ?? 0));
       sprite.renderOrder = 3;
       const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
       shadow.position.set(centerX, 0.12 + lift, centerZ + 0.3);
@@ -927,10 +985,11 @@ export function buildLevel(THREE, levelGroup, value) {
     depthWrite: true,
     side: THREE.DoubleSide,
   });
-  const houseWidth = 3;
-  const houseHeight = 3;
-  const houseGeometry = new THREE.PlaneGeometry(houseWidth, houseHeight);
-  houseGeometry.translate(0, houseHeight / 2, 0);
+  const houseWidth = 3.4;
+  const houseGeometry = new THREE.PlaneGeometry(houseWidth, houseWidth * greyHouseImage.height / greyHouseImage.width);
+  houseGeometry.translate(0, houseGeometry.parameters.height / 2, 0);
+  const houseNoEntryGeometry = new THREE.PlaneGeometry(houseWidth, houseWidth * greyHouseNoEntryImage.height / greyHouseNoEntryImage.width);
+  houseNoEntryGeometry.translate(0, houseNoEntryGeometry.parameters.height / 2, 0);
   for (const house of level.houses) {
     const houseSprite = new THREE.Mesh(houseGeometry, greyHouseMaterial);
     houseSprite.rotation.x = -OBJECT_TILT;
@@ -956,7 +1015,7 @@ export function buildLevel(THREE, levelGroup, value) {
     side: THREE.DoubleSide,
   });
   for (const house of level.decorativeHouses) {
-    const houseSprite = new THREE.Mesh(houseGeometry, greyHouseNoEntryMaterial);
+    const houseSprite = new THREE.Mesh(houseNoEntryGeometry, greyHouseNoEntryMaterial);
     houseSprite.rotation.x = -OBJECT_TILT;
     houseSprite.position.set(
       house.x + house.width / 2 - level.width / 2,
@@ -986,9 +1045,22 @@ export function buildLevel(THREE, levelGroup, value) {
       0.12 + getTileDef(level.tileIds[chest.z][chest.x]).elevation,
       chest.z + 0.5 - level.height / 2 + 0.2,
     );
-    chestSprite.renderOrder = 1;
+    chestSprite.renderOrder = 3;
     Object.defineProperty(chest, 'mesh', { value: chestSprite, enumerable: false });
     levelGroup.add(chestSprite);
+    const aura = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: getGlowTexture(THREE),
+      color: '#ffd24a',
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    aura.position.set(chestSprite.position.x, chestSprite.position.y + 0.4, chestSprite.position.z + 0.1);
+    aura.renderOrder = 4;
+    levelGroup.add(aura);
+    const light = { sprite: aura, radius: 2.1, intensity: chest.opened ? 0 : 0.8, phase: chest.x * 1.3 + chest.z };
+    glowLights.push(light);
+    Object.defineProperty(chest, 'glow', { value: light, enumerable: false });
   }
   levelGroup.userData.houseMarkers = [];
   const doorGeometry = new THREE.PlaneGeometry(0.94, 0.94);

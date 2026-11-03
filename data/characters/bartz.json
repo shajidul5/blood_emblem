@@ -20,7 +20,7 @@
     "luck": 5,
     "defense": 5,
     "resistance": 2,
-    "movement": 4,
+    "movement": 5,
     "build": 6
   },
   "currentStats": {
@@ -32,7 +32,7 @@
     "luck": 5,
     "defense": 5,
     "resistance": 2,
-    "movement": 4,
+    "movement": 5,
     "build": 6
   },
   "growthRates": {

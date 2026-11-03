@@ -30,10 +30,11 @@ import { createExperienceDisplay } from './characters/experience-display.js';
 import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit } from './characters/classes.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
+import { createPromotionDialog, snapshotForPromotion } from './characters/promotion-dialog.js';
 import { createItemPopup } from './characters/item-popup.js';
 import { createTutorialPopup, PART_ONE_ENDING, setTutorialsEnabled, TRIANGLE_EFFECTS, tutorialsEnabled } from './game/tutorial.js';
 import { awardExperience } from './characters/progression.js';
-import { createProfileDialog } from './characters/profile-dialog.js';
+import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
 import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
 import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, refreshMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
@@ -288,6 +289,7 @@ const enemyMenuDialog = document.querySelector('#enemy-menu-dialog');
 const enemyInventoryDialog = document.querySelector('#enemy-inventory-dialog');
 const experienceDisplay = createExperienceDisplay(document.querySelector('#exp-panel'));
 const levelUpDialogUi = createLevelUpDialog(document.querySelector('#level-up-dialog'));
+const promotionDialogUi = createPromotionDialog(document.querySelector('#promotion-dialog'));
 const itemPopup = createItemPopup(document.querySelector('#item-popup-dialog'));
 const tutorialPopup = createTutorialPopup(document.querySelector('#tutorial-dialog'), {
   itemSprite: (id) => INVENTORY_ITEMS.get(id)?.spriteUrl ?? null,
@@ -1597,6 +1599,36 @@ function withdrawFromConvoy(entry) {
 
 const tradeDialog = document.querySelector('#trade-dialog');
 let tradePartner = null;
+let pendingSwap = null;
+
+// A unit that no longer holds its equipped weapon is unarmed until it equips another.
+function settleTradedWeapons(unit, received) {
+  let note = '';
+  if (unit.weapon && !unit.inventory.some((held) => held.id === unit.weapon.id)) {
+    unit.weapon = null;
+    note = ` ${unit.name} is now unarmed.`;
+  }
+  const item = received && INVENTORY_ITEMS.get(received.id);
+  if (item?.itemType === 'weapon' && !item.heal && !unit.weapon && canEquipWeapon(unit, item)) {
+    unit.weapon = item;
+    note += ` ${unit.name} equipped ${item.name}.`;
+  }
+  return note;
+}
+
+function swapItems(ownerA, entryA, ownerB, entryB) {
+  const indexA = ownerA.inventory.indexOf(entryA);
+  const indexB = ownerB.inventory.indexOf(entryB);
+  pendingSwap = null;
+  if (indexA < 0 || indexB < 0 || INVENTORY_ITEMS.get(entryA.id).bound || INVENTORY_ITEMS.get(entryB.id).bound) return;
+  ownerA.inventory[indexA] = entryB;
+  ownerB.inventory[indexB] = entryA;
+  const note = settleTradedWeapons(ownerA, entryB) + settleTradedWeapons(ownerB, entryA);
+  renderTrade();
+  tradeDialog.querySelector('button:not(:disabled)')?.focus();
+  setMessage(`${ownerA.name} swapped ${INVENTORY_ITEMS.get(entryA.id).name} for ${ownerB.name}'s ${INVENTORY_ITEMS.get(entryB.id).name}.${note}`);
+  saveCurrentGame();
+}
 
 function adjacentAllies(unit) {
   return playerTeam.filter((ally) =>
@@ -1624,8 +1656,27 @@ function renderTradeColumn(side, owner, other) {
   for (const [slot, entry] of owner.inventory.entries()) {
     const equipped = slot === equippedIndex;
     const bound = INVENTORY_ITEMS.get(entry.id).bound;
-    const label = bound ? 'Cannot be traded' : otherFull ? `${other.name} is full` : `Give to ${other.name}${equipped ? ' (equipped)' : ''}`;
-    list.append(itemRow(entry, label, bound || otherFull, () => tradeItem(owner, other, entry)));
+    let row;
+    if (pendingSwap) {
+      if (pendingSwap.entry === entry) {
+        row = itemRow(entry, 'Cancel swap', false, () => { pendingSwap = null; renderTrade(); });
+      } else if (pendingSwap.owner !== owner) {
+        row = itemRow(entry, 'Swap for this', bound, () => swapItems(pendingSwap.owner, pendingSwap.entry, owner, entry));
+      } else {
+        row = itemRow(entry, 'Pick from other side', true);
+      }
+    } else {
+      const label = bound ? 'Cannot be traded' : otherFull ? `${other.name} is full` : `Give to ${other.name}${equipped ? ' (equipped)' : ''}`;
+      row = itemRow(entry, label, bound || otherFull, () => tradeItem(owner, other, entry));
+      if (!bound) {
+        const swap = document.createElement('button');
+        swap.textContent = 'Swap';
+        swap.disabled = other.inventory.length === 0;
+        swap.addEventListener('click', () => { pendingSwap = { owner, entry }; renderTrade(); });
+        row.append(swap);
+      }
+    }
+    list.append(row);
   }
   tradeDialog.querySelector(`#trade-${side}-capacity`).textContent =
     `${owner.inventory.length}/${MAX_INVENTORY_SIZE} items`;
@@ -1653,6 +1704,7 @@ function renderTrade() {
       button.disabled = partner === tradePartner;
       button.addEventListener('click', () => {
         tradePartner = partner;
+        pendingSwap = null;
         renderTrade();
         tradeDialog.querySelector('.trade-columns button:not(:disabled)')?.focus();
       });
@@ -1670,16 +1722,7 @@ function tradeItem(from, to, entry) {
   from.inventory.splice(index, 1);
   to.inventory.push(entry);
   const item = INVENTORY_ITEMS.get(entry.id);
-  let note = '';
-  // A unit that no longer holds its equipped weapon is unarmed until it equips another.
-  if (from.weapon && !from.inventory.some((held) => held.id === from.weapon.id)) {
-    from.weapon = null;
-    note = ` ${from.name} is now unarmed.`;
-  }
-  if (item.itemType === 'weapon' && !item.heal && !to.weapon && canEquipWeapon(to, item)) {
-    to.weapon = item;
-    note += ` ${to.name} equipped it.`;
-  }
+  const note = settleTradedWeapons(from, null) + settleTradedWeapons(to, entry);
   renderTrade();
   tradeDialog.querySelector('button:not(:disabled)')?.focus();
   setMessage(`${from.name} gave ${item.name} to ${to.name}.${note}`);
@@ -1687,6 +1730,7 @@ function tradeItem(from, to, entry) {
 }
 
 function closeTrade() {
+  pendingSwap = null;
   if (tradeDialog.open) tradeDialog.close();
   if (gameState.mode === 'trade') {
     gameState.mode = 'unit';
@@ -1888,6 +1932,7 @@ async function openChest() {
   const { item, toConvoy } = grantItem(player, chest.rewardId);
   chest.opened = true;
   chest.mesh.material.opacity = 0.35;
+  if (chest.glow) chest.glow.intensity = 0;
   player.acted = true;
   setMessage(toConvoy
     ? `${player.name} unlocked the chest. Their inventory is full, so ${item.name} was sent to the convoy.`
@@ -1969,11 +2014,13 @@ async function useMasterEmblem(entry) {
   renderTacticalUi();
   setMessage(`${player.name} raises the Orders Emblem...`);
   let result;
+  const before = snapshotForPromotion(player, portraitUrl(player));
   await playPromotionGlow(player, () => {
     result = promoteUnit(player);
     refreshUnitAppearance(player);
     player.inventory.splice(player.inventory.indexOf(entry), 1);
   });
+  await promotionDialogUi.show(player, before, portraitUrl(player));
   const gains = Object.entries(result.gains)
     .map(([stat, bonus]) => `${capitalize(stat)} +${bonus}`)
     .join(', ');
@@ -3563,6 +3610,11 @@ function update(dt, t) {
       : (gameState.selected || gameState.phase === 'player')
         ? new THREE.Vector3(worldX(cursor.x), 0.8, worldZ(cursor.z))
         : new THREE.Vector3(0, 0.8, 0);
+  if (activeLevel.extendSides) {
+    // Keep the view over the map so the sky edge never drops below the water.
+    const limitZ = activeLevel.height / 2 - 3;
+    target.z = THREE.MathUtils.clamp(target.z, -limitZ, limitZ);
+  }
   const cameraScale = Math.max(0.55, activeLevel.width / 21, activeLevel.height / 19);
   const desired = target.clone().addScaledVector(CAM_OFFSET, cameraScale);
   camera.position.sub(cameraShakeOffset);

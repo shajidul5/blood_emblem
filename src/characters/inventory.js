@@ -132,9 +132,13 @@ export function restoreMariaInventory(unit, savedInventory, equippedWeaponId) {
   unit.inventory = savedInventory
     ? savedInventory.map((entry) => legacyEntry({ ...entry }))
     : createMariaInventory();
-  // Older saves predate the Blood Emblem; Maria always carries it.
-  if (!unit.inventory.some((entry) => entry.id === bloodEmblem.id)) {
-    unit.inventory.push({ id: bloodEmblem.id, uses: bloodEmblem.maxUses });
+  // Older saves predate the Blood Emblem; only Maria carries it (bound items can't be traded).
+  if (unit.id === 'maria') {
+    if (!unit.inventory.some((entry) => entry.id === bloodEmblem.id)) {
+      unit.inventory.push({ id: bloodEmblem.id, uses: bloodEmblem.maxUses });
+    }
+  } else {
+    unit.inventory = unit.inventory.filter((entry) => entry.id !== bloodEmblem.id);
   }
 
   // null means deliberately unarmed; undefined falls back to Maria's rapier.

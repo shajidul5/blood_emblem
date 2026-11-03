@@ -47,9 +47,9 @@
       "promotesTo": "berserker",
       "promotionBonuses": {
         "hp": 6,
-        "strength": 5,
+        "strength": 3,
         "magic": 0,
-        "dexterity": 1,
+        "dexterity": 4,
         "speed": 2,
         "luck": 0,
         "defense": 1,

@@ -15,7 +15,7 @@ const PORTRAITS = import.meta.glob(
   { eager: true, query: '?url', import: 'default' },
 );
 
-function portraitUrl(unit) {
+export function portraitUrl(unit) {
   return unit.sprite ? PORTRAITS[`../../${unit.sprite}`] : undefined;
 }
 
