@@ -3659,11 +3659,22 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Dev shortcut: ?chapter=2 jumps straight into that chapter with a fresh Maria.
-const requestedChapter = Number(new URLSearchParams(window.location.search).get('chapter'));
+// Dev shortcut: ?chapter=2 jumps straight into that chapter with a fresh Maria;
+// add &save=1 to bring along the roster and convoy from the current browser save.
+const requestParams = new URLSearchParams(window.location.search);
+const requestedChapter = Number(requestParams.get('chapter'));
 if (Number.isInteger(requestedChapter) && requestedChapter >= 2 && requestedChapter <= CHAPTER_COUNT) {
+  let carry = serializeUnit(createMaria());
+  if (requestParams.get('save') === '1') {
+    try {
+      const save = readSave();
+      if (save) carry = { ...save.player, allies: save.allies ?? [], convoy: save.convoy ?? [] };
+    } catch (error) {
+      console.error('Could not load save for chapter shortcut:', error);
+    }
+  }
   startLevel(await loadChapterLevel(requestedChapter - 1), {
     chapter: requestedChapter - 1,
-    carry: serializeUnit(createMaria()),
+    carry,
   });
 }
