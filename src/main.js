@@ -2319,6 +2319,7 @@ function finishUnit() {
   cursorOutline.visible = true;
   movementRange.clear();
   renderTacticalUi();
+  if (checkDefeatAllVictory() || checkEscapeObjective()) return;
   if (playerTeam.every((unit) => unit.hp <= 0 || unit.acted)) void endPlayerPhase();
   else void runTutorials();
 }
@@ -2342,7 +2343,7 @@ function cyclePlayerUnits() {
   cursor.z = nextUnit.z;
   showTileInspection(cursor.x, cursor.z);
   player = nextUnit;
-  selectMaria();
+  setMessage(`${nextUnit.name} highlighted. Press Enter to select.`);
 }
 
 function selectMaria() {
@@ -3148,7 +3149,6 @@ backActionButton.addEventListener('click', () => {
   if (player.moveOrigin && player.moved && !player.acted) undoMove();
   else cancelAction();
 });
-document.querySelector('#end-phase').addEventListener('click', endPlayerPhase);
 document.querySelector('#close-profile').addEventListener('click', () => profileDialog.close());
 document.querySelector('#enemy-menu-profile').addEventListener('click', () => {
   enemyMenuDialog.close();

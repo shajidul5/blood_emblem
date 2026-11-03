@@ -52,112 +52,112 @@
  "enemies": [
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 9,
    "z": 6,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 12,
    "z": 3,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 14,
    "z": 10,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 16,
    "z": 6,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 17,
    "z": 11,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 20,
    "z": 3,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 20,
    "z": 13,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 24,
    "z": 7,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 25,
    "z": 11,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 26,
    "z": 6,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 22,
    "z": 14,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 7,
    "z": 14,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 4,
    "z": 13,
    "ai": "guard"
   },
   {
    "id": "merfolk",
-   "level": 9,
+   "level": 12,
    "x": 14,
    "z": 1,
    "ai": "guard"
   },
   {
    "id": "deep-merfolk",
-   "level": 11,
+   "level": 15,
    "x": 28,
    "z": 6,
    "ai": "guard"
   },
   {
    "id": "deep-merfolk",
-   "level": 11,
+   "level": 15,
    "x": 28,
    "z": 9,
    "ai": "guard"
@@ -338,13 +338,13 @@
    "units": [
     {
      "id": "deep-merfolk",
-     "level": 18,
+     "level": 21,
      "x": 0,
      "z": 3
     },
     {
      "id": "deep-merfolk",
-     "level": 18,
+     "level": 21,
      "x": 0,
      "z": 12
     }
