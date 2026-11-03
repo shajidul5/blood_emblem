@@ -11,7 +11,7 @@ function formatWeaponLevel(unit, weapon) {
 }
 
 const PORTRAITS = import.meta.glob(
-  ['../../assets/character/*/Idle/rotations/south.png', '../../assets/character/Ravage_Maria/rotations/south.png', '../../assets/character/Berserker_Bartz/rotations/south.png', '../../assets/character/Sage_Cypher/rotations/south.png', '../../assets/character/Bishop_Seymour/rotations/south.png'],
+  ['../../assets/character/*/Idle/rotations/south.png', '../../assets/character/Ravager_Maria/rotations/south.png', '../../assets/character/Berserker_Bartz/rotations/south.png', '../../assets/character/Sage_Cypher/rotations/south.png', '../../assets/character/Bishop_Seymour/rotations/south.png'],
   { eager: true, query: '?url', import: 'default' },
 );
 

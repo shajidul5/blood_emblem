@@ -3,7 +3,7 @@ import { isLevelTileWalkable } from '../levels/tiles.js';
 import { INVENTORY_ITEMS, MAX_INVENTORY_SIZE } from '../characters/inventory.js';
 import { ENEMY_IDS } from '../characters/characters.js';
 import { validWeaponExp } from '../characters/weapon-levels.js';
-import { CLASSES } from '../characters/classes.js';
+import { CLASSES, MAX_USES_MULTIPLIER } from '../characters/classes.js';
 
 const validClassId = (classId) => classId === undefined || CLASSES.has(classId);
 
@@ -65,7 +65,7 @@ function validInventoryEntry(entry) {
   const item = entry && INVENTORY_ITEMS.get(entry.id);
   if (!item) return false;
   return item.itemType === 'weapon'
-    ? (entry.uses === null || (item.maxUses && Number.isInteger(entry.uses) && entry.uses >= 0 && entry.uses <= item.maxUses))
+    ? (entry.uses === null || (item.maxUses && Number.isInteger(entry.uses) && entry.uses >= 0 && entry.uses <= item.maxUses * MAX_USES_MULTIPLIER))
     : Number.isInteger(entry.uses) && entry.uses > 0 && entry.uses <= item.maxUses;
 }
 

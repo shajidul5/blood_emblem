@@ -7,6 +7,7 @@ import steelSpear from '../../data/weapons/steel-spear.json';
 import fireTome from '../../data/weapons/fire-tome.json';
 import thunderTome from '../../data/weapons/thunder-tome.json';
 import handAxe from '../../data/weapons/hand-axe.json';
+import hunterPistol from '../../data/weapons/hunter-pistol.json';
 import lancereaver from '../../data/weapons/lancereaver.json';
 import tentacle from '../../data/weapons/tentacle.json';
 import lightTome from '../../data/weapons/light-tome.json';
@@ -15,6 +16,7 @@ import potion from '../../data/items/potion.json';
 import chestKey from '../../data/items/chest-key.json';
 import masterEmblem from '../../data/items/master-emblem.json';
 import bloodEmblem from '../../data/items/blood-emblem.json';
+import { getUsesMultiplier } from './classes.js';
 
 const WEAPON_SPRITES = import.meta.glob('../../assets/weapons/**/*.{png,svg}', {
   eager: true,
@@ -54,6 +56,7 @@ export const INVENTORY_ITEMS = new Map([
   [fireTome.id, createWeaponItem(fireTome)],
   [thunderTome.id, createWeaponItem(thunderTome)],
   [handAxe.id, createWeaponItem(handAxe)],
+  [hunterPistol.id, createWeaponItem(hunterPistol)],
   [lancereaver.id, createWeaponItem(lancereaver)],
   [tentacle.id, createWeaponItem(tentacle)],
   [lightTome.id, createWeaponItem(lightTome)],
@@ -81,15 +84,32 @@ export function createInventory(itemIds) {
 }
 
 // Consumables and magic (tomes, staves) have limited uses; other weapons never run out.
-function freshUses(item) {
+// Class abilities (Sage, Bishop) multiply the uses of tomes and staves.
+function freshUses(item, unit) {
+  if (item.itemType === 'weapon' && item.maxUses && unit) return item.maxUses * getUsesMultiplier(unit);
   return item.maxUses ?? null;
 }
 
+// Largest number of uses this unit can hold for the item.
+export function maxUsesFor(item, unit) {
+  return item.itemType === 'weapon' && item.maxUses && unit ? item.maxUses * getUsesMultiplier(unit) : item.maxUses;
+}
+
 // Refills every limited-use weapon, run at the start of each chapter.
-export function refreshMagicUses(entries) {
+export function refreshMagicUses(entries, unit) {
   for (const entry of entries) {
     const item = INVENTORY_ITEMS.get(entry.id);
-    if (item?.itemType === 'weapon' && item.maxUses) entry.uses = item.maxUses;
+    if (item?.itemType === 'weapon' && item.maxUses) entry.uses = maxUsesFor(item, unit);
+  }
+}
+
+// After a class change, grants the extra uses the new class allows on tomes and staves.
+export function rescaleMagicUses(unit, previousMultiplier) {
+  const gain = getUsesMultiplier(unit) - previousMultiplier;
+  if (gain <= 0) return;
+  for (const entry of unit.inventory) {
+    const item = INVENTORY_ITEMS.get(entry.id);
+    if (item?.itemType === 'weapon' && item.maxUses && Number.isInteger(entry.uses)) entry.uses += item.maxUses * gain;
   }
 }
 
@@ -122,7 +142,7 @@ function legacyEntry(entry) {
 export function grantItem(unit, itemId) {
   const item = INVENTORY_ITEMS.get(itemId);
   if (!item) throw new Error(`Unknown inventory item ${itemId}.`);
-  const entry = { id: itemId, uses: freshUses(item) };
+  const entry = { id: itemId, uses: freshUses(item, unit) };
   const toConvoy = unit.inventory.length >= MAX_INVENTORY_SIZE;
   (toConvoy ? convoy : unit.inventory).push(entry);
   return { item, toConvoy };

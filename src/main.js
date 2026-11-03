@@ -27,7 +27,7 @@ import {
 } from './battle/grid.js';
 import { createBartzAlly, createCypherAlly, createEnemyUnit, createMaria, createSeymourAlly } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
-import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit } from './characters/classes.js';
+import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit, getUsesMultiplier, getStaffRangeBonus } from './characters/classes.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
 import { createPromotionDialog, snapshotForPromotion } from './characters/promotion-dialog.js';
@@ -37,7 +37,7 @@ import { awardExperience } from './characters/progression.js';
 import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
 import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
-import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, refreshMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
+import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses, rescaleMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import { createSaveData, readSave, serializeUnit, writeSave } from './game/save.js';
 import {
@@ -462,6 +462,7 @@ function unitTextures(unit) {
     walking: characterSprites[`${set}WalkingFrames`],
     attack: characterSprites[`${set}AttackFrames`],
     staff: characterSprites[`${set}StaffFrames`],
+    firearm: characterSprites[`${set}FirearmFrames`],
   };
 }
 
@@ -948,7 +949,8 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
       if (roster[savedAlly.id] && roster[savedAlly.id] !== maria) applyUnitSnapshot(roster[savedAlly.id], savedAlly);
     }
   }
-  refreshMagicUses([...maria.inventory, ...bartz.inventory, ...cypher.inventory, ...seymour.inventory, ...convoy]);
+  for (const unit of [maria, bartz, cypher, seymour]) refreshMagicUses(unit.inventory, unit);
+  refreshMagicUses(convoy);
   activeLevel = buildLevel(THREE, levelGroup, level);
   const team = deployTeam(activeLevel);
   playerMovement = undefined;
@@ -1488,8 +1490,8 @@ function itemInfoElement(entry) {
   if (item.itemType === 'weapon') {
     description.textContent =
       `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}`;
-    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${item.maxRange}`;
-    if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${item.maxUses} uses`;
+    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${item.maxRange + getStaffRangeBonus(player)}`;
+    if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${maxUsesFor(item, player)} uses`;
   } else if (item.heal) {
     description.textContent = `Heals ${item.heal} HP · ${entry.uses}/${item.maxUses} uses remaining`;
   } else {
@@ -1574,9 +1576,21 @@ function renderInventory() {
   inventoryDialog.querySelector('#inventory-capacity').textContent =
     `${player.inventory.length}/${MAX_INVENTORY_SIZE} items · Convoy: ${convoy.length}`;
 
-  // Only the leader can reach the convoy.
+  // Maria carries the convoy, so she and anyone standing next to her can reach it.
   const convoySection = inventoryDialog.querySelector('#convoy-section');
-  convoySection.hidden = player !== maria;
+  const access = canAccessConvoy(player);
+  convoySection.hidden = !access;
+  if (access) {
+    for (const [slot, row] of [...list.children].entries()) {
+      const entry = player.inventory[slot];
+      const store = document.createElement('button');
+      const bound = INVENTORY_ITEMS.get(entry.id).bound;
+      store.textContent = 'Store';
+      store.disabled = Boolean(bound);
+      store.addEventListener('click', () => storeInConvoy(entry));
+      row.append(store);
+    }
+  }
   const convoyList = convoySection.querySelector('#convoy-items');
   convoyList.replaceChildren();
   const full = player.inventory.length >= MAX_INVENTORY_SIZE;
@@ -1586,14 +1600,31 @@ function renderInventory() {
   convoySection.querySelector('#convoy-empty').hidden = convoy.length > 0;
 }
 
-function withdrawFromConvoy(entry) {
-  const index = convoy.indexOf(entry);
-  if (player !== maria || index < 0 || player.inventory.length >= MAX_INVENTORY_SIZE) return;
-  convoy.splice(index, 1);
-  player.inventory.push(entry);
+function canAccessConvoy(unit) {
+  return maria.hp > 0 && (unit === maria || Math.abs(unit.x - maria.x) + Math.abs(unit.z - maria.z) === 1);
+}
+
+function storeInConvoy(entry) {
+  const index = player.inventory.indexOf(entry);
+  if (!canAccessConvoy(player) || index < 0 || INVENTORY_ITEMS.get(entry.id).bound) return;
+  player.inventory.splice(index, 1);
+  convoy.push(entry);
+  const note = settleTradedWeapons(player);
   renderInventory();
   inventoryDialog.querySelector('button:not(:disabled)')?.focus();
-  setMessage(`${player.name} took ${INVENTORY_ITEMS.get(entry.id).name} from the convoy.`);
+  setMessage(`${player.name} stored ${INVENTORY_ITEMS.get(entry.id).name} in the convoy.${note}`);
+  saveCurrentGame();
+}
+
+function withdrawFromConvoy(entry) {
+  const index = convoy.indexOf(entry);
+  if (!canAccessConvoy(player) || index < 0 || player.inventory.length >= MAX_INVENTORY_SIZE) return;
+  convoy.splice(index, 1);
+  player.inventory.push(entry);
+  const note = settleTradedWeapons(player, entry);
+  renderInventory();
+  inventoryDialog.querySelector('button:not(:disabled)')?.focus();
+  setMessage(`${player.name} took ${INVENTORY_ITEMS.get(entry.id).name} from the convoy.${note}`);
   saveCurrentGame();
 }
 
@@ -1756,7 +1787,7 @@ function healTargets(unit) {
   return playerTeam.filter((ally) => {
     const distance = distanceBetween(unit.x, unit.z, ally.x, ally.z);
     return ally !== unit && ally.hp > 0 && ally.hp < ally.maxHp &&
-      distance >= staff.minRange && distance <= staff.maxRange;
+      distance >= staff.minRange && distance <= staff.maxRange + getStaffRangeBonus(unit);
   });
 }
 function openHeal() {
@@ -2015,8 +2046,10 @@ async function useMasterEmblem(entry) {
   setMessage(`${player.name} raises the Orders Emblem...`);
   let result;
   const before = snapshotForPromotion(player, portraitUrl(player));
+  const previousMultiplier = getUsesMultiplier(player);
   await playPromotionGlow(player, () => {
     result = promoteUnit(player);
+    rescaleMagicUses(player, previousMultiplier);
     refreshUnitAppearance(player);
     player.inventory.splice(player.inventory.indexOf(entry), 1);
   });
@@ -2523,12 +2556,14 @@ async function playAttackAnimation(unit, direction, followUp = false, staff = fa
   if (followUp) await wait(1000);
   
   const textures = unitTextures(unit);
-  const frames = staff ? textures.staff?.[direction] : textures.attack?.[direction];
+  const firearm = !staff && unit.weapon?.type === 'Gun' && textures.firearm?.[direction]?.length > 0;
+  const kind = staff ? 'staff' : firearm ? 'firearm' : 'attack';
+  const frames = textures[kind]?.[direction];
   if (frames && frames.length > 0) {
     const swingFrame = Math.floor(frames.length / 2);
     for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
       if (frameIndex === swingFrame && !staff) playWeaponSwing(unit.weapon);
-      unit.attackAnimation = { direction, frameIndex, staff };
+      unit.attackAnimation = { direction, frameIndex, kind };
       await wait(characterSprites.animationFrameDuration * 1000);
     }
   } else if (!staff) {
@@ -3540,7 +3575,7 @@ function update(dt, t) {
     const unitMoving = unit === player && moving;
     let sprite = textures.idle[unit.facing];
     if (unit.attackAnimation) {
-      sprite = (textures[unit.attackAnimation.staff ? 'staff' : 'attack'])[unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
+      sprite = textures[unit.attackAnimation.kind][unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
     } else if (unitMoving) {
       const walkingFrames = textures.walking[unit.facing];
       sprite = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];

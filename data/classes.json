@@ -27,7 +27,7 @@
       "sprites": {
         "maria": {
           "spriteSet": "ravagerMaria",
-          "sprite": "assets/character/Ravage_Maria/rotations/south.png"
+          "sprite": "assets/character/Ravager_Maria/rotations/south.png"
         }
       },
       "abilities": [
@@ -96,7 +96,15 @@
       "id": "sage",
       "name": "Sage",
       "tier": "advanced",
-      "weaponTypes": ["Anima", "Staff"], "sprites": { "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Sage_Cypher/rotations/south.png" } }
+      "weaponTypes": ["Anima", "Staff"], "sprites": { "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Sage_Cypher/rotations/south.png" } },
+      "abilities": [
+        {
+          "id": "arcane-mastery",
+          "name": "Arcane Mastery",
+          "description": "Doubles the uses of tomes and staves.",
+          "usesMultiplier": 2
+        }
+      ]
     },
     {
       "id": "priest",
@@ -122,7 +130,16 @@
       "name": "Bishop",
       "tier": "advanced",
       "weaponTypes": ["Staff", "Light"],
-      "sprites": { "seymour": { "spriteSet": "bishopSeymour", "sprite": "assets/character/Bishop_Seymour/rotations/south.png" } }
+      "sprites": { "seymour": { "spriteSet": "bishopSeymour", "sprite": "assets/character/Bishop_Seymour/rotations/south.png" } },
+      "abilities": [
+        {
+          "id": "divine-mastery",
+          "name": "Divine Mastery",
+          "description": "Doubles the uses of tomes and staves, and adds +1 to staff range.",
+          "usesMultiplier": 2,
+          "staffRangeBonus": 1
+        }
+      ]
     },
     {
       "id": "merfolk",

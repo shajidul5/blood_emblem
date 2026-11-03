@@ -45,6 +45,20 @@ export function getClassAbilities(unit) {
   return (unit.classId && CLASSES.get(unit.classId)?.abilities) || [];
 }
 
+// Sage and Bishop abilities scale how many uses tomes and staves hold.
+export function getUsesMultiplier(unit) {
+  return getClassAbilities(unit).reduce((total, ability) => total * (ability.usesMultiplier ?? 1), 1);
+}
+
+export function getStaffRangeBonus(unit) {
+  return getClassAbilities(unit).reduce((total, ability) => total + (ability.staffRangeBonus ?? 0), 0);
+}
+
+// Upper bound used when validating saved uses, since items can be traded between classes.
+export const MAX_USES_MULTIPLIER = Math.max(1, ...[...CLASSES.values()].map(
+  (entry) => (entry.abilities ?? []).reduce((total, ability) => total * (ability.usesMultiplier ?? 1), 1),
+));
+
 // Sets the unit's class and, when the class defines a look for this character, its sprites.
 export function applyClass(unit, classId) {
   const unitClass = getClass(classId);

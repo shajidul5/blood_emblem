@@ -136,9 +136,10 @@ const merfolkIdleSprites = import.meta.glob('../../assets/character/Merfolk/Idle
 const merfolkWalkingFrames = import.meta.glob('../../assets/character/Merfolk/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const merfolkAttackFrames = import.meta.glob('../../assets/character/Merfolk/Idle/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
-const ravagerMariaIdleSprites = import.meta.glob('../../assets/character/Ravage_Maria/rotations/*.png', { eager: true, query: '?url', import: 'default' });
-const ravagerMariaWalkingFrames = import.meta.glob('../../assets/character/Ravage_Maria/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const ravagerMariaAttackFrames = import.meta.glob('../../assets/character/Ravage_Maria/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const ravagerMariaIdleSprites = import.meta.glob('../../assets/character/Ravager_Maria/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const ravagerMariaWalkingFrames = import.meta.glob('../../assets/character/Ravager_Maria/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const ravagerMariaAttackFrames = import.meta.glob('../../assets/character/Ravager_Maria/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const ravagerMariaFirearmFrames = import.meta.glob('../../assets/character/Ravager_Maria/Ravager_Maria_Firearm/animations/Firearm_Attack/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
 const berserkerBartzIdleSprites = import.meta.glob('../../assets/character/Berserker_Bartz/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const berserkerBartzWalkingFrames = import.meta.glob('../../assets/character/Berserker_Bartz/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -373,10 +374,12 @@ export async function loadCharacterSprites() {
   result.killianWalkingFrames = killianData.walking;
   result.killianAttackFrames = killianData.attacking;
 
-  const ravagerMariaData = await loadCharacterWithAllAnimations('Ravage_Maria', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaAttackFrames);
+  const ravagerMariaData = await loadCharacterWithAllAnimations('Ravager_Maria', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaAttackFrames);
   result.ravagerMaria = ravagerMariaData.idle;
   result.ravagerMariaWalkingFrames = ravagerMariaData.walking;
   result.ravagerMariaAttackFrames = ravagerMariaData.attacking;
+  const ravagerMariaFirearmData = await loadCharacterWithAllAnimations('Ravager_Maria_Firearm', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaFirearmFrames);
+  result.ravagerMariaFirearmFrames = ravagerMariaFirearmData.attacking;
 
   const berserkerBartzData = await loadCharacterWithAllAnimations('Berserker_Bartz', berserkerBartzIdleSprites, berserkerBartzWalkingFrames, berserkerBartzAttackFrames);
   result.berserkerBartz = berserkerBartzData.idle;

@@ -1,0 +1,17 @@
+{
+  "id": "hunter-pistol",
+  "lore": "The fisherman's father was a hunter before he took up nets, and the old man kept this pistol under the floorboards for safety, fired only at what crept out of the forest. He presses it into your hands: 'Ten rounds, and they're back by morning. Don't ask me how.'",
+  "name": "Hunter Pistol",
+  "type": "Gun",
+  "damageType": "physical",
+  "might": 6,
+  "weight": 4,
+  "hit": 80,
+  "critical": 5,
+  "maxUses": 10,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "gun",
+  "sprite": "assets/weapons/Hunter_Pistol/rotations/Hunter_Pistol.png"
+}
