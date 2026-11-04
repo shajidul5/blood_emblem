@@ -34,7 +34,7 @@
  "enemies": [
   {
    "id": "liam",
-   "level": 15,
+   "level": 20,
    "x": 24,
    "z": 8,
    "ai": "guard",
@@ -42,98 +42,98 @@
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 8,
    "z": 7,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 8,
    "z": 8,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 11,
    "z": 5,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 12,
    "z": 11,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 14,
    "z": 7,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 16,
    "z": 9,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 17,
    "z": 8,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 18,
    "z": 10,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 20,
    "z": 6,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 20,
    "z": 9,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 22,
    "z": 6,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 22,
    "z": 10,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 26,
    "z": 7,
    "ai": "guard"
   },
   {
    "id": "feral-wolf",
-   "level": 12,
+   "level": 16,
    "x": 26,
    "z": 10,
    "ai": "guard"
@@ -145,21 +145,21 @@
    "units": [
     {
      "id": "feral-wolf",
-     "level": 12,
+     "level": 16,
      "x": 11,
      "z": 3,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 12,
+     "level": 16,
      "x": 19,
      "z": 3,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 12,
+     "level": 16,
      "x": 15,
      "z": 6,
      "ai": "mobile"
@@ -171,21 +171,21 @@
    "units": [
     {
      "id": "feral-wolf",
-     "level": 12,
+     "level": 16,
      "x": 12,
      "z": 14,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 12,
+     "level": 16,
      "x": 19,
      "z": 15,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 12,
+     "level": 16,
      "x": 15,
      "z": 11,
      "ai": "mobile"
@@ -197,21 +197,21 @@
    "units": [
     {
      "id": "feral-wolf",
-     "level": 13,
+     "level": 16,
      "x": 19,
      "z": 3,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 13,
+     "level": 16,
      "x": 15,
      "z": 6,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 13,
+     "level": 16,
      "x": 11,
      "z": 3,
      "ai": "mobile"
@@ -223,21 +223,21 @@
    "units": [
     {
      "id": "feral-wolf",
-     "level": 13,
+     "level": 16,
      "x": 19,
      "z": 15,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 13,
+     "level": 16,
      "x": 15,
      "z": 11,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 13,
+     "level": 16,
      "x": 12,
      "z": 14,
      "ai": "mobile"
@@ -249,21 +249,21 @@
    "units": [
     {
      "id": "feral-wolf",
-     "level": 14,
+     "level": 16,
      "x": 15,
      "z": 6,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 14,
+     "level": 16,
      "x": 11,
      "z": 3,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 14,
+     "level": 16,
      "x": 19,
      "z": 3,
      "ai": "mobile"
@@ -275,21 +275,21 @@
    "units": [
     {
      "id": "feral-wolf",
-     "level": 14,
+     "level": 16,
      "x": 15,
      "z": 11,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 14,
+     "level": 16,
      "x": 12,
      "z": 14,
      "ai": "mobile"
     },
     {
      "id": "feral-wolf",
-     "level": 14,
+     "level": 16,
      "x": 19,
      "z": 15,
      "ai": "mobile"

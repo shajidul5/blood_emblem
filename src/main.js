@@ -40,7 +40,10 @@ import { initializeUiSounds } from './audio/ui-sounds.js';
 import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
 import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses, rescaleMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
-import { createSaveData, readSave, serializeUnit, writeSave } from './game/save.js';
+import {
+  SAVE_SLOT_COUNT, copyCurrentSaveToSlot, createSaveData, describeSaveSlot, loadSlotIntoCurrentSave,
+  readSave, serializeUnit, writeSave,
+} from './game/save.js';
 import {
   buildLevel,
   CHAPTER_COUNT,
@@ -908,10 +911,27 @@ function applyUnitSnapshot(unit, snapshot) {
 const roster = { maria, bartz, cypher, seymour };
 
 // Fields the level's listed player units (or Maria alone at the spawn point).
-function deployTeam(level) {
-  const placements = level.players.length
+function deployTeam(level, carry = null) {
+  const placements = [...(level.players.length
     ? level.players
-    : [{ id: 'maria', x: level.spawn.x, z: level.spawn.z }];
+    : [{ id: 'maria', x: level.spawn.x, z: level.spawn.z }])];
+  const taken = new Set(placements.map((placement) => tileKey(placement.x, placement.z)));
+  const origin = placements[0];
+  // Carried-over allies the map doesn't list (e.g. recruited mid-game) still join, beside the first unit.
+  for (const saved of carry?.allies ?? []) {
+    if (!roster[saved.id] || placements.some((placement) => placement.id === saved.id) || saved.stats?.hp <= 0) continue;
+    let best = null;
+    for (let z = 0; z < level.height; z++) {
+      for (let x = 0; x < level.width; x++) {
+        if (!isWalkable(level, x, z) || taken.has(tileKey(x, z))) continue;
+        const distance = distanceBetween(origin.x, origin.z, x, z);
+        if (!best || distance < best.distance) best = { x, z, distance };
+      }
+    }
+    if (!best) continue;
+    taken.add(tileKey(best.x, best.z));
+    placements.push({ id: saved.id, x: best.x, z: best.z });
+  }
   const team = placements.map((placement) => {
     const unit = roster[placement.id];
     if (!unit) throw new Error(`Unknown player unit "${placement.id}".`);
@@ -959,7 +979,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   for (const unit of [maria, bartz, cypher, seymour]) refreshMagicUses(unit.inventory, unit);
   refreshMagicUses(convoy);
   activeLevel = buildLevel(THREE, levelGroup, level);
-  const team = deployTeam(activeLevel);
+  const team = deployTeam(activeLevel, carry);
   playerMovement = undefined;
   enemyMovement = undefined;
   cameraFollowTarget = undefined;
@@ -1121,9 +1141,70 @@ function returnToMainMenu() {
   (continueButton.disabled ? newGameButton : continueButton).focus();
 }
 
+const saveSlotsDialog = document.querySelector('#save-slots-dialog');
+const saveSlotsList = document.querySelector('#save-slots-list');
+const saveSlotsStatus = document.querySelector('#save-slots-status');
+let saveSlotsMode = 'load';
+
+function renderSaveSlots() {
+  saveSlotsList.replaceChildren();
+  const saving = saveSlotsMode === 'save';
+  for (let slot = 1; slot <= SAVE_SLOT_COUNT; slot++) {
+    const info = describeSaveSlot(slot);
+    const button = document.createElement('button');
+    button.type = 'button';
+    const title = document.createElement('span');
+    title.textContent = `Slot ${slot}`;
+    const detail = document.createElement('small');
+    detail.textContent = info
+      ? `${info.chapter}${info.turn ? ` · Turn ${info.turn}` : ''}${info.level ? ` · Maria Lv ${info.level}` : ''}${info.savedAt ? ` · ${new Date(info.savedAt).toLocaleString()}` : ''}`
+      : 'Empty';
+    button.append(title, detail);
+    button.disabled = !saving && !info;
+    button.addEventListener('click', () => chooseSaveSlot(slot, info));
+    saveSlotsList.append(button);
+  }
+}
+
+function openSaveSlots(mode) {
+  saveSlotsMode = mode;
+  document.querySelector('#save-slots-heading').textContent = mode === 'save' ? 'Save Game' : 'Load Game';
+  saveSlotsStatus.textContent = mode === 'save' ? 'Choose a slot to save the current game.' : 'Choose a slot to load.';
+  renderSaveSlots();
+  saveSlotsDialog.showModal();
+  saveSlotsList.querySelector('button:not(:disabled)')?.focus();
+}
+
+function chooseSaveSlot(slot, info) {
+  try {
+    if (saveSlotsMode === 'save') {
+      if (info && !window.confirm(`Overwrite slot ${slot}?`)) return;
+      saveCurrentGame();
+      copyCurrentSaveToSlot(slot);
+      renderSaveSlots();
+      saveSlotsStatus.textContent = `Saved to slot ${slot}.`;
+      return;
+    }
+    loadSlotIntoCurrentSave(slot);
+    saveSlotsDialog.close();
+    continueGame();
+  } catch (error) {
+    console.error('Save slot action failed:', error);
+    saveSlotsStatus.textContent = `Could not ${saveSlotsMode} slot ${slot}: ${error.message}`;
+  }
+}
+
+document.querySelector('#load-game').addEventListener('click', () => openSaveSlots('load'));
+document.querySelector('#open-save-game').addEventListener('click', () => {
+  closeOptionsMenu();
+  openSaveSlots('save');
+});
+document.querySelector('#save-slots-close').addEventListener('click', () => saveSlotsDialog.close());
+
 function openTitleOptions() {
   if (sessionStarted || optionsDialog.open) return;
   document.querySelector('#open-unit-list').hidden = true;
+  document.querySelector('#open-save-game').hidden = true;
   document.querySelector('#options-end-phase').hidden = true;
   document.querySelector('#options-restart').hidden = true;
   optionsDialog.showModal();
@@ -1134,6 +1215,7 @@ function openOptionsMenu() {
   if (!sessionStarted || gameState.mode === 'options' || gameState.mode === 'combat' || playerMovement) return;
   gameState.mode = 'options';
   document.querySelector('#open-unit-list').hidden = false;
+  document.querySelector('#open-save-game').hidden = false;
   document.querySelector('#options-end-phase').hidden = false;
   document.querySelector('#options-restart').hidden = false;
   renderTacticalUi();
@@ -1488,7 +1570,7 @@ function openInventory() {
   inventoryDialog.querySelector('button:not(:disabled)')?.focus();
 }
 
-function itemInfoElement(entry) {
+function itemInfoElement(entry, showLore = true) {
   const item = INVENTORY_ITEMS.get(entry.id);
   const details = document.createElement('div');
   const name = document.createElement('strong');
@@ -1517,7 +1599,7 @@ function itemInfoElement(entry) {
     reaves.textContent = `Double triangle bonus vs ${item.reaves.join(', ')}`;
     details.append(reaves);
   }
-  if (item.lore) {
+  if (showLore && item.lore) {
     const lore = document.createElement('span');
     lore.className = 'item-lore';
     lore.textContent = item.lore;
@@ -1537,13 +1619,13 @@ function itemInfoElement(entry) {
   return info;
 }
 
-function itemRow(entry, label, disabled, onClick) {
+function itemRow(entry, label, disabled, onClick, showLore = true) {
   const row = document.createElement('li');
   const action = document.createElement('button');
   action.textContent = label;
   action.disabled = disabled;
   if (onClick) action.addEventListener('click', onClick);
-  row.append(itemInfoElement(entry), action);
+  row.append(itemInfoElement(entry, showLore), action);
   return row;
 }
 
@@ -1573,8 +1655,8 @@ function renderInventory() {
     } else if (item.effect === 'key') {
       list.append(itemRow(entry, 'Opens chests', true));
     } else if (item.effect === 'promote') {
-      const ready = player.level >= 10 && canPromote(player);
-      list.append(itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 10' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
+      const ready = player.level >= 20 && canPromote(player);
+      list.append(itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 20' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
     } else if (item.effect === 'strength-up') {
       list.append(itemRow(entry, 'Use', false, () => usePocketwatch(entry)));
     } else {
@@ -1699,15 +1781,15 @@ function renderTradeColumn(side, owner, other) {
     let row;
     if (pendingSwap) {
       if (pendingSwap.entry === entry) {
-        row = itemRow(entry, 'Cancel swap', false, () => { pendingSwap = null; renderTrade(); });
+        row = itemRow(entry, 'Cancel swap', false, () => { pendingSwap = null; renderTrade(); }, false);
       } else if (pendingSwap.owner !== owner) {
-        row = itemRow(entry, 'Swap for this', bound, () => swapItems(pendingSwap.owner, pendingSwap.entry, owner, entry));
+        row = itemRow(entry, 'Swap for this', bound, () => swapItems(pendingSwap.owner, pendingSwap.entry, owner, entry), false);
       } else {
-        row = itemRow(entry, 'Pick from other side', true);
+        row = itemRow(entry, 'Pick from other side', true, undefined, false);
       }
     } else {
       const label = bound ? 'Cannot be traded' : otherFull ? `${other.name} is full` : `Give to ${other.name}${equipped ? ' (equipped)' : ''}`;
-      row = itemRow(entry, label, bound || otherFull, () => tradeItem(owner, other, entry));
+      row = itemRow(entry, label, bound || otherFull, () => tradeItem(owner, other, entry), false);
       if (!bound) {
         const swap = document.createElement('button');
         swap.textContent = 'Swap';
@@ -2047,7 +2129,7 @@ async function playPromotionGlow(unit, applyChange) {
 }
 
 async function useMasterEmblem(entry) {
-  if (player.level < 10 || !canPromote(player)) return;
+  if (player.level < 20 || !canPromote(player)) return;
   closeInventory();
   gameState.mode = 'combat';
   combatants.add(player);
@@ -2287,7 +2369,47 @@ function focusActionMenu() {
   nextButton?.focus({ preventScroll: true });
 }
 
+function moveTradeFocus(direction) {
+  const columns = ['left', 'right'].map((side) =>
+    [...tradeDialog.querySelectorAll(`#trade-${side}-items button:not(:disabled)`)]);
+  const done = tradeDialog.querySelector('#trade-close');
+  const partners = [...tradeDialog.querySelectorAll('#trade-partners button:not(:disabled)')];
+  const focused = document.activeElement;
+  const side = columns.findIndex((buttons) => buttons.includes(focused));
+  if (side < 0) {
+    const all = [...partners, ...columns[0], ...columns[1], done];
+    if (!all.includes(focused)) all[0]?.focus();
+    else if (focused === done && direction === 'up') (columns[0].at(-1) ?? columns[1].at(-1))?.focus();
+    else if (partners.includes(focused) && direction === 'down') (columns[0][0] ?? columns[1][0] ?? done).focus();
+    else if (partners.includes(focused) && (direction === 'left' || direction === 'right')) {
+      const next = partners[partners.indexOf(focused) + (direction === 'right' ? 1 : -1)];
+      next?.focus();
+    }
+    document.activeElement?.scrollIntoView({ block: 'nearest' });
+    return;
+  }
+  const buttons = columns[side];
+  const index = buttons.indexOf(focused);
+  let target;
+  if (direction === 'down') target = buttons[index + 1] ?? done;
+  else if (direction === 'up') target = buttons[index - 1] ?? partners[0] ?? buttons[index];
+  else {
+    const other = columns[1 - side];
+    const targetSide = direction === 'right' ? 1 : 0;
+    if (targetSide === side || !other.length) return;
+    const rowTop = focused.getBoundingClientRect().top;
+    target = other.reduce((best, button) =>
+      Math.abs(button.getBoundingClientRect().top - rowTop) < Math.abs(best.getBoundingClientRect().top - rowTop) ? button : best);
+  }
+  target?.focus({ preventScroll: true });
+  target?.scrollIntoView({ block: 'nearest' });
+}
+
 function moveActionFocus(container, direction) {
+  if (container === tradeDialog) {
+    moveTradeFocus(direction);
+    return;
+  }
   const enabledButtons = [...container.querySelectorAll('button:not(:disabled):not([hidden])')];
   const focusedButton = enabledButtons.find((button) => button === document.activeElement);
   if (!enabledButtons.length) return;
@@ -2323,6 +2445,7 @@ function moveActionFocus(container, direction) {
     }
   }
   closest?.focus({ preventScroll: true });
+  closest?.scrollIntoView({ block: 'nearest' });
 }
 
 const AI_LABELS = {
@@ -3345,6 +3468,10 @@ function goBack() {
   }
   if (profileDialog.open) {
     profileDialog.close();
+    return true;
+  }
+  if (saveSlotsDialog.open) {
+    saveSlotsDialog.close();
     return true;
   }
   if (unitListDialog.open) {

@@ -60,6 +60,25 @@
       #unit-hover-card .unit-card-weapon:not(:has(img)) { grid-template-columns: 1fr; }
       #unit-hover-card .unit-card-weapon img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
       #unit-hover-card .unit-card-weapon small { grid-column: 1 / -1; color: #c9a35a; font-size: 10px; }
+      #save-slots-dialog {
+        width: min(520px, calc(100% - 32px)); padding: 18px;
+        border: 1px solid #76647a; border-radius: 4px; background: #0b101b;
+        color: #f1e9e3; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+        box-shadow: 0 18px 60px #000b;
+      }
+      #save-slots-dialog::backdrop { background: rgba(4, 7, 14, .78); }
+      #save-slots-dialog h2 { margin: 0 0 12px; color: #e2c582; font: 22px Georgia, "Times New Roman", serif; }
+      #save-slots-list { display: grid; gap: 8px; }
+      #save-slots-dialog button {
+        border: 1px solid #655467; border-radius: 5px; background: #17121d;
+        color: #e8d9d9; padding: 8px 14px; font: inherit; cursor: pointer;
+      }
+      #save-slots-dialog button:hover:not(:disabled), #save-slots-dialog button:focus-visible { border-color: #d8bd8a; }
+      #save-slots-dialog button:disabled { opacity: .45; cursor: default; }
+      #save-slots-list button { text-align: left; display: grid; gap: 2px; }
+      #save-slots-list small { color: #c9bd9c; }
+      #save-slots-status { min-height: 20px; margin: 10px 0 0; color: #c9bd9c; }
+      #save-slots-close { margin-top: 6px; }
       #unit-list-dialog {
         width: min(760px, calc(100% - 32px)); padding: 18px;
         border: 1px solid #76647a; border-radius: 4px; background: #0b101b;
@@ -747,6 +766,7 @@
         <div class="menu-actions">
           <button id="new-game" type="button">New Game</button>
           <button id="continue-game" type="button" disabled>Continue</button>
+          <button id="load-game" type="button">Load Game</button>
           <button id="title-options" type="button">Options</button>
         </div>
         <div id="menu-status" role="status" aria-live="polite"></div>
@@ -758,12 +778,19 @@
       <div class="menu-actions">
         <button id="options-end-phase" type="button">End Phase</button>
         <button id="open-unit-list" type="button">Unit List</button>
+        <button id="open-save-game" type="button">Save Game</button>
         <button id="toggle-ocean-sound" type="button" aria-pressed="true">Ocean Sound: On</button>
         <button id="toggle-tutorials" type="button" aria-pressed="true">Tutorial Popups: On</button>
         <button id="options-restart" type="button">Restart Chapter</button>
         <button id="resume-game" type="button">Close</button>
         <button id="return-to-menu" type="button">Return to Main Menu</button>
       </div>
+    </dialog>
+    <dialog id="save-slots-dialog" aria-labelledby="save-slots-heading">
+      <h2 id="save-slots-heading">Save Game</h2>
+      <div id="save-slots-list"></div>
+      <div id="save-slots-status" role="status" aria-live="polite"></div>
+      <button id="save-slots-close" type="button">Close</button>
     </dialog>
     <dialog id="unit-list-dialog" aria-labelledby="unit-list-heading">
       <h2 id="unit-list-heading">Unit List</h2>

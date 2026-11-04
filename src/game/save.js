@@ -95,6 +95,48 @@ export function writeSave(save) {
   localStorage.setItem(SAVE_KEY, JSON.stringify(save));
 }
 
+export const SAVE_SLOT_COUNT = 3;
+const slotKey = (slot) => `${SAVE_KEY}-slot-${slot}`;
+
+// Light summary for the slot list; the full validation happens when the slot is loaded.
+export function describeSaveSlot(slot) {
+  const raw = localStorage.getItem(slotKey(slot));
+  if (raw === null) return null;
+  try {
+    const save = JSON.parse(raw);
+    return {
+      chapter: save.level?.name ?? 'Unknown chapter',
+      turn: save.turn,
+      level: save.player?.level,
+      savedAt: save.savedAt ?? null,
+    };
+  } catch {
+    return { chapter: 'Unreadable save', turn: null, level: null, savedAt: null };
+  }
+}
+
+// Copies the current autosave into a slot, so later autosaves never overwrite it.
+export function copyCurrentSaveToSlot(slot) {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw === null) throw new Error('There is no game in progress to save.');
+  const save = JSON.parse(raw);
+  localStorage.setItem(slotKey(slot), JSON.stringify({ ...save, savedAt: new Date().toISOString() }));
+}
+
+export function loadSlotIntoCurrentSave(slot) {
+  const raw = localStorage.getItem(slotKey(slot));
+  if (raw === null) throw new Error('That save slot is empty.');
+  const previous = localStorage.getItem(SAVE_KEY);
+  localStorage.setItem(SAVE_KEY, raw);
+  try {
+    readSave();
+  } catch (error) {
+    if (previous === null) localStorage.removeItem(SAVE_KEY);
+    else localStorage.setItem(SAVE_KEY, previous);
+    throw error;
+  }
+}
+
 export function readSave() {
   const rawSave = localStorage.getItem(SAVE_KEY);
   if (rawSave === null) return null;
