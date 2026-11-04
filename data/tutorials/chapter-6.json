@@ -1,0 +1,35 @@
+{
+  "forest": {
+    "pages": [
+      {
+        "kicker": "Part Two · Chapter 6",
+        "title": "The Hollow Wood",
+        "paragraphs": [
+          "The village gate closes behind them and the forest takes its place. The trees stand too close together and the birds have gone quiet. Maria's wedding ring is warm against her finger, and the Blood Emblem at her belt has begun to hum like a held breath.",
+          "Cypher stops first. \"They're watching. Not us. You.\" Out in the dark, eyes catch the lantern light and do not look away. Seymour whispers that these woods were the island's hunting ground long before the city was built.",
+          "Aldermere lies at the far side of this wood. The road there is the one thing the curse has not yet closed."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Objective",
+        "title": "Defeat the Boss",
+        "paragraphs": [
+          "Fell the great beast at the heart of the clearing and the chapter is won. The wolves guarding him are not required kills, but they will not let you walk past.",
+          "Feral wolves are fast, accurate and hit hard for their size. Every three turns a fresh pack will race in from the edges of the wood, so a long siege will not go well.",
+          "Wolves are beasts. Cypher's Fire tome and Maria's Beast Slayer both bite deeper against them. Bartz cannot carry this fight alone."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Terrain",
+        "title": "Dense Undergrowth",
+        "paragraphs": [
+          "Patches of thick undergrowth give +20 Avoid and +2 Defense, but cost an extra point of movement to enter. Hold them yourself and the wolves will struggle to land a hit. Beware that wolves standing in them are harder to hit as well.",
+          "Select a tile to inspect it. Whatever waits in the clearing carries something that may be worth the fight."
+        ],
+        "button": "Enter the Wood"
+      }
+    ]
+  }
+}

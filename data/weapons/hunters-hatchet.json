@@ -1,0 +1,16 @@
+{
+  "id": "hunters-hatchet",
+  "name": "Hunter's Hatchet",
+  "lore": "A woodsman's tool once used to dress game. Now the haft is worn smooth by hands that have forgotten why they hold it.",
+  "type": "Axe",
+  "damageType": "physical",
+  "might": 10,
+  "weight": 7,
+  "hit": 80,
+  "critical": 10,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Hunters_Hatchet/rotations/Hunters_Hatchet.png"
+}

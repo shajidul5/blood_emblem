@@ -3,9 +3,10 @@ import chapterTwo from '../../data/tutorials/chapter-2.json';
 import chapterThree from '../../data/tutorials/chapter-3.json';
 import chapterFour from '../../data/tutorials/chapter-4.json';
 import chapterFive from '../../data/tutorials/chapter-5.json';
+import chapterSix from '../../data/tutorials/chapter-6.json';
 import triangle from '../../data/weapon-triangle.json';
 
-const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive };
+const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix };
 
 const fill = (text, vars) => text.replace(/\{(\w+)\}/g, (match, key) => String(vars[key] ?? match));
 

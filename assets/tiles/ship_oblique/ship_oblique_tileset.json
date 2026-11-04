@@ -416,17 +416,23 @@
    },
    {
     "id": "forest_floor_a",
-    "name": "Forest Floor",
+    "name": "Dense Undergrowth",
     "col": 5,
     "row": 9,
-    "walkable": true
+    "walkable": true,
+    "avoid": 20,
+    "defense": 2,
+    "moveCost": 2
    },
    {
     "id": "forest_floor_b",
-    "name": "Forest Floor",
+    "name": "Dense Undergrowth",
     "col": 6,
     "row": 9,
-    "walkable": true
+    "walkable": true,
+    "avoid": 20,
+    "defense": 2,
+    "moveCost": 2
    },
    {
     "id": "bush",

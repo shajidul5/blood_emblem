@@ -1,5 +1,5 @@
 import { isInWeaponRange } from './combat.js';
-import { isLevelTileWalkable } from '../levels/tiles.js';
+import { getTileDef, isLevelTileWalkable } from '../levels/tiles.js';
 
 export const DIRECTIONS = [
   { x: 0, z: -1 },
@@ -23,25 +23,28 @@ export function findEnemyAt(enemies, x, z) {
   return enemies.find((enemy) => enemy.hp > 0 && enemy.x === x && enemy.z === z);
 }
 
+// Movement spent to step onto a tile; rough terrain such as dense forest costs more than 1.
+export function terrainMoveCost(level, x, z) {
+  return getTileDef(level.tileIds?.[z]?.[x]).moveCost ?? 1;
+}
+
 // `enemies` block movement; `allies` can be passed through but not stopped on.
 export function getMovementRange(unit, level, enemies, allies = []) {
   const distances = new Map([[tileKey(unit.x, unit.z), 0]]);
-  const queue = [{ x: unit.x, z: unit.z }];
-  while (queue.length) {
-    const current = queue.shift();
-    const distance = distances.get(tileKey(current.x, current.z));
-    if (distance >= unit.movement) continue;
+  const open = [{ x: unit.x, z: unit.z, cost: 0 }];
+  while (open.length) {
+    open.sort((a, b) => a.cost - b.cost);
+    const current = open.shift();
+    if (current.cost > distances.get(tileKey(current.x, current.z))) continue;
     for (const direction of DIRECTIONS) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const key = tileKey(x, z);
-      if (
-        distances.has(key) ||
-        !isWalkable(level, x, z) ||
-        findEnemyAt(enemies, x, z)
-      ) continue;
-      distances.set(key, distance + 1);
-      queue.push({ x, z });
+      if (!isWalkable(level, x, z) || findEnemyAt(enemies, x, z)) continue;
+      const cost = current.cost + terrainMoveCost(level, x, z);
+      if (cost > unit.movement || cost >= (distances.get(key) ?? Infinity)) continue;
+      distances.set(key, cost);
+      open.push({ x, z, cost });
     }
   }
   for (const ally of allies) {
@@ -64,11 +67,14 @@ export function findPath(start, goals, blocked, level) {
   const startKey = tileKey(start.x, start.z);
   const goalKeys = new Set(goals.map(({ x, z }) => tileKey(x, z)));
   const previous = new Map([[startKey, null]]);
-  const queue = [start];
+  const best = new Map([[startKey, 0]]);
+  const open = [{ x: start.x, z: start.z, cost: 0 }];
   let found;
-  while (queue.length) {
-    const current = queue.shift();
+  while (open.length) {
+    open.sort((a, b) => a.cost - b.cost);
+    const current = open.shift();
     const key = tileKey(current.x, current.z);
+    if (current.cost > best.get(key)) continue;
     if (goalKeys.has(key)) {
       found = key;
       break;
@@ -77,13 +83,12 @@ export function findPath(start, goals, blocked, level) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const nextKey = tileKey(x, z);
-      if (
-        previous.has(nextKey) ||
-        blocked.has(nextKey) ||
-        !isWalkable(level, x, z)
-      ) continue;
+      if (blocked.has(nextKey) || !isWalkable(level, x, z)) continue;
+      const cost = current.cost + terrainMoveCost(level, x, z);
+      if (cost >= (best.get(nextKey) ?? Infinity)) continue;
+      best.set(nextKey, cost);
       previous.set(nextKey, key);
-      queue.push({ x, z });
+      open.push({ x, z, cost });
     }
   }
   if (!found) return [];

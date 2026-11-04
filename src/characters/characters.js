@@ -8,6 +8,8 @@ import seymourProfile from '../../data/characters/seymour.json';
 import merfolkChieftainProfile from '../../data/characters/merfolk-chieftain.json';
 import killianProfile from '../../data/characters/killian.json';
 import deepMerfolkProfile from '../../data/characters/deep-merfolk.json';
+import feralWolfProfile from '../../data/characters/feral-wolf.json';
+import liamProfile from '../../data/characters/liam.json';
 import rapier from '../../data/weapons/rapier.json';
 import { canEquipWeapon, getClass } from './classes.js';
 import { createInventory, createMariaInventory, INVENTORY_ITEMS } from './inventory.js';
@@ -101,6 +103,8 @@ const ENEMY_PROFILES = new Map([
   [merfolkChieftainProfile.id, merfolkChieftainProfile],
   [killianProfile.id, killianProfile],
 [deepMerfolkProfile.id, deepMerfolkProfile],
+  [feralWolfProfile.id, feralWolfProfile],
+  [liamProfile.id, liamProfile],
 ]);
 
 export const ENEMY_IDS = new Set(ENEMY_PROFILES.keys());

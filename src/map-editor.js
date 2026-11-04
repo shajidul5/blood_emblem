@@ -114,7 +114,7 @@ function validateMap(value) {
   if (typeof name !== 'string' || !name.trim()) {
     throw new Error('Give the level a name.');
   }
-  if (!['defeat-all-enemies', 'escape'].includes(objective)) {
+  if (!['defeat-all-enemies', 'defeat-boss', 'escape'].includes(objective)) {
     throw new Error('Choose a valid level objective.');
   }
   const objects = value.objects ?? [];

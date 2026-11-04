@@ -158,6 +158,18 @@
       "name": "Deep Merfolk",
       "tier": "advanced",
       "weaponTypes": ["Axe", "Spear"]
+    },
+    {
+      "id": "wolf",
+      "name": "Feral Wolf",
+      "tier": "monster",
+      "weaponTypes": ["Claw"]
+    },
+    {
+      "id": "wolfman",
+      "name": "Wolfman",
+      "tier": "advanced",
+      "weaponTypes": ["Axe"]
     }
   ]
 }

@@ -23,6 +23,7 @@ import {
   getFacing,
   getMovementRange,
   isWalkable,
+  terrainMoveCost,
   tileKey,
 } from './battle/grid.js';
 import { createBartzAlly, createCypherAlly, createEnemyUnit, createMaria, createSeymourAlly } from './characters/characters.js';
@@ -299,7 +300,7 @@ const tutorialProgress = { active: false, running: false, intro: true, potion: t
 
 function resetTutorials(chapter) {
   Object.assign(tutorialProgress, {
-    active: chapter !== null && chapter <= 4,
+    active: chapter !== null && chapter <= 5,
     chapter,
     running: false,
     intro: false,
@@ -332,7 +333,7 @@ async function runTutorials() {
   try {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
-      await tutorialPopup.show(['intro', 'boarders', 'village', 'mansion', 'escape'][tutorialProgress.chapter], TRIANGLE_EFFECTS);
+      await tutorialPopup.show(['intro', 'boarders', 'village', 'mansion', 'escape', 'forest'][tutorialProgress.chapter], TRIANGLE_EFFECTS);
     }
     if (!tutorialProgress.houses) {
       tutorialProgress.houses = true;
@@ -801,6 +802,11 @@ function hasPendingReinforcements() {
 }
 
 function checkDefeatAllVictory() {
+  if (activeLevel.objective === 'defeat-boss') {
+    if (enemies.some((enemy) => enemy.isBoss)) return false;
+    completeVictory('The boss has fallen. The objective is complete.');
+    return true;
+  }
   if (
     activeLevel.objective !== 'defeat-all-enemies' ||
     enemies.length > 0 ||
@@ -811,7 +817,8 @@ function checkDefeatAllVictory() {
 }
 
 function objectiveDescription(level = activeLevel) {
-  return level.objective === 'escape' ? 'Get every unit to the marked exit' : 'Kill all enemies';
+  if (level.objective === 'escape') return 'Get every unit to the marked exit';
+  return level.objective === 'defeat-boss' ? 'Defeat the boss' : 'Kill all enemies';
 }
 
 function hideTerminalScreen() {
@@ -825,7 +832,7 @@ let showingPartOneVictory = false;
 
 function showTerminalScreen(outcome, message, { ending = false } = {}) {
   terminalScreen.dataset.outcome = outcome;
-  const partEnd = outcome === 'victory' && !hasNextChapter();
+  const partEnd = outcome === 'victory' && currentChapter === 4;
   showingPartOneVictory = partEnd && !ending;
   terminalHeading.textContent = ending ? PART_ONE_ENDING.heading : outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
   terminalSubtitle.hidden = !ending;
@@ -833,7 +840,7 @@ function showTerminalScreen(outcome, message, { ending = false } = {}) {
   terminalMessage.textContent = ending ? PART_ONE_ENDING.message : message;
   const nextChapterButton = document.querySelector('#next-chapter');
   nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartOneVictory));
-  nextChapterButton.textContent = showingPartOneVictory ? 'Continue' : 'Next Chapter';
+  nextChapterButton.textContent = ending ? 'Begin Part Two' : showingPartOneVictory ? 'Continue' : 'Next Chapter';
   terminalScreen.classList.remove('visible');
   terminalScreen.hidden = false;
   requestAnimationFrame(() => terminalScreen.classList.add('visible'));
@@ -1568,6 +1575,8 @@ function renderInventory() {
     } else if (item.effect === 'promote') {
       const ready = player.level >= 10 && canPromote(player);
       list.append(itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 10' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
+    } else if (item.effect === 'strength-up') {
+      list.append(itemRow(entry, 'Use', false, () => usePocketwatch(entry)));
     } else {
       list.append(itemRow(entry, 'Use', player.hp >= player.maxHp, () => useInventoryItem(entry)));
     }
@@ -2060,6 +2069,21 @@ async function useMasterEmblem(entry) {
   setMessage(`${player.name} promoted from ${result.from} to ${result.to}! ${gains}.`);
   renderTacticalUi();
   await wait(1200);
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+async function usePocketwatch(entry) {
+  closeInventory();
+  gameState.mode = 'combat';
+  combatants.add(player);
+  renderTacticalUi();
+  player.strength += 2;
+  player.inventory.splice(player.inventory.indexOf(entry), 1);
+  saveCurrentGame();
+  setMessage(`${player.name} winds the pocketwatch. Strength +2!`);
+  renderTacticalUi();
+  await wait(1400);
   gameState.mode = 'unit';
   finishUnit();
 }
@@ -2822,7 +2846,11 @@ async function enemyPhase() {
       }
       const path = findPath(enemy, attackPositions, blocked, activeLevel);
       if (path.length > 1) {
-        let stop = Math.min(enemy.movement, path.length - 1);
+        let stop = 0;
+        for (let spent = 0; stop < path.length - 1; stop++) {
+          spent += terrainMoveCost(activeLevel, path[stop + 1].x, path[stop + 1].z);
+          if (spent > enemy.movement) break;
+        }
         while (stop > 0 && occupied.has(tileKey(path[stop].x, path[stop].z))) stop--;
         const destination = path[stop];
         const movementPath = path.slice(0, stop + 1);

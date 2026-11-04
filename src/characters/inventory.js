@@ -10,6 +10,9 @@ import handAxe from '../../data/weapons/hand-axe.json';
 import hunterPistol from '../../data/weapons/hunter-pistol.json';
 import lancereaver from '../../data/weapons/lancereaver.json';
 import tentacle from '../../data/weapons/tentacle.json';
+import wolfClaws from '../../data/weapons/wolf-claws.json';
+import huntersHatchet from '../../data/weapons/hunters-hatchet.json';
+import pocketwatch from '../../data/items/pocketwatch.json';
 import lightTome from '../../data/weapons/light-tome.json';
 import healStaff from '../../data/weapons/heal-staff.json';
 import potion from '../../data/items/potion.json';
@@ -59,6 +62,9 @@ export const INVENTORY_ITEMS = new Map([
   [hunterPistol.id, createWeaponItem(hunterPistol)],
   [lancereaver.id, createWeaponItem(lancereaver)],
   [tentacle.id, createWeaponItem(tentacle)],
+  [wolfClaws.id, createWeaponItem(wolfClaws)],
+  [huntersHatchet.id, createWeaponItem(huntersHatchet)],
+  [pocketwatch.id, createConsumableItem(pocketwatch)],
   [lightTome.id, createWeaponItem(lightTome)],
   [healStaff.id, createWeaponItem(healStaff)],
   [potion.id, createConsumableItem(potion)],

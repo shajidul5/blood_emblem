@@ -7,6 +7,7 @@ const DEFAULTS = Object.freeze({
   avoid: 0,
   defense: 0,
   elevation: 0,
+  moveCost: 1,
   ...shipTileset.tiles.defaults,
 });
 
@@ -19,6 +20,7 @@ function describeBonus(tile) {
   const parts = [];
   if (tile.avoid) parts.push(`${tile.avoid > 0 ? '+' : ''}${tile.avoid} Avoid`);
   if (tile.defense) parts.push(`${tile.defense > 0 ? '+' : ''}${tile.defense} Defense`);
+  if (tile.moveCost > 1) parts.push(`-${tile.moveCost - 1} Movement`);
   return parts.length ? parts.join(', ') : 'No combat bonuses';
 }
 

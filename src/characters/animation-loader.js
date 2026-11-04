@@ -135,6 +135,12 @@ const raiderAttackFrames = import.meta.glob('../../assets/character/Generic_Raid
 const merfolkIdleSprites = import.meta.glob('../../assets/character/Merfolk/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const merfolkWalkingFrames = import.meta.glob('../../assets/character/Merfolk/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const merfolkAttackFrames = import.meta.glob('../../assets/character/Merfolk/Idle/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const wolfIdleSprites = import.meta.glob('../../assets/character/Ferral_Wolf/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const wolfWalkingFrames = import.meta.glob('../../assets/character/Ferral_Wolf/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const wolfAttackFrames = import.meta.glob('../../assets/character/Ferral_Wolf/Idle/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const liamIdleSprites = import.meta.glob('../../assets/character/Liam/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const liamWalkingFrames = import.meta.glob('../../assets/character/Liam/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const liamAttackFrames = import.meta.glob('../../assets/character/Liam/Idle/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
 const ravagerMariaIdleSprites = import.meta.glob('../../assets/character/Ravager_Maria/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const ravagerMariaWalkingFrames = import.meta.glob('../../assets/character/Ravager_Maria/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -368,6 +374,14 @@ export async function loadCharacterSprites() {
   result.merfolk = merfolkData.idle;
   result.merfolkWalkingFrames = merfolkData.walking;
   result.merfolkAttackFrames = merfolkData.attacking;
+  const wolfData = await loadCharacterWithAllAnimations('Ferral_Wolf', wolfIdleSprites, wolfWalkingFrames, wolfAttackFrames);
+  result.feralWolf = wolfData.idle;
+  result.feralWolfWalkingFrames = wolfData.walking;
+  result.feralWolfAttackFrames = wolfData.attacking;
+  const liamData = await loadCharacterWithAllAnimations('Liam', liamIdleSprites, liamWalkingFrames, liamAttackFrames);
+  result.liam = liamData.idle;
+  result.liamWalkingFrames = liamData.walking;
+  result.liamAttackFrames = liamData.attacking;
 
   const killianData = await loadCharacterWithAllAnimations('Killian', killianIdleSprites, killianWalkingFrames, killianAttackFrames);
   result.killian = killianData.idle;

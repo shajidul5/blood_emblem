@@ -1,0 +1,16 @@
+{
+  "id": "wolf-claws",
+  "name": "Wolf Claws",
+  "lore": "Not forged, only grown. They click on stone like a hound pacing a kitchen floor.",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 5,
+  "weight": 2,
+  "hit": 95,
+  "critical": 10,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Wolf_Claws/rotations/Wolf_Claws.png"
+}

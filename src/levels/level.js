@@ -3,6 +3,7 @@ import chapterTwoMapUrl from '../../data/levels/map_02_boarders_from_the_deep.js
 import chapterThreeMapUrl from '../../data/levels/map_03_fishing_village.json?url&no-inline';
 import chapterFourMapUrl from '../../data/levels/map_04_mansion.json?url&no-inline';
 import chapterFiveMapUrl from '../../data/levels/map_05_escape.json?url&no-inline';
+import chapterSixMapUrl from '../../data/levels/map_06_hollow_wood.json?url&no-inline';
 import chestUrl from '../../assets/tiles/Chest/chest.png?url';
 import shipTilesUrl from '../../assets/tiles/ship_oblique/ship_oblique_tiles.png?url';
 import shipObjectsUrl from '../../assets/tiles/ship_oblique/ship_objects.png?url';
@@ -14,7 +15,7 @@ import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.js
 import { getTileDef, isTileWalkable, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B']);
-export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'escape']);
+export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape']);
 
 const TILE_SIZE = shipTileset.tileSize;
 const WATER_TILE_IDS = new Set(['water_a', 'water_b', 'water_foam']);
@@ -323,7 +324,7 @@ export function validateLevel(value) {
   }
 
   if (!LEVEL_OBJECTIVES.has(objective)) {
-    throw new Error('Level objective must be defeat-all-enemies or escape.');
+    throw new Error('Level objective must be defeat-all-enemies, defeat-boss or escape.');
   }
   // Props removed from the tileset are dropped so older saves and levels still load.
   const objects = (value.objects ?? []).filter?.((object) => !RETIRED_OBJECT_IDS.has(object?.id)) ?? value.objects;
@@ -595,7 +596,7 @@ export function validateLevel(value) {
   };
 }
 
-const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl];
+const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl, chapterSixMapUrl];
 export const CHAPTER_COUNT = CHAPTER_URLS.length;
 
 export async function loadChapterLevel(index) {

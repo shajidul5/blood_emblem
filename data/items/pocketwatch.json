@@ -1,0 +1,10 @@
+{
+  "id": "pocketwatch",
+  "name": "Liam's Pocketwatch",
+  "type": "consumable",
+  "effect": "strength-up",
+  "description": "Permanently raises Strength by 2.",
+  "lore": "A brass hunter's watch, stopped at the hour an oath was sworn. Scratched inside the lid: \"Tell Ellen I kept watch. I kept watch.\" Whoever winds it feels the old strength of a man who never stopped hunting.",
+  "maxUses": 1,
+  "sprite": "assets/items/Pocketwatch/pocketwatch.png"
+}
