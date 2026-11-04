@@ -289,8 +289,6 @@ const visitActionButton = document.querySelector('#visit-action');
 const chestActionButton = document.querySelector('#chest-action');
 const profileDialog = document.querySelector('#profile-dialog');
 const inventoryDialog = document.querySelector('#inventory-dialog');
-const enemyMenuDialog = document.querySelector('#enemy-menu-dialog');
-const enemyInventoryDialog = document.querySelector('#enemy-inventory-dialog');
 const experienceDisplay = createExperienceDisplay(document.querySelector('#exp-panel'));
 const levelUpDialogUi = createLevelUpDialog(document.querySelector('#level-up-dialog'));
 const promotionDialogUi = createPromotionDialog(document.querySelector('#promotion-dialog'));
@@ -436,6 +434,7 @@ let moveHighlights;
 let targetHighlights;
 let attackRangeHighlights;
 let enemyRangeHighlights = [];
+const pinnedEnemyRanges = new Set();
 let movementPathMeshes = [];
 let movementPathMaterial;
 
@@ -964,6 +963,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   hideTerminalScreen();
   currentChapter = chapter;
   chapterStart = carry;
+  pinnedEnemyRanges.clear();
   resetTutorials(chapter);
   Object.assign(maria, createMaria());
   Object.assign(bartz, createBartzAlly());
@@ -1417,9 +1417,9 @@ function refreshHighlights() {
     );
   }
   const cursorInspecting = gameState.mode === 'cursor' && !gameState.selected;
-  if (gameState.phase === 'player' && (showAllEnemyRanges || cursorInspecting)) {
-    const inspected = cursorInspecting ? findEnemyAt(enemies, cursor.x, cursor.z) : undefined;
-    const shown = showAllEnemyRanges ? enemies.filter((enemy) => enemy.hp > 0) : inspected ? [inspected] : [];
+  for (const enemy of pinnedEnemyRanges) if (!enemies.includes(enemy) || enemy.hp <= 0) pinnedEnemyRanges.delete(enemy);
+  if (gameState.phase === 'player' && (showAllEnemyRanges || (cursorInspecting && pinnedEnemyRanges.size))) {
+    const shown = showAllEnemyRanges ? enemies.filter((enemy) => enemy.hp > 0) : [...pinnedEnemyRanges];
     const moveTiles = new Map();
     const threatTiles = new Map();
     for (const enemy of shown) {
@@ -1548,6 +1548,7 @@ function showCombatResult(unit, text, type) {
 }
 
 function openUnitProfile(unit, opponent) {
+  document.querySelector('#profile-enemy-inventory').hidden = true;
   const terrain = getTerrain(activeLevel, unit.x, unit.z);
   profileDialogUi.show(
     unit,
@@ -1984,34 +1985,28 @@ async function useInventoryItem(entry) {
   finishUnit();
 }
 
+// One combined view: the stat profile plus what the enemy carries.
 function openEnemyProfile(enemy) {
   openUnitProfile(enemy, player);
-}
-
-let menuEnemy = null;
-
-function openEnemyMenu(enemy) {
-  menuEnemy = enemy;
-  enemyMenuDialog.querySelector('#enemy-menu-heading').textContent = enemy.name;
-  enemyMenuDialog.querySelector('#enemy-menu-summary').textContent =
-    `${enemy.name} · Lv ${enemy.level} · HP ${enemy.hp}/${enemy.maxHp}`;
-  enemyMenuDialog.showModal();
-  enemyMenuDialog.querySelector('#enemy-menu-profile').focus();
-}
-
-function openEnemyInventory(enemy) {
-  const list = enemyInventoryDialog.querySelector('#enemy-inventory-items');
+  const list = document.querySelector('#profile-enemy-items');
   list.replaceChildren();
-  enemyInventoryDialog.querySelector('#enemy-inventory-heading').textContent = `${enemy.name}'s Inventory`;
   const entries = [];
   if (enemy.weapon) entries.push({ entry: { id: enemy.weapon.id, uses: null }, label: 'Equipped' });
   if (enemy.drop) entries.push({ entry: { id: enemy.drop, uses: INVENTORY_ITEMS.get(enemy.drop)?.maxUses ?? null }, label: 'Drops on defeat' });
-  for (const { entry, label } of entries) list.append(itemRow(entry, label, true));
-  enemyInventoryDialog.querySelector('#enemy-inventory-note').textContent = enemy.drop
+  for (const { entry, label } of entries) list.append(itemRow(entry, label, true, undefined, false));
+  document.querySelector('#profile-enemy-note').textContent = enemy.drop
     ? 'Defeat this enemy to claim its drop.'
     : 'This enemy carries nothing of value.';
-  enemyInventoryDialog.showModal();
-  enemyInventoryDialog.querySelector('#enemy-inventory-close').focus();
+  document.querySelector('#profile-enemy-inventory').hidden = false;
+}
+
+function toggleEnemyRange(enemy) {
+  if (pinnedEnemyRanges.has(enemy)) pinnedEnemyRanges.delete(enemy);
+  else pinnedEnemyRanges.add(enemy);
+  refreshHighlights();
+  setMessage(pinnedEnemyRanges.has(enemy)
+    ? `Showing ${enemy.name}'s range. Press Space on it again to hide, or I for details.`
+    : `Hid ${enemy.name}'s range.`);
 }
 
 function capitalize(text) {
@@ -3249,7 +3244,7 @@ function confirmCursor() {
   if (gameState.phase !== 'player' || gameState.defeated) return;
   if (gameState.mode === 'cursor') {
     const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
-    if (enemy) openEnemyMenu(enemy);
+    if (enemy) toggleEnemyRange(enemy);
     else if (playerUnitAt(cursor.x, cursor.z)) {
       player = playerUnitAt(cursor.x, cursor.z);
       selectMaria();
@@ -3294,7 +3289,7 @@ function clickBattlefield(event) {
       selectMaria();
     } else if (spriteHit) {
       const enemy = enemies.find((unit) => unit.mesh === spriteHit.object);
-      if (enemy) openEnemyMenu(enemy);
+      if (enemy) toggleEnemyRange(enemy);
     } else {
       openOptionsMenu();
     }
@@ -3336,16 +3331,6 @@ backActionButton.addEventListener('click', () => {
   else cancelAction();
 });
 document.querySelector('#close-profile').addEventListener('click', () => profileDialog.close());
-document.querySelector('#enemy-menu-profile').addEventListener('click', () => {
-  enemyMenuDialog.close();
-  openEnemyProfile(menuEnemy);
-});
-document.querySelector('#enemy-menu-inventory').addEventListener('click', () => {
-  enemyMenuDialog.close();
-  openEnemyInventory(menuEnemy);
-});
-document.querySelector('#enemy-menu-close').addEventListener('click', () => enemyMenuDialog.close());
-document.querySelector('#enemy-inventory-close').addEventListener('click', () => enemyInventoryDialog.close());
 document.querySelector('#inventory-close').addEventListener('click', closeInventory);
 inventoryDialog.addEventListener('cancel', (event) => {
   event.preventDefault();
@@ -3450,14 +3435,6 @@ function goBack() {
     closeInventory();
     return true;
   }
-  if (enemyInventoryDialog.open) {
-    enemyInventoryDialog.close();
-    return true;
-  }
-  if (enemyMenuDialog.open) {
-    enemyMenuDialog.close();
-    return true;
-  }
   if (tradeDialog.open) {
     closeTrade();
     return true;
@@ -3553,7 +3530,6 @@ window.addEventListener('keydown', (event) => {
   if (gameState.phase !== 'player') return;
   if (playerMovement || gameState.mode === 'combat') return;
   if (profileDialog.open) return;
-  if (enemyMenuDialog.open || enemyInventoryDialog.open) return;
   if (itemPopup.open || tutorialPopup.open) return;
   if (inventoryDialog.open) return;
   if (tradeDialog.open || healDialog.open) return;
@@ -3608,6 +3584,11 @@ window.addEventListener('keydown', (event) => {
     event.preventDefault();
     if (gameState.mode === 'unit' && gameState.selected) backActionButton.click();
     else cancelAction();
+  } else if (event.code === 'KeyI') {
+    if (gameState.mode !== 'cursor' || gameState.selected) return;
+    const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
+    if (enemy) openEnemyProfile(enemy);
+    else if (playerUnitAt(cursor.x, cursor.z)) openUnitProfile(playerUnitAt(cursor.x, cursor.z));
   } else if (event.code === 'KeyM') {
     startMove();
   } else if (event.code === 'KeyA') {
