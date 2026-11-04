@@ -841,305 +841,70 @@
  ],
  "trees": [
   {
-   "id": "creep_tree_c",
-   "x": 1,
-   "z": 2
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 2,
-   "z": 2
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 6,
-   "z": 2
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 12,
-   "z": 2
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 25,
-   "z": 2
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 26,
-   "z": 2
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 3,
-   "z": 3
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 7,
-   "z": 3
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 23,
-   "z": 3
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 26,
-   "z": 3
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 27,
-   "z": 3
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 3,
-   "z": 4
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 4,
-   "z": 4
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 5,
-   "z": 4
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 27,
-   "z": 4
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 27,
-   "z": 6
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 27,
-   "z": 8
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 13,
-   "z": 9
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 27,
-   "z": 9
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 13,
-   "z": 10
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 14,
-   "z": 10
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 27,
-   "z": 10
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 1,
-   "z": 13
-  },
-  {
-   "id": "creep_tree_b",
+   "id": "forest_tree_a",
    "x": 0,
-   "z": 14
+   "z": 14,
+   "width": 2.4
   },
   {
-   "id": "creep_tree_b",
-   "x": 2,
-   "z": 14
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 4,
-   "z": 14
-  },
-  {
-   "id": "creep_tree_c",
+   "id": "forest_tree_b",
    "x": 1,
-   "z": 15
+   "z": 2,
+   "width": 2.4
   },
   {
-   "id": "creep_tree_b",
-   "x": 6,
-   "z": 15
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 7,
-   "z": 15
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 8,
-   "z": 15
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 9,
-   "z": 15
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 24,
-   "z": 15
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 26,
-   "z": 15
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 0,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 2,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 3,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 6,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 23,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 24,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 27,
-   "z": 16
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 0,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 2,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 4,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 6,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 7,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 9,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 11,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 12,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 21,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 24,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 25,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_c",
-   "x": 26,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_b",
-   "x": 27,
-   "z": 17
-  },
-  {
-   "id": "creep_tree_a",
+   "id": "forest_tree_c",
    "x": 6,
    "z": 6,
-   "width": 2.6
+   "width": 2.4
   },
   {
-   "id": "creep_tree_a",
-   "x": 14,
-   "z": 4,
-   "width": 2.6
+   "id": "forest_tree_a",
+   "x": 6,
+   "z": 15,
+   "width": 2.4
   },
   {
-   "id": "creep_tree_b",
-   "x": 15,
-   "z": 10,
-   "width": 2.6
+   "id": "forest_tree_b",
+   "x": 12,
+   "z": 2,
+   "width": 2.4
   },
   {
-   "id": "creep_tree_c",
-   "x": 10,
-   "z": 10,
-   "width": 2.6
+   "id": "forest_tree_c",
+   "x": 12,
+   "z": 17,
+   "width": 2.4
   },
   {
-   "id": "creep_tree_c",
-   "x": 20,
-   "z": 12,
-   "width": 2.6
+   "id": "forest_tree_a",
+   "x": 13,
+   "z": 9,
+   "width": 2.4
   },
   {
-   "id": "creep_tree_b",
+   "id": "forest_tree_b",
    "x": 18,
    "z": 16,
-   "width": 2.6
+   "width": 2.4
+  },
+  {
+   "id": "forest_tree_c",
+   "x": 23,
+   "z": 3,
+   "width": 2.4
+  },
+  {
+   "id": "forest_tree_a",
+   "x": 24,
+   "z": 15,
+   "width": 2.4
+  },
+  {
+   "id": "forest_tree_b",
+   "x": 27,
+   "z": 8,
+   "width": 2.4
   }
  ],
  "forestEdges": true,
