@@ -12,8 +12,8 @@
   "maxRange": 1,
   "requiredRank": "E",
   "heal": 10,
-  "healExperience": 20,
-  "maxUses": 6,
+  "healExperience": 25,
+  "maxUses": 10,
   "effect": [],
   "sound": "magic",
   "sprite": "assets/weapons/Heal_Staff/heal_staff.svg"

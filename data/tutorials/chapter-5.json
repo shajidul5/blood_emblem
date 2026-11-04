@@ -53,8 +53,8 @@
         "title": "Seymour Joins",
         "paragraphs": [
           "Seymour is a Priest. He cannot attack, but with his Heal Staff he restores an adjacent ally's HP (10 plus his Magic). Choose Heal from his action menu while standing next to a wounded ally.",
-          "Every heal earns him a flat 20 EXP, so keep him busy. Stronger staves later in the game will grant more.",
-          "Healing and magic are limited. His Heal Staff has 6 uses and each anima tome has 10, spent once per fight. They are all refilled at the start of every chapter."
+          "Every heal earns him a flat 25 EXP, so keep him busy. Stronger staves later in the game will grant more.",
+          "Healing and magic are limited. His Heal Staff has 10 uses and each anima tome has 10, spent once per fight. They are all refilled at the start of every chapter."
         ],
         "button": "Continue"
       }
