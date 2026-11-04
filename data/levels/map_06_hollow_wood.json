@@ -141,7 +141,7 @@
  ],
  "reinforcements": [
   {
-   "turn": 3,
+   "turn": 5,
    "units": [
     {
      "id": "feral-wolf",
@@ -167,7 +167,7 @@
    ]
   },
   {
-   "turn": 6,
+   "turn": 10,
    "units": [
     {
      "id": "feral-wolf",
@@ -188,110 +188,6 @@
      "level": 16,
      "x": 15,
      "z": 11,
-     "ai": "mobile"
-    }
-   ]
-  },
-  {
-   "turn": 9,
-   "units": [
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 19,
-     "z": 3,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 15,
-     "z": 6,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 11,
-     "z": 3,
-     "ai": "mobile"
-    }
-   ]
-  },
-  {
-   "turn": 12,
-   "units": [
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 19,
-     "z": 15,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 15,
-     "z": 11,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 12,
-     "z": 14,
-     "ai": "mobile"
-    }
-   ]
-  },
-  {
-   "turn": 15,
-   "units": [
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 15,
-     "z": 6,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 11,
-     "z": 3,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 19,
-     "z": 3,
-     "ai": "mobile"
-    }
-   ]
-  },
-  {
-   "turn": 18,
-   "units": [
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 15,
-     "z": 11,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 12,
-     "z": 14,
-     "ai": "mobile"
-    },
-    {
-     "id": "feral-wolf",
-     "level": 16,
-     "x": 19,
-     "z": 15,
      "ai": "mobile"
     }
    ]
