@@ -11,6 +11,7 @@ import waterRippleUrl from '../../assets/tiles/ocean_ripple/water_ripple.png?url
 import mastUrl from '../../assets/tiles/ship_oblique/mast.png?url';
 import greyHouseUrl from '../../assets/tiles/Grey_house/rotations/Grey_house.png?url';
 import greyHouseNoEntryUrl from '../../assets/tiles/Grey_house_No_entry/rotations/Grey_house_No_entry.png?url';
+const creepTreeUrls = import.meta.glob('../../assets/tiles/Creep_Trees/*.png', { eager: true, query: '?url', import: 'default' });
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
 import { getTileDef, isTileWalkable, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
 
@@ -164,6 +165,10 @@ const [shipTilesImage, waterRippleImage, shipObjectsImage, mastImage, greyHouseI
   loadImage(greyHouseNoEntryUrl),
   loadImage(chestUrl),
 ]);
+
+const creepTreeImages = new Map(await Promise.all(Object.entries(creepTreeUrls).map(
+  async ([path, url]) => [path.split('/').pop().replace('.png', ''), await loadImage(url)],
+)));
 
 function atlasTexture(THREE, image, atlas, id) {
   const tile = atlas.list.find((entry) => entry.id === id);
@@ -585,6 +590,9 @@ export function validateLevel(value) {
     reinforcements: normalizedReinforcements,
     tiles: tileIds,
     tileIds,
+    trees: (Array.isArray(value.trees) ? value.trees : []).filter((tree) =>
+      creepTreeImages.has(tree?.id) && Number.isInteger(tree.x) && Number.isInteger(tree.z) &&
+      tree.x >= 0 && tree.x < width && tree.z >= 0 && tree.z < height),
     objects: objects.map((object) => ({
       x: object.x,
       z: object.z ?? object.y,
@@ -824,6 +832,8 @@ export function buildLevel(THREE, levelGroup, value) {
           atlasId = ringDistance <= level.groundRing
             ? GROUND_RING_TILES[((Math.imul(x + 101, 73856093) ^ Math.imul(z + 101, 19349663)) >>> 0) % GROUND_RING_TILES.length]
             : forestTileAt(x, z);
+          // Only in-map cover tiles glow, so out-of-bounds undergrowth is drawn as plain trees.
+          if (getTileDef(atlasId).moveCost > 1) atlasId = 'tree_c';
         }
         if (!tileGroups.has(atlasId)) tileGroups.set(atlasId, []);
         tileGroups.get(atlasId).push({
@@ -845,6 +855,7 @@ export function buildLevel(THREE, levelGroup, value) {
       : VILLAGE_GRAVEL_TILE_IDS.has(atlasId)
         ? gravelTexture(THREE, atlasId)
         : atlasTexture(THREE, shipTilesImage, shipTileset.tiles, atlasId);
+    const cover = !isWater && !VILLAGE_GRAVEL_TILE_IDS.has(atlasId) && getTileDef(atlasId).moveCost > 1;
     const material = isWater
       ? createWaterMaterial(THREE, texture)
       : new THREE.MeshStandardMaterial({
@@ -853,6 +864,8 @@ export function buildLevel(THREE, levelGroup, value) {
         transparent: true,
         alphaTest: 0.08,
         side: THREE.DoubleSide,
+        // Cover tiles glow a sickly green so players can spot the avoid/defense ground at a glance.
+        ...(cover ? { emissive: 0x39ff7a, emissiveMap: texture, emissiveIntensity: 0.85, color: 0x9dffb0 } : {}),
       });
     const instances = new THREE.InstancedMesh(geometry, material, cells.length);
     const transform = new THREE.Object3D();
@@ -971,6 +984,34 @@ export function buildLevel(THREE, levelGroup, value) {
     }
     sprite.userData.blocksMovement = atlasObject.blocksMovement;
     levelGroup.add(sprite);
+  }
+
+  // Creepy forest trees tower over their tile; the sprite's base sits at the front edge like other props.
+  const treeMaterials = new Map();
+  for (const tree of level.trees ?? []) {
+    const image = creepTreeImages.get(tree.id);
+    if (!treeMaterials.has(tree.id)) {
+      const treeTexture = new THREE.Texture(image);
+      treeTexture.magFilter = THREE.NearestFilter;
+      treeTexture.minFilter = THREE.NearestFilter;
+      treeTexture.generateMipmaps = false;
+      treeTexture.colorSpace = THREE.SRGBColorSpace;
+      treeTexture.needsUpdate = true;
+      treeMaterials.set(tree.id, new THREE.MeshBasicMaterial({
+        map: treeTexture,
+        color: 0xd9c6c6,
+        alphaTest: 0.1,
+        side: THREE.DoubleSide,
+      }));
+    }
+    const treeWidth = tree.width ?? 2.4;
+    const treeGeometry = new THREE.PlaneGeometry(treeWidth, treeWidth * image.height / image.width);
+    treeGeometry.translate(0, treeGeometry.parameters.height / 2, 0);
+    const treeSprite = new THREE.Mesh(treeGeometry, treeMaterials.get(tree.id));
+    treeSprite.rotation.x = -OBJECT_TILT;
+    treeSprite.position.set(tree.x - level.width / 2 + 0.5, 0.12, tree.z - level.height / 2 + 0.85);
+    treeSprite.renderOrder = 3;
+    levelGroup.add(treeSprite);
   }
 
   const greyHouseTexture = new THREE.Texture(greyHouseImage);

@@ -25,7 +25,7 @@
         "kicker": "Terrain",
         "title": "Dense Undergrowth",
         "paragraphs": [
-          "Patches of thick undergrowth give +20 Avoid and +2 Defense, but cost an extra point of movement to enter. Hold them yourself and the wolves will struggle to land a hit. Beware that wolves standing in them are harder to hit as well.",
+          "Patches of thick undergrowth glow green. They give +20 Avoid and +2 Defense, but cost an extra point of movement to enter. Hold them yourself and the wolves will struggle to land a hit, but wolves standing in them are harder to hit as well.",
           "Select a tile to inspect it. Whatever waits in the clearing carries something that may be worth the fight."
         ],
         "button": "Enter the Wood"
