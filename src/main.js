@@ -918,7 +918,7 @@ function deployTeam(level, carry = null) {
   const origin = placements[0];
   // Carried-over allies the map doesn't list (e.g. recruited mid-game) still join, beside the first unit.
   for (const saved of carry?.allies ?? []) {
-    if (!roster[saved.id] || placements.some((placement) => placement.id === saved.id) || saved.stats?.hp <= 0) continue;
+    if (!roster[saved.id] || placements.some((placement) => placement.id === saved.id)) continue;
     let best = null;
     for (let z = 0; z < level.height; z++) {
       for (let x = 0; x < level.width; x++) {
