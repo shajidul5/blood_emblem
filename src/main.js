@@ -3597,6 +3597,8 @@ window.addEventListener('keydown', (event) => {
     finishUnit();
   } else if (event.code === 'KeyE') {
     endPlayerPhase();
+  } else if (event.code === 'KeyR') {
+    enemyRangeToggle.click();
   }
 });
 

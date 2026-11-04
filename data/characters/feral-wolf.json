@@ -16,7 +16,7 @@
                       "dexterity":  14,
                       "speed":  14,
                       "luck":  3,
-                      "defense":  6,
+                      "defense":  2,
                       "resistance":  3,
                       "movement":  6,
                       "build":  5
@@ -28,7 +28,7 @@
                          "dexterity":  14,
                          "speed":  14,
                          "luck":  3,
-                         "defense":  6,
+                         "defense":  2,
                          "resistance":  3,
                          "movement":  6,
                          "build":  5
