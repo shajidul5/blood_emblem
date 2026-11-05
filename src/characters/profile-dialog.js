@@ -106,7 +106,7 @@ export function createProfileDialog(dialog) {
       weaponDetails.append(item);
     }
     dialog.querySelector('#profile-combat-note').textContent =
-      'Displayed Hit = weapon Hit + 2×Dexterity + floor(Luck/2) + weapon level Hit − enemy Avoid, clamped to 0–100. Avoid = 2×Attack Speed + Luck + terrain Avoid + weapon level Avoid. Each hit earns 1 weapon EXP. Actual Hit averages two random rolls. Terrain Defense reduces physical damage. Doubles at a 4+ Attack Speed advantage.';
+      'Displayed Hit = weapon Hit + 2×Dexterity + floor(Luck/2) + weapon level Hit − enemy Avoid, clamped to 0–100. Avoid = 2×Attack Speed + Luck + terrain Avoid + weapon level Avoid. Attack Speed = Speed − max(0, weapon Weight − Build). Each hit earns 1 weapon EXP. Actual Hit averages two random rolls. Terrain Defense reduces physical damage. Doubles at a 4+ Attack Speed advantage.';
     dialog.showModal();
   }
 

@@ -3331,7 +3331,6 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     setMessage(`Choose a valid target within ${weaponRangeLabel(player.weapon)} range.`);
     return;
   }
-  spendWeaponUse(player);
   player.facing = getFacing(target.x - player.x, target.z - player.z);
   player.moveOrigin = null;
   gameState.mode = 'combat';
@@ -3347,6 +3346,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   const playerAttackCount = playerVolleys * getStrikesPerAttack(player);
   const hitRate = getHitRate(player, target, terrain);
   const criticalRate = getCriticalRate(player, target);
+  // Spend the use only after the forecast is locked in, so a tome's final use still strikes.
+  spendWeaponUse(player);
   const playerStrikeResults = Array.from({ length: playerAttackCount }, () => {
     const hit = rollHit(hitRate);
     return { hit, critical: hit && rollCritical(criticalRate) };

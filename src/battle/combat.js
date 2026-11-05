@@ -15,8 +15,9 @@ export function canAttack(unit) {
   return !(entry && Number.isInteger(entry.uses) && entry.uses <= 0);
 }
 
+// Build only offsets weapon weight; it never adds speed beyond the unit's own Speed.
 export function attackSpeed(unit) {
-  return unit.speed - (unit.weapon?.weight ?? 0) + unit.build;
+  return unit.speed - Math.max(0, (unit.weapon?.weight ?? 0) - (unit.build ?? 0));
 }
 
 // +1 when `weapon` beats `opposing`, -1 when it loses, 0 otherwise. Physical weapons only.

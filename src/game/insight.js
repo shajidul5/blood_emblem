@@ -3,6 +3,8 @@ import { INVENTORY_ITEMS } from '../characters/inventory.js';
 
 export const BOSS_INSIGHT = data.bossInsight;
 export const MAX_LEADERSHIP = data.leadership.costs.length;
+export const LEADERSHIP_HIT = data.leadership.hit;
+export const LEADERSHIP_AVOID = data.leadership.avoid;
 export const MAX_WEAPON_TIER = data.weaponCosts.length;
 export const FIRST_PREP_CHAPTER = data.firstPrepChapter;
 export const AWAKEN = data.awaken;
@@ -12,7 +14,9 @@ const STAT_LABELS = { might: 'Might', hit: 'Hit', critical: 'Crit', heal: 'Heal'
 const BASE_FIELDS = ['name', 'might', 'hit', 'critical', 'heal', 'maxRange'];
 const baseWeapons = new Map();
 
-const freshState = () => ({ insight: 0, leadership: 0, tiers: {}, awakened: false, bloodEmblem: false, bloodEmblemEquipped: false });
+const freshState = () => ({ insight: 0, leadership: 0, leadershipPaid: [], tiers: {}, awakened: false, bloodEmblem: false, bloodEmblemEquipped: false });
+// Star prices before the leadership rebalance; saves that predate leadershipPaid were charged these.
+const LEGACY_LEADERSHIP_COSTS = [2, 3, 4, 5, 6];
 let state = freshState();
 
 const clampInt = (value, min, max) => (Number.isInteger(value) ? Math.max(min, Math.min(max, value)) : min);
@@ -62,7 +66,7 @@ export function healBloodEmblemKill(unit) {
 }
 
 export function snapshotInsight() {
-  return { ...state, tiers: { ...state.tiers } };
+  return { ...state, leadershipPaid: [...state.leadershipPaid], tiers: { ...state.tiers } };
 }
 
 // Tolerates missing or hand-edited data: anything unrecognised falls back to nothing spent.
@@ -71,6 +75,9 @@ export function restoreInsight(snapshot) {
   if (snapshot && typeof snapshot === 'object') {
     state.insight = clampInt(snapshot.insight, 0, 9999);
     state.leadership = clampInt(snapshot.leadership, 0, MAX_LEADERSHIP);
+    const paid = Array.isArray(snapshot.leadershipPaid) ? snapshot.leadershipPaid : LEGACY_LEADERSHIP_COSTS;
+    state.leadershipPaid = Array.from({ length: state.leadership }, (_, i) =>
+      clampInt(paid[i], 0, data.leadership.costs[i]));
     for (const id of Object.keys(data.weapons)) {
       const tier = clampInt(snapshot.tiers?.[id], 0, MAX_WEAPON_TIER);
       if (tier) state.tiers[id] = tier;
@@ -97,6 +104,7 @@ export function buyLeadership() {
   const cost = leadershipCost();
   if (cost === undefined || state.insight < cost) return false;
   state.insight -= cost;
+  state.leadershipPaid.push(cost);
   state.leadership++;
   return true;
 }
@@ -104,7 +112,7 @@ export function buyLeadership() {
 export function refundLeadership() {
   if (!state.leadership) return false;
   state.leadership--;
-  state.insight += data.leadership.costs[state.leadership];
+  state.insight += state.leadershipPaid.pop() ?? 0;
   return true;
 }
 

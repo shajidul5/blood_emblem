@@ -141,9 +141,24 @@ test('rescued and fallen civilians are no longer active targets', () => {
 test('party leadership does not apply to neutral civilians or unrecruited Linus', () => {
   insight.restoreInsight({ leadership: 2 });
   const linus = characters.createLinusAlly();
-  assert.equal(insight.leadershipBonus(linus, 'avoid'), 10);
+  assert.equal(insight.leadershipBonus(linus, 'avoid'), 6);
   assert.equal(insight.leadershipBonus({ ...linus, neutral: true }, 'avoid'), 0);
   assert.equal(insight.leadershipBonus(characters.createVillager('ada', 'Ada'), 'avoid'), 0);
+  insight.restoreInsight(null);
+});
+
+test('leadership stars cost more and refund exactly what was paid, including older saves', () => {
+  insight.restoreInsight({ insight: 0, leadership: 5 });
+  for (let i = 0; i < 5; i++) assert.equal(insight.refundLeadership(), true);
+  assert.equal(insight.getInsight(), 20);
+
+  insight.restoreInsight({ insight: 10 });
+  assert.equal(insight.leadershipCost(), 4);
+  assert.equal(insight.buyLeadership(), true);
+  assert.equal(insight.leadershipCost(), 6);
+  insight.restoreInsight(insight.snapshotInsight());
+  assert.equal(insight.refundLeadership(), true);
+  assert.equal(insight.getInsight(), 10);
   insight.restoreInsight(null);
 });
 

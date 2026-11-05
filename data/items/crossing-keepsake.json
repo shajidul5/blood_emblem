@@ -7,5 +7,5 @@
   "description": "A token entrusted to you by the three survivors. Reading its inscription grants 10 Insight.",
   "lore": "Three names are scratched into a small seal. Below them, in a different hand: 'Someone turned back for us.'",
   "maxUses": 1,
-  "sprite": "assets/items/Blood_Emblem/blood_emblem.png"
+  "sprite": "assets/items/Crossing_Note/crossing_note.png"
 }

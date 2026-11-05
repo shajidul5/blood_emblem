@@ -5,7 +5,7 @@
   "damageType": "physical",
   "might": 10,
   "weight": 0,
-  "hit": 85,
+  "hit": 105,
   "critical": 5,
   "minRange": 1,
   "maxRange": 2,

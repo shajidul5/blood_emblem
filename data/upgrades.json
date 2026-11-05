@@ -2,7 +2,7 @@
   "firstPrepChapter": 5,
   "bossInsight": 5,
   "weaponCosts": [3, 5, 8],
-  "leadership": { "costs": [2, 3, 4, 5, 6], "hit": 5, "avoid": 5 },
+  "leadership": { "costs": [4, 6, 8, 10, 12], "hit": 3, "avoid": 3 },
   "awaken": { "weaponId": "rapier", "into": "raikiri", "cost": 1 },
   "bloodEmblem": { "cost": 30, "healOnKill": 10 },
   "weapons": {
@@ -11,6 +11,7 @@
     "light-tome": [{ "might": 1, "hit": 5 }, { "might": 1, "hit": 5 }, { "might": 2, "hit": 5 }],
     "heal-staff": [{ "heal": 3 }, { "maxRange": 1 }, { "heal": 4 }],
     "freeze-staff": [{ "hit": 10 }, { "hit": 10 }, { "hit": 10 }],
-    "rapier": [{ "might": 1, "hit": 5 }, { "might": 1, "critical": 5 }, { "might": 1, "hit": 5 }]
+    "rapier": [{ "might": 1, "hit": 5 }, { "might": 1, "critical": 5 }, { "might": 1, "hit": 5 }],
+    "wind-tome": [{ "might": 1, "hit": 5 }, { "might": 1, "critical": 5 }, { "might": 1, "hit": 5 }]
   }
 }

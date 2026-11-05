@@ -1,5 +1,5 @@
 import {
-  AWAKEN, MAX_LEADERSHIP, MAX_WEAPON_TIER, awaken, buyLeadership, canAwaken, describeTierBonus, getInsight,
+  AWAKEN, LEADERSHIP_AVOID, LEADERSHIP_HIT, MAX_LEADERSHIP, MAX_WEAPON_TIER, awaken, buyLeadership, canAwaken, describeTierBonus, getInsight,
   getLeadership, isAwakened, leadershipCost, nextWeaponCost, refundLeadership, refundWeapon, revertAwakening,
   upgradableWeaponIds, upgradeWeapon, weaponTier,
   BLOOD_EMBLEM, bloodEmblemDescription, buyBloodEmblem, isBloodEmblemEquipped, isBloodEmblemUpgraded,
@@ -131,7 +131,7 @@ export function createPrepMenu({
     onChange();
   };
 
-  const entryRow = (entry, actions = []) => {
+  const entryRow = (entry, actions = [], showLore = false) => {
     const item = items.get(entry.id);
     const row = el('li');
     const info = el('div', 'item-info');
@@ -147,6 +147,7 @@ export function createPrepMenu({
     text.append(el('strong', '', item?.name ?? entry.id));
     if (entry.id === 'blood-emblem') text.append(el('span', 'item-effect', bloodEmblemDescription()));
     else if (Number.isInteger(entry.uses)) text.append(el('span', '', `Uses: ${entry.uses}`));
+    if (showLore && item?.lore) text.append(el('span', 'item-lore', item.lore));
     info.append(text);
     row.append(info);
     const box = el('div', 'prep-actions');
@@ -180,13 +181,13 @@ export function createPrepMenu({
     return node;
   };
 
-  const column = (title, entries, rowFor, footerButtons = []) => {
+  const column = (title, entries, rowFor, footerButtons = [], showLore = false) => {
     const section = el('section', 'prep-column');
     const head = el('div', 'prep-subhead');
     head.append(el('h3', '', title), ...footerButtons);
     section.append(head);
     const list = el('ul', 'item-list');
-    for (const entry of entries) list.append(entryRow(entry, rowFor(entry)));
+    for (const entry of entries) list.append(entryRow(entry, rowFor(entry), showLore));
     if (!entries.length) list.append(el('li', '', 'Empty.'));
     section.append(list);
     return section;
@@ -283,7 +284,7 @@ export function createPrepMenu({
       return canUse(unit, item)
         ? [button(item.insight ? 'Read' : 'Use', () => useEntry(unit, entry, unit))]
         : [];
-    }));
+    }, [], true));
   };
 
   const renderTradePick = (body) => {
@@ -373,7 +374,7 @@ export function createPrepMenu({
     const stars = getLeadership();
     list.append(upgradeRow(
       'Maria · Leadership',
-      `Each star gives the whole party +5 Hit and +5 Avoid (now +${stars * 5}).`,
+      `Each star gives the whole party +${LEADERSHIP_HIT} Hit and +${LEADERSHIP_AVOID} Avoid (now +${stars * LEADERSHIP_HIT} Hit, +${stars * LEADERSHIP_AVOID} Avoid).`,
       '★'.repeat(stars) + '☆'.repeat(MAX_LEADERSHIP - stars),
       [
         button(`Buy (${costLabel(leadershipCost())})`, () => { buyLeadership(); onChange(); },

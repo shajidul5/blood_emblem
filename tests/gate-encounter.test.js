@@ -257,7 +257,7 @@ test('ravens fly over water, sandbags and parapets while ground units cannot', (
   assert.ok(raven.maxHp < 30 && raven.defense < 8);
 });
 
-test('every bow and Gale deals exactly triple effective might to flying units, not Fire', () => {
+test('every bow and Wind deals exactly triple effective might to flying units, not Fire', () => {
   const raven = characters.createEnemyUnit('raven', 1, 8);
   for (const weapon of inventory.INVENTORY_ITEMS.values()) {
     if (weapon.type !== 'Bow' && weapon.id !== 'wind-tome') continue;
@@ -267,6 +267,48 @@ test('every bow and Gale deals exactly triple effective might to flying units, n
     assert.equal(combat.isWeaponEffective(attacker, characters.createEnemyUnit('golden-knight', 5, 8)), false);
   }
   assert.equal(combat.isWeaponEffective(characters.createEnemyUnit('golden-mage', 7, 8), raven), false);
+});
+
+test('Wind is the lightest, most accurate and weakest anima tome, and can be upgraded', async () => {
+  const insight = await server.ssrLoadModule('/src/game/insight.js');
+  const tome = (id) => inventory.INVENTORY_ITEMS.get(id);
+  const wind = tome('wind-tome');
+  assert.equal(wind.name, 'Wind');
+  for (const id of ['fire-tome', 'thunder-tome', 'light-tome']) {
+    assert.ok(wind.might < tome(id).might && wind.weight < tome(id).weight && wind.hit > tome(id).hit, id);
+  }
+  assert.equal(wind.minRange, 1);
+  assert.equal(insight.isUpgradable('wind-tome'), true);
+  insight.restoreInsight({ insight: 3 });
+  assert.equal(insight.upgradeWeapon('wind-tome'), true);
+  assert.equal(tome('wind-tome').might, 4);
+  insight.restoreInsight(null);
+  assert.equal(tome('wind-tome').might, 3);
+});
+
+test("a tome's final use still deals damage when the use is spent after the forecast", () => {
+  const cypher = characters.createCypherAlly();
+  const entry = cypher.inventory.find((candidate) => candidate.id === cypher.weapon.id);
+  entry.uses = 1;
+  const target = characters.createEnemyUnit('golden-knight', 0, 0);
+  const damage = combat.getCombatDamage(cypher, target);
+  assert.ok(damage > 0);
+  inventory.spendWeaponUse(cypher);
+  assert.equal(entry.uses, 0);
+  assert.equal(combat.canAttack(cypher), false);
+});
+
+test('the Blood Beast is a beast: Fire, bows and Ravagers are effective, and build never adds attack speed', () => {
+  const beast = characters.createEnemyUnit('blood-beast', 0, 0);
+  assert.equal(beast.type, 'beast');
+  assert.equal(combat.attackSpeed(beast), beast.speed);
+  assert.equal(combat.attackSpeed({ speed: 10, build: 3, weapon: { weight: 7 } }), 6);
+  assert.equal(combat.attackSpeed({ speed: 10, build: 9, weapon: { weight: 7 } }), 10);
+  assert.equal(combat.isWeaponEffective(characters.createCypherAlly(), beast), true);
+  assert.equal(combat.isWeaponEffective(characters.createStarkAlly(), beast), true);
+  assert.equal(combat.isWeaponEffective({ ...characters.createMaria(), classId: 'ravager' }, beast), true);
+  const bartz = { ...characters.createBartzAlly(), speed: 20 };
+  assert.equal(combat.getAttackCount(beast, bartz), 1);
 });
 
 test('raven waves are relative to the Beast encounter: four initially, two at +2, +4, +6 and no more', () => {
