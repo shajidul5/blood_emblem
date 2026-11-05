@@ -1,0 +1,11 @@
+{
+  "id": "alpha-fang",
+  "name": "Alpha's Fang",
+  "type": "consumable",
+  "effect": "speed-up",
+  "amount": 2,
+  "description": "Permanently raises Speed by 2.",
+  "lore": "A fang as long as a dagger, still warm. Whoever carries it moves with the pack's old hunger.",
+  "maxUses": 1,
+  "sprite": "assets/items/Alpha_Fang/alpha_fang.svg"
+}

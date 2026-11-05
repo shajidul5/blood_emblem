@@ -1,0 +1,17 @@
+{
+  "id": "heartroot",
+  "name": "Heartroot",
+  "classId": "heartroot",
+  "type": "beast",
+  "spriteSet": "heartroot",
+  "scale": 1.25,
+  "sprite": "assets/character/Heartroot/rotations/south.png",
+  "level": 10,
+  "experience": 0,
+  "weaponId": "heartroot-bark",
+  "isBoss": false,
+  "ai": "stationary",
+  "baseStats": { "hp": 45, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 3, "resistance": 0, "movement": 0, "build": 0 },
+  "currentStats": { "hp": 45, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 3, "resistance": 0, "movement": 0, "build": 0 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

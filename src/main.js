@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {
   getAttackCount,
+  getStrikeOrder,
+  getStrikesPerAttack,
   getAvoid,
   getCriticalRate,
   getCriticalDamage,
@@ -26,11 +28,12 @@ import {
   terrainMoveCost,
   tileKey,
 } from './battle/grid.js';
-import { createBartzAlly, createCypherAlly, createEnemyUnit, createMaria, createSeymourAlly } from './characters/characters.js';
+import { createBartzAlly, createCypherAlly, createEnemyUnit, createLinusAlly, createMaria, createSeymourAlly, createStarkAlly, createVillager, isBossEnemy } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
-import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit, getUsesMultiplier, getStaffRangeBonus } from './characters/classes.js';
+import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
+import { createRankUpDialog } from './characters/rank-up-dialog.js';
 import { createPromotionDialog, snapshotForPromotion } from './characters/promotion-dialog.js';
 import { createItemPopup } from './characters/item-popup.js';
 import { createTutorialPopup, PART_ONE_ENDING, setTutorialsEnabled, TRIANGLE_EFFECTS, tutorialsEnabled } from './game/tutorial.js';
@@ -39,6 +42,12 @@ import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js
 import { initializeUiSounds } from './audio/ui-sounds.js';
 import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
 import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses, rescaleMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
+import {
+  addInsight, bloodEmblemDescription, BOSS_INSIGHT, FIRST_PREP_CHAPTER, getInsight, healBloodEmblemKill,
+  isBloodEmblemEquipped, isBloodEmblemUpgraded, restoreInsight, snapshotInsight, toggleBloodEmblem,
+} from './game/insight.js';
+import { createPrepMenu } from './game/prep-menu.js';
+import { canRecruitLinus, escortPath, freshRescueState, isActiveVillager, rescueProgress, rescueRewardIds } from './game/rescue.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import {
   SAVE_SLOT_COUNT, copyCurrentSaveToSlot, createSaveData, describeSaveSlot, loadSlotIntoCurrentSave,
@@ -80,6 +89,39 @@ function blobShadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+const insightLabel = document.querySelector('#insight-label');
+
+function refreshInsightLabel() {
+  insightLabel.textContent = `Insight: ${getInsight()}`;
+  insightLabel.hidden = currentChapter === null || currentChapter < FIRST_PREP_CHAPTER;
+}
+
+function gainInsight(amount, source) {
+  addInsight(amount);
+  refreshInsightLabel();
+  insightLabel.classList.remove('gain');
+  void insightLabel.offsetWidth;
+  insightLabel.classList.add('gain');
+  setMessage(`Insight +${amount} (${source}).`);
+}
+
+// Reading an Insight item (Orsen's Journal) consumes it and pays out its Insight.
+function readInsightItem(unit, entry) {
+  const item = INVENTORY_ITEMS.get(entry.id);
+  const holder = unit ? unit.inventory : convoy;
+  const index = holder.indexOf(entry);
+  if (index < 0) return;
+  holder.splice(index, 1);
+  gainInsight(item.insight, item.name);
+  saveCurrentGame();
+}
+
+async function useInsightFromInventory(entry) {
+  readInsightItem(player, entry);
+  renderInventory();
+  inventoryDialog.querySelector('button:not(:disabled)')?.focus();
+}
+
 async function visitHouse() {
   if (!gameState.selected || gameState.phase !== 'player' || player.acted) return;
   const house = houseAvailableToVisit(player);
@@ -89,6 +131,16 @@ async function visitHouse() {
   }
   if (house.recruitId) {
     await recruitFromHouse(house);
+    return;
+  }
+  if (house.villagerId) {
+    const villager = rescueState.villagers.find((unit) => unit.id === house.villagerId);
+    if (!villager || !isActiveVillager(villager) || villager.status !== 'sheltered') return;
+    house.visited = true;
+    villager.status = 'escorting';
+    player.acted = true;
+    setMessage(`${player.name} reaches ${villager.name}. They will walk to the labeled green refuge on the west edge: up to 3 tiles before each enemy phase, then leave the map safely.`);
+    finishUnit();
     return;
   }
   const { item, toConvoy } = grantItem(player, house.rewardId);
@@ -128,6 +180,7 @@ async function recruitFromHouse(house) {
   Object.assign(recruit, { x: tile.x, z: tile.z, facing: 'south', hp: recruit.maxHp, moved: false, acted: false, moveOrigin: null });
   recruit.mesh.position.set(worldX(recruit.x), unitSpriteHeightAt(recruit.x, recruit.z), worldZ(recruit.z));
   playerTeam.push(recruit);
+  if (!fullTeam.includes(recruit)) fullTeam.push(recruit);
   setIdleSprite(recruit);
   setMessage(`${player.name} visited ${house.name}. ${recruit.name} joins the party!`);
   renderTacticalUi();
@@ -161,16 +214,16 @@ const pointerPosition = new THREE.Vector2();
 const deckPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.11);
 const raisedPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-function createNightBackdrop() {
+function createNightBackdrop(sunset = false) {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Could not create the night-sky backdrop.');
   const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#10182d');
-  gradient.addColorStop(0.55, '#26304a');
-  gradient.addColorStop(1, '#51415a');
+  gradient.addColorStop(0, sunset ? '#7698b6' : '#10182d');
+  gradient.addColorStop(0.55, sunset ? '#e9b87f' : '#26304a');
+  gradient.addColorStop(1, sunset ? '#f49055' : '#51415a');
   context.fillStyle = gradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
   let seed = 120319;
@@ -178,7 +231,7 @@ function createNightBackdrop() {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 0x100000000;
   };
-  for (let index = 0; index < 220; index++) {
+  for (let index = 0; index < (sunset ? 0 : 220); index++) {
     const radius = random() > 0.94 ? 2 : 1;
     context.globalAlpha = 0.35 + random() * 0.65;
     context.fillStyle = random() > 0.35 ? '#e2e8ff' : '#f7d8b1';
@@ -187,17 +240,18 @@ function createNightBackdrop() {
     context.fill();
   }
   context.globalAlpha = 1;
-  const moonGlow = context.createRadialGradient(790, 105, 10, 790, 105, 105);
-  moonGlow.addColorStop(0, 'rgba(217, 229, 255, .42)');
+  const orbY = sunset ? 330 : 105;
+  const moonGlow = context.createRadialGradient(790, orbY, 10, 790, orbY, 105);
+  moonGlow.addColorStop(0, sunset ? 'rgba(255, 202, 125, .65)' : 'rgba(217, 229, 255, .42)');
   moonGlow.addColorStop(1, 'rgba(217, 229, 255, 0)');
   context.fillStyle = moonGlow;
-  context.fillRect(680, 0, 220, 220);
-  context.fillStyle = '#e1e8f4';
+  context.fillRect(680, orbY - 105, 220, 220);
+  context.fillStyle = sunset ? '#ffe4a0' : '#e1e8f4';
   context.beginPath();
-  context.arc(790, 105, 34, 0, Math.PI * 2);
+  context.arc(790, orbY, 34, 0, Math.PI * 2);
   context.fill();
   context.fillStyle = 'rgba(95, 111, 143, .25)';
-  for (const [x, y, radius] of [[778, 94, 5], [803, 113, 7], [785, 122, 3]]) {
+  for (const [x, y, radius] of sunset ? [] : [[778, 94, 5], [803, 113, 7], [785, 122, 3]]) {
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2);
     context.fill();
@@ -227,6 +281,9 @@ function createNightBackdrop() {
 }
 
 const nightBackdrop = createNightBackdrop();
+const sunsetBackdrop = createNightBackdrop(true);
+sunsetBackdrop.visible = false;
+let activeBackdrop = nightBackdrop;
 
 // Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
 function pickFloorPoint(ray) {
@@ -244,7 +301,8 @@ const CAM_OFFSET = new THREE.Vector3(0, 14, 10);
 
 // ---------- Lighting ----------
 
-scene.add(new THREE.AmbientLight(0x4a3a66, 0.9));
+const ambient = new THREE.AmbientLight(0x4a3a66, 0.9);
+scene.add(ambient);
 
 const moon = new THREE.DirectionalLight(0x9fb4ff, 0.8);
 moon.position.set(-8, 14, 6);
@@ -259,6 +317,20 @@ scene.add(moon);
 const torch = new THREE.PointLight(0xff7a3c, 40, 12, 2);
 torch.castShadow = true;
 scene.add(torch);
+
+function applyLevelLighting() {
+  const sunset = activeLevel.lighting === 'sunset';
+  ambient.color.setHex(sunset ? 0xffdfbb : 0x4a3a66);
+  ambient.intensity = sunset ? 1.5 : 0.9;
+  moon.color.setHex(sunset ? 0xffae68 : 0x9fb4ff);
+  moon.intensity = sunset ? 1.8 : 0.8;
+  moon.position.set(sunset ? -18 : -8, sunset ? 10 : 14, 6);
+  scene.background.setHex(sunset ? 0xe9b87f : 0x0b0710);
+  scene.fog.color.copy(scene.background);
+  nightBackdrop.visible = !sunset;
+  sunsetBackdrop.visible = sunset;
+  activeBackdrop = sunset ? sunsetBackdrop : nightBackdrop;
+}
 
 // ---------- Level loading and world ----------
 
@@ -291,6 +363,10 @@ const profileDialog = document.querySelector('#profile-dialog');
 const inventoryDialog = document.querySelector('#inventory-dialog');
 const experienceDisplay = createExperienceDisplay(document.querySelector('#exp-panel'));
 const levelUpDialogUi = createLevelUpDialog(document.querySelector('#level-up-dialog'));
+const pendingRankUps = [];
+const weaponTypeIcon = (type) => [...INVENTORY_ITEMS.values()]
+  .find((item) => item.itemType === 'weapon' && item.type === type && item.spriteUrl)?.spriteUrl;
+const rankUpDialogUi = createRankUpDialog(document.querySelector('#rank-up-dialog'), weaponTypeIcon);
 const promotionDialogUi = createPromotionDialog(document.querySelector('#promotion-dialog'));
 const itemPopup = createItemPopup(document.querySelector('#item-popup-dialog'));
 const tutorialPopup = createTutorialPopup(document.querySelector('#tutorial-dialog'), {
@@ -301,7 +377,7 @@ const tutorialProgress = { active: false, running: false, intro: true, potion: t
 
 function resetTutorials(chapter) {
   Object.assign(tutorialProgress, {
-    active: chapter !== null && chapter <= 5,
+    active: chapter !== null && chapter <= 8,
     chapter,
     running: false,
     intro: false,
@@ -334,7 +410,7 @@ async function runTutorials() {
   try {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
-      await tutorialPopup.show(['intro', 'boarders', 'village', 'mansion', 'escape', 'forest'][tutorialProgress.chapter], TRIANGLE_EFFECTS);
+      await tutorialPopup.show(['intro', 'boarders', 'village', 'mansion', 'escape', 'forest', 'camp', 'heart', 'crossing'][tutorialProgress.chapter], TRIANGLE_EFFECTS);
     }
     if (!tutorialProgress.houses) {
       tutorialProgress.houses = true;
@@ -363,6 +439,72 @@ async function runTutorials() {
   }
 }
 
+let pendingPrep = false;
+let prepMenu = null;
+let mapViewActive = false;
+const MAX_DEPLOYED = 12;
+// Every unit available this chapter; playerTeam holds only the ones deployed to fight.
+let fullTeam = [];
+const MAP_VIEW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyI', 'KeyR']);
+
+function isDeployed(unit) {
+  return playerTeam.includes(unit);
+}
+
+function setDeployed(unit, on) {
+  if (unit === maria || on === isDeployed(unit) || (on && playerTeam.length >= MAX_DEPLOYED)) return;
+  const next = fullTeam.filter((member) => (member === unit ? on : isDeployed(member)));
+  playerTeam.length = 0;
+  playerTeam.push(...next);
+  player = playerTeam[0];
+  setCursor(player.x, player.z);
+  renderTacticalUi();
+}
+
+function startMapView() {
+  mapViewActive = true;
+  setCursor(player.x, player.z);
+  setMessage('Viewing the map. Move the cursor to look around, I for unit info, R for enemy ranges. Press Esc to return.');
+  renderTacticalUi();
+}
+
+function endMapView() {
+  mapViewActive = false;
+  setCursor(player.x, player.z);
+  prepMenu.resume();
+}
+
+async function openPrepMenu() {
+  prepMenu ??= createPrepMenu({
+    dialog: document.querySelector('#prep-dialog'),
+    getTeam: () => fullTeam,
+    getConvoy: () => convoy,
+    items: INVENTORY_ITEMS,
+    statItems: STAT_ITEM_EFFECTS,
+    readInsight: readInsightItem,
+    maxSize: MAX_INVENTORY_SIZE,
+    maxDeployed: MAX_DEPLOYED,
+    settle: settleTradedWeapons,
+    isDeployed,
+    setDeployed,
+    portrait: portraitUrl,
+    getInfo: () => ({ chapter: activeLevel.name, objective: objectiveDescription() }),
+    onProfile: (unit) => openUnitProfile(unit),
+    onSave: () => saveCurrentGame(),
+    onOptions: () => openOptionsMenu(),
+    onViewMap: startMapView,
+    onChange: () => {
+      prepMenu.refresh();
+      refreshInsightLabel();
+      renderTacticalUi();
+      saveCurrentGame();
+    },
+  });
+  await prepMenu.show();
+  refreshInsightLabel();
+  renderTacticalUi();
+}
+
 // Hands the level's starting items to every unit and announces each pickup in turn.
 function grantStartingItems(team) {
   const receipts = [];
@@ -370,6 +512,11 @@ function grantStartingItems(team) {
     for (const unit of team) receipts.push({ unit, ...grantItem(unit, itemId) });
   }
   window.setTimeout(async () => {
+    if (pendingPrep) {
+      pendingPrep = false;
+      await openPrepMenu();
+      if (!sessionStarted) return;
+    }
     await runTutorials();
     if (receipts.length) await itemPopup.show(receipts);
   }, 700);
@@ -378,10 +525,13 @@ const profileDialogUi = createProfileDialog(profileDialog);
 const maria = createMaria();
 const cypher = createCypherAlly();
 const seymour = createSeymourAlly();
+const stark = createStarkAlly();
+const linus = createLinusAlly();
 let player = maria;
 const playerTeam = [maria];
 experienceDisplay.reset(player.level, player.experience);
 let activeLevel;
+let rescueState = null;
 let sessionStarted = false;
 let levelGroup = new THREE.Group();
 const tacticalOverlay = new THREE.Group();
@@ -445,6 +595,7 @@ function setLevelStatus(message, isError = false) {
 
 const initialLevel = await loadInitialLevel(setLevelStatus);
 activeLevel = buildLevel(THREE, levelGroup, initialLevel);
+applyLevelLighting();
 player.x = initialLevel.spawn.x;
 player.z = initialLevel.spawn.z;
 cursor.x = player.x;
@@ -459,7 +610,7 @@ function unitSpriteHeightAt(x, z) {
 }
 
 function unitTextures(unit) {
-  const set = unit.spriteSet;
+  const set = weaponSpriteSet(unit);
   return {
     idle: characterSprites[set],
     walking: characterSprites[`${set}WalkingFrames`],
@@ -570,6 +721,8 @@ const bartz = createBartzAlly();
 createUnitMesh(bartz, 0);
 createUnitMesh(cypher, 0);
 createUnitMesh(seymour, 0);
+createUnitMesh(stark, 0);
+createUnitMesh(linus, 0);
 let currentChapter = 0;
 let chapterStart = null;
 const cursorPlaneGeometry = new THREE.PlaneGeometry(1, 1);
@@ -763,7 +916,7 @@ function showPhaseBanner(phase, turn) {
 resetEnemies();
 
 function saveCurrentGame() {
-  if (!sessionStarted) return;
+  if (!sessionStarted) return false;
   try {
     writeSave(createSaveData(
       activeLevel,
@@ -771,17 +924,22 @@ function saveCurrentGame() {
       enemies,
       gameState,
       {
-        allies: playerTeam.filter((unit) => unit !== maria),
+        allies: fullTeam.filter((unit) => unit !== maria),
+        isBenched: (unit) => !playerTeam.includes(unit),
         convoy,
         chapter: currentChapter,
         chapterStart,
+        insight: snapshotInsight(),
+        rescue: snapshotRescue(),
       },
     ));
     if (!mainMenu.hidden) menuStatus.textContent = 'Game saved in this browser.';
+    return true;
   } catch (error) {
     console.error('Unable to save game:', error);
     setLevelStatus(`Could not save game: ${error.message}`, true);
     menuStatus.textContent = `Could not save game: ${error.message}`;
+    return false;
   }
 }
 
@@ -804,8 +962,10 @@ function hasPendingReinforcements() {
 }
 
 function checkDefeatAllVictory() {
+  if (activeLevel.objective === 'rescue-villagers') return checkRescueVictory();
   if (activeLevel.objective === 'defeat-boss') {
     if (enemies.some((enemy) => enemy.isBoss)) return false;
+    if (activeLevel.reinforcements.some((wave) => !wave.spawned && wave.units.some((unit) => isBossEnemy(unit.id)))) return false;
     completeVictory('The boss has fallen. The objective is complete.');
     return true;
   }
@@ -819,8 +979,56 @@ function checkDefeatAllVictory() {
 }
 
 function objectiveDescription(level = activeLevel) {
+  if (level.objective === 'rescue-villagers') {
+    const progress = rescueState ? rescueProgress(rescueState) : { rescued: 0, lost: 0 };
+    return `Rescue villagers (${progress.rescued}/3 safe, ${progress.lost} lost), clear beasts, defeat captain, Maria to bridge`;
+  }
   if (level.objective === 'escape') return 'Get every unit to the marked exit';
-  return level.objective === 'defeat-boss' ? 'Defeat the boss' : 'Kill all enemies';
+  if (level.objective === 'defeat-boss') {
+    const roots = level.heartroots ? enemies.filter((enemy) => enemy.id === 'heartroot').length : 0;
+    return roots ? `Defeat the boss (Heartroots left: ${roots})` : 'Defeat the boss';
+  }
+  return 'Kill all enemies';
+}
+
+function heartrootBoss() {
+  const rules = activeLevel.heartroots;
+  return rules ? enemies.find((enemy) => enemy.id === rules.bossId) : undefined;
+}
+
+// Idempotent: the boss gains strength and movement for every Heartroot destroyed so far.
+function syncHeartrootFrenzy() {
+  const rules = activeLevel.heartroots;
+  const boss = heartrootBoss();
+  if (!rules || !boss) return false;
+  const total = activeLevel.enemies.filter((entry) => entry.id === 'heartroot').length;
+  const destroyed = total - enemies.filter((enemy) => enemy.id === 'heartroot').length;
+  const applied = boss.frenzyLevel ?? 0;
+  if (destroyed === applied) return false;
+  boss.strength += (destroyed - applied) * rules.frenzyStrength;
+  boss.movement += (destroyed - applied) * rules.frenzyMovement;
+  boss.frenzyLevel = destroyed;
+  return destroyed > applied;
+}
+
+async function heartrootPhase() {
+  const rules = activeLevel.heartroots;
+  const boss = heartrootBoss();
+  if (!rules || !boss) return;
+  if (syncHeartrootFrenzy()) {
+    showCombatResult(boss, 'FRENZY', 'critical');
+    setMessage(`${boss.name} howls as a Heartroot dies. He is in a frenzy!`);
+    await wait(700);
+  }
+  const roots = enemies.filter((enemy) => enemy.id === 'heartroot').length;
+  const healed = Math.min(boss.maxHp - boss.hp, roots * rules.healPerRoot);
+  if (healed > 0) {
+    boss.hp += healed;
+    showCombatResult(boss, `+${healed}`, 'heal');
+    setMessage(`The Heartroots feed ${boss.name}. He recovers ${healed} HP.`);
+    renderTacticalUi();
+    await wait(700);
+  }
 }
 
 function hideTerminalScreen() {
@@ -865,13 +1073,23 @@ function completeVictory(message) {
   saveCurrentGame();
 }
 
+function partyDefeated() {
+  return playerTeam.every((unit) => unit.hp <= 0) || Boolean(activeLevel.rescue && maria.hp <= 0);
+}
+
+function gameOverMessage() {
+  return activeLevel.rescue && maria.hp <= 0
+    ? 'Maria has fallen. The road to Aldermere is lost.'
+    : 'The last light has died. The sea keeps what it claims.';
+}
+
 function completeGameOver() {
-  if (gameState.defeated || playerTeam.some((unit) => unit.hp > 0)) return;
+  if (gameState.defeated || !partyDefeated()) return;
   gameState.defeated = true;
   gameState.mode = 'terminal';
   gameState.selected = false;
   cameraFollowTarget = undefined;
-  const message = 'The last light has died. The sea keeps what it claims.';
+  const message = gameOverMessage();
   setMessage(message);
   renderTacticalUi();
   showTerminalScreen('game-over', message);
@@ -907,7 +1125,114 @@ function applyUnitSnapshot(unit, snapshot) {
   unit.hp = unit.maxHp;
 }
 
-const roster = { maria, bartz, cypher, seymour };
+const roster = { maria, bartz, cypher, seymour, stark, linus };
+
+function neutralUnits() {
+  if (!rescueState) return [];
+  return [
+    ...rescueState.villagers.filter(isActiveVillager),
+    ...(!rescueState.recruited && linus.hp > 0 ? [linus] : []),
+  ];
+}
+
+function defendingUnits() {
+  return [...playerTeam, ...neutralUnits()].filter((unit) => unit.hp > 0);
+}
+
+function snapshotRescue() {
+  if (!rescueState) return null;
+  return {
+    recruited: rescueState.recruited,
+    rewardsClaimed: rescueState.rewardsClaimed,
+    linus: { x: linus.x, z: linus.z, hp: linus.hp },
+    villagers: rescueState.villagers.map(({ id, x, z, hp, status }) => ({ id, x, z, hp, status })),
+  };
+}
+
+function initializeRescue(saved = null) {
+  pointerHoveredUnit = null;
+  for (const unit of rescueState?.villagers ?? []) {
+    scene.remove(unit.mesh);
+    unit.mesh.material.dispose();
+  }
+  rescueState = null;
+  if (!activeLevel.rescue) return;
+  const state = saved ?? freshRescueState(activeLevel);
+  rescueState = { ...state, villagers: [] };
+  if (!fullTeam.includes(linus)) Object.assign(linus, state.linus, { facing: 'south', neutral: true });
+  else rescueState.recruited = true;
+  for (const entry of state.villagers) {
+    const rule = activeLevel.rescue.villagers.find((villager) => villager.id === entry.id);
+    const unit = Object.assign(createVillager(entry.id, rule.name), entry);
+    createUnitMesh(unit);
+    unit.mesh.visible = isActiveVillager(unit);
+    rescueState.villagers.push(unit);
+  }
+  setIdleSprite(linus);
+}
+
+async function recruitLinus() {
+  if (!gameState.selected || gameState.mode !== 'unit' || gameState.phase !== 'player' ||
+    player.acted || !canRecruitLinus(player, linus, rescueState)) return;
+  rescueState.recruited = true;
+  linus.neutral = false;
+  linus.moved = false;
+  linus.acted = false;
+  playerTeam.push(linus);
+  fullTeam.push(linus);
+  player.acted = true;
+  gameState.mode = 'combat';
+  setMessage('Linus joins the party! His wounds remain; heal him before returning to the fight.');
+  renderTacticalUi();
+  await tutorialPopup.show('linus');
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+async function advanceVillagers() {
+  if (!rescueState) return;
+  for (const unit of rescueState.villagers.filter((villager) => villager.status === 'escorting')) {
+    const path = escortPath(unit, activeLevel.rescue.refuge, [...defendingUnits(), ...enemies], activeLevel);
+    if (path.length > 1) {
+      enemyMovement = { enemy: unit, path, startedAt: clock.elapsedTime, duration: (path.length - 1) * 0.18 };
+      await wait(enemyMovement.duration * 1000);
+      enemyMovement = undefined;
+      const tile = path.at(-1);
+      unit.x = tile.x;
+      unit.z = tile.z;
+      unit.mesh.position.set(worldX(unit.x), unitSpriteHeightAt(unit.x, unit.z), worldZ(unit.z));
+      setIdleSprite(unit);
+    }
+    if (activeLevel.rescue.refuge.some((tile) => tile.x === unit.x && tile.z === unit.z)) {
+      unit.status = 'rescued';
+      unit.mesh.visible = false;
+      showCombatResult(unit, 'SAFE', 'heal');
+      setMessage(activeLevel.rescue.villagers.find((entry) => entry.id === unit.id).farewell);
+      await wait(850);
+    } else if (path.length <= 1) {
+      setMessage(`${unit.name}'s escape route is blocked. Clear the path to the green refuge.`);
+      await wait(500);
+    }
+  }
+}
+
+function checkRescueVictory() {
+  if (!rescueState) return false;
+  if (gameState.phase === 'victory') return true;
+  const { rescued, lost, remaining } = rescueProgress(rescueState);
+  const bridge = activeLevel.exit;
+  if (remaining || hasPendingReinforcements() || enemies.some((unit) =>
+    unit.type === 'beast' || unit.id === activeLevel.rescue.captainId) ||
+    maria.hp <= 0 || maria.x !== bridge.x || maria.z !== bridge.z) return false;
+  const rewards = rescueState.rewardsClaimed ? [] : rescueRewardIds(activeLevel.rescue, rescued);
+  for (const id of rewards) grantItem(maria, id);
+  rescueState.rewardsClaimed = true;
+  const rewardNames = rewards.map((id) => INVENTORY_ITEMS.get(id).name).join(', ');
+  completeVictory(`The crossing is secured. ${rescued}/3 villagers rescued${lost ? `, ${lost} lost` : ''}. ${
+    rewardNames ? `Rescue rewards: ${rewardNames} (sent to the convoy if Maria's inventory was full). ` : ''
+  }Aldermere's gates wait beyond the bridge.`);
+  return true;
+}
 
 // Fields the level's listed player units (or Maria alone at the spawn point).
 function deployTeam(level, carry = null) {
@@ -953,10 +1278,10 @@ function deployTeam(level, carry = null) {
 
 function serializeCarry() {
   const allies = new Map((chapterStart?.allies ?? []).map((ally) => [ally.id, ally]));
-  for (const unit of playerTeam) {
+  for (const unit of new Set([...fullTeam, ...playerTeam])) {
     if (unit !== maria && roster[unit.id]) allies.set(unit.id, serializeUnit(unit));
   }
-  return { ...serializeUnit(maria), allies: [...allies.values()], convoy: convoy.map(({ id, uses }) => ({ id, uses })) };
+  return { ...serializeUnit(maria), allies: [...allies.values()], convoy: convoy.map(({ id, uses }) => ({ id, uses })), insight: snapshotInsight() };
 }
 
 function startLevel(level, { chapter = null, carry = null } = {}) {
@@ -969,17 +1294,24 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   Object.assign(bartz, createBartzAlly());
   Object.assign(cypher, createCypherAlly());
   Object.assign(seymour, createSeymourAlly());
+  Object.assign(stark, createStarkAlly());
+  Object.assign(linus, createLinusAlly());
   setConvoy(carry?.convoy);
+  restoreInsight(carry?.insight);
+  refreshInsightLabel();
+  pendingPrep = chapter !== null && chapter >= FIRST_PREP_CHAPTER;
   if (carry) {
     applyUnitSnapshot(maria, carry);
     for (const savedAlly of carry.allies ?? []) {
       if (roster[savedAlly.id] && roster[savedAlly.id] !== maria) applyUnitSnapshot(roster[savedAlly.id], savedAlly);
     }
   }
-  for (const unit of [maria, bartz, cypher, seymour]) refreshMagicUses(unit.inventory, unit);
+  for (const unit of [maria, bartz, cypher, seymour, stark]) refreshMagicUses(unit.inventory, unit);
   refreshMagicUses(convoy);
   activeLevel = buildLevel(THREE, levelGroup, level);
+  applyLevelLighting();
   const team = deployTeam(activeLevel, carry);
+  fullTeam = [...team];
   playerMovement = undefined;
   enemyMovement = undefined;
   cameraFollowTarget = undefined;
@@ -996,6 +1328,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = [];
   resetEnemies();
+  initializeRescue();
   experienceDisplay.reset(player.level, player.experience);
   setLevelStatus(`Level: ${activeLevel.name}`);
   setMessage(`${activeLevel.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
@@ -1044,6 +1377,7 @@ function continueGame() {
   const save = refreshContinueButton();
   if (!save) return;
   activeLevel = buildLevel(THREE, levelGroup, save.level);
+  applyLevelLighting();
   const restoreUnit = (unit, saved) => {
     Object.assign(unit, saved.stats, {
       x: saved.x,
@@ -1063,16 +1397,21 @@ function continueGame() {
   Object.assign(bartz, createBartzAlly());
   Object.assign(cypher, createCypherAlly());
   Object.assign(seymour, createSeymourAlly());
+  Object.assign(stark, createStarkAlly());
+  Object.assign(linus, createLinusAlly());
   restoreUnit(maria, save.player);
   const team = [maria];
+  const benched = new Set();
   for (const savedAlly of save.allies) {
     const ally = roster[savedAlly.id];
     if (!ally) throw new Error(`Unknown saved ally "${savedAlly.id}".`);
     restoreUnit(ally, savedAlly);
     team.push(ally);
+    if (savedAlly.benched) benched.add(ally);
   }
   playerTeam.length = 0;
-  playerTeam.push(...team);
+  playerTeam.push(...team.filter((unit) => !benched.has(unit)));
+  fullTeam = [...team];
   player = team.find((unit) => unit.hp > 0) ?? maria;
   currentChapter = save.chapter;
   chapterStart = save.chapterStart;
@@ -1080,13 +1419,18 @@ function continueGame() {
   tutorialProgress.intro = true;
   tutorialProgress.combatSeen = save.turn > 1 || save.enemies.some((enemy) => enemy.hp < enemy.maxHp);
   setConvoy(save.convoy);
+  restoreInsight(save.insight);
+  refreshInsightLabel();
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = save.enemies.map((savedEnemy) => {
     const enemy = createEnemy(savedEnemy.x, savedEnemy.z, savedEnemy.id ?? 'raider', savedEnemy);
     enemy.hp = savedEnemy.hp;
     enemy.maxHp = savedEnemy.maxHp;
+    if (savedEnemy.frozen === true) setEnemyFrozen(enemy, true);
     return enemy;
   });
+  syncHeartrootFrenzy();
+  initializeRescue(save.rescue);
   gameState.mode = 'cursor';
   gameState.phase = save.phase === 'victory' ? 'victory' : 'player';
   gameState.turn = save.turn;
@@ -1107,10 +1451,14 @@ function continueGame() {
     : `Game continued. Select ${player.name} to resume.`);
   sessionStarted = true;
   hideMainMenu();
+  if (!gameState.defeated && partyDefeated()) {
+    completeGameOver();
+    return;
+  }
   if (gameState.phase === 'player') showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
   if (gameState.defeated) {
-    showTerminalScreen('game-over', 'The last light has died. The sea keeps what it claims.');
+    showTerminalScreen('game-over', gameOverMessage());
   } else if (gameState.phase === 'victory') {
     showTerminalScreen('victory', 'The objective is complete.');
   }
@@ -1125,6 +1473,9 @@ function returnToMainMenu() {
   saveCurrentGame();
   hideTerminalScreen();
   if (optionsDialog.open) optionsDialog.close();
+  mapViewActive = false;
+  const prepDialog = document.querySelector('#prep-dialog');
+  if (prepDialog?.open) prepDialog.close();
   gameState.selected = false;
   gameState.mode = 'cursor';
   movementRange.clear();
@@ -1179,8 +1530,9 @@ function chooseSaveSlot(slot, info) {
   try {
     if (saveSlotsMode === 'save') {
       if (info && !window.confirm(`Overwrite slot ${slot}?`)) return;
-      saveCurrentGame();
+      if (!saveCurrentGame()) throw new Error('the current game could not be written. Check the message above.');
       copyCurrentSaveToSlot(slot);
+      readSave();
       renderSaveSlots();
       saveSlotsStatus.textContent = `Saved to slot ${slot}.`;
       return;
@@ -1236,7 +1588,7 @@ const blobMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   depthWrite: false,
 });
-for (const unit of [maria, bartz, cypher, seymour]) {
+for (const unit of [maria, bartz, cypher, seymour, stark, linus]) {
   unit.blob = new THREE.Mesh(blobGeometry, blobMaterial);
   unit.blob.rotation.x = -Math.PI / 2;
   unit.blob.position.y = 0.02;
@@ -1257,6 +1609,7 @@ levelFile.addEventListener('change', async () => {
   try {
     const level = validateLevel(JSON.parse(await file.text()));
     activeLevel = buildLevel(THREE, levelGroup, level);
+    applyLevelLighting();
     currentChapter = null;
     chapterStart = null;
     const team = deployTeam(activeLevel);
@@ -1514,7 +1867,7 @@ function showCombatResult(unit, text, type) {
   if (type === 'miss') {
     playMissWhiff();
   } else {
-    if (type !== 'heal') {
+    if (type !== 'heal' && type !== 'freeze') {
       playHitImpact({ critical: type === 'critical' });
       spawnHitEffect(unit, type === 'critical');
     }
@@ -1529,7 +1882,7 @@ function showCombatResult(unit, text, type) {
   context.lineWidth = 7;
   context.strokeStyle = 'rgba(20, 12, 16, 0.9)';
   context.strokeText(text, 96, 32);
-  context.fillStyle = type === 'heal' ? '#5dff8a' : type === 'critical' ? '#72101d' : type === 'miss' ? '#ffffff' : '#ffe14a';
+  context.fillStyle = type === 'heal' ? '#5dff8a' : type === 'freeze' ? '#8fdcff' : type === 'critical' ? '#72101d' : type === 'miss' ? '#ffffff' : '#ffe14a';
   context.fillText(text, 96, 32);
   const texture = new THREE.CanvasTexture(canvas);
   const material = new THREE.SpriteMaterial({
@@ -1581,7 +1934,10 @@ function itemInfoElement(entry, showLore = true) {
     description.textContent =
       `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}`;
     if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${item.maxRange + getStaffRangeBonus(player)}`;
+    if (item.freeze) description.textContent = `${item.type} · Freezes a foe for a turn · Range 1-Magic · Hit ${item.hit} + Magic vs Resistance`;
     if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${maxUsesFor(item, player)} uses`;
+  } else if (item.id === 'blood-emblem') {
+    description.textContent = bloodEmblemDescription();
   } else if (item.heal) {
     description.textContent = `Heals ${item.heal} HP · ${entry.uses}/${item.maxUses} uses remaining`;
   } else {
@@ -1639,10 +1995,12 @@ function renderInventory() {
     const item = INVENTORY_ITEMS.get(entry.id);
     if (item.type === 'Staff') {
       const blocked = equipBlockReason(player, item);
-      const ready = !blocked && healTargets(player).length > 0;
-      list.append(itemRow(entry, blocked ?? (ready ? 'Use' : 'No one to heal'), !ready, () => {
+      const freeze = Boolean(item.freeze);
+      const ready = !blocked && (freeze ? freezeTargets(player) : healTargets(player)).length > 0;
+      list.append(itemRow(entry, blocked ?? (ready ? 'Use' : freeze ? 'No target in range' : 'No one to heal'), !ready, () => {
         closeInventory();
-        openHeal();
+        if (freeze) openFreeze();
+        else openHeal();
       }));
     } else if (item.itemType === 'weapon') {
       const equipped = slot === equippedIndex;
@@ -1651,14 +2009,23 @@ function renderInventory() {
       } else {
         list.append(itemRow(entry, equipped ? 'Equipped' : 'Equip', equipped, () => equipInventoryWeapon(entry.id)));
       }
-    } else if (item.effect === 'keepsake') {
-      list.append(itemRow(entry, 'Keepsake', true));
+    } else if (item.id === 'blood-emblem') {
+      list.append(itemRow(entry, isBloodEmblemUpgraded()
+        ? isBloodEmblemEquipped() ? 'Unequip' : 'Equip'
+        : 'Unlock with Insight', !isBloodEmblemUpgraded() || player.id !== 'maria', () => {
+        if (!toggleBloodEmblem(player)) return;
+        renderInventory();
+        setMessage(`Blood Emblem ${isBloodEmblemEquipped() ? 'equipped' : 'unequipped'}.`);
+        saveCurrentGame();
+      }));
+    } else if (item.insight) {
+      list.append(itemRow(entry, 'Read', false, () => useInsightFromInventory(entry)));
     } else if (item.effect === 'key') {
       list.append(itemRow(entry, 'Opens chests', true));
     } else if (item.effect === 'promote') {
       const ready = player.level >= 20 && canPromote(player);
       list.append(itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 20' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
-    } else if (item.effect === 'strength-up') {
+    } else if (STAT_ITEM_EFFECTS[item.effect]) {
       list.append(itemRow(entry, 'Use', false, () => usePocketwatch(entry)));
     } else {
       list.append(itemRow(entry, 'Use', player.hp >= player.maxHp, () => useInventoryItem(entry)));
@@ -1732,7 +2099,7 @@ function settleTradedWeapons(unit, received) {
     note = ` ${unit.name} is now unarmed.`;
   }
   const item = received && INVENTORY_ITEMS.get(received.id);
-  if (item?.itemType === 'weapon' && !item.heal && !unit.weapon && canEquipWeapon(unit, item)) {
+  if (item?.itemType === 'weapon' && item.type !== 'Staff' && !unit.weapon && canEquipWeapon(unit, item)) {
     unit.weapon = item;
     note += ` ${unit.name} equipped ${item.name}.`;
   }
@@ -1876,7 +2243,7 @@ function healStaffFor(unit) {
 function healTargets(unit) {
   const staff = healStaffFor(unit);
   if (!staff || unit.acted) return [];
-  return playerTeam.filter((ally) => {
+  return defendingUnits().filter((ally) => {
     const distance = distanceBetween(unit.x, unit.z, ally.x, ally.z);
     return ally !== unit && ally.hp > 0 && ally.hp < ally.maxHp &&
       distance >= staff.minRange && distance <= staff.maxRange + getStaffRangeBonus(unit);
@@ -1888,6 +2255,7 @@ function openHeal() {
   if (!targets.length) return;
   gameState.mode = 'heal';
   renderTacticalUi();
+  healDialog.querySelector('#heal-heading').textContent = 'Heal who?';
   const list = healDialog.querySelector('#heal-targets');
   list.replaceChildren();
   for (const target of targets) {
@@ -1929,12 +2297,86 @@ async function useHealStaff(target) {
   const staffEntry = player.inventory.find((entry) => entry.id === staff.id && entry.uses !== 0);
   if (Number.isInteger(staffEntry?.uses)) staffEntry.uses--;
   const rankUps = [];
-  const staffRank = awardWeaponExp(player, staff);
-  if (staffRank) rankUps.push(`${player.name}'s Staff level rose to ${staffRank.id}!`);
+  recordRankUp(player, staff, rankUps);
   setMessage(withRankUps(`${player.name} healed ${target.name} for ${healed} HP.`, rankUps));
   await casting;
   await wait(1100);
   const experienceGained = staff.healExperience ?? 20;
+  const progression = awardExperience(player, experienceGained);
+  await showExperienceProgression(progression, experienceGained);
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+const freezeStaffFor = (unit) => unit.inventory
+  .map((entry) => entry.uses !== 0 && INVENTORY_ITEMS.get(entry.id))
+  .find((item) => item?.freeze && canEquipWeapon(unit, item));
+
+const freezeRange = (unit) => Math.max(1, unit.magic);
+
+const freezeHitRate = (unit, target, staff) =>
+  Math.max(10, Math.min(100, staff.hit + (unit.magic - target.resistance) * 6));
+
+function freezeTargets(unit) {
+  if (!freezeStaffFor(unit) || unit.acted) return [];
+  return enemies.filter((enemy) => {
+    const distance = distanceBetween(unit.x, unit.z, enemy.x, enemy.z);
+    return enemy.hp > 0 && !enemy.frozen && distance >= 1 && distance <= freezeRange(unit);
+  });
+}
+
+function setEnemyFrozen(enemy, frozen) {
+  enemy.frozen = frozen;
+  enemy.mesh.material.color.set(frozen ? 0x8fd4ff : 0xffffff);
+}
+
+function openFreeze() {
+  if (!gameState.selected || gameState.mode !== 'unit') return;
+  const targets = freezeTargets(player);
+  if (!targets.length) return;
+  const staff = freezeStaffFor(player);
+  gameState.mode = 'heal';
+  renderTacticalUi();
+  healDialog.querySelector('#heal-heading').textContent = 'Freeze who?';
+  const list = healDialog.querySelector('#heal-targets');
+  list.replaceChildren();
+  for (const target of targets) {
+    const row = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = `${target.name} · ${target.hp}/${target.maxHp} HP · ${freezeHitRate(player, target, staff)}% Hit`;
+    button.addEventListener('click', () => void useFreezeStaff(target));
+    row.append(button);
+    list.append(row);
+  }
+  healDialog.showModal();
+  list.querySelector('button')?.focus();
+}
+
+async function useFreezeStaff(target) {
+  const staff = freezeStaffFor(player);
+  if (!staff || !freezeTargets(player).includes(target)) return;
+  if (healDialog.open) healDialog.close();
+  gameState.mode = 'combat';
+  combatants.add(player);
+  combatants.add(target);
+  renderTacticalUi();
+  player.facing = getFacing(target.x - player.x, target.z - player.z);
+  const casting = playAttackAnimation(player, player.facing, false, true);
+  await wait(450);
+  const frozen = rollHit(freezeHitRate(player, target, staff));
+  if (frozen) setEnemyFrozen(target, true);
+  showCombatResult(target, frozen ? 'FROZEN' : 'Miss', frozen ? 'freeze' : 'miss');
+  const staffEntry = player.inventory.find((entry) => entry.id === staff.id && entry.uses !== 0);
+  if (Number.isInteger(staffEntry?.uses)) staffEntry.uses--;
+  const rankUps = [];
+  recordRankUp(player, staff, rankUps);
+  setMessage(withRankUps(frozen
+    ? `${player.name} freezes ${target.name}. It cannot move next enemy phase.`
+    : `${target.name} resists ${player.name}'s Freeze.`, rankUps));
+  await casting;
+  await wait(1100);
+  const experienceGained = staff.freezeExperience ?? 20;
   const progression = awardExperience(player, experienceGained);
   await showExperienceProgression(progression, experienceGained);
   gameState.mode = 'unit';
@@ -1967,7 +2409,7 @@ function equipInventoryWeapon(itemId) {
 
 async function useInventoryItem(entry) {
   const item = INVENTORY_ITEMS.get(entry.id);
-  if (!player.inventory.includes(entry) || item?.itemType !== 'consumable' || player.hp >= player.maxHp) return;
+  if (!player.inventory.includes(entry) || item?.itemType !== 'consumable' || !item.heal || player.hp >= player.maxHp) return;
 
   closeInventory();
   // Combat mode keeps the bar visible and blocks input while the heal animates.
@@ -2014,11 +2456,11 @@ function capitalize(text) {
 }
 
 function selectableMeshes() {
-  return [...playerTeam.filter((unit) => unit.hp > 0), ...enemies].map((unit) => unit.mesh);
+  return [...defendingUnits(), ...enemies].map((unit) => unit.mesh);
 }
 
 function unitForMesh(mesh) {
-  return [...playerTeam, ...enemies].find((unit) => unit.mesh === mesh) ?? null;
+  return [...defendingUnits(), ...enemies].find((unit) => unit.mesh === mesh) ?? null;
 }
 
 function playerUnitAt(x, z) {
@@ -2028,7 +2470,10 @@ function playerUnitAt(x, z) {
 function houseAvailableToVisit(unit) {
   return activeLevel.houses.find((house) =>
     !house.visited &&
-    unit.x === house.door.x && unit.z === house.door.z);
+    (house.villagerId
+      ? rescueState?.villagers.some((villager) => villager.id === house.villagerId && villager.status === 'sheltered' && villager.hp > 0) &&
+        distanceBetween(unit.x, unit.z, house.door.x, house.door.z) <= 1
+      : unit.x === house.door.x && unit.z === house.door.z));
 }
 
 function chestAvailableToOpen(unit) {
@@ -2150,15 +2595,25 @@ async function useMasterEmblem(entry) {
   finishUnit();
 }
 
+const STAT_ITEM_EFFECTS = {
+  'strength-up': { stat: 'strength', verb: 'winds the pocketwatch' },
+  'speed-up': { stat: 'speed', verb: 'takes the fang' },
+  'hp-up': { stat: 'maxHp', verb: 'drinks the tonic' },
+};
+
 async function usePocketwatch(entry) {
+  const item = INVENTORY_ITEMS.get(entry.id);
+  const { stat, verb } = STAT_ITEM_EFFECTS[item.effect];
+  const amount = item.amount ?? 2;
   closeInventory();
   gameState.mode = 'combat';
   combatants.add(player);
   renderTacticalUi();
-  player.strength += 2;
+  player[stat] += amount;
+  if (stat === 'maxHp') player.hp += amount;
   player.inventory.splice(player.inventory.indexOf(entry), 1);
   saveCurrentGame();
-  setMessage(`${player.name} winds the pocketwatch. Strength +2!`);
+  setMessage(`${player.name} ${verb}. ${stat === 'maxHp' ? 'Max HP' : capitalize(stat)} +${amount}!`);
   renderTacticalUi();
   await wait(1400);
   gameState.mode = 'unit';
@@ -2167,6 +2622,7 @@ async function usePocketwatch(entry) {
 
 // Defeated enemies carrying an item hand it to whoever landed the final blow.
 async function collectEnemyDrop(enemy, recipient) {
+  if (enemy.isBoss) gainInsight(BOSS_INSIGHT, `${enemy.name} defeated`);
   if (!enemy.drop) return;
   const { item, toConvoy } = grantItem(recipient, enemy.drop);
   await itemPopup.show([{ unit: recipient, item, toConvoy }]);
@@ -2174,12 +2630,14 @@ async function collectEnemyDrop(enemy, recipient) {
 
 // Only opposing units block movement; teammates can be walked through.
 function movementObstacles() {
-  return enemies.filter((enemy) => enemy.hp > 0);
+  return [...enemies.filter((enemy) => enemy.hp > 0), ...neutralUnits()];
 }
 
 function unitAtTile(x, z) {
   const friendly = playerUnitAt(x, z);
   if (friendly) return friendly;
+  const neutral = neutralUnits().find((unit) => unit.x === x && unit.z === z);
+  if (neutral) return neutral;
   return findEnemyAt(enemies, x, z);
 }
 
@@ -2257,6 +2715,13 @@ function updateUnitHoverCard() {
   const weaponName = document.createElement('span');
   weaponName.textContent = unit.weapon?.name ?? 'Unarmed';
   weapon.append(weaponName);
+  if (unit.civilian || unit === linus && rescueState && !rescueState.recruited) {
+    const note = document.createElement('small');
+    note.textContent = unit.civilian
+      ? unit.status === 'sheltered' ? 'Visit this house to begin an escort.' : 'Escorting to the green refuge. Keep the route clear.'
+      : 'Move Maria adjacent and choose Talk to recruit.';
+    weapon.append(note);
+  }
   if (unit.weapon?.effect?.length) {
     const effect = document.createElement('small');
     effect.textContent = `Effective vs ${unit.weapon.effect.join(', ')}`;
@@ -2297,9 +2762,9 @@ function idleSpriteUrl(unit) {
 function renderUnitList() {
   const body = unitListDialog.querySelector('#unit-list-body');
   body.replaceChildren();
-  for (const unit of [...playerTeam, ...enemies]) {
+  for (const unit of [...playerTeam, ...neutralUnits(), ...enemies]) {
     const row = document.createElement('tr');
-    row.className = playerTeam.includes(unit) ? 'player' : 'enemy';
+    row.className = playerTeam.includes(unit) ? 'player' : enemies.includes(unit) ? 'enemy' : 'neutral';
     const spriteCell = document.createElement('td');
     spriteCell.className = 'unit-list-sprite';
     const url = idleSpriteUrl(unit);
@@ -2335,6 +2800,18 @@ function openUnitList() {
 function renderTacticalUi() {
   phaseLabel.textContent = `${gameState.phase.toUpperCase()} PHASE - TURN ${gameState.turn}`;
   objectiveLabel.textContent = `OBJECTIVE · ${objectiveDescription()}`;
+  const rescueStatus = document.querySelector('#rescue-status');
+  rescueStatus.hidden = !rescueState;
+  const rescueDestination = document.querySelector('#rescue-destination');
+  rescueDestination.hidden = !rescueState;
+  if (rescueState) {
+    const wave = activeLevel.reinforcements.find((entry) => !entry.spawned);
+    const warning = wave
+      ? `${wave.turn === gameState.turn + 1 ? 'WARNING: ' : ''}Next forest wave: turn ${wave.turn}`
+      : 'All forest waves have arrived';
+    rescueStatus.textContent = `${rescueState.villagers.map((unit) => `${unit.name}: ${unit.status} (${unit.hp} HP)`).join(' · ')}. ${warning}.`;
+    rescueDestination.textContent = 'REFUGE: green tiles on the west edge. Escorts walk up to 3 tiles before each enemy phase, then leave safely.';
+  }
   const movementUnit = player.movement === 1 ? 'tile' : 'tiles';
   const rangeText = weaponRangeLabel(player.weapon);
   updateUnitHoverCard();
@@ -2346,15 +2823,23 @@ function renderTacticalUi() {
   document.querySelector('#attack-action').disabled = player.acted || !canAttack(player);
   const house = houseAvailableToVisit(player);
   visitActionButton.hidden = !house;
+  visitActionButton.textContent = house?.villagerId ? 'Rescue Villager' : 'Visit';
+  visitActionButton.title = house?.villagerId
+    ? 'Begin this villager\'s automatic escort to the western refuge. Uses this unit\'s action.'
+    : 'Visit this house.';
+  document.querySelector('#talk-action').hidden = !canRecruitLinus(player, linus, rescueState);
   const chestHere = chestAvailableToOpen(player);
   chestActionButton.hidden = !chestHere;
   document.querySelector('#trade-action').hidden = !gameState.selected || adjacentAllies(player).length === 0;
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
+  document.querySelector('#freeze-action').hidden = !gameState.selected || freezeTargets(player).length === 0;
   actionHelp.textContent = gameState.mode === 'move'
     ? `Choose a tile within ${player.movement} ${movementUnit}; the blue line previews the route.`
     : gameState.mode === 'attack'
       ? `Choose a target in weapon range ${rangeText}, then press Space or Enter.`
-      : `${player.moved ? 'Movement complete' : 'Choose an action'} · ${player.moveOrigin && !player.acted ? 'Undo Move is available' : player.acted ? 'Acted' : `Attack, inventory, profile${house ? ', visit house' : ''}${adjacentAllies(player).length ? ', trade' : ''}, or end unit`}`;
+      : house?.villagerId && !player.acted
+        ? 'Rescue Villager starts an automatic escort to the western refuge and uses this unit\'s action.'
+        : `${player.moved ? 'Movement complete' : 'Choose an action'} · ${player.moveOrigin && !player.acted ? 'Undo Move is available' : player.acted ? 'Acted' : `Attack, inventory, profile${house ? ', visit house' : ''}${adjacentAllies(player).length ? ', trade' : ''}, or end unit`}`;
   refreshHighlights();
   saveCurrentGame();
 }
@@ -2481,6 +2966,22 @@ function showTileInspection(x, z) {
     `${terrain.name} · Tile ${x + 1}, ${z + 1}`;
   document.querySelector('#tile-inspection-details').textContent =
     `${terrain.walkable ? 'Walkable' : 'Impassable'} · ${terrain.bonus}`;
+  if (activeLevel.rescue) {
+    const here = (tile) => tile.x === x && tile.z === z;
+    if (activeLevel.rescue.refuge.some(here)) {
+      document.querySelector('#tile-inspection-name').textContent = 'Refuge';
+      document.querySelector('#tile-inspection-details').textContent = 'Escorted villagers become safe here.';
+    } else if (here(activeLevel.exit)) {
+      document.querySelector('#tile-inspection-name').textContent = 'Bridge Entrance';
+      document.querySelector('#tile-inspection-details').textContent = 'Bring Maria here after the rescues, beast waves, and captain are resolved.';
+    } else {
+      const turns = activeLevel.reinforcements.filter((wave) => wave.units.some(here)).map((wave) => wave.turn);
+      if (turns.length) {
+        document.querySelector('#tile-inspection-name').textContent = 'Forest Approach';
+        document.querySelector('#tile-inspection-details').textContent = `Beasts arrive on turn${turns.length > 1 ? 's' : ''} ${turns.join(', ')}.`;
+      }
+    }
+  }
   tileInspection.hidden = false;
 }
 
@@ -2569,7 +3070,7 @@ function confirmMove() {
     return;
   }
   const destination = { x: cursor.x, z: cursor.z };
-  const blocked = new Set(enemies.map((enemy) => tileKey(enemy.x, enemy.z)));
+  const blocked = new Set(movementObstacles().map((unit) => tileKey(unit.x, unit.z)));
   const path = findPath(player, [destination], blocked, activeLevel);
   if (path.length < 2) {
     setMessage(`Could not find a valid route for ${player.name}. Choose another reachable tile.`);
@@ -2644,7 +3145,7 @@ function showCombatForecast(target) {
       panel.append(note);
     }
     const list = document.createElement('dl');
-    const attacks = opponent ? getAttackCount(unit, opponent) : 0;
+    const attacks = opponent ? getAttackCount(unit, opponent) * getStrikesPerAttack(unit) : 0;
     const damage = opponent ? getCombatDamage(unit, opponent, terrain) : 0;
     const rows = [
       ['HP', `${unit.hp}/${unit.maxHp}`],
@@ -2728,6 +3229,7 @@ async function showExperienceProgression(progression, amount, unit = player) {
   if (progression.levelUps) {
     await levelUpDialogUi.show(unit, progression.growthRolls);
   }
+  while (pendingRankUps.length) await rankUpDialogUi.show(pendingRankUps.shift());
 }
 
 async function attack(direction, followUp = false) {
@@ -2756,7 +3258,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   const terrain = getTerrain(activeLevel, target.x, target.z);
   const damage = getCombatDamage(player, target, terrain);
   const criticalDamage = getCriticalDamage(player, target, terrain);
-  const playerAttackCount = getAttackCount(player, target);
+  const playerVolleys = getAttackCount(player, target);
+  const playerAttackCount = playerVolleys * getStrikesPerAttack(player);
   const hitRate = getHitRate(player, target, terrain);
   const criticalRate = getCriticalRate(player, target);
   const playerStrikeResults = Array.from({ length: playerAttackCount }, () => {
@@ -2773,6 +3276,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   let counterDamage = 0;
   let counterCriticalDamage = 0;
   let counterAttackCount = 0;
+  let counterVolleys = 0;
   let counterResults = [];
   if (canCounter) {
     target.facing = getFacing(player.x - target.x, player.z - target.z);
@@ -2780,7 +3284,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     const counterTerrain = getTerrain(activeLevel, player.x, player.z);
     counterDamage = getCombatDamage(target, player, counterTerrain);
     counterCriticalDamage = getCriticalDamage(target, player, counterTerrain);
-    counterAttackCount = getAttackCount(target, player);
+    counterVolleys = getAttackCount(target, player);
+    counterAttackCount = counterVolleys * getStrikesPerAttack(target);
     const counterHitRate = getHitRate(target, player, counterTerrain);
     const counterCriticalRate = getCriticalRate(target, player);
     counterResults = Array.from({ length: counterAttackCount }, () => {
@@ -2789,9 +3294,13 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     });
   }
 
-  const rounds = Math.max(playerAttackCount, counterAttackCount);
-  for (let round = 0; round < rounds && target.hp > 0 && player.hp > 0; round++) {
-    if (round < playerAttackCount) {
+  const strikeOrder = getStrikeOrder(playerVolleys, getStrikesPerAttack(player), counterVolleys, getStrikesPerAttack(target));
+  let playerStrike = 0;
+  let counterStrike = 0;
+  for (const side of strikeOrder) {
+    if (target.hp <= 0 || player.hp <= 0) break;
+    if (side === 'attacker') {
+      const round = playerStrike++;
       setMessage(`${player.name} attacks ${target.name} (${round + 1}/${playerAttackCount}).`);
       await attack(player.facing, round > 0);
       const result = playerStrikeResults[round];
@@ -2808,8 +3317,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
       }
       await wait(400);
       if (target.hp === 0) break;
-    }
-    if (round < counterAttackCount) {
+    } else {
+      const round = counterStrike++;
       setMessage(`${target.name} retaliates against ${player.name} (${round + 1}/${counterAttackCount}).`);
       await attackEnemy(target, round > 0);
       const result = counterResults[round];
@@ -2826,9 +3335,11 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   }
 
   if (target.hp === 0) {
+    const healed = healBloodEmblemKill(player);
+    if (healed > 0) showCombatResult(player, `+${healed}`, 'heal');
     scene.remove(target.mesh);
     enemies = enemies.filter((enemy) => enemy !== target);
-    const experienceGained = getCombatExperience(target, true);
+    const experienceGained = getCombatExperience(target, true, player);
     const progression = awardExperience(player, experienceGained);
     await showExperienceProgression(progression, experienceGained);
     await collectEnemyDrop(target, player);
@@ -2839,7 +3350,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     return;
   }
   if (player.hp <= 0) {
-    if (playerTeam.every((unit) => unit.hp <= 0)) {
+    if (partyDefeated()) {
       completeGameOver();
       return;
     }
@@ -2856,7 +3367,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     return;
   }
   
-  const experienceGained = getCombatExperience(target, false);
+  const experienceGained = getCombatExperience(target, false, player);
   const progression = awardExperience(player, experienceGained);
   await showExperienceProgression(progression, experienceGained);
   setMessage(withRankUps(`${player.name} hits ${target.name} ${playerHits}/${playerAttackCount} times${playerCriticalHits ? ` (${playerCriticalHits} critical)` : ''} (${hitRate}% Hit, ${playerTotalDamage} damage, +${experienceGained} EXP).`, rankUps));
@@ -2866,9 +3377,15 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   finishUnit();
 }
 
+function recordRankUp(unit, weapon, rankUps) {
+  const rank = awardWeaponExp(unit, weapon);
+  if (!rank) return;
+  rankUps.push(`${unit.name}'s ${weapon.type} level rose to ${rank.id}!`);
+  pendingRankUps.push({ unit, type: weapon.type, rank });
+}
+
 function recordWeaponHit(unit, rankUps) {
-  const rank = awardWeaponExp(unit, unit.weapon);
-  if (rank) rankUps.push(`${unit.name}'s ${unit.weapon.type} level rose to ${rank.id}!`);
+  recordRankUp(unit, unit.weapon, rankUps);
 }
 
 function withRankUps(message, rankUps) {
@@ -2877,11 +3394,11 @@ function withRankUps(message, rankUps) {
 
 // Tiles an enemy can stop on this turn. Stationary enemies never leave their tile.
 function getEnemyReach(enemy) {
-  if (enemy.ai === 'stationary') return new Map([[tileKey(enemy.x, enemy.z), 0]]);
+  if (enemy.ai === 'stationary' || enemy.frozen) return new Map([[tileKey(enemy.x, enemy.z), 0]]);
   return getMovementRange(
     enemy,
     activeLevel,
-    playerTeam.filter((unit) => unit.hp > 0),
+    defendingUnits(),
     enemies.filter((other) => other !== enemy),
   );
 }
@@ -2918,7 +3435,7 @@ function chooseEnemyTarget(enemy, livingTeam) {
       return unit.hp < best.hp ? unit : best;
     });
   }
-  if (enemy.ai !== 'mobile') return null;
+  if (enemy.ai !== 'mobile' || enemy.frozen) return null;
   return livingTeam.reduce((nearest, unit) =>
     distanceBetween(enemy.x, enemy.z, unit.x, unit.z) < distanceBetween(enemy.x, enemy.z, nearest.x, nearest.z)
       ? unit : nearest);
@@ -2931,17 +3448,23 @@ async function enemyPhase() {
   renderTacticalUi();
   showPhaseBanner('Enemy', gameState.turn);
   await wait(900);
+  await advanceVillagers();
+  await heartrootPhase();
+  const frozenEnemies = [];
   for (const enemy of [...enemies]) {
     if (!enemies.includes(enemy)) continue;
-    const livingTeam = playerTeam.filter((unit) => unit.hp > 0);
+    const livingTeam = activeLevel.rescue && enemy.type !== 'beast'
+      ? playerTeam.filter((unit) => unit.hp > 0)
+      : defendingUnits();
     if (!livingTeam.length) break;
+    if (enemy.frozen) frozenEnemies.push(enemy);
     const foe = chooseEnemyTarget(enemy, livingTeam);
     if (!foe) continue;
     cameraFollowTarget = enemy.mesh.position;
     await wait(500);
-    if (enemy.ai !== 'stationary' &&
+    if (enemy.ai !== 'stationary' && !enemy.frozen &&
         !isInWeaponRange(enemy, foe, distanceBetween(enemy.x, enemy.z, foe.x, foe.z))) {
-      const blocked = new Set(livingTeam.map((other) => tileKey(other.x, other.z)));
+      const blocked = new Set(defendingUnits().map((other) => tileKey(other.x, other.z)));
       const occupied = new Set(enemies
         .filter((other) => other !== enemy)
         .map((other) => tileKey(other.x, other.z)));
@@ -3004,7 +3527,8 @@ async function enemyPhase() {
       const terrain = getTerrain(activeLevel, foe.x, foe.z);
       const damage = getCombatDamage(enemy, foe, terrain);
       const criticalDamage = getCriticalDamage(enemy, foe, terrain);
-      const attacks = getAttackCount(enemy, foe);
+      const enemyVolleys = getAttackCount(enemy, foe);
+      const attacks = enemyVolleys * getStrikesPerAttack(enemy);
       const hitRate = getHitRate(enemy, foe, terrain);
       const criticalRate = getCriticalRate(enemy, foe);
       let hits = 0;
@@ -3019,7 +3543,8 @@ async function enemyPhase() {
       const counterRange = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
       const canCounter = isInWeaponRange(foe, enemy, counterRange);
       const counterTerrain = getTerrain(activeLevel, enemy.x, enemy.z);
-      const counterAttacks = canCounter ? getAttackCount(foe, enemy) : 0;
+      const counterVolleys = canCounter ? getAttackCount(foe, enemy) : 0;
+      const counterAttacks = counterVolleys * getStrikesPerAttack(foe);
       const counterDamage = canCounter ? getCombatDamage(foe, enemy, counterTerrain) : 0;
       const counterCriticalDamage = canCounter ? getCriticalDamage(foe, enemy, counterTerrain) : 0;
       const counterHitRate = canCounter ? getHitRate(foe, enemy, counterTerrain) : 0;
@@ -3037,9 +3562,13 @@ async function enemyPhase() {
       let counterTotalDamage = 0;
       const rankUps = [];
 
-      const rounds = Math.max(attacks, counterAttacks);
-      for (let round = 0; round < rounds && foe.hp > 0 && enemy.hp > 0; round++) {
-        if (round < attacks) {
+      const strikeOrder = getStrikeOrder(enemyVolleys, getStrikesPerAttack(enemy), counterVolleys, getStrikesPerAttack(foe));
+      let enemyStrike = 0;
+      let foeStrike = 0;
+      for (const side of strikeOrder) {
+        if (foe.hp <= 0 || enemy.hp <= 0) break;
+        if (side === 'attacker') {
+          const round = enemyStrike++;
           await playAttackAnimation(enemy, enemy.facing, round > 0);
           const result = strikeResults[round];
           if (result.hit) {
@@ -3055,14 +3584,14 @@ async function enemyPhase() {
           await wait(400);
           renderTacticalUi();
           if (foe.hp <= 0) break;
-        }
-        if (round < counterAttacks) {
+        } else {
+          const round = foeStrike++;
           setMessage(`${foe.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
           await playAttackAnimation(foe, foe.facing, round > 0);
           const result = counterResults[round];
           if (result.hit) {
             counterHitCount++;
-            recordWeaponHit(foe, rankUps);
+            if (playerTeam.includes(foe)) recordWeaponHit(foe, rankUps);
             if (result.critical) counterCriticalCount++;
             const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
             enemy.hp -= strikeDamage;
@@ -3081,17 +3610,32 @@ async function enemyPhase() {
       if (foe.hp <= 0) {
         foe.mesh.visible = false;
         foe.acted = true;
+        if (foe.civilian) {
+          foe.status = 'dead';
+          setMessage(`${foe.name} has been lost. The chapter can still be completed, but the rescue reward is reduced.`);
+        } else if (foe === linus && rescueState && !rescueState.recruited) {
+          setMessage('Linus has fallen defending the village before he could join you.');
+        }
       }
-      if (playerTeam.every((unit) => unit.hp <= 0)) {
+      if (partyDefeated()) {
         completeGameOver();
         return;
       }
 
       if (canCounter && foe.hp > 0) {
         if (enemy.hp === 0) {
+          const healed = healBloodEmblemKill(foe);
+          if (healed > 0) showCombatResult(foe, `+${healed}`, 'heal');
           scene.remove(enemy.mesh);
           enemies = enemies.filter((unit) => unit !== enemy);
-          const experienceGained = getCombatExperience(enemy, true);
+          if (!playerTeam.includes(foe)) {
+            await collectEnemyDrop(enemy, maria);
+            setMessage(`${foe.name} holds the village and defeats ${enemy.name}. Reach him with Maria before he is overwhelmed.`);
+            gameState.mode = 'cursor';
+            renderTacticalUi();
+            continue;
+          }
+          const experienceGained = getCombatExperience(enemy, true, foe);
           const progression = awardExperience(foe, experienceGained);
           await showExperienceProgression(progression, experienceGained, foe);
           await collectEnemyDrop(enemy, foe);
@@ -3099,8 +3643,8 @@ async function enemyPhase() {
             `${foe.name} counters and defeats ${enemy.name}${enemy.isBoss ? ' (Boss)' : ''} (${counterHitCount}/${counterAttacks} hits${counterCriticalCount ? `, ${counterCriticalCount} critical` : ''}, ${counterTotalDamage} damage, +${experienceGained} EXP${progression.levelUps ? `, Level ${foe.level}!` : ''}).`,
             rankUps,
           ));
-        } else {
-          const experienceGained = getCombatExperience(enemy, false);
+        } else if (playerTeam.includes(foe)) {
+          const experienceGained = getCombatExperience(enemy, false, foe);
           const progression = awardExperience(foe, experienceGained);
           await showExperienceProgression(progression, experienceGained, foe);
           setMessage(withRankUps(counterHitCount > 0
@@ -3114,6 +3658,7 @@ async function enemyPhase() {
       setMessage(`${enemy.name} advances across the ships.`);
     }
   }
+  for (const enemy of frozenEnemies) setEnemyFrozen(enemy, false);
   if (checkDefeatAllVictory()) return;
   gameState.turn++;
   gameState.phase = 'player';
@@ -3139,21 +3684,27 @@ async function enemyPhase() {
     const boss = reinforcementResult.units.find((unit) => unit.isBoss);
     setMessage(boss
       ? `${boss.name} has arrived with reinforcements!`
-      : `${reinforcementResult.units.length} Merfolk reinforcements have arrived!`);
+      : `${reinforcementResult.units.length} reinforcements have arrived!`);
   }
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  for (const ally of reinforcementResult.allies ?? []) await tutorialPopup.show(ally.id);
   window.setTimeout(() => void runTutorials(), 1300);
 }
 
 function spawnTurnReinforcements() {
   const createdUnits = [];
+  const joinedAllies = [];
   const occupied = new Set(
-    [...playerTeam, ...enemies]
+    [...defendingUnits(), ...enemies]
       .filter((unit) => unit.hp > 0)
       .map((unit) => tileKey(unit.x, unit.z)),
   );
   for (const wave of activeLevel.reinforcements) {
+    if (wave.requiresHeartroots && !wave.spawned && !enemies.some((enemy) => enemy.id === 'heartroot')) {
+      wave.spawned = true;
+      continue;
+    }
     if (wave.turn > gameState.turn || wave.spawned) continue;
     while (wave.spawnedCount < wave.units.length) {
       const placement = wave.units[wave.spawnedCount];
@@ -3182,8 +3733,29 @@ function spawnTurnReinforcements() {
       createdUnits.push(unit);
     }
     wave.spawned = true;
+    for (const placement of wave.allies ?? []) {
+      const ally = roster[placement.id];
+      if (!ally || fullTeam.includes(ally)) continue;
+      const open = [];
+      for (let z = 0; z < activeLevel.height; z++) {
+        for (let x = 0; x < activeLevel.width; x++) {
+          if (isWalkable(activeLevel, x, z) && !occupied.has(tileKey(x, z))) open.push({ x, z });
+        }
+      }
+      open.sort((first, second) =>
+        distanceBetween(first.x, first.z, placement.x, placement.z) -
+        distanceBetween(second.x, second.z, placement.x, placement.z));
+      if (!open.length) continue;
+      Object.assign(ally, { x: open[0].x, z: open[0].z, facing: 'south', hp: ally.maxHp, moved: false, acted: false, moveOrigin: null });
+      ally.mesh.position.set(worldX(ally.x), unitSpriteHeightAt(ally.x, ally.z), worldZ(ally.z));
+      playerTeam.push(ally);
+      if (!fullTeam.includes(ally)) fullTeam.push(ally);
+      setIdleSprite(ally);
+      occupied.add(tileKey(ally.x, ally.z));
+      joinedAllies.push(ally);
+    }
   }
-  return { units: createdUnits, error: null };
+  return { units: createdUnits, allies: joinedAllies, error: null };
 }
 
 async function endPlayerPhase() {
@@ -3248,7 +3820,8 @@ function confirmCursor() {
     else if (playerUnitAt(cursor.x, cursor.z)) {
       player = playerUnitAt(cursor.x, cursor.z);
       selectMaria();
-    } else openOptionsMenu();
+    } else if (unitAtTile(cursor.x, cursor.z)) openUnitProfile(unitAtTile(cursor.x, cursor.z));
+    else openOptionsMenu();
   } else if (gameState.mode === 'move') {
     if (cursor.x === player.x && cursor.z === player.z) openMariaActions();
     else confirmMove();
@@ -3262,7 +3835,7 @@ function confirmCursor() {
 
 function clickBattlefield(event) {
   if (gameState.phase !== 'player' || gameState.defeated || playerMovement ||
-      gameState.mode === 'combat') return;
+      gameState.mode === 'combat' || mapViewActive) return;
   const bounds = renderer.domElement.getBoundingClientRect();
   pointerPosition.set(
     ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
@@ -3290,6 +3863,7 @@ function clickBattlefield(event) {
     } else if (spriteHit) {
       const enemy = enemies.find((unit) => unit.mesh === spriteHit.object);
       if (enemy) toggleEnemyRange(enemy);
+      else if (hitUnit) openUnitProfile(hitUnit);
     } else {
       openOptionsMenu();
     }
@@ -3311,6 +3885,7 @@ document.querySelector('#inventory-action').addEventListener('click', openInvent
 document.querySelector('#trade-action').addEventListener('click', openTrade);
 document.querySelector('#trade-close').addEventListener('click', closeTrade);
 document.querySelector('#heal-action').addEventListener('click', openHeal);
+document.querySelector('#freeze-action').addEventListener('click', openFreeze);
 document.querySelector('#heal-close').addEventListener('click', closeHeal);
 healDialog.addEventListener('cancel', (event) => {
   event.preventDefault();
@@ -3325,6 +3900,7 @@ document.querySelector('#cancel-combat').addEventListener('click', cancelCombatF
 document.querySelector('#profile-action').addEventListener('click', openCharacterProfile);
 document.querySelector('#finish-action').addEventListener('click', finishUnit);
 visitActionButton.addEventListener('click', () => void visitHouse());
+document.querySelector('#talk-action').addEventListener('click', () => void recruitLinus());
 chestActionButton.addEventListener('click', () => void openChest());
 backActionButton.addEventListener('click', () => {
   if (player.moveOrigin && player.moved && !player.acted) undoMove();
@@ -3426,7 +4002,7 @@ const savedGame = refreshContinueButton();
 let backCtrlPending = false;
 
 function goBack() {
-  if (document.querySelector('#level-up-dialog')?.open || itemPopup.open || tutorialPopup.open) return false;
+  if (document.querySelector('#level-up-dialog')?.open || document.querySelector('#rank-up-dialog')?.open || document.querySelector('#prep-dialog')?.open || itemPopup.open || tutorialPopup.open) return false;
   if (combatForecastDialog.open) {
     cancelCombatForecast();
     return true;
@@ -3531,10 +4107,22 @@ window.addEventListener('keydown', (event) => {
   if (playerMovement || gameState.mode === 'combat') return;
   if (profileDialog.open) return;
   if (itemPopup.open || tutorialPopup.open) return;
+  if (document.querySelector('#prep-dialog')?.open) return;
   if (inventoryDialog.open) return;
   if (tradeDialog.open || healDialog.open) return;
   if (optionsDialog.open) return;
   if (combatForecastDialog.open) return;
+  if (mapViewActive) {
+    if (event.code === 'Escape' || event.code === 'Backspace') {
+      event.preventDefault();
+      endMapView();
+      return;
+    }
+    if (!MAP_VIEW_KEYS.has(event.code)) {
+      event.preventDefault();
+      return;
+    }
+  }
   if (event.code === 'Tab') {
     event.preventDefault();
     cyclePlayerUnits();
@@ -3588,7 +4176,7 @@ window.addEventListener('keydown', (event) => {
     if (gameState.mode !== 'cursor' || gameState.selected) return;
     const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
     if (enemy) openEnemyProfile(enemy);
-    else if (playerUnitAt(cursor.x, cursor.z)) openUnitProfile(playerUnitAt(cursor.x, cursor.z));
+    else if (unitAtTile(cursor.x, cursor.z)) openUnitProfile(unitAtTile(cursor.x, cursor.z));
   } else if (event.code === 'KeyM') {
     startMove();
   } else if (event.code === 'KeyA') {
@@ -3704,8 +4292,8 @@ function update(dt, t) {
     floatingText.material.opacity = 1 - age / 1.1;
   }
   const walkingTime = playerMovement ? t - playerMovement.startedAt : t;
-  for (const unit of [maria, bartz, cypher, seymour]) {
-    const fielded = playerTeam.includes(unit) && unit.hp > 0;
+  for (const unit of [maria, bartz, cypher, seymour, stark, linus]) {
+    const fielded = (playerTeam.includes(unit) || unit === linus && rescueState && !rescueState.recruited) && unit.hp > 0;
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
     if (!fielded) continue;
@@ -3725,7 +4313,7 @@ function update(dt, t) {
     unit.mesh.position.set(unitX, unitY + (unitMoving ? Math.abs(Math.sin(t * 28)) * 0.08 : 0), unitZ);
     unit.blob.position.set(unitX, unitY - UNIT_SPRITE_HEIGHT / 2 - HERO_DECK_HEIGHT + 0.02, unitZ);
   }
-  const healthBarMeshes = [...playerTeam, ...enemies].map((unit) => unit.mesh);
+  const healthBarMeshes = [...defendingUnits(), ...enemies].map((unit) => unit.mesh);
   for (const enemy of enemies) {
     const marker = enemy.mesh.userData.dropMarker;
     if (marker) marker.material.opacity = 0.75 + Math.sin(t * 4) * 0.25;
@@ -3774,7 +4362,8 @@ function update(dt, t) {
     worldZ(cursor.z),
   );
   torch.position.set(playerWorldX + 1.2, 2.4, playerWorldZ + 0.8);
-  torch.intensity = 38 + Math.sin(t * 17) * 3 + Math.sin(t * 5.3) * 2;
+  torch.intensity = (38 + Math.sin(t * 17) * 3 + Math.sin(t * 5.3) * 2) *
+    (activeLevel.lighting === 'sunset' ? 0.15 : 1);
 
   const target = moving
     ? new THREE.Vector3(playerWorldX, 0.8, playerWorldZ)
@@ -3807,8 +4396,8 @@ function update(dt, t) {
   const backdropDistance = 90;
   const backdropDirection = camera.getWorldDirection(new THREE.Vector3());
   const backdropHeight = 2 * backdropDistance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  nightBackdrop.position.copy(camera.position).addScaledVector(backdropDirection, backdropDistance);
-  nightBackdrop.scale.set(backdropHeight * camera.aspect, backdropHeight, 1);
+  activeBackdrop.position.copy(camera.position).addScaledVector(backdropDirection, backdropDistance);
+  activeBackdrop.scale.set(backdropHeight * camera.aspect, backdropHeight, 1);
 }
 
 setMessage(`WASD / Arrows move · Enter inspects enemies · Select ${player.name} · Click empty tiles for options`);
@@ -3841,7 +4430,7 @@ if (Number.isInteger(requestedChapter) && requestedChapter >= 2 && requestedChap
   if (requestParams.get('save') === '1') {
     try {
       const save = readSave();
-      if (save) carry = { ...save.player, allies: save.allies ?? [], convoy: save.convoy ?? [] };
+      if (save) carry = { ...save.player, allies: save.allies ?? [], convoy: save.convoy ?? [], insight: save.insight };
     } catch (error) {
       console.error('Could not load save for chapter shortcut:', error);
     }

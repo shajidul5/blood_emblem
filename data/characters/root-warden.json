@@ -1,0 +1,16 @@
+{
+  "id": "root-warden",
+  "name": "Root Warden",
+  "classId": "wolfman",
+  "type": "beast",
+  "spriteSet": "genericWolfman",
+  "sprite": "assets/character/Generic_Wolfman/rotations/south.png",
+  "scale": 1.1,
+  "level": 16,
+  "experience": 0,
+  "weaponId": "wolfman-claws",
+  "ai": "guard",
+  "baseStats": { "hp": 68, "strength": 20, "magic": 0, "dexterity": 15, "speed": 17, "luck": 3, "defense": 11, "resistance": 4, "movement": 6, "build": 8 },
+  "currentStats": { "hp": 68, "strength": 20, "magic": 0, "dexterity": 15, "speed": 17, "luck": 3, "defense": 11, "resistance": 4, "movement": 6, "build": 8 },
+  "growthRates": { "hp": 50, "strength": 40, "magic": 0, "dexterity": 30, "speed": 40, "luck": 10, "defense": 30, "resistance": 15, "movement": 0, "build": 0 }
+}

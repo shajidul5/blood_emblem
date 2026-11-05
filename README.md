@@ -36,11 +36,12 @@ The game uses turn-based tactical controls:
 - **End Unit** (or `F`) finishes Maria's actions; once every player unit has finished, enemies take their turn. **End Phase** (or `E`) ends the player phase early.
 - Escape cancels the current targeting mode or deselects Maria.
 - The main menu offers **New Game** and **Continue**. Progress auto-saves in this browser; clicking an unoccupied tile or choosing **Options** opens a menu with **Return to Main Menu**.
+- In Preparations, **Insight** shows weapon sprites and leadership stars. Spend 30 Insight to awaken Maria's Blood Emblem, then **Equip** it separately from her weapon in Insight or her inventory. While equipped and carried, it restores 10 HP (up to max HP) whenever she defeats a foe, including counterattack kills; ordinary hits do not heal. Unequip it freely or refund the upgrade in full. Its `cost` and `healOnKill` are configurable in [data/upgrades.json](data/upgrades.json). The upgrade and equip state persist in saves and between chapters; older saves start with it locked.
 - Levels display their objective in the battle HUD. **Kill all enemies** wins when the enemy roster is cleared; **Escape** wins when Maria reaches an Exit tile. Victory and party defeat fade into gothic end screens with options to restart the current level or return to the main menu. These terminal outcomes are saved and restored by **Continue**.
 
 ## What's in the prototype
 
-- Animated pixel-art title screen with drifting clouds and water, twinkling stars, and flickering harbor lights; its layered artwork is stored in `assets/ui/menu/`
+- Animated pixel-art title screen with the Blood Emblem item sprite and rustic serif lettering, drifting clouds and water, twinkling stars, and flickering harbor lights; its layered artwork is stored in `assets/ui/menu/`
 - A low top-down pixel-art level with two ships connected by a two-tile-wide bridge, loaded from `data/levels/map_01_two_ships.json`
 - Oblique hull edges, deck variations, stairs, mast bases, and decorative ship props from `assets/tiles/ship_oblique/`; blocking props also block unit movement
 - Three generic raiders use direction-specific sprites, while Bartz uses his directional idle art and eight-way walking animation; they take turns advancing and attacking, with the camera following each enemy during the enemy phase
@@ -56,6 +57,21 @@ The game uses turn-based tactical controls:
 - Grid cursor, class-based movement, attack targeting, HP, and alternating player / enemy phases
 - Browser-local save data for the current map, unit stats/EXP, inventory/equipment and consumable uses, enemy types/HP/positions, and turn; older saves without enemy types still load as raiders
 - Movement blocked by water, hull, mast, railing, and occupied enemy tiles
+
+## Chapter 9 - The Last Crossing
+
+- The party emerges from the enchanted forest at sunset: bright amber daylight and an orange sky replace the usual night lighting. A seven-tile-wide stone bridge and its parapets continue beyond the northern map edge, with no far bank visible; the full crossing is reserved for Chapter 10.
+- Split-rail fences, staggered gates, courtyard houses, and southern forest channels create multiple approaches. Houses are spread across the courtyard to reward Linus's cavalry movement, with all three villagers within seven tiles of his starting position. Crates and barrels furnish the lanes without sealing rescue routes. Fence and parapet tiles block movement; escorts route through the gates rather than through barriers.
+- Village fences use transparent PixelLab pixel-art segments in [assets/tiles/Village_Fence](assets/tiles/Village_Fence), with nearest-neighbor filtering in battle and matching previews in the map editor. Their low-profile silhouettes stay inside blocked tiles instead of projecting tall rails over adjacent characters. Both orientations use vertical asset `8f5e7659-d366-4964-a874-2adf6b2eaf78`: the horizontal sprite is an exact 90-degree rotation, preserving identical wood, thickness, and proportions.
+- The campaign continues from Chapter 8 into a village defending three stranded civilians. Visit a house from its doorway or an adjacent tile to start that villager's escort. Villagers have 26 HP, can be healed, and move up to three tiles toward the green refuge before each enemy phase. They can be attacked before or during their escort; once safe, they leave the battlefield.
+- The western green refuge has an in-world **REFUGE / ESCORT DESTINATION** label. The HUD explains escort movement and safe departure, and **Rescue Villager** uses the same framed button artwork as other available actions.
+- Maria can recruit the wounded Cavalier **Linus** with **Talk to Linus** from an adjacent tile. He starts with 28/40 HP, a Steel Lance, a Potion, 7 Movement, 15 Strength and 12 Defense. His lance, sword, and walking animations use the supplied Linus assets. Unrecruited Linus holds position and counters beasts; his death does not fail the chapter.
+- Wolves lead the forest attack, followed by another pack on turn **3**. Mobile wolfmen (Root Wardens) join the wolves on turns **5 and 7**, with red approach markers and one-turn-ahead warnings. Knights defend the bridge and do not pursue civilians. Captain Varric is a Cavalier whose **Javelin** attacks at range **1-2** and drops on defeat.
+- To win, account for all villagers (rescued or lost), defeat the captain, eliminate all beasts and scheduled waves, then bring Maria to the gold bridge-entrance marker. Maria must survive. Villager losses reduce rewards but do not cause game over.
+- Cumulative rescue rewards: **1 safe** = two Potions; **2 safe** = also a Bloodroot Tonic; **3 safe** = also a Crossing Keepsake granting 10 Insight when read. Rewards go to Maria or the convoy and are granted only once. The Javelin is a separate combat drop.
+- Escort positions, HP, losses, Linus recruitment, reinforcement progress, and reward claims persist in autosaves and manual slots. Chapter rules and rewards live in [data/levels/map_09_last_crossing.json](data/levels/map_09_last_crossing.json). Civilians use the dedicated Villager idle and walking assets without a color tint; the Javelin and Steel Lance reuse spear item art.
+- Promoting Linus to Paladin selects the Paladin_Linus assets; other Paladins use Generic_Paladin. Both sets switch idle and attack sprites between lance and sword based on the equipped weapon, including after loading a save. Sword variants reuse their matching Paladin's walking animation because no separate sword walk was supplied.
+- Run `npm test` for rescue regression tests. For a fresh Chapter 9 playtest, open `?chapter=9`; `?chapter=9&save=1` carries the current autosave's roster, inventory, convoy, and Insight forward. Chapter shortcuts start and autosave a new battle, so use a separate browser origin for disposable testing.
 
 ## Create and load maps
 

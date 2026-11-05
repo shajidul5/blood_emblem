@@ -128,6 +128,43 @@ const bishopSeymourWalkingFrames = import.meta.glob('../../assets/character/Bish
 const bishopSeymourAttackFrames = import.meta.glob('../../assets/character/Bishop_Seymour/animations/The_figure_lifts_the_heavy_tome_with_the_left_hand/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const bishopSeymourStaffFrames = import.meta.glob('../../assets/character/Bishop_Seymour/animations/Healing/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
+const genericWolfmanIdleSprites = import.meta.glob('../../assets/character/Generic_Wolfman/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericWolfmanWalkingFrames = import.meta.glob('../../assets/character/Generic_Wolfman/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericWolfmanAttackFrames = import.meta.glob('../../assets/character/Generic_Wolfman/animations/The_creature_pulls_its_claws_tight_against_its_che/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericArcherIdleSprites = import.meta.glob('../../assets/character/Generic_Archer/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericArcherWalkingFrames = import.meta.glob('../../assets/character/Generic_Archer/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericArcherAttackFrames = import.meta.glob('../../assets/character/Generic_Archer/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericKnightIdleSprites = import.meta.glob('../../assets/character/Generic_Knight/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericKnightWalkingFrames = import.meta.glob('../../assets/character/Generic_Knight/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericKnightAttackFrames = import.meta.glob('../../assets/character/Generic_Knight/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericCavalierIdleSprites = import.meta.glob('../../assets/character/Generic_cavalier/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericCavalierWalkingFrames = import.meta.glob('../../assets/character/Generic_cavalier/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericCavalierAttackFrames = import.meta.glob('../../assets/character/Generic_cavalier/animations/The_knight_pulls_the_lance_back_towards_the_should/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const linusIdleSprites = import.meta.glob('../../assets/character/Linus/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const linusWalkingFrames = import.meta.glob('../../assets/character/Linus/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const linusAttackFrames = import.meta.glob('../../assets/character/Linus/animations/The_rider_pulls_the_lance_back_towards_the_shoulde/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const linusSwordIdleSprites = import.meta.glob('../../assets/character/Linus/Linus_sword/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const linusSwordAttackFrames = import.meta.glob('../../assets/character/Linus/Linus_sword/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const villagerIdleSprites = import.meta.glob('../../assets/character/Villager/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const villagerWalkingFrames = import.meta.glob('../../assets/character/Villager/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericPaladinIdleSprites = import.meta.glob('../../assets/character/Generic_Paladin/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericPaladinWalkingFrames = import.meta.glob('../../assets/character/Generic_Paladin/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericPaladinAttackFrames = import.meta.glob('../../assets/character/Generic_Paladin/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericPaladinSwordIdleSprites = import.meta.glob('../../assets/character/Generic_Paladin/Generic_Sword_Paladin/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericPaladinSwordAttackFrames = import.meta.glob('../../assets/character/Generic_Paladin/Generic_Sword_Paladin/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const paladinLinusIdleSprites = import.meta.glob('../../assets/character/Paladin_Linus/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const paladinLinusWalkingFrames = import.meta.glob('../../assets/character/Paladin_Linus/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const paladinLinusAttackFrames = import.meta.glob('../../assets/character/Paladin_Linus/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const paladinLinusSwordIdleSprites = import.meta.glob('../../assets/character/Paladin_Linus/Paladin_Linus_Sword/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const paladinLinusSwordAttackFrames = import.meta.glob('../../assets/character/Paladin_Linus/Paladin_Linus_Sword/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const starkIdleSprites = import.meta.glob('../../assets/character/Stark/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const heartrootIdleSprites = import.meta.glob('../../assets/character/Heartroot/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const starkWalkingFrames = import.meta.glob('../../assets/character/Stark/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const starkAttackFrames = import.meta.glob('../../assets/character/Stark/animations/The_character_pulls_back_the_bowstring_with_the_ri/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const sniperStarkIdleSprites = import.meta.glob('../../assets/character/Sniper_Stark/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const sniperStarkWalkingFrames = import.meta.glob('../../assets/character/Sniper_Stark/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const sniperStarkAttackFrames = import.meta.glob('../../assets/character/Sniper_Stark/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+
 const raiderIdleSprites = import.meta.glob('../../assets/character/Generic_Raider/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const raiderWalkingFrames = import.meta.glob('../../assets/character/Generic_Raider/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const raiderAttackFrames = import.meta.glob('../../assets/character/Generic_Raider/Fighting_stance_with/animations/*/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -363,6 +400,28 @@ export async function loadCharacterSprites() {
   result.bishopSeymourAttackFrames = bishopSeymourData.attacking;
   const bishopSeymourStaffData = await loadCharacterWithAllAnimations('Bishop_Seymour_Staff', bishopSeymourIdleSprites, bishopSeymourWalkingFrames, bishopSeymourStaffFrames);
   result.bishopSeymourStaffFrames = bishopSeymourStaffData.attacking;
+
+  for (const [key, folder, idle, walking, attack] of [
+    ['genericWolfman', 'Generic_Wolfman', genericWolfmanIdleSprites, genericWolfmanWalkingFrames, genericWolfmanAttackFrames],
+    ['genericArcher', 'Generic_Archer', genericArcherIdleSprites, genericArcherWalkingFrames, genericArcherAttackFrames],
+    ['genericKnight', 'Generic_Knight', genericKnightIdleSprites, genericKnightWalkingFrames, genericKnightAttackFrames],
+    ['genericCavalier', 'Generic_cavalier', genericCavalierIdleSprites, genericCavalierWalkingFrames, genericCavalierAttackFrames],
+    ['linus', 'Linus', linusIdleSprites, linusWalkingFrames, linusAttackFrames],
+    ['linusSword', 'Linus Sword', linusSwordIdleSprites, linusWalkingFrames, linusSwordAttackFrames],
+    ['villager', 'Villager', villagerIdleSprites, villagerWalkingFrames, {}],
+    ['genericPaladin', 'Generic Paladin', genericPaladinIdleSprites, genericPaladinWalkingFrames, genericPaladinAttackFrames],
+    ['genericPaladinSword', 'Generic Sword Paladin', genericPaladinSwordIdleSprites, genericPaladinWalkingFrames, genericPaladinSwordAttackFrames],
+    ['paladinLinus', 'Paladin Linus', paladinLinusIdleSprites, paladinLinusWalkingFrames, paladinLinusAttackFrames],
+    ['paladinLinusSword', 'Paladin Linus Sword', paladinLinusSwordIdleSprites, paladinLinusWalkingFrames, paladinLinusSwordAttackFrames],
+    ['stark', 'Stark', starkIdleSprites, starkWalkingFrames, starkAttackFrames],
+    ['sniperStark', 'Sniper_Stark', sniperStarkIdleSprites, sniperStarkWalkingFrames, sniperStarkAttackFrames],
+    ['heartroot', 'Heartroot', heartrootIdleSprites, {}, {}],
+  ]) {
+    const data = await loadCharacterWithAllAnimations(folder, idle, walking, attack);
+    result[key] = data.idle;
+    result[`${key}WalkingFrames`] = data.walking;
+    result[`${key}AttackFrames`] = data.attacking;
+  }
 
   // Load Raider with all animations normalized together
   const raiderData = await loadCharacterWithAllAnimations('Raider', raiderIdleSprites, raiderWalkingFrames, raiderAttackFrames);

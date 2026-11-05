@@ -1,0 +1,20 @@
+{
+  "id": "freeze-staff",
+  "lore": "A knight's crozier packed in winter linen, found in the surgeon's tent. Whatever was meant to be mended here was frozen instead. It roots a foe where it stands.",
+  "name": "Freeze",
+  "type": "Staff",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 3,
+  "hit": 40,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "E",
+  "freeze": true,
+  "freezeExperience": 30,
+  "maxUses": 5,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Freeze_Staff/freeze_staff.png"
+}

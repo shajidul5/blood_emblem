@@ -1,0 +1,17 @@
+{
+  "id": "bridge-captain",
+  "name": "Captain Varric",
+  "classId": "cavalier",
+  "type": "cavalry",
+  "spriteSet": "genericCavalier",
+  "sprite": "assets/character/Generic_cavalier/rotations/south.png",
+  "scale": 1.2,
+  "level": 19,
+  "experience": 0,
+  "weaponId": "javelin",
+  "isBoss": true,
+  "ai": "stationary",
+  "baseStats": { "hp": 62, "strength": 19, "magic": 0, "dexterity": 16, "speed": 13, "luck": 7, "defense": 15, "resistance": 7, "movement": 7, "build": 11 },
+  "currentStats": { "hp": 62, "strength": 19, "magic": 0, "dexterity": 16, "speed": 13, "luck": 7, "defense": 15, "resistance": 7, "movement": 7, "build": 11 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 40, "speed": 35, "luck": 20, "defense": 35, "resistance": 20, "movement": 0, "build": 0 }
+}

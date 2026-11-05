@@ -1,0 +1,17 @@
+{
+  "id": "great-wolf",
+  "name": "The Great Wolf",
+  "classId": "wolf",
+  "type": "beast",
+  "spriteSet": "feralWolf",
+  "scale": 1.5,
+  "sprite": "assets/character/Ferral_Wolf/Idle/rotations/south.png",
+  "level": 18,
+  "experience": 0,
+  "weaponId": "wolf-claws",
+  "isBoss": true,
+  "ai": "mobile",
+  "baseStats": { "hp": 70, "strength": 17, "magic": 0, "dexterity": 15, "speed": 17, "luck": 5, "defense": 7, "resistance": 4, "movement": 7, "build": 12 },
+  "currentStats": { "hp": 70, "strength": 17, "magic": 0, "dexterity": 15, "speed": 17, "luck": 5, "defense": 7, "resistance": 4, "movement": 7, "build": 12 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

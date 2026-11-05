@@ -4,19 +4,26 @@ import chapterThreeMapUrl from '../../data/levels/map_03_fishing_village.json?ur
 import chapterFourMapUrl from '../../data/levels/map_04_mansion.json?url&no-inline';
 import chapterFiveMapUrl from '../../data/levels/map_05_escape.json?url&no-inline';
 import chapterSixMapUrl from '../../data/levels/map_06_hollow_wood.json?url&no-inline';
+import chapterSevenMapUrl from '../../data/levels/map_07_orders_camp.json?url&no-inline';
+import chapterEightMapUrl from '../../data/levels/map_08_rotted_heart.json?url&no-inline';
+import chapterNineMapUrl from '../../data/levels/map_09_last_crossing.json?url&no-inline';
+import { validateRescueRules } from '../game/rescue.js';
 import chestUrl from '../../assets/tiles/Chest/chest.png?url';
 import shipTilesUrl from '../../assets/tiles/ship_oblique/ship_oblique_tiles.png?url';
 import shipObjectsUrl from '../../assets/tiles/ship_oblique/ship_objects.png?url';
 import waterRippleUrl from '../../assets/tiles/ocean_ripple/water_ripple.png?url';
 import mastUrl from '../../assets/tiles/ship_oblique/mast.png?url';
 import greyHouseUrl from '../../assets/tiles/Grey_house/rotations/Grey_house.png?url';
+import orderTentUrl from '../../assets/tiles/Order_Tent/order_tent.png?url';
+import fenceHorizontalUrl from '../../assets/tiles/Village_Fence/fence_horizontal.png?url';
+import fenceVerticalUrl from '../../assets/tiles/Village_Fence/fence_vertical.png?url';
 import greyHouseNoEntryUrl from '../../assets/tiles/Grey_house_No_entry/rotations/Grey_house_No_entry.png?url';
 const creepTreeUrls = import.meta.glob('../../assets/tiles/Creep_Trees/*.png', { eager: true, query: '?url', import: 'default' });
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
 import { getTileDef, isTileWalkable, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B']);
-export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape']);
+export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers']);
 
 const TILE_SIZE = shipTileset.tileSize;
 const WATER_TILE_IDS = new Set(['water_a', 'water_b', 'water_foam']);
@@ -156,7 +163,7 @@ function loadImage(url) {
   });
 }
 
-const [shipTilesImage, waterRippleImage, shipObjectsImage, mastImage, greyHouseImage, greyHouseNoEntryImage, chestImage] = await Promise.all([
+const [shipTilesImage, waterRippleImage, shipObjectsImage, mastImage, greyHouseImage, greyHouseNoEntryImage, chestImage, orderTentImage] = await Promise.all([
   loadImage(shipTilesUrl),
   loadImage(waterRippleUrl),
   loadImage(shipObjectsUrl),
@@ -164,11 +171,16 @@ const [shipTilesImage, waterRippleImage, shipObjectsImage, mastImage, greyHouseI
   loadImage(greyHouseUrl),
   loadImage(greyHouseNoEntryUrl),
   loadImage(chestUrl),
+  loadImage(orderTentUrl),
 ]);
 
 const creepTreeImages = new Map(await Promise.all(Object.entries(creepTreeUrls).map(
   async ([path, url]) => [path.split('/').pop().replace('.png', ''), await loadImage(url)],
 )));
+const fenceImages = new Map(await Promise.all([
+  ['village_fence_h', fenceHorizontalUrl],
+  ['village_fence_v', fenceVerticalUrl],
+].map(async ([id, url]) => [id, await loadImage(url)])));
 
 function atlasTexture(THREE, image, atlas, id) {
   const tile = atlas.list.find((entry) => entry.id === id);
@@ -329,7 +341,7 @@ export function validateLevel(value) {
   }
 
   if (!LEVEL_OBJECTIVES.has(objective)) {
-    throw new Error('Level objective must be defeat-all-enemies, defeat-boss or escape.');
+    throw new Error('Level objective must be defeat-all-enemies, defeat-boss, escape or rescue-villagers.');
   }
   // Props removed from the tileset are dropped so older saves and levels still load.
   const objects = (value.objects ?? []).filter?.((object) => !RETIRED_OBJECT_IDS.has(object?.id)) ?? value.objects;
@@ -391,7 +403,7 @@ export function validateLevel(value) {
       !Number.isInteger(house.z) ||
       house.width !== 3 ||
       house.height !== 2 ||
-      (typeof house.rewardId !== 'string' && typeof house.recruitId !== 'string') ||
+      (typeof house.rewardId !== 'string' && typeof house.recruitId !== 'string' && typeof house.villagerId !== 'string') ||
       (house.visited !== undefined && typeof house.visited !== 'boolean')
     ) return false;
     houseIds.add(house.id);
@@ -434,6 +446,8 @@ export function validateLevel(value) {
     },
     rewardId: house.rewardId,
     ...(house.recruitId ? { recruitId: house.recruitId } : {}),
+    ...(house.villagerId ? { villagerId: house.villagerId } : {}),
+    ...(house.style === 'tent' ? { style: 'tent' } : {}),
     visited: house.visited ?? false,
   }));
   const decorativeHouses = value.decorativeHouses ?? [];
@@ -529,7 +543,12 @@ export function validateLevel(value) {
   if (!Array.isArray(reinforcements) || !reinforcements.every((wave) =>
     wave &&
     Number.isInteger(wave.turn) && wave.turn > 1 &&
-    Array.isArray(wave.units) && wave.units.length > 0 &&
+    Array.isArray(wave.units) && (wave.units.length > 0 || wave.allies?.length > 0) &&
+    (wave.allies === undefined || Array.isArray(wave.allies) && wave.allies.every((ally) =>
+      ally && typeof ally.id === 'string' &&
+      Number.isInteger(ally.x) && ally.x >= 0 && ally.x < width &&
+      Number.isInteger(ally.z) && ally.z >= 0 && ally.z < height &&
+      isTileWalkable(tileIds[ally.z][ally.x]))) &&
     (wave.spawned === undefined || typeof wave.spawned === 'boolean') &&
     wave.units.every((unit) => {
       const z = unit?.z ?? unit?.y;
@@ -554,10 +573,20 @@ export function validateLevel(value) {
       z: unit.z ?? unit.y,
       ...(unit.level === undefined ? {} : { level: unit.level }),
       ...(unit.ai === undefined ? {} : { ai: unit.ai }),
+      ...(unit.drop === undefined ? {} : { drop: unit.drop }),
     })),
+    ...(wave.allies?.length ? { allies: wave.allies.map(({ id, x, z }) => ({ id, x, z })) } : {}),
+    ...(wave.requiresHeartroots ? { requiresHeartroots: true } : {}),
     spawned: wave.spawned ?? false,
     spawnedCount: wave.spawnedCount ?? 0,
   }));
+  const rawRoots = value.heartroots;
+  const heartrootRules = rawRoots && typeof rawRoots.bossId === 'string' ? {
+    bossId: rawRoots.bossId,
+    healPerRoot: Math.max(0, Number(rawRoots.healPerRoot) || 0),
+    frenzyStrength: Math.max(0, Number(rawRoots.frenzyStrength) || 0),
+    frenzyMovement: Math.max(0, Number(rawRoots.frenzyMovement) || 0),
+  } : null;
   const occupied = new Set();
   for (const unit of [...players, ...enemyPlacements]) {
     const key = `${unit.x},${unit.z}`;
@@ -568,12 +597,13 @@ export function validateLevel(value) {
     }
     occupied.add(key);
   }
-  return {
+  const level = {
     name: name.trim(),
     objective,
     extendEdges: value.extendEdges === true,
     forestEdges: value.forestEdges === true,
     noFence: value.noFence === true,
+    lighting: value.lighting ?? 'night',
     groundRing: Number.isInteger(value.groundRing) ? Math.max(0, value.groundRing) : 0,
     extendSides: value.extendSides === true,
     width,
@@ -588,6 +618,7 @@ export function validateLevel(value) {
     decorativeHouses: normalizedDecorativeHouses,
     chests: normalizedChests,
     reinforcements: normalizedReinforcements,
+    heartroots: heartrootRules,
     tiles: tileIds,
     tileIds,
     trees: (Array.isArray(value.trees) ? value.trees : []).filter((tree) =>
@@ -602,9 +633,13 @@ export function validateLevel(value) {
       blocksMovement: BLOCKING_OBJECTS.has(object.id),
     })),
   };
+  if (!['night', 'sunset'].includes(level.lighting)) throw new Error('Level lighting must be night or sunset.');
+  level.rescue = validateRescueRules(value.rescue, level);
+  if (objective === 'rescue-villagers' && !level.rescue) throw new Error('Rescue objective requires rescue rules.');
+  return level;
 }
 
-const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl, chapterSixMapUrl];
+const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl, chapterSixMapUrl, chapterSevenMapUrl, chapterEightMapUrl, chapterNineMapUrl];
 export const CHAPTER_COUNT = CHAPTER_URLS.length;
 
 export async function loadChapterLevel(index) {
@@ -773,6 +808,49 @@ function addBoundaryFence(THREE, levelGroup, level) {
   }
 }
 
+function addLaneBarriers(THREE, levelGroup, tileGroups) {
+  if (!['village_fence_h', 'village_fence_v', 'crossing_parapet'].some((id) => tileGroups.has(id))) return;
+  const stone = new THREE.MeshStandardMaterial({ color: 0x858080, roughness: 0.95 });
+  const parapet = new THREE.BoxGeometry(0.55, 0.7, 1);
+  const cap = new THREE.BoxGeometry(0.7, 0.12, 1);
+  for (const id of ['village_fence_h', 'village_fence_v', 'crossing_parapet']) {
+    let fenceGeometry;
+    let fenceMaterial;
+    if (fenceImages.has(id) && tileGroups.has(id)) {
+      const vertical = id === 'village_fence_v';
+      const image = fenceImages.get(id);
+      const texture = new THREE.Texture(image);
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+      texture.generateMipmaps = false;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      fenceGeometry = new THREE.PlaneGeometry(
+        vertical ? image.width / image.height : 1, vertical ? 1 : image.height / image.width);
+      fenceGeometry.rotateX(-Math.PI / 2);
+      fenceMaterial = new THREE.MeshStandardMaterial({
+        map: texture, alphaTest: 0.5, roughness: 0.95, side: THREE.DoubleSide,
+      });
+    }
+    for (const cell of tileGroups.get(id) ?? []) {
+      const add = (geometry, material, dx, y, dz) => {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(cell.x + dx, y, cell.z + dz);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        levelGroup.add(mesh);
+      };
+      if (id === 'crossing_parapet') {
+        add(parapet, stone, 0, 0.35, 0);
+        add(cap, stone, 0, 0.76, 0);
+      } else {
+        // Keep the entire silhouette in its blocked tile, below neighboring unit sprites.
+        add(fenceGeometry, fenceMaterial, 0, 0.13, 0);
+      }
+    }
+  }
+}
+
 export function buildLevel(THREE, levelGroup, value) {
   const level = validateLevel(value);
   for (const glow of glowLights) glow.sprite.material.dispose();
@@ -845,6 +923,7 @@ export function buildLevel(THREE, levelGroup, value) {
   }
 
   if (level.extendEdges && !level.noFence) addBoundaryFence(THREE, levelGroup, level);
+  addLaneBarriers(THREE, levelGroup, tileGroups);
 
   const geometry = new THREE.PlaneGeometry(1, 1);
   geometry.rotateX(-Math.PI / 2);
@@ -1032,8 +1111,23 @@ export function buildLevel(THREE, levelGroup, value) {
   houseGeometry.translate(0, houseGeometry.parameters.height / 2, 0);
   const houseNoEntryGeometry = new THREE.PlaneGeometry(houseWidth, houseWidth * greyHouseNoEntryImage.height / greyHouseNoEntryImage.width);
   houseNoEntryGeometry.translate(0, houseNoEntryGeometry.parameters.height / 2, 0);
+  const orderTentTexture = new THREE.Texture(orderTentImage);
+  orderTentTexture.magFilter = THREE.NearestFilter;
+  orderTentTexture.minFilter = THREE.NearestFilter;
+  orderTentTexture.generateMipmaps = false;
+  orderTentTexture.colorSpace = THREE.SRGBColorSpace;
+  orderTentTexture.needsUpdate = true;
+  const orderTentMaterial = new THREE.MeshBasicMaterial({
+    map: orderTentTexture,
+    alphaTest: 0.1,
+    depthTest: true,
+    depthWrite: true,
+    side: THREE.DoubleSide,
+  });
+  const tentGeometry = new THREE.PlaneGeometry(houseWidth, houseWidth * orderTentImage.height / orderTentImage.width);
+  tentGeometry.translate(0, tentGeometry.parameters.height / 2, 0);
   for (const house of level.houses) {
-    const houseSprite = new THREE.Mesh(houseGeometry, greyHouseMaterial);
+    const houseSprite = new THREE.Mesh(house.style === 'tent' ? tentGeometry : houseGeometry, house.style === 'tent' ? orderTentMaterial : greyHouseMaterial);
     houseSprite.rotation.x = -OBJECT_TILT;
     houseSprite.position.set(
       house.x + house.width / 2 - level.width / 2,
@@ -1144,6 +1238,55 @@ export function buildLevel(THREE, levelGroup, value) {
       );
       marker.renderOrder = 2;
       levelGroup.add(marker);
+    }
+  }
+  if (level.rescue) {
+    const markerGeometry = new THREE.PlaneGeometry(0.94, 0.94);
+    markerGeometry.rotateX(-Math.PI / 2);
+    const addMarker = (tile, color, opacity) => {
+      const marker = new THREE.Mesh(markerGeometry, new THREE.MeshBasicMaterial({
+        color, transparent: true, opacity, depthWrite: false,
+      }));
+      marker.position.set(tile.x + 0.5 - level.width / 2,
+        0.11 + getTileDef(level.tileIds[tile.z][tile.x]).elevation, tile.z + 0.5 - level.height / 2);
+      marker.renderOrder = 2;
+      levelGroup.add(marker);
+    };
+    for (const tile of level.rescue.refuge) addMarker(tile, 0x57e38a, 0.55);
+    const signCanvas = document.createElement('canvas');
+    signCanvas.width = 384;
+    signCanvas.height = 96;
+    const signContext = signCanvas.getContext('2d');
+    if (!signContext) throw new Error('Could not create the refuge label.');
+    signContext.fillStyle = '#15291d';
+    signContext.fillRect(0, 0, 384, 96);
+    signContext.strokeStyle = '#85dca0';
+    signContext.lineWidth = 6;
+    signContext.strokeRect(3, 3, 378, 90);
+    signContext.fillStyle = '#d7ffd0';
+    signContext.textAlign = 'center';
+    signContext.font = 'bold 38px Georgia, serif';
+    signContext.fillText('REFUGE', 192, 44);
+    signContext.font = '20px Georgia, serif';
+    signContext.fillText('ESCORT DESTINATION', 192, 76);
+    const signTexture = new THREE.CanvasTexture(signCanvas);
+    signTexture.colorSpace = THREE.SRGBColorSpace;
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.75),
+      new THREE.MeshBasicMaterial({ map: signTexture, side: THREE.DoubleSide }));
+    const refugeCenterX = level.rescue.refuge.reduce((sum, tile) => sum + tile.x + 0.5, 0) / level.rescue.refuge.length;
+    sign.position.set(refugeCenterX - level.width / 2, 0.9,
+      Math.min(...level.rescue.refuge.map((tile) => tile.z)) - level.height / 2 - 0.3);
+    sign.rotation.x = -OBJECT_TILT;
+    levelGroup.add(sign);
+    addMarker(level.exit, 0xe7c779, 0.55);
+    const approaches = new Set();
+    for (const wave of level.reinforcements) {
+      for (const tile of wave.units) {
+        const key = `${tile.x},${tile.z}`;
+        if (approaches.has(key)) continue;
+        approaches.add(key);
+        addMarker(tile, 0xe45b61, 0.45);
+      }
     }
   }
   return level;

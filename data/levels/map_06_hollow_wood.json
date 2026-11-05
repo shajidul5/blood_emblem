@@ -33,12 +33,12 @@
  ],
  "enemies": [
   {
-   "id": "liam",
+   "id": "great-wolf",
    "level": 20,
    "x": 24,
    "z": 8,
    "ai": "guard",
-   "drop": "pocketwatch"
+   "drop": "alpha-fang"
   },
   {
    "id": "feral-wolf",

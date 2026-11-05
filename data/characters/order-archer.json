@@ -1,0 +1,15 @@
+{
+  "id": "order-archer",
+  "name": "Fallen Archer",
+  "classId": "archer",
+  "type": "infantry",
+  "spriteSet": "genericArcher",
+  "sprite": "assets/character/Generic_Archer/rotations/south.png",
+  "level": 10,
+  "experience": 0,
+  "weaponId": "iron-bow",
+  "ai": "guard",
+  "baseStats": { "hp": 28, "strength": 10, "magic": 0, "dexterity": 15, "speed": 10, "luck": 5, "defense": 4, "resistance": 4, "movement": 5, "build": 5 },
+  "currentStats": { "hp": 28, "strength": 10, "magic": 0, "dexterity": 15, "speed": 10, "luck": 5, "defense": 4, "resistance": 4, "movement": 5, "build": 5 },
+  "growthRates": { "hp": 50, "strength": 40, "magic": 0, "dexterity": 55, "speed": 45, "luck": 30, "defense": 20, "resistance": 25, "movement": 0, "build": 0 }
+}

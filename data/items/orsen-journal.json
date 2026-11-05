@@ -1,0 +1,11 @@
+{
+  "id": "orsen-journal",
+  "name": "Orsen's Journal",
+  "type": "consumable",
+  "effect": "insight",
+  "description": "Its last pages are written in a shaking hand. Reading it grants 5 Insight.",
+  "lore": "The Order's commander kept this journal until the end. The early pages speak of an escort, a plague, and a promise to protect the island's people. The later pages speak of orders to burn the infected, and then of the whispers in the wood. The last page is one line, repeated: 'Hold the road. Let no one in. Let no one out.'",
+  "maxUses": 1,
+  "insight": 5,
+  "sprite": "assets/items/Orsen_Journal/orsen_journal.svg"
+}

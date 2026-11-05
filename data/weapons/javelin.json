@@ -1,0 +1,16 @@
+{
+  "id": "javelin",
+  "name": "Javelin",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 8,
+  "hit": 70,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "slash",
+  "lore": "A short throwing spear carried by the soldiers at the last crossing. Its point faces the road it was meant to protect.",
+  "sprite": "assets/weapons/Iron_Spear/rotations/Iron_Spear.png"
+}

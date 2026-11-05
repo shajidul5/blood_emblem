@@ -1,0 +1,16 @@
+{
+  "id": "stark",
+  "name": "Stark",
+  "classId": "archer",
+  "type": "infantry",
+  "spriteSet": "stark",
+  "sprite": "assets/character/Stark/rotations/south.png",
+  "level": 10,
+  "experience": 0,
+  "weaponId": "hunter-bow",
+  "weaponExp": { "Bow": 30 },
+  "inventory": ["hunter-bow", "potion"],
+  "baseStats": { "hp": 30, "strength": 12, "magic": 0, "dexterity": 13, "speed": 11, "luck": 8, "defense": 5, "resistance": 4, "movement": 5, "build": 5 },
+  "currentStats": { "hp": 30, "strength": 12, "magic": 0, "dexterity": 13, "speed": 11, "luck": 8, "defense": 5, "resistance": 4, "movement": 5, "build": 5 },
+  "growthRates": { "hp": 60, "strength": 45, "magic": 0, "dexterity": 60, "speed": 50, "luck": 45, "defense": 30, "resistance": 25, "movement": 0, "build": 0 }
+}

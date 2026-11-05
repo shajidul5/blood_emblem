@@ -1,0 +1,16 @@
+{
+  "id": "wolfman-claws",
+  "name": "Wolfman Claws",
+  "lore": "Longer and darker than a wolf's, and far less patient.",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 9,
+  "weight": 3,
+  "hit": 90,
+  "critical": 15,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Wolf_Claws/rotations/Wolf_Claws.png"
+}

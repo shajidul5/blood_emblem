@@ -4,6 +4,8 @@ import zanbato from '../../data/weapons/zanbato.json';
 import ironAxe from '../../data/weapons/iron-axe.json';
 import ironSpear from '../../data/weapons/iron-spear.json';
 import steelSpear from '../../data/weapons/steel-spear.json';
+import steelLance from '../../data/weapons/steel-lance.json';
+import javelin from '../../data/weapons/javelin.json';
 import fireTome from '../../data/weapons/fire-tome.json';
 import thunderTome from '../../data/weapons/thunder-tome.json';
 import handAxe from '../../data/weapons/hand-axe.json';
@@ -11,14 +13,24 @@ import hunterPistol from '../../data/weapons/hunter-pistol.json';
 import lancereaver from '../../data/weapons/lancereaver.json';
 import tentacle from '../../data/weapons/tentacle.json';
 import wolfClaws from '../../data/weapons/wolf-claws.json';
+import wolfmanClaws from '../../data/weapons/wolfman-claws.json';
 import huntersHatchet from '../../data/weapons/hunters-hatchet.json';
 import pocketwatch from '../../data/items/pocketwatch.json';
 import lightTome from '../../data/weapons/light-tome.json';
+import heartrootBark from '../../data/weapons/heartroot-bark.json';
+import raikiri from '../../data/weapons/raikiri.json';
 import healStaff from '../../data/weapons/heal-staff.json';
 import potion from '../../data/items/potion.json';
 import chestKey from '../../data/items/chest-key.json';
 import masterEmblem from '../../data/items/master-emblem.json';
 import bloodEmblem from '../../data/items/blood-emblem.json';
+import ironBow from '../../data/weapons/iron-bow.json';
+import hunterBow from '../../data/weapons/hunter-bow.json';
+import freezeStaff from '../../data/weapons/freeze-staff.json';
+import bloodrootTonic from '../../data/items/bloodroot-tonic.json';
+import alphaFang from '../../data/items/alpha-fang.json';
+import orsenJournal from '../../data/items/orsen-journal.json';
+import crossingKeepsake from '../../data/items/crossing-keepsake.json';
 import { getUsesMultiplier } from './classes.js';
 
 const WEAPON_SPRITES = import.meta.glob('../../assets/weapons/**/*.{png,svg}', {
@@ -56,6 +68,8 @@ export const INVENTORY_ITEMS = new Map([
   [ironAxe.id, createWeaponItem(ironAxe)],
   [ironSpear.id, createWeaponItem(ironSpear)],
   [steelSpear.id, createWeaponItem(steelSpear)],
+  [steelLance.id, createWeaponItem(steelLance)],
+  [javelin.id, createWeaponItem(javelin)],
   [fireTome.id, createWeaponItem(fireTome)],
   [thunderTome.id, createWeaponItem(thunderTome)],
   [handAxe.id, createWeaponItem(handAxe)],
@@ -63,14 +77,24 @@ export const INVENTORY_ITEMS = new Map([
   [lancereaver.id, createWeaponItem(lancereaver)],
   [tentacle.id, createWeaponItem(tentacle)],
   [wolfClaws.id, createWeaponItem(wolfClaws)],
+  [wolfmanClaws.id, createWeaponItem(wolfmanClaws)],
   [huntersHatchet.id, createWeaponItem(huntersHatchet)],
   [pocketwatch.id, createConsumableItem(pocketwatch)],
   [lightTome.id, createWeaponItem(lightTome)],
   [healStaff.id, createWeaponItem(healStaff)],
+  [heartrootBark.id, createWeaponItem(heartrootBark)],
+  [raikiri.id, createWeaponItem(raikiri)],
   [potion.id, createConsumableItem(potion)],
   [chestKey.id, createConsumableItem(chestKey)],
   [masterEmblem.id, createConsumableItem(masterEmblem)],
   [bloodEmblem.id, createConsumableItem(bloodEmblem)],
+  [ironBow.id, createWeaponItem(ironBow)],
+  [hunterBow.id, createWeaponItem(hunterBow)],
+  [freezeStaff.id, createWeaponItem(freezeStaff)],
+  [bloodrootTonic.id, createConsumableItem(bloodrootTonic)],
+  [alphaFang.id, createConsumableItem(alphaFang)],
+  [orsenJournal.id, createConsumableItem(orsenJournal)],
+  [crossingKeepsake.id, createConsumableItem(crossingKeepsake)],
 ]);
 
 export function createMariaInventory() {

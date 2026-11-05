@@ -13,8 +13,9 @@ export const CLASSES = new Map(classData.classes.map((entry) => [entry.id, entry
 function validateClasses() {
   for (const entry of CLASSES.values()) {
     if (!TIERS.includes(entry.tier)) throw new Error(`Class ${entry.id} has unknown tier "${entry.tier}".`);
-    if (!Array.isArray(entry.weaponTypes) || !entry.weaponTypes.length) {
-      throw new Error(`Class ${entry.id} must list at least one weapon type.`);
+    if (!Array.isArray(entry.weaponTypes) || (!entry.weaponTypes.length && !entry.unarmed) ||
+      (entry.unarmed && entry.weaponTypes.length)) {
+      throw new Error(`Class ${entry.id} must list weapon types, or be explicitly unarmed with an empty list.`);
     }
     if (entry.promotesTo === undefined) {
       if (entry.promotionBonuses !== undefined) {
@@ -64,8 +65,13 @@ export function applyClass(unit, classId) {
   const unitClass = getClass(classId);
   unit.classId = classId;
   unit.class = unitClass.name;
-  const look = unitClass.sprites?.[unit.id];
+  const look = unitClass.sprites?.[unit.id] ?? unitClass.sprites?.default;
   if (look) Object.assign(unit, look);
+}
+
+export function weaponSpriteSet(unit) {
+  const swordVariants = { linus: 'linusSword', paladinLinus: 'paladinLinusSword', genericPaladin: 'genericPaladinSword' };
+  return unit.weapon?.type === 'Sword' ? swordVariants[unit.spriteSet] ?? unit.spriteSet : unit.spriteSet;
 }
 
 export function canPromote(unit) {
@@ -94,12 +100,14 @@ export function promoteUnit(unit) {
 
 export function canEquipWeapon(unit, weapon) {
   if (!weapon || !getClass(unit.classId).weaponTypes.includes(weapon.type)) return false;
+  if (weapon.exclusiveTo && unit.id !== weapon.exclusiveTo) return false;
   return !weapon.requiredRank || rankIndex(getWeaponRank(unit, weapon).id) >= rankIndex(weapon.requiredRank);
 }
 
 // Why the unit can't equip the weapon, for display; undefined when it can.
 export function equipBlockReason(unit, weapon) {
   if (canEquipWeapon(unit, weapon)) return undefined;
+  if (weapon.exclusiveTo) return `Only ${weapon.exclusiveTo[0].toUpperCase()}${weapon.exclusiveTo.slice(1)} can wield ${weapon.name}`;
   return getClass(unit.classId).weaponTypes.includes(weapon.type)
     ? `Needs ${weapon.type} rank ${weapon.requiredRank}`
     : `${unit.class} can't use ${weapon.type}`;

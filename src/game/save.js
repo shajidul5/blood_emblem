@@ -4,6 +4,7 @@ import { INVENTORY_ITEMS, MAX_INVENTORY_SIZE } from '../characters/inventory.js'
 import { ENEMY_IDS } from '../characters/characters.js';
 import { validWeaponExp } from '../characters/weapon-levels.js';
 import { CLASSES, MAX_USES_MULTIPLIER } from '../characters/classes.js';
+import { validateRescueState } from './rescue.js';
 
 const validClassId = (classId) => classId === undefined || CLASSES.has(classId);
 
@@ -80,11 +81,16 @@ export function createSaveData(level, player, enemies, gameState, extras = {}) {
     version: 1,
     level,
     player: serializeUnit(player),
-    allies: (extras.allies ?? []).map(serializeUnit),
+    allies: (extras.allies ?? []).map((unit) => ({
+      ...serializeUnit(unit),
+      ...(extras.isBenched?.(unit) ? { benched: true } : {}),
+    })),
     convoy: (extras.convoy ?? []).map(({ id, uses }) => ({ id, uses })),
     chapter: extras.chapter ?? null,
     chapterStart: extras.chapterStart ?? null,
-    enemies: enemies.map(({ id, x, z, hp, maxHp, level, ai, drop }) => ({ id, x, z, hp, maxHp, level, ai, ...(drop ? { drop } : {}) })),
+    insight: extras.insight ?? null,
+    rescue: extras.rescue ?? null,
+    enemies: enemies.map(({ id, x, z, hp, maxHp, level, ai, drop, frozen }) => ({ id, x, z, hp, maxHp, level, ai, ...(drop ? { drop } : {}), ...(frozen ? { frozen: true } : {}) })),
     turn: gameState.turn,
     phase: gameState.phase,
     defeated: gameState.defeated,
@@ -186,10 +192,10 @@ export function readSave() {
 
   const occupiedTiles = new Set(player.stats.hp > 0 ? [`${player.x},${player.z}`] : []);
   const allies = save.allies ?? [];
-  if (!Array.isArray(allies) || allies.length > 3) throw new Error('Saved allies are invalid.');
+  if (!Array.isArray(allies) || allies.length > 5) throw new Error('Saved allies are invalid.');
   for (const ally of allies) {
     if (
-      !ally || !['bartz', 'cypher', 'seymour'].includes(ally.id) ||
+      !ally || !['bartz', 'cypher', 'seymour', 'stark', 'linus'].includes(ally.id) ||
       !isIntegerInRange(ally.x, 0, level.width - 1) ||
       !isIntegerInRange(ally.z, 0, level.height - 1) ||
       !isIntegerInRange(ally.level, 1, 999) ||
@@ -207,7 +213,7 @@ export function readSave() {
     ) {
       throw new Error('Saved ally state is invalid.');
     }
-    if (ally.stats.hp > 0) {
+    if (ally.stats.hp > 0 && !ally.benched) {
       const key = `${ally.x},${ally.z}`;
       if (!isLevelTileWalkable(level, ally.x, ally.z) || occupiedTiles.has(key)) {
         throw new Error('Saved ally state is invalid.');
@@ -233,7 +239,7 @@ export function readSave() {
       ...start,
       convoy: validConvoy(start.convoy),
       allies: (Array.isArray(start.allies) ? start.allies : []).filter((ally) =>
-        ally && ['bartz', 'cypher', 'seymour'].includes(ally.id) &&
+        ally && ['bartz', 'cypher', 'seymour', 'stark', 'linus'].includes(ally.id) &&
         isIntegerInRange(ally.level, 1, 999) &&
         isIntegerInRange(ally.experience, 0, 99) &&
         validWeaponExp(ally.weaponExp) &&
@@ -261,6 +267,8 @@ export function readSave() {
     occupiedTiles.add(`${enemy.x},${enemy.z}`);
   }
 
+  const rescue = validateRescueState(save.rescue, level, occupiedTiles, allies);
+  if (rescue?.rewardsClaimed && save.phase !== 'victory') throw new Error('Saved rescue rewards require a completed chapter.');
   const moveOrigin = player.moveOrigin;
   if (
     moveOrigin !== undefined &&
@@ -277,5 +285,5 @@ export function readSave() {
     throw new Error('Saved movement undo state is invalid.');
   }
 
-  return { ...save, level, allies, convoy: validConvoy(save.convoy), chapter: save.chapter ?? null, chapterStart };
+  return { ...save, level, allies, convoy: validConvoy(save.convoy), chapter: save.chapter ?? null, chapterStart, rescue };
 }

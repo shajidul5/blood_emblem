@@ -1,0 +1,16 @@
+{
+  "id": "heartroot-bark",
+  "name": "Living Bark",
+  "lore": "It does not strike. It only drinks.",
+  "type": "Root",
+  "damageType": "physical",
+  "might": 0,
+  "weight": 0,
+  "hit": 0,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "passive": true,
+  "effect": [],
+  "sound": "axe"
+}

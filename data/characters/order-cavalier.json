@@ -1,0 +1,16 @@
+{
+  "id": "order-cavalier",
+  "name": "Fallen Cavalier",
+  "classId": "cavalier",
+  "type": "cavalry",
+  "spriteSet": "genericCavalier",
+  "scale": 1.1,
+  "sprite": "assets/character/Generic_cavalier/rotations/south.png",
+  "level": 10,
+  "experience": 0,
+  "weaponId": "steel-spear",
+  "ai": "guard",
+  "baseStats": { "hp": 36, "strength": 13, "magic": 0, "dexterity": 11, "speed": 10, "luck": 4, "defense": 9, "resistance": 4, "movement": 7, "build": 9 },
+  "currentStats": { "hp": 36, "strength": 13, "magic": 0, "dexterity": 11, "speed": 10, "luck": 4, "defense": 9, "resistance": 4, "movement": 7, "build": 9 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 40, "speed": 40, "luck": 25, "defense": 35, "resistance": 20, "movement": 0, "build": 0 }
+}

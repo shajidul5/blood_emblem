@@ -1,0 +1,17 @@
+{
+  "id": "orsen",
+  "name": "Orsen",
+  "classId": "general",
+  "type": "armor",
+  "spriteSet": "genericKnight",
+  "scale": 1.15,
+  "sprite": "assets/character/Generic_Knight/rotations/south.png",
+  "level": 20,
+  "experience": 0,
+  "weaponId": "steel-spear",
+  "isBoss": true,
+  "ai": "stationary",
+  "baseStats": { "hp": 90, "strength": 22, "magic": 0, "dexterity": 14, "speed": 6, "luck": 4, "defense": 20, "resistance": 3, "movement": 4, "build": 12 },
+  "currentStats": { "hp": 90, "strength": 22, "magic": 0, "dexterity": 14, "speed": 6, "luck": 4, "defense": 20, "resistance": 3, "movement": 4, "build": 12 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

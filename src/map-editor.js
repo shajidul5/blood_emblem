@@ -2,6 +2,8 @@ import initialMapUrl from '../data/levels/map_01_two_ships.json?url&no-inline';
 import shipTilesUrl from '../assets/tiles/ship_oblique/ship_oblique_tiles.png?url';
 import shipObjectsUrl from '../assets/tiles/ship_oblique/ship_objects.png?url';
 import mastUrl from '../assets/tiles/ship_oblique/mast.png?url';
+import fenceHorizontalUrl from '../assets/tiles/Village_Fence/fence_horizontal.png?url';
+import fenceVerticalUrl from '../assets/tiles/Village_Fence/fence_vertical.png?url';
 import shipTileset from '../assets/tiles/ship_oblique/ship_oblique_tileset.json';
 
 const TILE_TYPES = [
@@ -10,6 +12,9 @@ const TILE_TYPES = [
   { key: '@exit', name: 'Exit', walkable: true },
 ];
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
+const fenceImages = new Map(await Promise.all([
+  ['village_fence_h', fenceHorizontalUrl], ['village_fence_v', fenceVerticalUrl],
+].map(async ([id, url]) => [id, await loadImage(url, 'village fence')])));
 const LEGACY_ATLAS_TILES = {
   '.': 'water_a',
   h: 'hull_n',
@@ -212,6 +217,20 @@ function render() {
         cell,
         cell,
       );
+      if (fenceImages.has(tile.id)) {
+        const vertical = tile.id === 'village_fence_v';
+        const image = fenceImages.get(tile.id);
+        const width = vertical ? cell * image.width / image.height : cell;
+        const height = vertical ? cell : cell * image.height / image.width;
+        context.drawImage(image, px + (cell - width) / 2, py + (cell - height) / 2, width, height);
+      } else if (tile.id === 'crossing_parapet') {
+        context.strokeStyle = '#aaa09a';
+        context.lineWidth = Math.max(3, cell * 0.18);
+        context.beginPath();
+        context.moveTo(px + cell / 2, py);
+        context.lineTo(px + cell / 2, py + cell);
+        context.stroke();
+      }
       context.strokeStyle = 'rgba(10, 10, 16, 0.42)';
       context.lineWidth = 1;
       context.strokeRect(px, py, cell, cell);

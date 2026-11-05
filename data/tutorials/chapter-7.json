@@ -1,0 +1,58 @@
+{
+  "camp": {
+    "pages": [
+      {
+        "kicker": "Part Two · Chapter 7",
+        "title": "The Order's Camp",
+        "paragraphs": [
+          "A ring of tents sags in a clearing, canvas rotted to lace. Cold cookfires, an overturned supply cart, a banner whose crest has been scraped away with a knife. The Order made camp here to hold the road to Aldermere. It never broke camp.",
+          "Nothing in the clearing is asleep. Armored riders stand motionless between the trees, and archers watch from the shadows with their bows still strung. They are what is left of the knights sent to protect this island, and the wood has taken their minds.",
+          "At the heart of the camp stands the commander, unmoving, as though still waiting for an order that will never come."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Objective",
+        "title": "Defeat the Boss",
+        "paragraphs": [
+          "Cut down the commander, Orsen, and the chapter is won. He will not leave his post, but he hits like a siege engine and wears more iron than any blade can easily bite through.",
+          "Fallen cavalry move seven tiles and strike from outside your reach. Fallen archers hold iron bows that never miss for long and shoot at range 2 only. Weapons that cut armor and cavalry, like the Zanbato, will help. Armor is weak to magic.",
+          "Three tents stand in the camp. Step a unit onto a tent's door tile to search it. Something useful was left in each."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Warning",
+        "title": "Something Hunts Behind You",
+        "paragraphs": [
+          "The wood is not empty. If you linger, wolves will pour out of the northern trees on turns 3 and 5.",
+          "A stranger watches the camp from the trees. If he lives long enough, he may have a reason to walk with you."
+        ],
+        "button": "Enter the Camp"
+      }
+    ]
+  },
+  "stark": {
+    "pages": [
+      {
+        "kicker": "A New Ally",
+        "title": "Stark Joins the Party",
+        "paragraphs": [
+          "An arrow hums past Maria's ear and drops a wolf at her heel. A lean man steps out of the trees with a bow in one hand, a faded red scarf tied at his throat.",
+          "\"Stark. I hunt, mostly. My sister is sick with the same thing that is killing this island. The healers on the coast could do nothing. If there is a cure, it is in Aldermere, and you are walking in that direction.\"",
+          "He fingers the scarf. \"She knitted this for me. I'm bringing her something better than a scarf.\""
+        ],
+        "button": "Welcome Stark"
+      },
+      {
+        "kicker": "New Unit",
+        "title": "Archers",
+        "paragraphs": [
+          "Stark shoots from range 2 only and cannot attack adjacent enemies, so keep your front line between him and the enemy. His Hunter Bow does extra damage to beasts.",
+          "Archers are highly accurate. At level 20 with an Orders Emblem, Stark promotes to Sniper."
+        ],
+        "button": "Continue"
+      }
+    ]
+  }
+}

@@ -10,17 +10,30 @@ import killianProfile from '../../data/characters/killian.json';
 import deepMerfolkProfile from '../../data/characters/deep-merfolk.json';
 import feralWolfProfile from '../../data/characters/feral-wolf.json';
 import liamProfile from '../../data/characters/liam.json';
+import orsenProfile from '../../data/characters/orsen.json';
+import orderCavalierProfile from '../../data/characters/order-cavalier.json';
+import orderArcherProfile from '../../data/characters/order-archer.json';
+import greatWolfProfile from '../../data/characters/great-wolf.json';
+import rootWardenProfile from '../../data/characters/root-warden.json';
+import heartrootProfile from '../../data/characters/heartroot.json';
+import starkProfile from '../../data/characters/stark.json';
+import linusProfile from '../../data/characters/linus.json';
+import bridgeCaptainProfile from '../../data/characters/bridge-captain.json';
+import bridgeKnightProfile from '../../data/characters/bridge-knight.json';
+import villagerProfile from '../../data/characters/villager.json';
 import rapier from '../../data/weapons/rapier.json';
 import { canEquipWeapon, getClass } from './classes.js';
 import { createInventory, createMariaInventory, INVENTORY_ITEMS } from './inventory.js';
 
 function createCharacter(profile) {
-  const weapon = INVENTORY_ITEMS.get(profile.weaponId);
-  if (weapon?.itemType !== 'weapon') {
+  const weapon = profile.weaponId === null ? null : INVENTORY_ITEMS.get(profile.weaponId);
+  if (profile.weaponId !== null && weapon?.itemType !== 'weapon') {
     throw new Error(`Character ${profile.id} references unknown weapon ${profile.weaponId}.`);
   }
   const unitClass = getClass(profile.classId);
-  if (!canEquipWeapon({ classId: profile.classId }, weapon)) {
+  const look = unitClass.sprites?.[profile.id] ?? unitClass.sprites?.default;
+  if (!weapon && !unitClass.unarmed) throw new Error(`Character ${profile.id} needs a weapon for class ${unitClass.name}.`);
+  if (weapon && !canEquipWeapon({ classId: profile.classId }, weapon)) {
     throw new Error(`Character ${profile.id} (${unitClass.name}) cannot equip ${weapon.type} weapon ${weapon.id}.`);
   }
   return {
@@ -29,9 +42,9 @@ function createCharacter(profile) {
     classId: profile.classId,
     class: unitClass.name,
     type: profile.type,
-    sprite: profile.sprite,
-    spriteSet: profile.spriteSet ?? profile.id,
-    scale: profile.scale,
+    sprite: look?.sprite ?? profile.sprite,
+    spriteSet: look?.spriteSet ?? profile.spriteSet ?? profile.id,
+    scale: look?.scale ?? profile.scale,
     baseStats: profile.baseStats,
     growthRates: profile.growthRates,
     level: profile.level,
@@ -95,7 +108,37 @@ export function createSeymourAlly() {
   };
 }
 
+export function createStarkAlly() {
+  return {
+    ...createCharacter(starkProfile),
+    isBoss: false,
+    facing: 'south',
+    moveOrigin: null,
+    inventory: createInventory(starkProfile.inventory),
+  };
+}
+
+export function createLinusAlly() {
+  return {
+    ...createCharacter(linusProfile),
+    neutral: false,
+    facing: 'south',
+    moveOrigin: null,
+    inventory: createInventory(linusProfile.inventory),
+  };
+}
+
+export function createVillager(id, name) {
+  return { ...createCharacter(villagerProfile), id, name, civilian: true, neutral: true, facing: 'south', inventory: [] };
+}
+
 const ENEMY_PROFILES = new Map([
+  [bridgeCaptainProfile.id, bridgeCaptainProfile],
+  [bridgeKnightProfile.id, bridgeKnightProfile],
+  [orsenProfile.id, orsenProfile],
+  [orderCavalierProfile.id, orderCavalierProfile],
+  [orderArcherProfile.id, orderArcherProfile],
+  [greatWolfProfile.id, greatWolfProfile],
   [raiderProfile.id, raiderProfile],
   [bartzProfile.id, bartzProfile],
   [merfolkProfile.id, merfolkProfile],
@@ -105,9 +148,15 @@ const ENEMY_PROFILES = new Map([
 [deepMerfolkProfile.id, deepMerfolkProfile],
   [feralWolfProfile.id, feralWolfProfile],
   [liamProfile.id, liamProfile],
+  [heartrootProfile.id, heartrootProfile],
+  [rootWardenProfile.id, rootWardenProfile],
 ]);
 
 export const ENEMY_IDS = new Set(ENEMY_PROFILES.keys());
+
+export function isBossEnemy(id) {
+  return ENEMY_PROFILES.get(id)?.isBoss === true;
+}
 
 // The profile's stats are its stats at profile.level. Each level above that adds
 // growthRate% of a point per stat (rounded), so the same sheet scales into later chapters.

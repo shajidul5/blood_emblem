@@ -17,9 +17,14 @@ const SWING_SOUNDS = {
     tone({ type: 'square', from: 220, to: 40, decay: 0.18, volume: 0.35 });
     noise({ frequency: 6000, q: 1, type: 'highpass', decay: 0.05, volume: 0.3 });
   },
+  bow() {
+    tone({ type: 'triangle', from: 180, to: 90, decay: 0.12, volume: 0.25 });
+    noise({ frequency: 4500, to: 1500, q: 1.2, type: 'highpass', decay: 0.2, volume: 0.2 });
+    tone({ type: 'sine', from: 1200, to: 2400, decay: 0.08, volume: 0.05 });
+  },
 };
 
-const TYPE_FALLBACK = { sword: 'slash', axe: 'axe', gun: 'gun' };
+const TYPE_FALLBACK = { sword: 'slash', axe: 'axe', gun: 'gun', bow: 'bow' };
 
 export function swingSoundFor(weapon) {
   if (!weapon) return 'slash';

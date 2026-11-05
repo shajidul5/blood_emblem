@@ -1,0 +1,59 @@
+{
+  "crossing": {
+    "pages": [
+      {
+        "kicker": "Part Two - Chapter 9",
+        "title": "The Last Crossing",
+        "paragraphs": [
+          "After a full day beneath the enchanted forest's canopy, the party reaches open fields in the orange light of sunset. Beyond the fenced village, a vast stone bridge carries the road toward Aldermere. Its far bank is lost in the distance. Knights have sealed the near entrance.",
+          "\"The last company we admitted could still speak,\" the captain calls. \"By morning they could not. No one crosses.\"",
+          "Three villagers shelter in the houses around a cramped southern courtyard. Linus holds its lanes against the forest beasts. \"Linus! Back to the bridge!\" the captain shouts. The lone rider lowers his lance toward the trees instead."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Objective",
+        "title": "Defend the Villagers",
+        "paragraphs": [
+          "Visit each of the three houses from its door or an adjacent tile to begin an escort. Villagers are vulnerable even before you reach them. Each has 26 HP and cannot fight.",
+          "Escorted villagers move up to three tiles toward the green refuge at the end of each player phase, before the beasts act. Keep their routes clear and protect them until they reach it. Healing staves can heal them.",
+          "Resolve all three rescues, defeat the captain, clear the forest beasts and their finite waves, then bring Maria to the marked bridge entrance. Maria must survive. A villager's death reduces your reward but does not end the chapter."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "A Rider Alone",
+        "title": "Reach Linus",
+        "paragraphs": [
+          "Linus is already wounded. He holds his ground near all three villagers, but cannot protect them alone. Follow the staggered lanes through the fences and houses, move Maria next to him and choose Talk to recruit him. His Steel Lance and Potion come with him.",
+          "Wolves emerge first from the southern forest, with another pack on turn 3. Wolfmen follow on turns 5 and 7 alongside the remaining wolves. Their approaches are marked red, and you will receive a warning one turn ahead. There are no further waves after turn 7.",
+          "The knights hold the bridge rather than pursuing the villagers. Varric's Javelin can strike and counter at range 1-2, and is yours if you defeat him."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Rescue Rewards",
+        "title": "Every Life Matters",
+        "paragraphs": [
+          "One rescued villager grants two Potions. Two also grant a Bloodroot Tonic, permanently increasing max HP. All three also entrust you with a Crossing Keepsake worth 10 Insight.",
+          "Rewards are cumulative and go to Maria, or the convoy if her inventory is full. The captain's Javelin is a separate drop."
+        ],
+        "button": "Enter the Village"
+      }
+    ]
+  },
+  "linus": {
+    "pages": [
+      {
+        "kicker": "A New Ally",
+        "title": "Linus Joins",
+        "paragraphs": [
+          "\"They told us to hold the crossing. Not to leave these people to die.\" Linus steadies his horse as Maria reaches him. \"If you mean to get them out, my lance is yours.\"",
+          "Linus is a Cavalier with balanced stats, strong Defense and Strength, and seven movement. His wounds remain when he joins: use his Potion or a healer to get him back on his feet.",
+          "He can wield spears and swords, and promotes to Paladin at level 20 with an Orders Emblem."
+        ],
+        "button": "Welcome Linus"
+      }
+    ]
+  }
+}

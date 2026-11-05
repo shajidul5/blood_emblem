@@ -1,0 +1,17 @@
+{
+  "id": "hunter-bow",
+  "lore": "A recurve bow of ash and sinew, notched along the grip for every wolf its owner brought down. Stark's old hunting bow, sharpened to kill beasts.",
+  "name": "Hunter Bow",
+  "type": "Bow",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 5,
+  "hit": 90,
+  "critical": 5,
+  "minRange": 2,
+  "maxRange": 2,
+  "effect": ["beast"],
+  "sound": "bow",
+  "maxUses": 30,
+  "sprite": "assets/weapons/Bows/hunter_bow.svg"
+}

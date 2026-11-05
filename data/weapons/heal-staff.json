@@ -16,5 +16,5 @@
   "maxUses": 10,
   "effect": [],
   "sound": "magic",
-  "sprite": "assets/weapons/Heal_Staff/heal_staff.svg"
+  "sprite": "assets/weapons/Heal_Staff/heal_staff.png"
 }

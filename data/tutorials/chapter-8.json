@@ -1,0 +1,35 @@
+{
+  "heart": {
+    "pages": [
+      {
+        "kicker": "Part Two · Chapter 8",
+        "title": "The Rotted Heart",
+        "paragraphs": [
+          "The hunters' lodge stands where the forest is oldest and sickest. The soil here is black and wet, and the trees lean inward as if listening. Veins of red run through their bark and pulse slowly, in time with something underground.",
+          "This is where the first hunts began. Every drop of cursed blood spilled in this wood drained down to this place, and the roots drank it all.",
+          "Liam, the last hunter of the lodge, stands among the trees. He is no longer entirely a man."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Objective",
+        "title": "Defeat the Boss",
+        "paragraphs": [
+          "Defeat Liam and the chapter is won. But the Heartroots keep him alive: at the start of every enemy phase, Liam recovers HP for each Heartroot still standing.",
+          "Heartroots never attack, but they are tough. Each one you cut down stops some of the healing. Be careful, though. Every root that dies sends Liam into a deeper frenzy, making him stronger and faster.",
+          "Once the last root falls, Liam can no longer heal."
+        ],
+        "button": "Continue"
+      },
+      {
+        "kicker": "Warning",
+        "title": "The Roots Bear Fruit",
+        "paragraphs": [
+          "Beasts grow out of the roots as the turns pass. Expect waves near the Heartroots on turns 3, 5 and 7. If the roots are destroyed first, the waves never come.",
+          "Decide whether to fight your way to Liam quickly, or to cut the heart out of the forest first."
+        ],
+        "button": "Enter the Lodge"
+      }
+    ]
+  }
+}

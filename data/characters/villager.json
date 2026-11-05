@@ -1,0 +1,15 @@
+{
+  "id": "villager",
+  "name": "Villager",
+  "classId": "civilian",
+  "type": "infantry",
+  "spriteSet": "villager",
+  "sprite": "assets/character/Villager/rotations/south.png",
+  "scale": 1,
+  "level": 1,
+  "experience": 0,
+  "weaponId": null,
+  "baseStats": { "hp": 26, "strength": 0, "magic": 0, "dexterity": 2, "speed": 5, "luck": 5, "defense": 3, "resistance": 3, "movement": 3, "build": 3 },
+  "currentStats": { "hp": 26, "strength": 0, "magic": 0, "dexterity": 2, "speed": 5, "luck": 5, "defense": 3, "resistance": 3, "movement": 3, "build": 3 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "bridge-knight",
+  "name": "Quarantine Knight",
+  "classId": "knight",
+  "type": "armor",
+  "spriteSet": "genericKnight",
+  "sprite": "assets/character/Generic_Knight/rotations/south.png",
+  "level": 16,
+  "experience": 0,
+  "weaponId": "steel-spear",
+  "ai": "stationary",
+  "baseStats": { "hp": 40, "strength": 15, "magic": 0, "dexterity": 11, "speed": 7, "luck": 4, "defense": 16, "resistance": 3, "movement": 4, "build": 11 },
+  "currentStats": { "hp": 40, "strength": 15, "magic": 0, "dexterity": 11, "speed": 7, "luck": 4, "defense": 16, "resistance": 3, "movement": 4, "build": 11 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 35, "speed": 20, "luck": 20, "defense": 40, "resistance": 15, "movement": 0, "build": 0 }
+}

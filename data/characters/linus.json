@@ -1,0 +1,17 @@
+{
+  "id": "linus",
+  "name": "Linus",
+  "classId": "cavalier",
+  "type": "cavalry",
+  "spriteSet": "linus",
+  "sprite": "assets/character/Linus/rotations/south.png",
+  "scale": 1.15,
+  "level": 14,
+  "experience": 0,
+  "weaponId": "steel-lance",
+  "weaponExp": { "Spear": 60, "Sword": 30 },
+  "inventory": ["steel-lance", "potion"],
+  "baseStats": { "hp": 40, "strength": 15, "magic": 1, "dexterity": 12, "speed": 12, "luck": 9, "defense": 12, "resistance": 6, "movement": 7, "build": 9 },
+  "currentStats": { "hp": 40, "strength": 15, "magic": 1, "dexterity": 12, "speed": 12, "luck": 9, "defense": 12, "resistance": 6, "movement": 7, "build": 9 },
+  "growthRates": { "hp": 65, "strength": 50, "magic": 10, "dexterity": 45, "speed": 45, "luck": 40, "defense": 50, "resistance": 30, "movement": 0, "build": 5 }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "iron-bow",
+  "lore": "A plain yew bow strung with waxed gut. The Order issued these to every watchman on the island, and few of them were ever allowed to leave.",
+  "name": "Iron Bow",
+  "type": "Bow",
+  "damageType": "physical",
+  "might": 6,
+  "weight": 5,
+  "hit": 95,
+  "critical": 0,
+  "minRange": 2,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "bow",
+  "maxUses": 40,
+  "sprite": "assets/weapons/Bows/iron_bow.svg"
+}

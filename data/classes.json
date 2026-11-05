@@ -1,6 +1,13 @@
 {
   "classes": [
     {
+      "id": "civilian",
+      "name": "Villager",
+      "tier": "base",
+      "unarmed": true,
+      "weaponTypes": []
+    },
+    {
       "id": "hunter",
       "name": "Hunter",
       "tier": "base",
@@ -169,7 +176,71 @@
       "id": "wolfman",
       "name": "Wolfman",
       "tier": "advanced",
-      "weaponTypes": ["Axe"]
+      "weaponTypes": ["Claw", "Axe"]
+    },
+    {
+      "id": "heartroot",
+      "name": "Heartroot",
+      "tier": "monster",
+      "weaponTypes": ["Root"]
+    },
+    {
+      "id": "cavalier",
+      "name": "Cavalier",
+      "tier": "base",
+      "weaponTypes": ["Spear", "Sword"],
+      "promotesTo": "paladin",
+      "promotionBonuses": { "hp": 3, "strength": 2, "magic": 0, "dexterity": 2, "speed": 2, "luck": 0, "defense": 2, "resistance": 2, "movement": 1, "build": 1 }
+    },
+    {
+      "id": "paladin",
+      "name": "Paladin",
+      "tier": "advanced",
+      "weaponTypes": ["Spear", "Sword", "Axe"],
+      "sprites": {
+        "default": {
+          "spriteSet": "genericPaladin",
+          "sprite": "assets/character/Generic_Paladin/rotations/south.png",
+          "scale": 1.2
+        },
+        "linus": {
+          "spriteSet": "paladinLinus",
+          "sprite": "assets/character/Paladin_Linus/rotations/south.png",
+          "scale": 1.2
+        }
+      }
+    },
+    {
+      "id": "knight",
+      "name": "Knight",
+      "tier": "base",
+      "weaponTypes": ["Spear"],
+      "promotesTo": "general",
+      "promotionBonuses": { "hp": 5, "strength": 3, "magic": 0, "dexterity": 1, "speed": 1, "luck": 0, "defense": 3, "resistance": 1, "movement": 1, "build": 2 }
+    },
+    {
+      "id": "general",
+      "name": "General",
+      "tier": "advanced",
+      "weaponTypes": ["Spear", "Axe"]
+    },
+    {
+      "id": "archer",
+      "name": "Archer",
+      "tier": "base",
+      "weaponTypes": ["Bow"],
+      "promotesTo": "sniper",
+      "promotionBonuses": { "hp": 3, "strength": 1, "magic": 0, "dexterity": 3, "speed": 2, "luck": 1, "defense": 1, "resistance": 1, "movement": 0,       "build": 1 }
+          },
+          {
+            "id": "sniper",
+            "sprites": { "stark": { "spriteSet": "sniperStark", "sprite": "assets/character/Sniper_Stark/rotations/south.png" } },
+      "name": "Sniper",
+      "tier": "advanced",
+      "weaponTypes": ["Bow"],
+      "abilities": [
+        { "id": "deadeye", "name": "Deadeye", "description": "Bow critical rate rises by 15.", "critBonus": 15 }
+      ]
     }
   ]
 }

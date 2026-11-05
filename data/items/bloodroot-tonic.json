@@ -1,0 +1,11 @@
+{
+  "id": "bloodroot-tonic",
+  "name": "Bloodroot Tonic",
+  "type": "consumable",
+  "effect": "hp-up",
+  "amount": 7,
+  "description": "Permanently raises max HP by 7.",
+  "lore": "A stoppered flask of thick red sap, sealed with the Order's wax. The label is scratched out, but the smell of iron and rotted roots is unmistakable.",
+  "maxUses": 1,
+  "sprite": "assets/items/Tonic/bloodroot_tonic.svg"
+}

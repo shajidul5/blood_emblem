@@ -4,9 +4,12 @@ import chapterThree from '../../data/tutorials/chapter-3.json';
 import chapterFour from '../../data/tutorials/chapter-4.json';
 import chapterFive from '../../data/tutorials/chapter-5.json';
 import chapterSix from '../../data/tutorials/chapter-6.json';
+import chapterSeven from '../../data/tutorials/chapter-7.json';
+import chapterEight from '../../data/tutorials/chapter-8.json';
+import chapterNine from '../../data/tutorials/chapter-9.json';
 import triangle from '../../data/weapon-triangle.json';
 
-const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix };
+const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix, ...chapterSeven, ...chapterEight, ...chapterNine };
 
 const fill = (text, vars) => text.replace(/\{(\w+)\}/g, (match, key) => String(vars[key] ?? match));
 

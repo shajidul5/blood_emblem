@@ -1,0 +1,16 @@
+{
+  "id": "steel-lance",
+  "name": "Steel Lance",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 9,
+  "weight": 8,
+  "hit": 75,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "slash",
+  "lore": "Linus's service lance. The shaft bears the marks of a long retreat, but its edge is carefully tended.",
+  "sprite": "assets/weapons/Steel_Spear/rotations/Steel_Spear.png"
+}
