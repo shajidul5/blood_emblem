@@ -1,0 +1,14 @@
+{
+  "id": "blood-beast-claws",
+  "name": "Consecrated Talons",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 10,
+  "weight": 0,
+  "hit": 85,
+  "critical": 5,
+  "minRange": 1,
+  "maxRange": 2,
+  "sound": "claw",
+  "lore": "A torn strip of white vestment clings to one wrist. Beneath the blood, gold thread still traces a high cleric's sunburst."
+}

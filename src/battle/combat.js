@@ -84,6 +84,8 @@ export const EFFECTIVE_MIGHT_MULTIPLIER = 3;
 // Weapon effects name the defender's unit type (aqua, beast).
 export function isWeaponEffective(attacker, defender) {
   if (!attacker.weapon || !defender.type) return false;
+  if (defender.type === 'flying' &&
+      (attacker.weapon.type === 'Bow' || attacker.weapon.id === 'wind-tome')) return true;
   return (attacker.weapon.effect ?? []).includes(defender.type) ||
     getClassAbilities(attacker).some((ability) => ability.effectiveAgainst?.includes(defender.type));
 }

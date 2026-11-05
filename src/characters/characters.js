@@ -21,6 +21,12 @@ import linusProfile from '../../data/characters/linus.json';
 import bridgeCaptainProfile from '../../data/characters/bridge-captain.json';
 import bridgeKnightProfile from '../../data/characters/bridge-knight.json';
 import villagerProfile from '../../data/characters/villager.json';
+import goldenCaptainProfile from '../../data/characters/golden-captain.json';
+import goldenCavalierProfile from '../../data/characters/golden-cavalier.json';
+import goldenKnightProfile from '../../data/characters/golden-knight.json';
+import goldenMageProfile from '../../data/characters/golden-mage.json';
+import bloodBeastProfile from '../../data/characters/blood-beast.json';
+import ravenProfile from '../../data/characters/raven.json';
 import rapier from '../../data/weapons/rapier.json';
 import { canEquipWeapon, getClass } from './classes.js';
 import { createInventory, createMariaInventory, INVENTORY_ITEMS } from './inventory.js';
@@ -133,6 +139,12 @@ export function createVillager(id, name) {
 }
 
 const ENEMY_PROFILES = new Map([
+  [ravenProfile.id, ravenProfile],
+  [goldenCaptainProfile.id, goldenCaptainProfile],
+  [goldenCavalierProfile.id, goldenCavalierProfile],
+  [goldenKnightProfile.id, goldenKnightProfile],
+  [goldenMageProfile.id, goldenMageProfile],
+  [bloodBeastProfile.id, bloodBeastProfile],
   [bridgeCaptainProfile.id, bridgeCaptainProfile],
   [bridgeKnightProfile.id, bridgeKnightProfile],
   [orsenProfile.id, orsenProfile],
@@ -153,6 +165,7 @@ const ENEMY_PROFILES = new Map([
 ]);
 
 export const ENEMY_IDS = new Set(ENEMY_PROFILES.keys());
+export const enemyMovementType = (id) => ENEMY_PROFILES.get(id)?.type;
 
 export function isBossEnemy(id) {
   return ENEMY_PROFILES.get(id)?.isBoss === true;

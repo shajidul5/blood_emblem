@@ -436,6 +436,8 @@
       #prep-dialog .item-list li .item-icon { border-color: #3b3b40; border-radius: 0; background: #121214; }
       #prep-dialog .item-list li .item-effect { color: #c9a66b; }
       .prep-insight { color: #9fc3d6; letter-spacing: 1px; text-shadow: 0 0 6px #4a8db366; }
+      .insight-display { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+      .insight-icon { width: 28px; height: 28px; object-fit: contain; image-rendering: pixelated; flex: 0 0 auto; }
       .prep-tabs, .prep-units { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
       .prep-subhead { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 8px; }
       .prep-body { max-height: 52vh; overflow-y: auto; padding-right: 4px; scrollbar-color: #4a4a50 transparent; }
@@ -471,7 +473,7 @@
       .prep-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .prep-unit-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
       .prep-unit-head .prep-card { width: 104px; }
-      #insight-label { display: block; color: #9ad7ff; font-size: 11px; }
+      #insight-label { display: flex; justify-content: flex-start; color: #9ad7ff; font-size: 11px; }
       #insight-label[hidden] { display: none; }
       #insight-label.gain { animation: insight-gain 900ms ease-out; }
       #rescue-status { display: block; max-width: 440px; margin-top: 6px; color: #a9e6aa; font-size: 12px; line-height: 1.5; }

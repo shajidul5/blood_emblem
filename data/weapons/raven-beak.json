@@ -1,0 +1,13 @@
+{
+  "id": "raven-beak",
+  "name": "Raven Beak",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 5,
+  "weight": 0,
+  "hit": 90,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "lore": "A hooked beak, sharpened on the bones beneath the bridge."
+}

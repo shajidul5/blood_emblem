@@ -12,11 +12,11 @@ export function tileKey(x, z) {
   return `${x},${z}`;
 }
 
-export function isWalkable(level, x, z) {
+export function isWalkable(level, x, z, unit) {
   return x >= 0 && x < level.width && z >= 0 && z < level.height &&
-    isLevelTileWalkable(level, x, z) &&
-    !level.objects?.some((object) =>
-      object.x === x && object.z === z && object.blocksMovement);
+    isLevelTileWalkable(level, x, z, unit) &&
+    (unit?.type === 'flying' || !level.objects?.some((object) =>
+      object.x === x && object.z === z && object.blocksMovement));
 }
 
 export function findEnemyAt(enemies, x, z) {
@@ -24,8 +24,8 @@ export function findEnemyAt(enemies, x, z) {
 }
 
 // Movement spent to step onto a tile; rough terrain such as dense forest costs more than 1.
-export function terrainMoveCost(level, x, z) {
-  return getTileDef(level.tileIds?.[z]?.[x]).moveCost ?? 1;
+export function terrainMoveCost(level, x, z, unit) {
+  return unit?.type === 'flying' ? 1 : getTileDef(level.tileIds?.[z]?.[x]).moveCost ?? 1;
 }
 
 // `enemies` block movement; `allies` can be passed through but not stopped on.
@@ -40,8 +40,8 @@ export function getMovementRange(unit, level, enemies, allies = []) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const key = tileKey(x, z);
-      if (!isWalkable(level, x, z) || findEnemyAt(enemies, x, z)) continue;
-      const cost = current.cost + terrainMoveCost(level, x, z);
+      if (!isWalkable(level, x, z, unit) || findEnemyAt(enemies, x, z)) continue;
+      const cost = current.cost + terrainMoveCost(level, x, z, unit);
       if (cost > unit.movement || cost >= (distances.get(key) ?? Infinity)) continue;
       distances.set(key, cost);
       open.push({ x, z, cost });
@@ -63,7 +63,7 @@ export function getFacing(dx, dz) {
   return dz < 0 ? 'north' : 'south';
 }
 
-export function findPath(start, goals, blocked, level) {
+export function findPath(start, goals, blocked, level, unit = start) {
   const startKey = tileKey(start.x, start.z);
   const goalKeys = new Set(goals.map(({ x, z }) => tileKey(x, z)));
   const previous = new Map([[startKey, null]]);
@@ -83,8 +83,8 @@ export function findPath(start, goals, blocked, level) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const nextKey = tileKey(x, z);
-      if (blocked.has(nextKey) || !isWalkable(level, x, z)) continue;
-      const cost = current.cost + terrainMoveCost(level, x, z);
+      if (blocked.has(nextKey) || !isWalkable(level, x, z, unit)) continue;
+      const cost = current.cost + terrainMoveCost(level, x, z, unit);
       if (cost >= (best.get(nextKey) ?? Infinity)) continue;
       best.set(nextKey, cost);
       previous.set(nextKey, key);

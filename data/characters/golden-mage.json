@@ -1,0 +1,16 @@
+{
+  "id": "golden-mage",
+  "name": "Golden Order Mage",
+  "classId": "mage",
+  "type": "infantry",
+  "spriteSet": "genericMage",
+  "sprite": "assets/character/Generic_Mage/rotations/south.png",
+  "scale": 1,
+  "level": 18,
+  "experience": 0,
+  "weaponId": "fire-tome",
+  "ai": "guard",
+  "baseStats": { "hp": 34, "strength": 2, "magic": 17, "dexterity": 15, "speed": 11, "luck": 5, "defense": 6, "resistance": 14, "movement": 5, "build": 7 },
+  "currentStats": { "hp": 34, "strength": 2, "magic": 17, "dexterity": 15, "speed": 11, "luck": 5, "defense": 6, "resistance": 14, "movement": 5, "build": 7 },
+  "growthRates": { "hp": 40, "strength": 0, "magic": 45, "dexterity": 40, "speed": 30, "luck": 20, "defense": 15, "resistance": 40, "movement": 0, "build": 0 }
+}

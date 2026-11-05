@@ -1,10 +1,11 @@
 import { validateLevel, CHAPTER_COUNT } from '../levels/level.js';
 import { isLevelTileWalkable } from '../levels/tiles.js';
 import { INVENTORY_ITEMS, MAX_INVENTORY_SIZE } from '../characters/inventory.js';
-import { ENEMY_IDS } from '../characters/characters.js';
+import { ENEMY_IDS, enemyMovementType } from '../characters/characters.js';
 import { validWeaponExp } from '../characters/weapon-levels.js';
 import { CLASSES, MAX_USES_MULTIPLIER } from '../characters/classes.js';
 import { validateRescueState } from './rescue.js';
+import { validateGateEncounterState } from './gate-encounter.js';
 
 const validClassId = (classId) => classId === undefined || CLASSES.has(classId);
 
@@ -254,7 +255,7 @@ export function readSave() {
       (enemy.id !== undefined && !ENEMY_IDS.has(enemy.id)) ||
       !isIntegerInRange(enemy.x, 0, level.width - 1) ||
       !isIntegerInRange(enemy.z, 0, level.height - 1) ||
-      !isLevelTileWalkable(level, enemy.x, enemy.z) ||
+      !isLevelTileWalkable(level, enemy.x, enemy.z, { type: enemyMovementType(enemy.id) }) ||
       !isIntegerInRange(enemy.hp, 1, 999) ||
       !isIntegerInRange(enemy.maxHp, enemy.hp, 999) ||
       (enemy.level !== undefined && !isIntegerInRange(enemy.level, 1, 99)) ||
@@ -267,6 +268,7 @@ export function readSave() {
     occupiedTiles.add(`${enemy.x},${enemy.z}`);
   }
 
+  validateGateEncounterState(level, save.enemies, save.phase, { ...player.stats, x: player.x, z: player.z });
   const rescue = validateRescueState(save.rescue, level, occupiedTiles, allies);
   if (rescue?.rewardsClaimed && save.phase !== 'victory') throw new Error('Saved rescue rewards require a completed chapter.');
   const moveOrigin = player.moveOrigin;

@@ -11,6 +11,8 @@ npm run dev
 
 Then open the local URL Vite prints (usually http://localhost:5173).
 
+Dev reload protection: rewriting existing PNGs under `assets/` (for example by a sync or copy tool) no longer forces a page reload, so refresh manually after editing existing art. If a code change does force a full reload mid-game, the dev build automatically continues from the last autosave instead of dropping back to the main menu.
+
 ## Controls
 
 The game uses turn-based tactical controls:
@@ -37,6 +39,7 @@ The game uses turn-based tactical controls:
 - Escape cancels the current targeting mode or deselects Maria.
 - The main menu offers **New Game** and **Continue**. Progress auto-saves in this browser; clicking an unoccupied tile or choosing **Options** opens a menu with **Return to Main Menu**.
 - In Preparations, **Insight** shows weapon sprites and leadership stars. Spend 30 Insight to awaken Maria's Blood Emblem, then **Equip** it separately from her weapon in Insight or her inventory. While equipped and carried, it restores 10 HP (up to max HP) whenever she defeats a foe, including counterattack kills; ordinary hits do not heal. Unequip it freely or refund the upgrade in full. Its `cost` and `healOnKill` are configurable in [data/upgrades.json](data/upgrades.json). The upgrade and equip state persist in saves and between chapters; older saves start with it locked.
+- Defeating a boss, including on a counterattack, opens an **Insight Gained** notification with the amount earned and your new total before showing any item drop. Rewards are saved before dismissal. The HUD, Preparations, and reward popup use the same PixelLab-generated all-seeing eye in [assets/ui/insight_eye.png](assets/ui/insight_eye.png) (object `1f6463de-d070-4f51-8953-abff2f3c2f16`). Boss Insight remains configurable in [data/upgrades.json](data/upgrades.json).
 - Levels display their objective in the battle HUD. **Kill all enemies** wins when the enemy roster is cleared; **Escape** wins when Maria reaches an Exit tile. Victory and party defeat fade into gothic end screens with options to restart the current level or return to the main menu. These terminal outcomes are saved and restored by **Continue**.
 
 ## What's in the prototype
@@ -68,10 +71,23 @@ The game uses turn-based tactical controls:
 - Maria can recruit the wounded Cavalier **Linus** with **Talk to Linus** from an adjacent tile. He starts with 28/40 HP, a Steel Lance, a Potion, 7 Movement, 15 Strength and 12 Defense. His lance, sword, and walking animations use the supplied Linus assets. Unrecruited Linus holds position and counters beasts; his death does not fail the chapter.
 - Wolves lead the forest attack, followed by another pack on turn **3**. Mobile wolfmen (Root Wardens) join the wolves on turns **5 and 7**, with red approach markers and one-turn-ahead warnings. Knights defend the bridge and do not pursue civilians. Captain Varric is a Cavalier whose **Javelin** attacks at range **1-2** and drops on defeat.
 - To win, account for all villagers (rescued or lost), defeat the captain, eliminate all beasts and scheduled waves, then bring Maria to the gold bridge-entrance marker. Maria must survive. Villager losses reduce rewards but do not cause game over.
-- Cumulative rescue rewards: **1 safe** = two Potions; **2 safe** = also a Bloodroot Tonic; **3 safe** = also a Crossing Keepsake granting 10 Insight when read. Rewards go to Maria or the convoy and are granted only once. The Javelin is a separate combat drop.
+- Cumulative rescue rewards: **1 safe** = two Potions; **2 safe** = also the Gale wind tome; **3 safe** = also a Crossing Keepsake granting 10 Insight when read. Gale is effective against flying units. Rewards go to Maria or the convoy and are granted only once. The Javelin is a separate combat drop. Existing embedded Chapter 9 saves retain their original reward table.
 - Escort positions, HP, losses, Linus recruitment, reinforcement progress, and reward claims persist in autosaves and manual slots. Chapter rules and rewards live in [data/levels/map_09_last_crossing.json](data/levels/map_09_last_crossing.json). Civilians use the dedicated Villager idle and walking assets without a color tint; the Javelin and Steel Lance reuse spear item art.
 - Promoting Linus to Paladin selects the Paladin_Linus assets; other Paladins use Generic_Paladin. Both sets switch idle and attack sprites between lance and sword based on the equipped weapon, including after loading a save. Sword variants reuse their matching Paladin's walking animation because no separate sword walk was supplied.
 - Run `npm test` for rescue regression tests. For a fresh Chapter 9 playtest, open `?chapter=9`; `?chapter=9&save=1` carries the current autosave's roster, inventory, convoy, and Insight forward. Chapter shortcuts start and autosave a new battle, so use a separate browser origin for disposable testing.
+
+## Chapter 10 - The Golden Threshold
+
+- Part Two ends on a 19-by-36 bridge at dusk, with orange sunlight and darker ambient light. Four alternating sandbag lines force detours between the stone parapets.
+- After Preparations, **The Golden Threshold** opening lore card introduces Aurelan's blockade and the uneasy watch on the gate, followed by the bridge objective. This story popup appears even with tutorials disabled; continuing a saved battle does not replay it.
+- The **Golden Order** fields guard-mode Cavaliers, Knights and Mages, led by **Captain Aurelan**, a Paladin carrying a Javelin. All bridge Mages hold **Fire**, magical range 1-2, behind each sandbag line. All human defenders use guard AI, not stationary or unrestricted pursuit.
+- Aurelan drops an **Orders Emblem**. His defeat immediately commits the second encounter to the save; after the reward notifications, a short silence gives way to a rumble and camera tremor, then a shrieking roar before the **Blood Beast** jumps down from the gatehouse, fitted between the bridge edges. Its foundation uses the same stone paving as the bridge while remaining blocked outside the gate tile. A dark arch and hidden rear floor prevent the back tiles showing through. Its white vestments and high cleric's insignia hint at a Healing Church connection without revealing its identity. This story event still appears with tutorial popups disabled.
+- When the Beast fight begins, four **Carrion Ravens** fly in over the water (two on each side). Three more waves of two arrive at +2, +4 and +6 turns, one per side, for **ten ravens total**. They are fast, fragile melee beak attackers with eight movement, flying over water, sandbags and parapets. Buildings/city walls, occupied tiles and map bounds still constrain them. Flying units take triple effective weapon might from all bows and wind magic, but not Fire. The schedule and raven positions persist in saves; Restart resets the waves. Ravens are not required kills for the gate objective.
+- The beast is stationary on the gate, with 150 HP and powerful range 1-2 talons. Defeat it, then move **Maria** onto the marked gate tile to win and view the Part Two ending. Other defenders may survive. Maria's death ends the chapter. The gate tile is reserved before the beast arrives, preventing an early seizure or an overlapping spawn.
+- Recruited Linus carries forward with your party; an unrecruited Linus is not automatically added to the Chapter 10 roster.
+- Encounter state, remaining enemies, damage and rewards survive Continue and numbered saves. Restart resets both bosses and the encounter to the chapter's starting state; restoring a defeated beast never spawns another.
+- Sandbags and the gatehouse are PixelLab assets in [assets/tiles/Golden_Bridge](assets/tiles/Golden_Bridge): sandbags `197102a4-f33c-4ebe-abd6-31e69539371c`, gatehouse `d7c14c97-6c18-40b7-bdaf-70ee615ecf95`. Sandbags have matching blocked-tile previews in the editor; imported gate maps preserve their encounter metadata on export.
+- Chapter data: [data/levels/map_10_golden_threshold.json](data/levels/map_10_golden_threshold.json). Use `?chapter=10` for a fresh battle or `?chapter=10&save=1` to carry your current party and Insight forward. These shortcuts overwrite the autosave; use a separate browser origin for disposable tests. `npm test` includes map connectivity, enemy ranges, gate conditions and save-state regressions.
 
 ## Create and load maps
 

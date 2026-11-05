@@ -289,6 +289,20 @@
     "walkable": true
    },
    {
+    "id": "bridge_sandbags",
+    "name": "Sandbag Barricade",
+    "col": 6,
+    "row": 7,
+    "walkable": false
+   },
+   {
+    "id": "city_wall",
+    "name": "City Wall",
+    "col": 6,
+    "row": 7,
+    "walkable": false
+   },
+   {
     "id": "crossing_parapet",
     "name": "Stone Parapet",
     "col": 0,

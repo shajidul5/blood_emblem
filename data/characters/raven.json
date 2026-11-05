@@ -1,0 +1,16 @@
+{
+  "id": "raven",
+  "name": "Carrion Raven",
+  "classId": "raven",
+  "type": "flying",
+  "spriteSet": "raven",
+  "sprite": "assets/character/Raven/rotations/south.png",
+  "scale": 0.9,
+  "level": 18,
+  "experience": 0,
+  "weaponId": "raven-beak",
+  "ai": "mobile",
+  "baseStats": { "hp": 26, "strength": 13, "magic": 0, "dexterity": 17, "speed": 23, "luck": 5, "defense": 5, "resistance": 5, "movement": 8, "build": 4 },
+  "currentStats": { "hp": 26, "strength": 13, "magic": 0, "dexterity": 17, "speed": 23, "luck": 5, "defense": 5, "resistance": 5, "movement": 8, "build": 4 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

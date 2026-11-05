@@ -36,17 +36,19 @@ import { createLevelUpDialog } from './characters/level-up-dialog.js';
 import { createRankUpDialog } from './characters/rank-up-dialog.js';
 import { createPromotionDialog, snapshotForPromotion } from './characters/promotion-dialog.js';
 import { createItemPopup } from './characters/item-popup.js';
-import { createTutorialPopup, PART_ONE_ENDING, setTutorialsEnabled, TRIANGLE_EFFECTS, tutorialsEnabled } from './game/tutorial.js';
+import { CHAPTER_INTROS, createTutorialPopup, PART_ONE_ENDING, PART_TWO_ENDING, setTutorialsEnabled, TRIANGLE_EFFECTS, tutorialsEnabled } from './game/tutorial.js';
 import { awardExperience } from './characters/progression.js';
 import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
-import { playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
+import { playBloodBeastRoar, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
 import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses, rescaleMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
 import {
   addInsight, bloodEmblemDescription, BOSS_INSIGHT, FIRST_PREP_CHAPTER, getInsight, healBloodEmblemKill,
   isBloodEmblemEquipped, isBloodEmblemUpgraded, restoreInsight, snapshotInsight, toggleBloodEmblem,
 } from './game/insight.js';
 import { createPrepMenu } from './game/prep-menu.js';
+import { renderInsightLabel } from './game/insight-display.js';
+import { gateVictoryReady, planGateRavens, shouldSpawnGateBeast } from './game/gate-encounter.js';
 import { canRecruitLinus, escortPath, freshRescueState, isActiveVillager, rescueProgress, rescueRewardIds } from './game/rescue.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import {
@@ -92,7 +94,7 @@ function blobShadowTexture() {
 const insightLabel = document.querySelector('#insight-label');
 
 function refreshInsightLabel() {
-  insightLabel.textContent = `Insight: ${getInsight()}`;
+  renderInsightLabel(insightLabel, `Insight: ${getInsight()}`);
   insightLabel.hidden = currentChapter === null || currentChapter < FIRST_PREP_CHAPTER;
 }
 
@@ -178,7 +180,7 @@ async function recruitFromHouse(house) {
   house.visited = true;
   player.acted = true;
   Object.assign(recruit, { x: tile.x, z: tile.z, facing: 'south', hp: recruit.maxHp, moved: false, acted: false, moveOrigin: null });
-  recruit.mesh.position.set(worldX(recruit.x), unitSpriteHeightAt(recruit.x, recruit.z), worldZ(recruit.z));
+  recruit.mesh.position.set(worldX(recruit.x), unitSpriteHeightAt(recruit.x, recruit.z, recruit), worldZ(recruit.z));
   playerTeam.push(recruit);
   if (!fullTeam.includes(recruit)) fullTeam.push(recruit);
   setIdleSprite(recruit);
@@ -214,16 +216,16 @@ const pointerPosition = new THREE.Vector2();
 const deckPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.11);
 const raisedPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-function createNightBackdrop(sunset = false) {
+function createNightBackdrop(sunset = false, dusk = false) {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 512;
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Could not create the night-sky backdrop.');
   const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, sunset ? '#7698b6' : '#10182d');
-  gradient.addColorStop(0.55, sunset ? '#e9b87f' : '#26304a');
-  gradient.addColorStop(1, sunset ? '#f49055' : '#51415a');
+  gradient.addColorStop(0, dusk ? '#302536' : sunset ? '#7698b6' : '#10182d');
+  gradient.addColorStop(0.55, dusk ? '#82544b' : sunset ? '#e9b87f' : '#26304a');
+  gradient.addColorStop(1, dusk ? '#c77b4a' : sunset ? '#f49055' : '#51415a');
   context.fillStyle = gradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
   let seed = 120319;
@@ -283,6 +285,8 @@ function createNightBackdrop(sunset = false) {
 const nightBackdrop = createNightBackdrop();
 const sunsetBackdrop = createNightBackdrop(true);
 sunsetBackdrop.visible = false;
+const duskBackdrop = createNightBackdrop(true, true);
+duskBackdrop.visible = false;
 let activeBackdrop = nightBackdrop;
 
 // Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
@@ -319,17 +323,19 @@ torch.castShadow = true;
 scene.add(torch);
 
 function applyLevelLighting() {
-  const sunset = activeLevel.lighting === 'sunset';
-  ambient.color.setHex(sunset ? 0xffdfbb : 0x4a3a66);
-  ambient.intensity = sunset ? 1.5 : 0.9;
+  const dusk = activeLevel.lighting === 'dusk';
+  const sunset = dusk || activeLevel.lighting === 'sunset';
+  ambient.color.setHex(dusk ? 0xc59da2 : sunset ? 0xffdfbb : 0x4a3a66);
+  ambient.intensity = dusk ? 0.95 : sunset ? 1.5 : 0.9;
   moon.color.setHex(sunset ? 0xffae68 : 0x9fb4ff);
-  moon.intensity = sunset ? 1.8 : 0.8;
+  moon.intensity = dusk ? 1.3 : sunset ? 1.8 : 0.8;
   moon.position.set(sunset ? -18 : -8, sunset ? 10 : 14, 6);
-  scene.background.setHex(sunset ? 0xe9b87f : 0x0b0710);
+  scene.background.setHex(dusk ? 0x8e645b : sunset ? 0xe9b87f : 0x0b0710);
   scene.fog.color.copy(scene.background);
   nightBackdrop.visible = !sunset;
-  sunsetBackdrop.visible = sunset;
-  activeBackdrop = sunset ? sunsetBackdrop : nightBackdrop;
+  sunsetBackdrop.visible = sunset && !dusk;
+  duskBackdrop.visible = dusk;
+  activeBackdrop = dusk ? duskBackdrop : sunset ? sunsetBackdrop : nightBackdrop;
 }
 
 // ---------- Level loading and world ----------
@@ -372,12 +378,12 @@ const itemPopup = createItemPopup(document.querySelector('#item-popup-dialog'));
 const tutorialPopup = createTutorialPopup(document.querySelector('#tutorial-dialog'), {
   itemSprite: (id) => INVENTORY_ITEMS.get(id)?.spriteUrl ?? null,
 });
-// Story and teaching popups for chapters 1 and 2. Each step shows once per run of the chapter.
+// Each story and teaching step shows once per run of the chapter.
 const tutorialProgress = { active: false, running: false, intro: true, potion: true, stairs: true, houses: true, combatSeen: false };
 
 function resetTutorials(chapter) {
   Object.assign(tutorialProgress, {
-    active: chapter !== null && chapter <= 8,
+    active: Boolean(CHAPTER_INTROS[chapter]),
     chapter,
     running: false,
     intro: false,
@@ -410,7 +416,8 @@ async function runTutorials() {
   try {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
-      await tutorialPopup.show(['intro', 'boarders', 'village', 'mansion', 'escape', 'forest', 'camp', 'heart', 'crossing'][tutorialProgress.chapter], TRIANGLE_EFFECTS);
+      const intro = CHAPTER_INTROS[tutorialProgress.chapter];
+      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: intro === 'goldenBridge' });
     }
     if (!tutorialProgress.houses) {
       tutorialProgress.houses = true;
@@ -605,8 +612,10 @@ cursor.z = player.z;
 const characterSprites = await loadCharacterSprites();
 const unitGeometry = createUnitSpriteGeometry();
 const HERO_DECK_HEIGHT = 0.12;
-function unitSpriteHeightAt(x, z) {
-  return UNIT_SPRITE_HEIGHT / 2 + HERO_DECK_HEIGHT + getTileElevation(activeLevel, x, z);
+function unitSpriteHeightAt(x, z, unit) {
+  const scale = unit?.scale ?? CHARACTER_SCALES[unit?.spriteSet] ?? 1;
+  return UNIT_SPRITE_HEIGHT * scale / 2 + HERO_DECK_HEIGHT + getTileElevation(activeLevel, x, z) +
+    (unit?.type === 'flying' ? 0.85 : 0);
 }
 
 function unitTextures(unit) {
@@ -644,7 +653,7 @@ function createUnitMesh(unit, renderOrder = 2) {
   mesh.scale.set(scale, scale, 1);
   mesh.rotation.copy(SPRITE_TILT);
   mesh.renderOrder = renderOrder;
-  mesh.position.set(worldX(unit.x), unitSpriteHeightAt(unit.x, unit.z), worldZ(unit.z));
+  mesh.position.set(worldX(unit.x), unitSpriteHeightAt(unit.x, unit.z, unit), worldZ(unit.z));
   scene.add(mesh);
   unit.mesh = mesh;
   addUnitHealthBar(mesh, unit);
@@ -813,7 +822,7 @@ function getAttackRangeTiles(unit) {
       if (
         distance >= unit.weapon.minRange &&
         distance <= unit.weapon.maxRange &&
-        isWalkable(activeLevel, x, z)
+        (isWalkable(activeLevel, x, z, unit) || Boolean(findEnemyAt(enemies, x, z)))
       ) tiles.push({ x, z });
     }
   }
@@ -962,6 +971,7 @@ function hasPendingReinforcements() {
 }
 
 function checkDefeatAllVictory() {
+  if (activeLevel.objective === 'seize-gate') return checkGateObjective();
   if (activeLevel.objective === 'rescue-villagers') return checkRescueVictory();
   if (activeLevel.objective === 'defeat-boss') {
     if (enemies.some((enemy) => enemy.isBoss)) return false;
@@ -979,6 +989,12 @@ function checkDefeatAllVictory() {
 }
 
 function objectiveDescription(level = activeLevel) {
+  if (level.objective === 'seize-gate') {
+    if (!level.gateEncounter.spawned) return 'Defeat the Golden Order captain; Maria must reach the gate';
+    return enemies.some((enemy) => enemy.id === level.gateEncounter.beastId)
+      ? 'Defeat the Blood Beast blocking the gate; Maria must survive'
+      : 'Move Maria onto the marked gate tile';
+  }
   if (level.objective === 'rescue-villagers') {
     const progress = rescueState ? rescueProgress(rescueState) : { rescued: 0, lost: 0 };
     return `Rescue villagers (${progress.rescued}/3 safe, ${progress.lost} lost), clear beasts, defeat captain, Maria to bridge`;
@@ -1037,20 +1053,22 @@ function hideTerminalScreen() {
   terminalScreen.hidden = true;
 }
 
-// At the end of part one the plain victory card comes first; its Continue button opens the ending card.
-let showingPartOneVictory = false;
+// Part finales show the victory card before their story ending.
+let showingPartVictory = false;
 
 function showTerminalScreen(outcome, message, { ending = false } = {}) {
   terminalScreen.dataset.outcome = outcome;
-  const partEnd = outcome === 'victory' && currentChapter === 4;
-  showingPartOneVictory = partEnd && !ending;
-  terminalHeading.textContent = ending ? PART_ONE_ENDING.heading : outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
+  const partTwoEnd = outcome === 'victory' && activeLevel.objective === 'seize-gate';
+  const endingText = partTwoEnd ? PART_TWO_ENDING : PART_ONE_ENDING;
+  const partEnd = outcome === 'victory' && (currentChapter === 4 || partTwoEnd);
+  showingPartVictory = partEnd && !ending;
+  terminalHeading.textContent = ending ? endingText.heading : outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
   terminalSubtitle.hidden = !ending;
-  terminalSubtitle.textContent = ending ? PART_ONE_ENDING.welcome : '';
-  terminalMessage.textContent = ending ? PART_ONE_ENDING.message : message;
+  terminalSubtitle.textContent = ending ? endingText.welcome : '';
+  terminalMessage.textContent = ending ? endingText.message : message;
   const nextChapterButton = document.querySelector('#next-chapter');
-  nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartOneVictory));
-  nextChapterButton.textContent = ending ? 'Begin Part Two' : showingPartOneVictory ? 'Continue' : 'Next Chapter';
+  nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartVictory)) || (partTwoEnd && ending);
+  nextChapterButton.textContent = ending ? 'Begin Part Two' : showingPartVictory ? 'Continue' : 'Next Chapter';
   terminalScreen.classList.remove('visible');
   terminalScreen.hidden = false;
   requestAnimationFrame(() => terminalScreen.classList.add('visible'));
@@ -1074,11 +1092,11 @@ function completeVictory(message) {
 }
 
 function partyDefeated() {
-  return playerTeam.every((unit) => unit.hp <= 0) || Boolean(activeLevel.rescue && maria.hp <= 0);
+  return playerTeam.every((unit) => unit.hp <= 0) || Boolean((activeLevel.rescue || activeLevel.gateEncounter) && maria.hp <= 0);
 }
 
 function gameOverMessage() {
-  return activeLevel.rescue && maria.hp <= 0
+  return (activeLevel.rescue || activeLevel.gateEncounter) && maria.hp <= 0
     ? 'Maria has fallen. The road to Aldermere is lost.'
     : 'The last light has died. The sea keeps what it claims.';
 }
@@ -1097,6 +1115,7 @@ function completeGameOver() {
 }
 
 function checkEscapeObjective() {
+  if (activeLevel.objective === 'seize-gate') return checkGateObjective();
   if (activeLevel.objective !== 'escape') return false;
   const living = playerTeam.filter((unit) => unit.hp > 0);
   const escaped = living.filter((unit) =>
@@ -1104,6 +1123,59 @@ function checkEscapeObjective() {
   if (!living.length || escaped.length < living.length) return false;
   completeVictory('Everyone has reached the exit. The objective is complete.');
   return true;
+}
+
+function checkGateObjective() {
+  if (!gateVictoryReady(activeLevel, maria, enemies)) return false;
+  completeVictory('Maria opens the gate of Aldermere. The Golden Threshold is crossed.');
+  return true;
+}
+
+async function revealGateBeast(beast) {
+  const previousTarget = cameraFollowTarget;
+  const landing = beast.mesh.position.clone();
+  cameraFollowTarget = landing;
+  setMessage('The bridge falls silent...');
+  await wait(650);
+  playGateRumble();
+  setMessage('A deep rumble rolls through the gatehouse.');
+  for (let frame = 0; frame < 36; frame++) {
+    cameraFollowTarget = landing.clone().add(new THREE.Vector3(Math.sin(frame * 2.4) * 0.12, 0, Math.cos(frame * 2.1) * 0.08));
+    await wait(35);
+  }
+  cameraFollowTarget = landing;
+  playBloodBeastRoar();
+  setMessage('A shrieking roar tears through the dusk!');
+  await wait(1050);
+  beast.mesh.position.y = landing.y + 7;
+  beast.mesh.visible = true;
+  for (let frame = 1; frame <= 30; frame++) {
+    beast.mesh.position.y = landing.y + 7 * (1 - (frame / 30) ** 2);
+    await wait(20);
+  }
+  beast.mesh.position.copy(landing);
+  playHitImpact({ critical: true });
+  showCombatResult(beast, 'BLOOD BEAST', 'critical');
+  setMessage('The Blood Beast blocks the gate. Torn white vestments and a high cleric\'s golden chain cling to its hide.');
+  renderTacticalUi();
+  await wait(650);
+  await tutorialPopup.show('bloodBeastArrival', {}, { force: true });
+  spawnGateRavens();
+  renderTacticalUi();
+  cameraFollowTarget = previousTarget;
+}
+
+function spawnGateRavens() {
+  const encounter = activeLevel.gateEncounter;
+  const placements = planGateRavens(activeLevel, gameState.turn, [...defendingUnits(), ...enemies]);
+  if (!placements.length) return [];
+  const ravens = placements.map(({ x, z }) => createEnemy(x, z, 'raven', { ai: 'mobile' }));
+  enemies.push(...ravens);
+  encounter.ravenStartTurn ??= gameState.turn;
+  encounter.ravenWavesSpawned++;
+  setMessage(`${ravens.length} ravens sweep in over the water! Flying units are weak to bows and wind magic.`);
+  saveCurrentGame();
+  return ravens;
 }
 
 function hideMainMenu() {
@@ -1200,7 +1272,7 @@ async function advanceVillagers() {
       const tile = path.at(-1);
       unit.x = tile.x;
       unit.z = tile.z;
-      unit.mesh.position.set(worldX(unit.x), unitSpriteHeightAt(unit.x, unit.z), worldZ(unit.z));
+      unit.mesh.position.set(worldX(unit.x), unitSpriteHeightAt(unit.x, unit.z, unit), worldZ(unit.z));
       setIdleSprite(unit);
     }
     if (activeLevel.rescue.refuge.some((tile) => tile.x === unit.x && tile.z === unit.z)) {
@@ -1346,6 +1418,7 @@ function newGame() {
 function restartLevel() {
   startLevel({
     ...activeLevel,
+    gateEncounter: activeLevel.gateEncounter ? { ...activeLevel.gateEncounter, spawned: false, ravenStartTurn: null, ravenWavesSpawned: 0 } : null,
     houses: activeLevel.houses.map((house) => ({ ...house, visited: false })),
     chests: activeLevel.chests.map((chest) => ({ ...chest, opened: false })),
     reinforcements: activeLevel.reinforcements.map((wave) => ({
@@ -1456,6 +1529,7 @@ function continueGame() {
     return;
   }
   if (gameState.phase === 'player') showPhaseBanner('Player', gameState.turn);
+  if (gameState.phase === 'player' && !gameState.defeated) spawnGateRavens();
   renderTacticalUi();
   if (gameState.defeated) {
     showTerminalScreen('game-over', gameOverMessage());
@@ -2622,10 +2696,21 @@ async function usePocketwatch(entry) {
 
 // Defeated enemies carrying an item hand it to whoever landed the final blow.
 async function collectEnemyDrop(enemy, recipient) {
+  let gateBeast;
+  if (shouldSpawnGateBeast(activeLevel, enemies)) {
+    const encounter = activeLevel.gateEncounter;
+    encounter.spawned = true;
+    gateBeast = createEnemy(encounter.x, encounter.z, encounter.beastId, { ai: 'stationary' });
+    gateBeast.mesh.visible = false;
+    enemies.push(gateBeast);
+  }
+  const receipt = enemy.drop ? { unit: recipient, ...grantItem(recipient, enemy.drop) } : null;
   if (enemy.isBoss) gainInsight(BOSS_INSIGHT, `${enemy.name} defeated`);
-  if (!enemy.drop) return;
-  const { item, toConvoy } = grantItem(recipient, enemy.drop);
-  await itemPopup.show([{ unit: recipient, item, toConvoy }]);
+  // Persist both rewards before waiting so reloading the notification cannot lose the drop.
+  if (enemy.isBoss || receipt) saveCurrentGame();
+  if (enemy.isBoss) await itemPopup.showInsight(enemy.name, BOSS_INSIGHT, getInsight());
+  if (receipt) await itemPopup.show([receipt]);
+  if (gateBeast) await revealGateBeast(gateBeast);
 }
 
 // Only opposing units block movement; teammates can be walked through.
@@ -3341,8 +3426,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     enemies = enemies.filter((enemy) => enemy !== target);
     const experienceGained = getCombatExperience(target, true, player);
     const progression = awardExperience(player, experienceGained);
-    await showExperienceProgression(progression, experienceGained);
     await collectEnemyDrop(target, player);
+    await showExperienceProgression(progression, experienceGained);
     setMessage(withRankUps(`${player.name} defeats ${target.name}${target.isBoss ? ' (Boss)' : ''} (${playerHits}/${playerAttackCount} hits${playerCriticalHits ? `, ${playerCriticalHits} critical` : ''}, +${experienceGained} EXP${progression?.levelUps ? `, Level ${player.level}!` : ''}).`, rankUps));
     player.acted = true;
     gameState.mode = 'unit';
@@ -3413,7 +3498,7 @@ function getEnemyThreatTiles(enemy, reach) {
         const tile = tileKey(x, z);
         if (
           !reach.has(tile) && !threat.has(tile) &&
-          isWalkable(activeLevel, x, z) &&
+          isWalkable(activeLevel, x, z, enemy) &&
           isInWeaponRange(enemy, enemy, distanceBetween(originX, originZ, x, z))
         ) threat.set(tile, { x, z });
       }
@@ -3477,7 +3562,7 @@ async function enemyPhase() {
               foe,
               distanceBetween(x, z, foe.x, foe.z),
             ) &&
-            isWalkable(activeLevel, x, z) &&
+            isWalkable(activeLevel, x, z, enemy) &&
             !blocked.has(tileKey(x, z)) &&
             !occupied.has(tileKey(x, z))
           ) {
@@ -3489,7 +3574,7 @@ async function enemyPhase() {
       if (path.length > 1) {
         let stop = 0;
         for (let spent = 0; stop < path.length - 1; stop++) {
-          spent += terrainMoveCost(activeLevel, path[stop + 1].x, path[stop + 1].z);
+          spent += terrainMoveCost(activeLevel, path[stop + 1].x, path[stop + 1].z, enemy);
           if (spent > enemy.movement) break;
         }
         while (stop > 0 && occupied.has(tileKey(path[stop].x, path[stop].z))) stop--;
@@ -3509,7 +3594,7 @@ async function enemyPhase() {
           enemy.z = destination.z;
           enemy.mesh.position.set(
             worldX(enemy.x),
-            unitSpriteHeightAt(enemy.x, enemy.z),
+            unitSpriteHeightAt(enemy.x, enemy.z, enemy),
             worldZ(enemy.z),
           );
         }
@@ -3637,8 +3722,8 @@ async function enemyPhase() {
           }
           const experienceGained = getCombatExperience(enemy, true, foe);
           const progression = awardExperience(foe, experienceGained);
-          await showExperienceProgression(progression, experienceGained, foe);
           await collectEnemyDrop(enemy, foe);
+          await showExperienceProgression(progression, experienceGained, foe);
           setMessage(withRankUps(
             `${foe.name} counters and defeats ${enemy.name}${enemy.isBoss ? ' (Boss)' : ''} (${counterHitCount}/${counterAttacks} hits${counterCriticalCount ? `, ${counterCriticalCount} critical` : ''}, ${counterTotalDamage} damage, +${experienceGained} EXP${progression.levelUps ? `, Level ${foe.level}!` : ''}).`,
             rankUps,
@@ -3675,6 +3760,7 @@ async function enemyPhase() {
   cursor.z = player.z;
   cursorOutline.visible = true;
   setCursor(player.x, player.z);
+  spawnGateRavens();
   const reinforcementResult = spawnTurnReinforcements();
   if (reinforcementResult.error) {
     console.error('Unable to spawn chapter reinforcements:', reinforcementResult.error);
@@ -3747,7 +3833,7 @@ function spawnTurnReinforcements() {
         distanceBetween(second.x, second.z, placement.x, placement.z));
       if (!open.length) continue;
       Object.assign(ally, { x: open[0].x, z: open[0].z, facing: 'south', hp: ally.maxHp, moved: false, acted: false, moveOrigin: null });
-      ally.mesh.position.set(worldX(ally.x), unitSpriteHeightAt(ally.x, ally.z), worldZ(ally.z));
+      ally.mesh.position.set(worldX(ally.x), unitSpriteHeightAt(ally.x, ally.z, ally), worldZ(ally.z));
       playerTeam.push(ally);
       if (!fullTeam.includes(ally)) fullTeam.push(ally);
       setIdleSprite(ally);
@@ -3918,7 +4004,7 @@ newGameButton.addEventListener('click', newGame);
 continueButton.addEventListener('click', continueGame);
 document.querySelector('#restart-level').addEventListener('click', restartLevel);
 document.querySelector('#next-chapter').addEventListener('click', () => {
-  if (showingPartOneVictory) showTerminalScreen('victory', '', { ending: true });
+  if (showingPartVictory) showTerminalScreen('victory', '', { ending: true });
   else void startNextChapter();
 });
 document.querySelector('#terminal-main-menu').addEventListener('click', returnToMainMenu);
@@ -4198,7 +4284,7 @@ function update(dt, t) {
   }
   let playerWorldX = worldX(player.x);
   let playerWorldZ = worldZ(player.z);
-  let playerWorldY = unitSpriteHeightAt(player.x, player.z);
+  let playerWorldY = unitSpriteHeightAt(player.x, player.z, player);
   let moving = Boolean(playerMovement);
   if (playerMovement) {
     const stepCount = playerMovement.path.length - 1;
@@ -4221,8 +4307,8 @@ function update(dt, t) {
       playerWorldX = THREE.MathUtils.lerp(worldX(from.x), worldX(to.x), stepProgress);
       playerWorldZ = THREE.MathUtils.lerp(worldZ(from.z), worldZ(to.z), stepProgress);
       playerWorldY = THREE.MathUtils.lerp(
-        unitSpriteHeightAt(from.x, from.z),
-        unitSpriteHeightAt(to.x, to.z),
+        unitSpriteHeightAt(from.x, from.z, player),
+        unitSpriteHeightAt(to.x, to.z, player),
         stepProgress,
       );
     }
@@ -4242,8 +4328,8 @@ function update(dt, t) {
     enemy.mesh.position.set(
       THREE.MathUtils.lerp(worldX(from.x), worldX(to.x), stepProgress),
       THREE.MathUtils.lerp(
-        unitSpriteHeightAt(from.x, from.z),
-        unitSpriteHeightAt(to.x, to.z),
+        unitSpriteHeightAt(from.x, from.z, enemy),
+        unitSpriteHeightAt(to.x, to.z, enemy),
         stepProgress),
       THREE.MathUtils.lerp(worldZ(from.z), worldZ(to.z), stepProgress),
     );
@@ -4293,7 +4379,7 @@ function update(dt, t) {
   }
   const walkingTime = playerMovement ? t - playerMovement.startedAt : t;
   for (const unit of [maria, bartz, cypher, seymour, stark, linus]) {
-    const fielded = (playerTeam.includes(unit) || unit === linus && rescueState && !rescueState.recruited) && unit.hp > 0;
+    const fielded = (playerTeam.includes(unit) || unit === linus && Boolean(rescueState) && !rescueState.recruited) && unit.hp > 0;
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
     if (!fielded) continue;
@@ -4308,10 +4394,11 @@ function update(dt, t) {
     }
     setUnitSprite(unit, sprite);
     const unitX = unit === player ? playerWorldX : worldX(unit.x);
-    const unitY = unit === player ? playerWorldY : unitSpriteHeightAt(unit.x, unit.z);
+    const unitY = unit === player ? playerWorldY : unitSpriteHeightAt(unit.x, unit.z, unit);
     const unitZ = unit === player ? playerWorldZ : worldZ(unit.z);
     unit.mesh.position.set(unitX, unitY + (unitMoving ? Math.abs(Math.sin(t * 28)) * 0.08 : 0), unitZ);
-    unit.blob.position.set(unitX, unitY - UNIT_SPRITE_HEIGHT / 2 - HERO_DECK_HEIGHT + 0.02, unitZ);
+    const scale = unit.scale ?? CHARACTER_SCALES[unit.spriteSet] ?? 1;
+    unit.blob.position.set(unitX, unitY - UNIT_SPRITE_HEIGHT * scale / 2 - HERO_DECK_HEIGHT + 0.02, unitZ);
   }
   const healthBarMeshes = [...defendingUnits(), ...enemies].map((unit) => unit.mesh);
   for (const enemy of enemies) {
@@ -4363,7 +4450,7 @@ function update(dt, t) {
   );
   torch.position.set(playerWorldX + 1.2, 2.4, playerWorldZ + 0.8);
   torch.intensity = (38 + Math.sin(t * 17) * 3 + Math.sin(t * 5.3) * 2) *
-    (activeLevel.lighting === 'sunset' ? 0.15 : 1);
+    (activeLevel.lighting === 'dusk' ? 0.35 : activeLevel.lighting === 'sunset' ? 0.15 : 1);
 
   const target = moving
     ? new THREE.Vector3(playerWorldX, 0.8, playerWorldZ)
@@ -4425,6 +4512,15 @@ window.addEventListener('resize', () => {
 // add &save=1 to bring along the roster and convoy from the current browser save.
 const requestParams = new URLSearchParams(window.location.search);
 const requestedChapter = Number(requestParams.get('chapter'));
+const DEV_RESUME_KEY = 'blood-emblem-dev-resume';
+// A dev-server reload during play resumes the autosave instead of dropping to the main menu.
+if (import.meta.hot) {
+  import.meta.hot.on('vite:beforeFullReload', () => {
+    if (sessionStarted) sessionStorage.setItem(DEV_RESUME_KEY, '1');
+  });
+}
+const resumeAfterDevReload = sessionStorage.getItem(DEV_RESUME_KEY) === '1';
+sessionStorage.removeItem(DEV_RESUME_KEY);
 if (Number.isInteger(requestedChapter) && requestedChapter >= 2 && requestedChapter <= CHAPTER_COUNT) {
   let carry = serializeUnit(createMaria());
   if (requestParams.get('save') === '1') {
@@ -4439,4 +4535,10 @@ if (Number.isInteger(requestedChapter) && requestedChapter >= 2 && requestedChap
     chapter: requestedChapter - 1,
     carry,
   });
+} else if (resumeAfterDevReload) {
+  try {
+    continueGame();
+  } catch (error) {
+    console.error('Could not resume after dev reload:', error);
+  }
 }

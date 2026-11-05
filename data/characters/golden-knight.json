@@ -1,0 +1,16 @@
+{
+  "id": "golden-knight",
+  "name": "Golden Order Knight",
+  "classId": "knight",
+  "type": "armor",
+  "spriteSet": "genericKnight",
+  "sprite": "assets/character/Generic_Knight/rotations/south.png",
+  "scale": 1.1,
+  "level": 19,
+  "experience": 0,
+  "weaponId": "steel-spear",
+  "ai": "guard",
+  "baseStats": { "hp": 46, "strength": 18, "magic": 0, "dexterity": 13, "speed": 8, "luck": 5, "defense": 19, "resistance": 5, "movement": 4, "build": 12 },
+  "currentStats": { "hp": 46, "strength": 18, "magic": 0, "dexterity": 13, "speed": 8, "luck": 5, "defense": 19, "resistance": 5, "movement": 4, "build": 12 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 35, "speed": 20, "luck": 20, "defense": 40, "resistance": 15, "movement": 0, "build": 0 }
+}

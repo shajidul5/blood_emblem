@@ -62,8 +62,14 @@ export function isTileWalkable(tileId) {
   return getTileDef(tileId).walkable;
 }
 
-export function isLevelTileWalkable(level, x, z) {
-  return isTileWalkable(level?.tileIds?.[z]?.[x]) &&
+export function isLevelTileWalkable(level, x, z, unit) {
+  const tileId = level?.tileIds?.[z]?.[x];
+  const flying = unit?.type === 'flying';
+  return Boolean(tileId) && (flying
+    ? TILE_DEFS.has(tileId) && !['city_wall', 'village_building'].includes(tileId) && !tileId.startsWith('mans_wall')
+    : isTileWalkable(tileId)) &&
+    !(level?.gateEncounter && !level.gateEncounter.spawned &&
+      level.gateEncounter.x === x && level.gateEncounter.z === z) &&
     ![...(level?.houses ?? []), ...(level?.decorativeHouses ?? [])].some((house) =>
       x >= house.x && x < house.x + house.width &&
       z >= house.z && z < house.z + house.height);

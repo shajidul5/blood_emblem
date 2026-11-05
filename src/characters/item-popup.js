@@ -1,4 +1,5 @@
 import { playItemDiscovery } from '../audio/ui-sounds.js';
+import { insightSpriteUrl } from '../game/insight-display.js';
 
 export function createItemPopup(dialog) {
   const heading = dialog.querySelector('#item-popup-heading');
@@ -11,18 +12,17 @@ export function createItemPopup(dialog) {
 
   continueButton.addEventListener('click', () => dialog.close());
 
-  function showOne(unit, item, toConvoy) {
-    heading.textContent = toConvoy ? 'Sent to Convoy' : 'Item Received';
-    recipient.textContent = toConvoy ? `${unit.name}'s inventory is full` : unit.name;
-    name.textContent = item.name;
-    description.textContent = item.type === 'consumable' && item.heal
-      ? `Restores ${item.heal} HP · ${item.maxUses} uses`
-      : item.might !== undefined ? `Might ${item.might} · Weight ${item.weight}` : item.description ?? '';
-    lore.textContent = item.lore ?? '';
+  function present({ title, recipientText, nameText, descriptionText, loreText = '', spriteUrl, buttonText }) {
+    heading.textContent = title;
+    recipient.textContent = recipientText;
+    name.textContent = nameText;
+    description.textContent = descriptionText;
+    lore.textContent = loreText;
+    continueButton.textContent = buttonText;
     icon.replaceChildren();
-    if (item.spriteUrl) {
+    if (spriteUrl) {
       const image = document.createElement('img');
-      image.src = item.spriteUrl;
+      image.src = spriteUrl;
       image.alt = '';
       icon.append(image);
     }
@@ -34,6 +34,31 @@ export function createItemPopup(dialog) {
     });
   }
 
+  function showOne(unit, item, toConvoy) {
+    return present({
+      title: toConvoy ? 'Sent to Convoy' : 'Item Received',
+      recipientText: toConvoy ? `${unit.name}'s inventory is full` : unit.name,
+      nameText: item.name,
+      descriptionText: item.type === 'consumable' && item.heal
+        ? `Restores ${item.heal} HP · ${item.maxUses} uses`
+        : item.might !== undefined ? `Might ${item.might} · Weight ${item.weight}` : item.description ?? '',
+      loreText: item.lore ?? '',
+      spriteUrl: item.spriteUrl,
+      buttonText: 'Take',
+    });
+  }
+
+  function showInsight(bossName, amount, total) {
+    return present({
+      title: 'Insight Gained',
+      recipientText: `${bossName} defeated`,
+      nameText: `+${amount} Insight`,
+      descriptionText: `Total Insight: ${total}`,
+      spriteUrl: insightSpriteUrl,
+      buttonText: 'Continue',
+    });
+  }
+
   // Shows each { unit, item } receipt in turn, waiting for the player to dismiss each one.
   async function show(receipts) {
     for (const { unit, item, toConvoy } of receipts) {
@@ -41,5 +66,5 @@ export function createItemPopup(dialog) {
     }
   }
 
-  return { show, get open() { return dialog.open; } };
+  return { show, showInsight, get open() { return dialog.open; } };
 }

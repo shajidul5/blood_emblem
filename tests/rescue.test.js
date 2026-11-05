@@ -97,8 +97,8 @@ test('captain carries a range 1-2 Javelin and knights hold position', () => {
 test('rescue rewards are cumulative for zero through three survivors', () => {
   assert.deepEqual(rescue.rescueRewardIds(level.rescue, 0), []);
   assert.deepEqual(rescue.rescueRewardIds(level.rescue, 1), ['potion', 'potion']);
-  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 2), ['potion', 'potion', 'bloodroot-tonic']);
-  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 3), ['potion', 'potion', 'bloodroot-tonic', 'crossing-keepsake']);
+  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 2), ['potion', 'potion', 'wind-tome']);
+  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 3), ['potion', 'potion', 'wind-tome', 'crossing-keepsake']);
 });
 
 test('only adjacent Maria can recruit living, unrecruited Linus', () => {

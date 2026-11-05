@@ -134,6 +134,15 @@ const genericWolfmanAttackFrames = import.meta.glob('../../assets/character/Gene
 const genericArcherIdleSprites = import.meta.glob('../../assets/character/Generic_Archer/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const genericArcherWalkingFrames = import.meta.glob('../../assets/character/Generic_Archer/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericArcherAttackFrames = import.meta.glob('../../assets/character/Generic_Archer/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericMageIdleSprites = import.meta.glob('../../assets/character/Generic_Mage/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericMageWalkingFrames = import.meta.glob('../../assets/character/Generic_Mage/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericMageAttackFrames = import.meta.glob('../../assets/character/Generic_Mage/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const bloodBeastIdleSprites = import.meta.glob('../../assets/character/Blood_Beast/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const ravenIdleSprites = import.meta.glob('../../assets/character/Raven/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const ravenWalkingFrames = import.meta.glob('../../assets/character/Raven/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const ravenAttackFrames = import.meta.glob('../../assets/character/Raven/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const bloodBeastWalkingFrames = import.meta.glob('../../assets/character/Blood_Beast/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const bloodBeastAttackFrames = import.meta.glob('../../assets/character/Blood_Beast/animations/The_beast_pulls_both_giant_arms_back_to_its_flanks/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericKnightIdleSprites = import.meta.glob('../../assets/character/Generic_Knight/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const genericKnightWalkingFrames = import.meta.glob('../../assets/character/Generic_Knight/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericKnightAttackFrames = import.meta.glob('../../assets/character/Generic_Knight/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -404,6 +413,9 @@ export async function loadCharacterSprites() {
   for (const [key, folder, idle, walking, attack] of [
     ['genericWolfman', 'Generic_Wolfman', genericWolfmanIdleSprites, genericWolfmanWalkingFrames, genericWolfmanAttackFrames],
     ['genericArcher', 'Generic_Archer', genericArcherIdleSprites, genericArcherWalkingFrames, genericArcherAttackFrames],
+    ['genericMage', 'Generic_Mage', genericMageIdleSprites, genericMageWalkingFrames, genericMageAttackFrames],
+    ['bloodBeast', 'Blood_Beast', bloodBeastIdleSprites, bloodBeastWalkingFrames, bloodBeastAttackFrames],
+    ['raven', 'Raven', ravenIdleSprites, ravenWalkingFrames, ravenAttackFrames],
     ['genericKnight', 'Generic_Knight', genericKnightIdleSprites, genericKnightWalkingFrames, genericKnightAttackFrames],
     ['genericCavalier', 'Generic_cavalier', genericCavalierIdleSprites, genericCavalierWalkingFrames, genericCavalierAttackFrames],
     ['linus', 'Linus', linusIdleSprites, linusWalkingFrames, linusAttackFrames],

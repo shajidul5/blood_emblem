@@ -179,6 +179,18 @@
       "weaponTypes": ["Claw", "Axe"]
     },
     {
+      "id": "raven",
+      "name": "Raven",
+      "tier": "monster",
+      "weaponTypes": ["Claw"]
+    },
+    {
+      "id": "blood-beast",
+      "name": "Blood Beast",
+      "tier": "monster",
+      "weaponTypes": ["Claw"]
+    },
+    {
       "id": "heartroot",
       "name": "Heartroot",
       "tier": "monster",

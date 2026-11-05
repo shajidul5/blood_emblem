@@ -1,0 +1,16 @@
+{
+  "id": "golden-cavalier",
+  "name": "Golden Order Cavalier",
+  "classId": "cavalier",
+  "type": "cavalry",
+  "spriteSet": "genericCavalier",
+  "sprite": "assets/character/Generic_cavalier/rotations/south.png",
+  "scale": 1.15,
+  "level": 18,
+  "experience": 0,
+  "weaponId": "steel-lance",
+  "ai": "guard",
+  "baseStats": { "hp": 44, "strength": 17, "magic": 0, "dexterity": 14, "speed": 13, "luck": 6, "defense": 13, "resistance": 7, "movement": 7, "build": 10 },
+  "currentStats": { "hp": 44, "strength": 17, "magic": 0, "dexterity": 14, "speed": 13, "luck": 6, "defense": 13, "resistance": 7, "movement": 7, "build": 10 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 40, "speed": 40, "luck": 25, "defense": 35, "resistance": 20, "movement": 0, "build": 0 }
+}

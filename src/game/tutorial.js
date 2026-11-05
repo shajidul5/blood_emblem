@@ -7,9 +7,11 @@ import chapterSix from '../../data/tutorials/chapter-6.json';
 import chapterSeven from '../../data/tutorials/chapter-7.json';
 import chapterEight from '../../data/tutorials/chapter-8.json';
 import chapterNine from '../../data/tutorials/chapter-9.json';
+import chapterTen from '../../data/tutorials/chapter-10.json';
 import triangle from '../../data/weapon-triangle.json';
 
-const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix, ...chapterSeven, ...chapterEight, ...chapterNine };
+const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix, ...chapterSeven, ...chapterEight, ...chapterNine, ...chapterTen };
+export const CHAPTER_INTROS = ['intro', 'boarders', 'village', 'mansion', 'escape', 'forest', 'camp', 'heart', 'crossing', 'goldenBridge'];
 
 const fill = (text, vars) => text.replace(/\{(\w+)\}/g, (match, key) => String(vars[key] ?? match));
 
@@ -81,8 +83,8 @@ export function createTutorialPopup(dialog, { itemSprite = () => null } = {}) {
   }
 
   // Shows each page of a script entry in turn; {name} placeholders come from vars.
-  async function show(id, vars = {}) {
-    if (!enabled) return;
+  async function show(id, vars = {}, { force = false } = {}) {
+    if (!enabled && !force) return;
     const entry = script[id];
     if (!entry) throw new Error(`Unknown tutorial "${id}".`);
     const allVars = { island: script.island, ...vars };
@@ -95,3 +97,4 @@ export function createTutorialPopup(dialog, { itemSprite = () => null } = {}) {
 export const TRIANGLE_EFFECTS = { hit: triangle.hit, avoid: triangle.avoid, damage: triangle.damage };
 
 export const PART_ONE_ENDING = { ...chapterFive.escape.ending, welcome: `Welcome to ${script.island}` };
+export const PART_TWO_ENDING = chapterTen.goldenBridge.ending;

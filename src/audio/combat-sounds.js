@@ -55,3 +55,20 @@ export function playMissWhiff() {
   if (!ensureContext()) return;
   noise({ frequency: 3000, to: 900, q: 0.8, decay: 0.16, volume: 0.1 });
 }
+
+export function playGateRumble() {
+  if (!ensureContext()) return;
+  for (let i = 0; i < 10; i++) {
+    const start = i * 0.13;
+    noise({ start, type: 'lowpass', frequency: 240, to: 65, decay: 0.35, volume: 0.14 });
+    tone({ type: 'sine', start, from: 52, to: 30, decay: 0.4, volume: 0.09 });
+  }
+}
+
+export function playBloodBeastRoar() {
+  if (!ensureContext()) return;
+  noise({ frequency: 800, to: 180, q: 1.5, decay: 1.1, volume: 0.35 });
+  tone({ type: 'sawtooth', from: 170, to: 48, attack: 0.08, decay: 1.2, volume: 0.09 });
+  tone({ type: 'sawtooth', from: 1050, to: 230, attack: 0.12, decay: 1, volume: 0.06 });
+  tone({ type: 'triangle', from: 1470, to: 310, start: 0.07, decay: 0.95, volume: 0.06 });
+}

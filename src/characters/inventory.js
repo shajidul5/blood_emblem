@@ -8,6 +8,9 @@ import steelLance from '../../data/weapons/steel-lance.json';
 import javelin from '../../data/weapons/javelin.json';
 import fireTome from '../../data/weapons/fire-tome.json';
 import thunderTome from '../../data/weapons/thunder-tome.json';
+import windTome from '../../data/weapons/wind-tome.json';
+import bloodBeastClaws from '../../data/weapons/blood-beast-claws.json';
+import ravenBeak from '../../data/weapons/raven-beak.json';
 import handAxe from '../../data/weapons/hand-axe.json';
 import hunterPistol from '../../data/weapons/hunter-pistol.json';
 import lancereaver from '../../data/weapons/lancereaver.json';
@@ -72,6 +75,9 @@ export const INVENTORY_ITEMS = new Map([
   [javelin.id, createWeaponItem(javelin)],
   [fireTome.id, createWeaponItem(fireTome)],
   [thunderTome.id, createWeaponItem(thunderTome)],
+  [windTome.id, createWeaponItem(windTome)],
+  [bloodBeastClaws.id, createWeaponItem(bloodBeastClaws)],
+  [ravenBeak.id, createWeaponItem(ravenBeak)],
   [handAxe.id, createWeaponItem(handAxe)],
   [hunterPistol.id, createWeaponItem(hunterPistol)],
   [lancereaver.id, createWeaponItem(lancereaver)],

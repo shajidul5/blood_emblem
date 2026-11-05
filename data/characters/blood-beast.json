@@ -1,0 +1,17 @@
+{
+  "id": "blood-beast",
+  "name": "Blood Beast",
+  "classId": "blood-beast",
+  "type": "beast",
+  "spriteSet": "bloodBeast",
+  "sprite": "assets/character/Blood_Beast/rotations/south.png",
+  "scale": 2.1,
+  "level": 25,
+  "experience": 0,
+  "weaponId": "blood-beast-claws",
+  "isBoss": true,
+  "ai": "stationary",
+  "baseStats": { "hp": 150, "strength": 28, "magic": 0, "dexterity": 20, "speed": 13, "luck": 5, "defense": 20, "resistance": 16, "movement": 0, "build": 20 },
+  "currentStats": { "hp": 150, "strength": 28, "magic": 0, "dexterity": 20, "speed": 13, "luck": 5, "defense": 20, "resistance": 16, "movement": 0, "build": 20 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

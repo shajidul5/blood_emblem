@@ -5,6 +5,7 @@ import {
   BLOOD_EMBLEM, bloodEmblemDescription, buyBloodEmblem, isBloodEmblemEquipped, isBloodEmblemUpgraded,
   refundBloodEmblem, toggleBloodEmblem,
 } from './insight.js';
+import { renderInsightLabel } from './insight-display.js';
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -196,10 +197,12 @@ export function createPrepMenu({
     body.append(el('p', 'prep-note', `${info.chapter} · Objective: ${info.objective}`));
     const deployed = team().filter(isDeployed).length;
     const menu = el('div', 'prep-hub');
+    const insightButton = button('', () => go('insight'));
+    renderInsightLabel(insightButton, `Insight (${getInsight()})`);
     menu.append(
       button(`Unit Select (${deployed}/${maxDeployed})`, () => go('units')),
       button('Inventory', () => go('inventory')),
-      button(`Insight (${getInsight()})`, () => go('insight')),
+      insightButton,
       button('Save', () => { flash = onSave() ? 'Game saved.' : 'Could not save the game.'; render(); }),
       button('Options', () => onOptions()),
       button('View Map', () => { viewingMap = true; dialog.close(); onViewMap(); }),
@@ -424,7 +427,8 @@ export function createPrepMenu({
     dialog.replaceChildren();
     const header = el('div', 'inventory-header');
     header.append(el('h2', '', TITLES[view]));
-    const total = el('strong', 'prep-insight', `Insight: ${getInsight()}`);
+    const total = el('strong', 'prep-insight');
+    renderInsightLabel(total, `Insight: ${getInsight()}`);
     total.setAttribute('role', 'status');
     header.append(total);
     dialog.append(header);

@@ -1,0 +1,17 @@
+{
+  "id": "golden-captain",
+  "name": "Captain Aurelan",
+  "classId": "paladin",
+  "type": "cavalry",
+  "spriteSet": "genericPaladin",
+  "sprite": "assets/character/Generic_Paladin/rotations/south.png",
+  "scale": 1.2,
+  "level": 22,
+  "experience": 0,
+  "weaponId": "javelin",
+  "isBoss": true,
+  "ai": "guard",
+  "baseStats": { "hp": 78, "strength": 23, "magic": 0, "dexterity": 19, "speed": 17, "luck": 9, "defense": 20, "resistance": 12, "movement": 8, "build": 12 },
+  "currentStats": { "hp": 78, "strength": 23, "magic": 0, "dexterity": 19, "speed": 17, "luck": 9, "defense": 20, "resistance": 12, "movement": 8, "build": 12 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 40, "speed": 35, "luck": 20, "defense": 35, "resistance": 25, "movement": 0, "build": 0 }
+}

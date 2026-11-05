@@ -1,0 +1,18 @@
+{
+  "id": "wind-tome",
+  "name": "Gale",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 7,
+  "weight": 7,
+  "hit": 80,
+  "critical": 0,
+  "maxUses": 15,
+  "minRange": 2,
+  "maxRange": 4,
+  "effect": ["flying"],
+  "sound": "magic",
+  "description": "Long-range wind magic, effective against flying units. Cannot strike adjacent foes.",
+  "lore": "A Golden Order siege text. Its margins give firing distances, not prayers.",
+  "sprite": "assets/weapons/Wind_tome/rotations/Wind_tome.png"
+}

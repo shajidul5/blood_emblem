@@ -4,6 +4,7 @@ import shipObjectsUrl from '../assets/tiles/ship_oblique/ship_objects.png?url';
 import mastUrl from '../assets/tiles/ship_oblique/mast.png?url';
 import fenceHorizontalUrl from '../assets/tiles/Village_Fence/fence_horizontal.png?url';
 import fenceVerticalUrl from '../assets/tiles/Village_Fence/fence_vertical.png?url';
+import sandbagsUrl from '../assets/tiles/Golden_Bridge/sandbags.png?url';
 import shipTileset from '../assets/tiles/ship_oblique/ship_oblique_tileset.json';
 
 const TILE_TYPES = [
@@ -14,6 +15,7 @@ const TILE_TYPES = [
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
 const fenceImages = new Map(await Promise.all([
   ['village_fence_h', fenceHorizontalUrl], ['village_fence_v', fenceVerticalUrl],
+  ['bridge_sandbags', sandbagsUrl],
 ].map(async ([id, url]) => [id, await loadImage(url, 'village fence')])));
 const LEGACY_ATLAS_TILES = {
   '.': 'water_a',
@@ -119,7 +121,7 @@ function validateMap(value) {
   if (typeof name !== 'string' || !name.trim()) {
     throw new Error('Give the level a name.');
   }
-  if (!['defeat-all-enemies', 'defeat-boss', 'escape'].includes(objective)) {
+  if (!['defeat-all-enemies', 'defeat-boss', 'escape', 'seize-gate'].includes(objective)) {
     throw new Error('Choose a valid level objective.');
   }
   const objects = value.objects ?? [];
@@ -139,6 +141,7 @@ function validateMap(value) {
     throw new Error('Blocking objects cannot be placed on the Start or Exit tile.');
   }
   return {
+    ...value,
     name: name.trim().slice(0, 48),
     objective,
     width,
@@ -223,7 +226,7 @@ function render() {
         const width = vertical ? cell * image.width / image.height : cell;
         const height = vertical ? cell : cell * image.height / image.width;
         context.drawImage(image, px + (cell - width) / 2, py + (cell - height) / 2, width, height);
-      } else if (tile.id === 'crossing_parapet') {
+      } else if (tile.id === 'crossing_parapet' || tile.id === 'city_wall') {
         context.strokeStyle = '#aaa09a';
         context.lineWidth = Math.max(3, cell * 0.18);
         context.beginPath();
