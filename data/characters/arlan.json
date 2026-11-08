@@ -1,0 +1,16 @@
+{
+  "id": "arlan",
+  "name": "Arlan",
+  "classId": "knight",
+  "type": "armor",
+  "spriteSet": "arlan",
+  "sprite": "assets/character/Arlan/rotations/south.png",
+  "level": 11,
+  "experience": 0,
+  "weaponId": "ridersbane",
+  "weaponExp": { "Spear": 70 },
+  "inventory": ["ridersbane", "iron-spear", "potion"],
+  "baseStats": { "hp": 36, "strength": 13, "magic": 0, "dexterity": 11, "speed": 6, "luck": 7, "defense": 17, "resistance": 3, "movement": 4, "build": 13 },
+  "currentStats": { "hp": 36, "strength": 13, "magic": 0, "dexterity": 11, "speed": 6, "luck": 7, "defense": 17, "resistance": 3, "movement": 4, "build": 13 },
+  "growthRates": { "hp": 75, "strength": 50, "magic": 0, "dexterity": 40, "speed": 25, "luck": 35, "defense": 65, "resistance": 25, "movement": 0, "build": 5 }
+}

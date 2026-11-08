@@ -1,0 +1,35 @@
+{
+  "ward": {
+    "pages": [
+      {
+        "kicker": "Part Three - Chapter 11",
+        "title": "The Quarantine Ward",
+        "paragraphs": [
+          "Beneath Aldermere, under the infirmary the Healing Church calls a sanctuary, the Quarantine Ward never sleeps. The bells ring above. Down here, only chains answer.",
+          "Rictor was an oathkeeper of the city watch. When the order came to round up anyone who coughed, bled or fevered, \"for their own protection,\" he refused to hunt his neighbors. For that, the Church gave him a cell of his own.",
+          "He had been suspicious long before. Years ago a minister of the Church pressed a crimson crest into his hands, then vanished. Rictor never learned what it was. Before he was taken, he gave it to the one person he trusted to keep it safe: his wife, Maria."
+        ]
+      },
+      {
+        "kicker": "A Familiar Face",
+        "title": "Lena",
+        "paragraphs": [
+          "A lock clicks in the dark. Lena, a thief who owes Rictor her life, slips the bolt on his cell door. \"You look terrible. Can you still hold a spear?\"",
+          "Rictor's gear sits in the warden's locker, all except his lance, the Vigil Lance. Lena stole it back on her way in. \"The Warden holds the stairs. Every other cell on this block is locked, and I don't like the sounds coming out of some of them.\"",
+          "\"Then we go up,\" Rictor says, \"and we find out what the Church is really doing with these people.\""
+        ]
+      },
+      {
+        "kicker": "Prison Break",
+        "title": "Escape the Ward",
+        "paragraphs": [
+          "Lena is a Thief. She opens treasure chests and locked cell doors without a key: stand next to a cell door and choose Pick Lock, or stand on a chest and choose Open Chest. Other units need a Chest Key to do the same.",
+          "Thieves can also pickpocket. Choose Steal next to an enemy carrying an item. It succeeds only if Lena's Speed is higher than the target's, and it takes her action without starting combat.",
+          "Some cells hold prisoners. The Church did not lock them away because they were sick. Whatever is behind those doors may no longer be human. Open cells carefully.",
+          "All ward guards hold their posts until you enter their reach. Rictor and Lena must both survive and reach the stairs on the east wall to win."
+        ],
+        "button": "Break Out"
+      }
+    ]
+  }
+}

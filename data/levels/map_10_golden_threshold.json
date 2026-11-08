@@ -43,6 +43,43 @@
   ],
   "enemies": [
     {
+      "id": "golden-soldier",
+      "x": 11,
+      "z": 28,
+      "ai": "guard",
+      "weaponId": "javelin"
+    },
+    {
+      "id": "golden-archer",
+      "x": 12,
+      "z": 25,
+      "ai": "guard"
+    },
+    {
+      "id": "golden-soldier",
+      "x": 7,
+      "z": 22,
+      "ai": "guard"
+    },
+    {
+      "id": "golden-archer",
+      "x": 6,
+      "z": 19,
+      "ai": "guard"
+    },
+    {
+      "id": "golden-soldier",
+      "x": 11,
+      "z": 16,
+      "ai": "guard"
+    },
+    {
+      "id": "golden-archer",
+      "x": 10,
+      "z": 7,
+      "ai": "guard"
+    },
+    {
       "id": "golden-cavalier",
       "x": 7,
       "z": 30,
@@ -118,7 +155,8 @@
       "id": "golden-mage",
       "x": 11,
       "z": 8,
-      "ai": "guard"
+      "ai": "guard",
+      "weaponId": "blaze"
     },
     {
       "id": "golden-captain",

@@ -1,0 +1,16 @@
+{
+  "id": "infirmary-rider",
+  "name": "Church Enforcer",
+  "classId": "cavalier",
+  "type": "cavalry",
+  "spriteSet": "genericCavalier",
+  "sprite": "assets/character/Generic_cavalier/rotations/south.png",
+  "scale": 1.15,
+  "level": 14,
+  "experience": 0,
+  "weaponId": "steel-lance",
+  "ai": "mobile",
+  "baseStats": { "hp": 32, "strength": 13, "magic": 0, "dexterity": 11, "speed": 9, "luck": 4, "defense": 8, "resistance": 3, "movement": 6, "build": 10 },
+  "currentStats": { "hp": 32, "strength": 13, "magic": 0, "dexterity": 11, "speed": 9, "luck": 4, "defense": 8, "resistance": 3, "movement": 6, "build": 10 },
+  "growthRates": { "hp": 60, "strength": 40, "magic": 0, "dexterity": 35, "speed": 35, "luck": 25, "defense": 35, "resistance": 20, "movement": 0, "build": 0 }
+}

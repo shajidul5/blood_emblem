@@ -28,9 +28,9 @@ import {
   terrainMoveCost,
   tileKey,
 } from './battle/grid.js';
-import { createBartzAlly, createCypherAlly, createEnemyUnit, createLinusAlly, createMaria, createSeymourAlly, createStarkAlly, createVillager, isBossEnemy } from './characters/characters.js';
+import { createArlanAlly, createBartzAlly, createCorvisAlly, createCypherAlly, createEnemyUnit, createEvelineAlly, createLenaAlly, createLinusAlly, createMaria, createRictorAlly, createSeymourAlly, createStarkAlly, createTroyAlly, createVillager, isBossEnemy } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
-import { applyClass, canEquipWeapon, equipBlockReason, canPromote, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
+import { applyClass, canEquipWeapon, equipBlockReason, canPromote, getClassAbilities, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
 import { createRankUpDialog } from './characters/rank-up-dialog.js';
@@ -40,16 +40,26 @@ import { CHAPTER_INTROS, createTutorialPopup, PART_ONE_ENDING, PART_TWO_ENDING, 
 import { awardExperience } from './characters/progression.js';
 import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
-import { playBloodBeastRoar, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
-import { convoy, grantItem, INVENTORY_ITEMS, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses, rescaleMagicUses, restoreMariaInventory, setConvoy, spendWeaponUse } from './characters/inventory.js';
+import { playBloodBeastRoar, playDoorCreak, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
+import {
+  attackWeapons, equipAttackWeapon, bookOf, carriedWeapons, convoy, copyEntry, findWeaponEntry, grantItem, INVENTORY_ITEMS, isSpellUnlocked, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses,
+  rescaleMagicUses, restoreMariaInventory, setConvoy, spellUses, spendWeaponUse, syncSpellbooks, unlockedSpellsOf, weaponUseBlockReason,
+} from './characters/inventory.js';
 import {
   addInsight, bloodEmblemDescription, BOSS_INSIGHT, FIRST_PREP_CHAPTER, getInsight, healBloodEmblemKill,
   isBloodEmblemEquipped, isBloodEmblemUpgraded, restoreInsight, snapshotInsight, toggleBloodEmblem,
 } from './game/insight.js';
 import { createPrepMenu } from './game/prep-menu.js';
+import { constrainCityCamera, constrainInteriorCamera, constrainStreetCamera, TACTICAL_FOV } from './game/camera-bounds.js';
 import { renderInsightLabel } from './game/insight-display.js';
 import { gateVictoryReady, planGateRavens, shouldSpawnGateBeast } from './game/gate-encounter.js';
+import { claimInfirmaryCompletion, finishInfirmaryEnemyPhase, freshInfirmary, infirmaryActions, infirmaryApproachTarget, infirmaryBreached, infirmarySpawnTile, infirmaryVictoryReady, infirmaryWarning, infirmaryWaveSealed, performInfirmaryAction } from './game/infirmary.js';
 import { canRecruitLinus, escortPath, freshRescueState, isActiveVillager, rescueProgress, rescueRewardIds } from './game/rescue.js';
+import { canRecruitEveline, recruitEveline, freshStreets, streetWarning, streetsVictoryReady } from './game/streets.js';
+import { canSteal, stealableItems, stealItem } from './game/stealing.js';
+import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled } from './game/courtyard.js';
+import { advanceCathedralStory, CATHEDRAL_ELEVATIONS, cathedralWaveEnabled, freshCathedral } from './game/cathedral.js';
+import { chooseEnemyStaffAction, freezeHitRate, freezeRange, useEnemyStaff } from './game/enemy-staves.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import {
   SAVE_SLOT_COUNT, copyCurrentSaveToSlot, createSaveData, describeSaveSlot, loadSlotIntoCurrentSave,
@@ -145,14 +155,16 @@ async function visitHouse() {
     finishUnit();
     return;
   }
-  const { item, toConvoy } = grantItem(player, house.rewardId);
+  const receipts = Array.from({ length: house.rewardCount ?? 1 }, () => ({ unit: player, ...grantItem(player, house.rewardId) }));
+  const { item } = receipts[0];
+  const sentToConvoy = receipts.filter((receipt) => receipt.toConvoy).length;
   house.visited = true;
   player.acted = true;
-  setMessage(toConvoy
-    ? `${player.name} visited ${house.name}. Their inventory is full, so ${item.name} was sent to the convoy.`
-    : `${player.name} visited ${house.name} and received ${item.name}.`);
+  setMessage(`${player.name} visited ${house.name} and received ${receipts.length > 1 ? `${receipts.length}x ` : ''}${item.name}.${
+    sentToConvoy ? ` Inventory overflow: ${sentToConvoy} sent to the convoy.` : ''}`);
   renderTacticalUi();
-  await itemPopup.show([{ unit: player, item, toConvoy }]);
+  await itemPopup.show(receipts);
+  if (activeLevel.streets) await tutorialPopup.show(house.id, {}, { force: true });
   finishUnit();
 }
 
@@ -206,7 +218,7 @@ scene.background = new THREE.Color(0x0b0710);
 scene.fog = new THREE.Fog(0x0b0710, 35, 85);
 
 const camera = new THREE.PerspectiveCamera(
-  28,
+  TACTICAL_FOV,
   window.innerWidth / window.innerHeight,
   0.1,
   100,
@@ -291,7 +303,7 @@ let activeBackdrop = nightBackdrop;
 
 // Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
 function pickFloorPoint(ray) {
-  for (const elevation of [0.5, 0.25]) {
+  for (const elevation of activeLevel?.cathedral ? CATHEDRAL_ELEVATIONS : [0.5, 0.25]) {
     raisedPlane.constant = -(0.11 + elevation);
     const point = ray.intersectPlane(raisedPlane, new THREE.Vector3());
     if (!point || !activeLevel) continue;
@@ -417,8 +429,9 @@ async function runTutorials() {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
       const intro = CHAPTER_INTROS[tutorialProgress.chapter];
-      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: intro === 'goldenBridge' });
+      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral'].includes(intro) });
     }
+    await showCathedralStory();
     if (!tutorialProgress.houses) {
       tutorialProgress.houses = true;
       const house = activeLevel.houses.filter((entry) => !entry.visited)
@@ -459,7 +472,7 @@ function isDeployed(unit) {
 }
 
 function setDeployed(unit, on) {
-  if (unit === maria || on === isDeployed(unit) || (on && playerTeam.length >= MAX_DEPLOYED)) return;
+  if (isRequiredUnit(unit) || on === isDeployed(unit) || (on && playerTeam.length >= MAX_DEPLOYED)) return;
   const next = fullTeam.filter((member) => (member === unit ? on : isDeployed(member)));
   playerTeam.length = 0;
   playerTeam.push(...next);
@@ -485,6 +498,7 @@ async function openPrepMenu() {
   prepMenu ??= createPrepMenu({
     dialog: document.querySelector('#prep-dialog'),
     getTeam: () => fullTeam,
+    isRequired: (unit) => isRequiredUnit(unit),
     getConvoy: () => convoy,
     items: INVENTORY_ITEMS,
     statItems: STAT_ITEM_EFFECTS,
@@ -501,6 +515,7 @@ async function openPrepMenu() {
     onOptions: () => openOptionsMenu(),
     onViewMap: startMapView,
     onChange: () => {
+      syncSpellbooks(Object.values(roster));
       prepMenu.refresh();
       refreshInsightLabel();
       renderTacticalUi();
@@ -534,6 +549,12 @@ const cypher = createCypherAlly();
 const seymour = createSeymourAlly();
 const stark = createStarkAlly();
 const linus = createLinusAlly();
+const rictor = createRictorAlly();
+const lena = createLenaAlly();
+const arlan = createArlanAlly();
+const troy = createTroyAlly();
+const eveline = createEvelineAlly();
+const corvis = createCorvisAlly();
 let player = maria;
 const playerTeam = [maria];
 experienceDisplay.reset(player.level, player.experience);
@@ -732,6 +753,12 @@ createUnitMesh(cypher, 0);
 createUnitMesh(seymour, 0);
 createUnitMesh(stark, 0);
 createUnitMesh(linus, 0);
+createUnitMesh(rictor, 0);
+createUnitMesh(lena, 0);
+createUnitMesh(arlan, 0);
+createUnitMesh(troy, 0);
+createUnitMesh(eveline, 0);
+createUnitMesh(corvis, 0);
 let currentChapter = 0;
 let chapterStart = null;
 const cursorPlaneGeometry = new THREE.PlaneGeometry(1, 1);
@@ -934,6 +961,7 @@ function saveCurrentGame() {
       gameState,
       {
         allies: fullTeam.filter((unit) => unit !== maria),
+        playerReserve: !fullTeam.includes(maria),
         isBenched: (unit) => !playerTeam.includes(unit),
         convoy,
         chapter: currentChapter,
@@ -971,12 +999,17 @@ function hasPendingReinforcements() {
 }
 
 function checkDefeatAllVictory() {
+  if (activeLevel.courtyard) return checkCourtyardObjective();
+  if (activeLevel.streets) return checkStreetObjective();
+  if (activeLevel.infirmary) return false;
   if (activeLevel.objective === 'seize-gate') return checkGateObjective();
   if (activeLevel.objective === 'rescue-villagers') return checkRescueVictory();
   if (activeLevel.objective === 'defeat-boss') {
     if (enemies.some((enemy) => enemy.isBoss)) return false;
     if (activeLevel.reinforcements.some((wave) => !wave.spawned && wave.units.some((unit) => isBossEnemy(unit.id)))) return false;
-    completeVictory('The boss has fallen. The objective is complete.');
+    completeVictory(activeLevel.cathedral
+      ? 'Bishop Aurel Voss falls. The Church requested the Order, concealed the failed treatments, and continued the scourge. Part Three is complete.'
+      : 'The boss has fallen. The objective is complete.');
     return true;
   }
   if (
@@ -989,6 +1022,20 @@ function checkDefeatAllVictory() {
 }
 
 function objectiveDescription(level = activeLevel) {
+  if (level.cathedral) {
+    const incoming = level.reinforcements.filter((wave) => !wave.spawned && cathedralWaveEnabled(level, wave))
+      .map((wave) => `Paladins ${wave.turn <= gameState.turn ? 'queued' : `arrive turn ${wave.turn}`}`);
+    return ['Defeat Bishop Aurel Voss', 'Three Cathedral tiers', 'Chests optional', ...incoming].join(' · ');
+  }
+  if (level.courtyard) return 'Defeat General Severin to enter the Cathedral';
+  if (level.streets) {
+    const recruit = level.streets.recruit;
+    return `Rictor must seize the gate controls after Marshal Veyr falls · Eveline ${recruit.recruited ? 'recruited' : recruit.dead ? 'lost' : 'awaits Rictor'} · Houses ${level.houses.filter((house) => house.visited).length}/3`;
+  }
+  if (level.infirmary) {
+    const rules = level.infirmary;
+    return `Defend the evacuation door: ${rules.survivedTurns}/${rules.defendTurns} enemy phases held · Patients ${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} · Ledger ${rules.ledger.collected ? 'secured' : 'missing'}`;
+  }
   if (level.objective === 'seize-gate') {
     if (!level.gateEncounter.spawned) return 'Defeat the Golden Order captain; Maria must reach the gate';
     return enemies.some((enemy) => enemy.id === level.gateEncounter.beastId)
@@ -999,7 +1046,11 @@ function objectiveDescription(level = activeLevel) {
     const progress = rescueState ? rescueProgress(rescueState) : { rescued: 0, lost: 0 };
     return `Rescue villagers (${progress.rescued}/3 safe, ${progress.lost} lost), clear beasts, defeat captain, Maria to bridge`;
   }
-  if (level.objective === 'escape') return 'Get every unit to the marked exit';
+  if (level.objective === 'escape') {
+    return level.leader === 'maria'
+      ? 'Get every unit to the marked exit'
+      : `Escape: ${requiredUnits().map((unit) => unit.name).join(' and ')} must reach the marked stairs`;
+  }
   if (level.objective === 'defeat-boss') {
     const roots = level.heartroots ? enemies.filter((enemy) => enemy.id === 'heartroot').length : 0;
     return roots ? `Defeat the boss (Heartroots left: ${roots})` : 'Defeat the boss';
@@ -1062,13 +1113,14 @@ function showTerminalScreen(outcome, message, { ending = false } = {}) {
   const endingText = partTwoEnd ? PART_TWO_ENDING : PART_ONE_ENDING;
   const partEnd = outcome === 'victory' && (currentChapter === 4 || partTwoEnd);
   showingPartVictory = partEnd && !ending;
-  terminalHeading.textContent = ending ? endingText.heading : outcome === 'victory' ? 'VICTORY' : 'GAME OVER';
+  terminalHeading.textContent = ending ? endingText.heading : outcome === 'victory'
+    ? activeLevel.cathedral ? 'PART THREE COMPLETE' : 'VICTORY' : 'GAME OVER';
   terminalSubtitle.hidden = !ending;
   terminalSubtitle.textContent = ending ? endingText.welcome : '';
   terminalMessage.textContent = ending ? endingText.message : message;
   const nextChapterButton = document.querySelector('#next-chapter');
-  nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartVictory)) || (partTwoEnd && ending);
-  nextChapterButton.textContent = ending ? 'Begin Part Two' : showingPartVictory ? 'Continue' : 'Next Chapter';
+  nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartVictory));
+  nextChapterButton.textContent = ending ? (partTwoEnd ? 'Begin Part Three' : 'Begin Part Two') : showingPartVictory ? 'Continue' : 'Next Chapter';
   terminalScreen.classList.remove('visible');
   terminalScreen.hidden = false;
   requestAnimationFrame(() => terminalScreen.classList.add('visible'));
@@ -1089,16 +1141,49 @@ function completeVictory(message) {
   renderTacticalUi();
   showTerminalScreen('victory', message);
   saveCurrentGame();
+  if (activeLevel.cathedral) void showCathedralEnding();
+}
+
+async function showCathedralStory() {
+  for (const id of advanceCathedralStory(activeLevel, playerTeam)) {
+    saveCurrentGame();
+    await tutorialPopup.show(`cathedral-${id}`, {}, { force: true });
+    if (id === 'records') {
+      if (fullTeam.some((unit) => unit.id === 'eveline' && unit.hp > 0)) {
+        await tutorialPopup.show('cathedral-eveline', {}, { force: true });
+      }
+      if (fullTeam.some((unit) => unit.id === 'corvis' && unit.hp > 0)) {
+        await tutorialPopup.show('cathedral-corvis', {}, { force: true });
+      }
+    }
+  }
+}
+
+async function showCathedralEnding() {
+  await showCathedralStory();
+  await tutorialPopup.show('cathedral-ending', {}, { force: true });
+  if (fullTeam.some((unit) => unit.id === 'corvis' && unit.hp > 0)) {
+    await tutorialPopup.show('cathedral-bell', {}, { force: true });
+  }
+}
+
+function fallenRequiredUnit() {
+  if (activeLevel.rescue || activeLevel.gateEncounter) return maria.hp <= 0 ? maria : undefined;
+  return activeLevel.requiredUnits.length && activeLevel.leader !== 'maria'
+    ? requiredUnits().find((unit) => unit.hp <= 0)
+    : undefined;
 }
 
 function partyDefeated() {
-  return playerTeam.every((unit) => unit.hp <= 0) || Boolean((activeLevel.rescue || activeLevel.gateEncounter) && maria.hp <= 0);
+  return Boolean(activeLevel.infirmary?.breached) || playerTeam.every((unit) => unit.hp <= 0) || Boolean(fallenRequiredUnit());
 }
 
 function gameOverMessage() {
-  return (activeLevel.rescue || activeLevel.gateEncounter) && maria.hp <= 0
-    ? 'Maria has fallen. The road to Aldermere is lost.'
-    : 'The last light has died. The sea keeps what it claims.';
+  if (activeLevel.infirmary?.breached) return 'The evacuation ward has been breached. The service passage is lost.';
+  const fallen = fallenRequiredUnit();
+  if (fallen === maria) return 'Maria has fallen. The road to Aldermere is lost.';
+  if (fallen) return `${fallen.name} has fallen. The ward keeps its prisoners.`;
+  return 'The last light has died. The sea keeps what it claims.';
 }
 
 function completeGameOver() {
@@ -1115,13 +1200,37 @@ function completeGameOver() {
 }
 
 function checkEscapeObjective() {
+  if (activeLevel.streets) return checkStreetObjective();
   if (activeLevel.objective === 'seize-gate') return checkGateObjective();
   if (activeLevel.objective !== 'escape') return false;
   const living = playerTeam.filter((unit) => unit.hp > 0);
   const escaped = living.filter((unit) =>
     activeLevel.exitTiles.some((tile) => tile.x === unit.x && tile.z === unit.z));
   if (!living.length || escaped.length < living.length) return false;
-  completeVictory('Everyone has reached the exit. The objective is complete.');
+  completeVictory(activeLevel.leader === 'maria'
+    ? 'Everyone has reached the exit. The objective is complete.'
+    : `${requiredUnits().map((unit) => unit.name).join(' and ')} slip out of the ward. The objective is complete.`);
+  return true;
+}
+
+function checkStreetObjective() {
+  if (gameState.phase === 'victory') return true;
+  if (!streetsVictoryReady(activeLevel, enemies, rictor)) return false;
+  completeVictory('Rictor opens the Cathedral approach. The clocktower rings above the smoke; the Church will answer for the ward.');
+  const recruit = activeLevel.streets.recruit;
+  const recruitment = recruit.recruited
+    ? 'Eveline rides with the party, carrying testimony from the quarantined wards.'
+    : recruit.dead ? 'Eveline did not survive the streets. Her empty saddle is another debt the Church must answer for.'
+      : 'Eveline remains behind in the quarantine district; her chance to join has passed.';
+  void tutorialPopup.show('streetsEnding', { recruitment }, { force: true });
+  return true;
+}
+
+function checkCourtyardObjective() {
+  if (gameState.phase === 'victory') return true;
+  if (!courtyardVictoryReady(activeLevel, enemies, partyLeader())) return false;
+  completeVictory('General Severin falls. The Cathedral doors open; the Bishop waits within.');
+  void tutorialPopup.show('courtyardEnding', {}, { force: true });
   return true;
 }
 
@@ -1197,14 +1306,75 @@ function applyUnitSnapshot(unit, snapshot) {
   unit.hp = unit.maxHp;
 }
 
-const roster = { maria, bartz, cypher, seymour, stark, linus };
+const roster = { maria, bartz, cypher, seymour, stark, linus, rictor, lena, arlan, troy, eveline, corvis };
+
+const partyOf = (unit) => unit.party ?? 'maria';
+const partyLeader = () => roster[activeLevel?.leader ?? 'maria'];
+const requiredUnits = () => (activeLevel?.requiredUnits ?? ['maria']).map((id) => roster[id]).filter(Boolean);
+const isRequiredUnit = (unit) => requiredUnits().includes(unit);
 
 function neutralUnits() {
+  if (activeLevel?.streets && !activeLevel.streets.recruit.recruited && !activeLevel.streets.recruit.dead && eveline.hp > 0) return [eveline];
   if (!rescueState) return [];
   return [
     ...rescueState.villagers.filter(isActiveVillager),
     ...(!rescueState.recruited && linus.hp > 0 ? [linus] : []),
   ];
+}
+
+function initializeStreets() {
+  if (!activeLevel.streets) return;
+  const recruit = activeLevel.streets.recruit;
+  if (fullTeam.includes(eveline)) recruit.recruited = true;
+  if (!recruit.recruited) {
+    Object.assign(eveline, { x: recruit.x, z: recruit.z, hp: recruit.hp, neutral: true, facing: 'south' });
+    if (recruit.inventory) restoreMariaInventory(eveline, recruit.inventory, 'heal-staff');
+    setIdleSprite(eveline);
+  } else eveline.neutral = false;
+}
+
+async function recruitStreetHealer() {
+  if (!gameState.selected || gameState.mode !== 'unit' || gameState.phase !== 'player' ||
+    !canRecruitEveline(activeLevel, player, eveline)) return;
+  recruitEveline(activeLevel, player, eveline);
+  eveline.moved = false;
+  eveline.acted = false;
+  playerTeam.push(eveline);
+  fullTeam.push(eveline);
+  gameState.mode = 'combat';
+  setMessage('Eveline joins! Her wounds remain, but her Heal staff is ready to help.');
+  renderTacticalUi();
+  await tutorialPopup.show('eveline', {}, { force: true });
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+async function recruitCourtyardShaman() {
+  const target = enemies.find((enemy) => enemy.id === 'corvis');
+  if (!gameState.selected || gameState.mode !== 'unit' || gameState.phase !== 'player' ||
+    !canRecruitCorvis(activeLevel, player, target)) return;
+  recruitCorvis(activeLevel, player, target);
+  Object.assign(corvis, createCorvisAlly(), {
+    x: target.x, z: target.z, hp: target.hp, maxHp: target.maxHp,
+    level: target.level, inventory: target.inventory.map(copyEntry), facing: target.facing,
+  });
+  scene.remove(target.mesh);
+  enemies = enemies.filter((enemy) => enemy !== target);
+  playerTeam.push(corvis);
+  fullTeam.push(corvis);
+  corvis.mesh.position.set(worldX(corvis.x), unitSpriteHeightAt(corvis.x, corvis.z, corvis), worldZ(corvis.z));
+  setIdleSprite(corvis);
+  finishUnit();
+  saveCurrentGame();
+  await tutorialPopup.show('corvis', {}, { force: true });
+}
+
+function initializeCourtyard() {
+  if (!activeLevel.courtyard || !fullTeam.includes(corvis)) return;
+  activeLevel.courtyard.recruit.recruited = true;
+  activeLevel.courtyard.recruit.dead = false;
+  for (const enemy of enemies.filter((unit) => unit.id === 'corvis')) scene.remove(enemy.mesh);
+  enemies = enemies.filter((unit) => unit.id !== 'corvis');
 }
 
 function defendingUnits() {
@@ -1313,8 +1483,10 @@ function deployTeam(level, carry = null) {
     : [{ id: 'maria', x: level.spawn.x, z: level.spawn.z }])];
   const taken = new Set(placements.map((placement) => tileKey(placement.x, placement.z)));
   const origin = placements[0];
-  // Carried-over allies the map doesn't list (e.g. recruited mid-game) still join, beside the first unit.
+  const party = partyOf(roster[origin.id] ?? maria);
+  // Carried-over allies the map doesn't list (e.g. recruited mid-game) still join their own party, beside the first unit.
   for (const saved of carry?.allies ?? []) {
+    if (roster[saved.id] && partyOf(roster[saved.id]) !== party) continue;
     if (!roster[saved.id] || placements.some((placement) => placement.id === saved.id)) continue;
     let best = null;
     for (let z = 0; z < level.height; z++) {
@@ -1353,10 +1525,11 @@ function serializeCarry() {
   for (const unit of new Set([...fullTeam, ...playerTeam])) {
     if (unit !== maria && roster[unit.id]) allies.set(unit.id, serializeUnit(unit));
   }
-  return { ...serializeUnit(maria), allies: [...allies.values()], convoy: convoy.map(({ id, uses }) => ({ id, uses })), insight: snapshotInsight() };
+  return { ...serializeUnit(maria), allies: [...allies.values()], convoy: convoy.map(copyEntry), insight: snapshotInsight() };
 }
 
 function startLevel(level, { chapter = null, carry = null } = {}) {
+  const validatedLevel = validateLevel(level);
   hideTerminalScreen();
   currentChapter = chapter;
   chapterStart = carry;
@@ -1368,6 +1541,12 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   Object.assign(seymour, createSeymourAlly());
   Object.assign(stark, createStarkAlly());
   Object.assign(linus, createLinusAlly());
+  Object.assign(rictor, createRictorAlly());
+  Object.assign(lena, createLenaAlly());
+  Object.assign(arlan, createArlanAlly());
+  Object.assign(troy, createTroyAlly());
+  Object.assign(eveline, createEvelineAlly());
+  Object.assign(corvis, createCorvisAlly());
   setConvoy(carry?.convoy);
   restoreInsight(carry?.insight);
   refreshInsightLabel();
@@ -1378,10 +1557,14 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
       if (roster[savedAlly.id] && roster[savedAlly.id] !== maria) applyUnitSnapshot(roster[savedAlly.id], savedAlly);
     }
   }
-  for (const unit of [maria, bartz, cypher, seymour, stark]) refreshMagicUses(unit.inventory, unit);
+  for (const unit of Object.values(roster)) {
+    refreshMagicUses(unit.inventory, unit);
+    unit.mesh.material.color.set(0xffffff);
+  }
   refreshMagicUses(convoy);
-  activeLevel = buildLevel(THREE, levelGroup, level);
+  activeLevel = buildLevel(THREE, levelGroup, validatedLevel);
   applyLevelLighting();
+  refreshPrisonerSilhouettes();
   const team = deployTeam(activeLevel, carry);
   fullTeam = [...team];
   playerMovement = undefined;
@@ -1401,6 +1584,8 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   enemies = [];
   resetEnemies();
   initializeRescue();
+  initializeStreets();
+  initializeCourtyard();
   experienceDisplay.reset(player.level, player.experience);
   setLevelStatus(`Level: ${activeLevel.name}`);
   setMessage(`${activeLevel.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
@@ -1421,8 +1606,14 @@ function restartLevel() {
     gateEncounter: activeLevel.gateEncounter ? { ...activeLevel.gateEncounter, spawned: false, ravenStartTurn: null, ravenWavesSpawned: 0 } : null,
     houses: activeLevel.houses.map((house) => ({ ...house, visited: false })),
     chests: activeLevel.chests.map((chest) => ({ ...chest, opened: false })),
+    cells: activeLevel.cells.map((cell) => ({ ...cell, opened: false })),
+    infirmary: freshInfirmary(activeLevel.infirmary),
+    streets: freshStreets(activeLevel.streets),
+    courtyard: freshCourtyard(activeLevel.courtyard),
+    cathedral: freshCathedral(activeLevel.cathedral),
     reinforcements: activeLevel.reinforcements.map((wave) => ({
       ...wave,
+      turn: activeLevel.cathedral ? 999 : wave.turn,
       spawned: false,
       spawnedCount: 0,
     })),
@@ -1451,6 +1642,7 @@ function continueGame() {
   if (!save) return;
   activeLevel = buildLevel(THREE, levelGroup, save.level);
   applyLevelLighting();
+  refreshPrisonerSilhouettes();
   const restoreUnit = (unit, saved) => {
     Object.assign(unit, saved.stats, {
       x: saved.x,
@@ -1461,19 +1653,30 @@ function continueGame() {
       moved: saved.moved,
       acted: saved.acted,
       moveOrigin: saved.moveOrigin ?? null,
+      frozen: saved.frozen ?? false,
     });
     if (saved.weaponExp) unit.weaponExp = { ...saved.weaponExp };
     if (saved.classId) applyClass(unit, saved.classId);
     refreshUnitAppearance(unit);
     restoreMariaInventory(unit, saved.inventory, saved.equippedWeaponId);
+    unit.mesh.material.color.set(unit.frozen ? 0x8fd4ff : 0xffffff);
   };
   Object.assign(bartz, createBartzAlly());
   Object.assign(cypher, createCypherAlly());
   Object.assign(seymour, createSeymourAlly());
   Object.assign(stark, createStarkAlly());
   Object.assign(linus, createLinusAlly());
+  Object.assign(rictor, createRictorAlly());
+  Object.assign(lena, createLenaAlly());
+  Object.assign(arlan, createArlanAlly());
+  Object.assign(troy, createTroyAlly());
+  Object.assign(eveline, createEvelineAlly());
+  Object.assign(corvis, createCorvisAlly());
+  // Insight first: it decides which spells the restored tomes (and equipped weapons) may hold.
+  setConvoy(save.convoy);
+  restoreInsight(save.insight);
   restoreUnit(maria, save.player);
-  const team = [maria];
+  const team = save.player.reserve ? [] : [maria];
   const benched = new Set();
   for (const savedAlly of save.allies) {
     const ally = roster[savedAlly.id];
@@ -1485,25 +1688,29 @@ function continueGame() {
   playerTeam.length = 0;
   playerTeam.push(...team.filter((unit) => !benched.has(unit)));
   fullTeam = [...team];
-  player = team.find((unit) => unit.hp > 0) ?? maria;
+  player = team.find((unit) => unit.hp > 0) ?? team[0] ?? maria;
   currentChapter = save.chapter;
   chapterStart = save.chapterStart;
   resetTutorials(currentChapter);
   tutorialProgress.intro = true;
   tutorialProgress.combatSeen = save.turn > 1 || save.enemies.some((enemy) => enemy.hp < enemy.maxHp);
-  setConvoy(save.convoy);
-  restoreInsight(save.insight);
   refreshInsightLabel();
   for (const enemy of enemies) scene.remove(enemy.mesh);
   enemies = save.enemies.map((savedEnemy) => {
     const enemy = createEnemy(savedEnemy.x, savedEnemy.z, savedEnemy.id ?? 'raider', savedEnemy);
     enemy.hp = savedEnemy.hp;
     enemy.maxHp = savedEnemy.maxHp;
-    if (savedEnemy.frozen === true) setEnemyFrozen(enemy, true);
+    if (savedEnemy.inventory) {
+      enemy.inventory = savedEnemy.inventory.map(copyEntry);
+      if (!enemy.inventory.some((entry) => entry.id === bookOf(enemy.weapon))) enemy.weapon = null;
+    }
+    if (savedEnemy.frozen) setEnemyFrozen(enemy, savedEnemy.frozen === true ? 1 : savedEnemy.frozen);
     return enemy;
   });
   syncHeartrootFrenzy();
   initializeRescue(save.rescue);
+  initializeStreets();
+  initializeCourtyard();
   gameState.mode = 'cursor';
   gameState.phase = save.phase === 'victory' ? 'victory' : 'player';
   gameState.turn = save.turn;
@@ -1629,6 +1836,9 @@ document.querySelector('#save-slots-close').addEventListener('click', () => save
 
 function openTitleOptions() {
   if (sessionStarted || optionsDialog.open) return;
+  document.querySelector('#options-objective').hidden = true;
+  document.querySelector('#options-objective').setAttribute('aria-expanded', 'false');
+  document.querySelector('#objective-panel').hidden = true;
   document.querySelector('#open-unit-list').hidden = true;
   document.querySelector('#open-save-game').hidden = true;
   document.querySelector('#options-end-phase').hidden = true;
@@ -1640,6 +1850,9 @@ function openTitleOptions() {
 function openOptionsMenu() {
   if (!sessionStarted || gameState.mode === 'options' || gameState.mode === 'combat' || playerMovement) return;
   gameState.mode = 'options';
+  document.querySelector('#options-objective').hidden = false;
+  document.querySelector('#options-objective').setAttribute('aria-expanded', 'false');
+  document.querySelector('#objective-panel').hidden = true;
   document.querySelector('#open-unit-list').hidden = false;
   document.querySelector('#open-save-game').hidden = false;
   document.querySelector('#options-end-phase').hidden = false;
@@ -1662,7 +1875,7 @@ const blobMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   depthWrite: false,
 });
-for (const unit of [maria, bartz, cypher, seymour, stark, linus]) {
+for (const unit of Object.values(roster)) {
   unit.blob = new THREE.Mesh(blobGeometry, blobMaterial);
   unit.blob.rotation.x = -Math.PI / 2;
   unit.blob.position.y = 0.02;
@@ -1684,6 +1897,7 @@ levelFile.addEventListener('change', async () => {
     const level = validateLevel(JSON.parse(await file.text()));
     activeLevel = buildLevel(THREE, levelGroup, level);
     applyLevelLighting();
+    refreshPrisonerSilhouettes();
     currentChapter = null;
     chapterStart = null;
     const team = deployTeam(activeLevel);
@@ -1998,7 +2212,7 @@ function openInventory() {
   inventoryDialog.querySelector('button:not(:disabled)')?.focus();
 }
 
-function itemInfoElement(entry, showLore = true) {
+function itemInfoElement(entry, showLore = true, showSpells = true) {
   const item = INVENTORY_ITEMS.get(entry.id);
   const details = document.createElement('div');
   const name = document.createElement('strong');
@@ -2006,9 +2220,14 @@ function itemInfoElement(entry, showLore = true) {
   const description = document.createElement('span');
   if (item.itemType === 'weapon') {
     description.textContent =
-      `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}`;
-    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${item.maxRange + getStaffRangeBonus(player)}`;
-    if (item.freeze) description.textContent = `${item.type} · Freezes a foe for a turn · Range 1-Magic · Hit ${item.hit} + Magic vs Resistance`;
+      `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}` +
+      (item.maxRange > 1 ? ` · Range ${item.minRange}-${item.maxRange}` : '');
+    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${staffMaxRange(player, item)}`;
+    if (item.freeze) {
+      const turns = item.freezeTurns ?? 1;
+      description.textContent = `${item.type} · Freezes a foe for ${turns === 1 ? 'a turn' : `${turns} turns`} · Range 1-Magic · Hit ${item.hit} + Magic vs Resistance`;
+    }
+    if (item.requiredRank) description.textContent += ` · Requires ${item.type} rank ${item.requiredRank}`;
     if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${maxUsesFor(item, player)} uses`;
   } else if (item.id === 'blood-emblem') {
     description.textContent = bloodEmblemDescription();
@@ -2018,6 +2237,19 @@ function itemInfoElement(entry, showLore = true) {
     description.textContent = item.description ?? '';
   }
   details.append(name, description);
+  if (item.itemType === 'weapon' && item.description) {
+    const note = document.createElement('span');
+    note.className = 'item-effect';
+    note.textContent = item.description;
+    details.append(note);
+  }
+  if (showSpells && entry.spells) {
+    const spells = document.createElement('span');
+    spells.className = 'item-effect';
+    spells.textContent = `Spells: ${Object.entries(entry.spells)
+      .map(([id, uses]) => `${INVENTORY_ITEMS.get(id).name} (${uses})`).join(' · ')}`;
+    details.append(spells);
+  }
   if (Array.isArray(item.effect) && item.effect.length) {
     const effect = document.createElement('span');
     effect.className = 'item-effect';
@@ -2027,7 +2259,7 @@ function itemInfoElement(entry, showLore = true) {
   if (item.reaves?.length) {
     const reaves = document.createElement('span');
     reaves.className = 'item-effect';
-    reaves.textContent = `Double triangle bonus vs ${item.reaves.join(', ')}`;
+    reaves.textContent = `Reverses and doubles triangle: strong vs ${item.reaves.join(', ')}, weak vs ${item.type === 'Spear' ? 'Sword' : 'Axe'}`;
     details.append(reaves);
   }
   if (showLore && item.lore) {
@@ -2050,41 +2282,62 @@ function itemInfoElement(entry, showLore = true) {
   return info;
 }
 
-function itemRow(entry, label, disabled, onClick, showLore = true) {
+function itemRow(entry, label, disabled, onClick, showLore = true, showSpells = true) {
   const row = document.createElement('li');
   const action = document.createElement('button');
   action.textContent = label;
   action.disabled = disabled;
   if (onClick) action.addEventListener('click', onClick);
-  row.append(itemInfoElement(entry, showLore), action);
+  row.append(itemInfoElement(entry, showLore, showSpells), action);
   return row;
+}
+
+// A tome or staff lists itself plus one row per spell unlocked in it, each showing that spell's own uses.
+function spellRows(entry, rowFor) {
+  const book = INVENTORY_ITEMS.get(entry.id);
+  const rows = [book, ...unlockedSpellsOf(entry.id)].map((spell) => {
+    const shown = spell === book ? entry : { id: spell.id, uses: spellUses(entry, spell) };
+    const row = rowFor(spell, shown);
+    if (spell !== book) row.classList.add('spell-row');
+    return row;
+  });
+  return rows;
 }
 
 function renderInventory() {
   inventoryDialog.querySelector('#inventory-heading').textContent = `${player.name}'s Inventory`;
   const list = inventoryDialog.querySelector('#inventory-items');
   list.replaceChildren();
-  const equippedIndex = player.inventory.findIndex((entry) => entry.id === player.weapon?.id);
-  for (const [slot, entry] of player.inventory.entries()) {
+  const equippedEntry = findWeaponEntry(player);
+  // The first row of each entry carries its convoy Store button.
+  const entryRows = [];
+  const append = (entry, ...rows) => {
+    entryRows.push([entry, rows[0]]);
+    list.append(...rows);
+  };
+  for (const entry of player.inventory) {
     const item = INVENTORY_ITEMS.get(entry.id);
     if (item.type === 'Staff') {
-      const blocked = equipBlockReason(player, item);
       const freeze = Boolean(item.freeze);
-      const ready = !blocked && (freeze ? freezeTargets(player) : healTargets(player)).length > 0;
-      list.append(itemRow(entry, blocked ?? (ready ? 'Use' : freeze ? 'No target in range' : 'No one to heal'), !ready, () => {
-        closeInventory();
-        if (freeze) openFreeze();
-        else openHeal();
+      append(entry, ...spellRows(entry, (spell, shown) => {
+        const blocked = weaponUseBlockReason(player, spell);
+        const empty = shown.uses === 0;
+        const ready = !blocked && !empty && (freeze ? freezeTargets(player, spell) : healTargets(player, spell)).length > 0;
+        const label = blocked ?? (empty ? 'No uses left' : ready ? 'Use' : freeze ? 'No target in range' : 'No one to heal');
+        return itemRow(shown, label, !ready, () => {
+          closeInventory();
+          if (freeze) openFreeze(spell);
+          else openHeal(spell);
+        }, true, false);
       }));
     } else if (item.itemType === 'weapon') {
-      const equipped = slot === equippedIndex;
-      if (!equipped && !canEquipWeapon(player, item)) {
-        list.append(itemRow(entry, equipBlockReason(player, item), true));
-      } else {
-        list.append(itemRow(entry, equipped ? 'Equipped' : 'Equip', equipped, () => equipInventoryWeapon(entry.id)));
-      }
+      append(entry, ...spellRows(entry, (spell, shown) => {
+        const equipped = entry === equippedEntry && player.weapon === spell;
+        if (!equipped && !canEquipWeapon(player, spell)) return itemRow(shown, equipBlockReason(player, spell), true, undefined, true, false);
+        return itemRow(shown, equipped ? 'Equipped' : 'Equip', equipped, () => equipInventoryWeapon(spell.id), true, false);
+      }));
     } else if (item.id === 'blood-emblem') {
-      list.append(itemRow(entry, isBloodEmblemUpgraded()
+      append(entry, itemRow(entry, isBloodEmblemUpgraded()
         ? isBloodEmblemEquipped() ? 'Unequip' : 'Equip'
         : 'Unlock with Insight', !isBloodEmblemUpgraded() || player.id !== 'maria', () => {
         if (!toggleBloodEmblem(player)) return;
@@ -2093,16 +2346,16 @@ function renderInventory() {
         saveCurrentGame();
       }));
     } else if (item.insight) {
-      list.append(itemRow(entry, 'Read', false, () => useInsightFromInventory(entry)));
+      append(entry, itemRow(entry, 'Read', false, () => useInsightFromInventory(entry)));
     } else if (item.effect === 'key') {
-      list.append(itemRow(entry, 'Opens chests', true));
+      append(entry, itemRow(entry, 'Opens chests', true));
     } else if (item.effect === 'promote') {
       const ready = player.level >= 20 && canPromote(player);
-      list.append(itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 20' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
+      append(entry, itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 20' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
     } else if (STAT_ITEM_EFFECTS[item.effect]) {
-      list.append(itemRow(entry, 'Use', false, () => usePocketwatch(entry)));
+      append(entry, itemRow(entry, 'Use', false, () => usePocketwatch(entry)));
     } else {
-      list.append(itemRow(entry, 'Use', player.hp >= player.maxHp, () => useInventoryItem(entry)));
+      append(entry, itemRow(entry, 'Use', player.hp >= player.maxHp, () => useInventoryItem(entry)));
     }
   }
   inventoryDialog.querySelector('#inventory-empty').hidden = player.inventory.length > 0;
@@ -2114,8 +2367,7 @@ function renderInventory() {
   const access = canAccessConvoy(player);
   convoySection.hidden = !access;
   if (access) {
-    for (const [slot, row] of [...list.children].entries()) {
-      const entry = player.inventory[slot];
+    for (const [entry, row] of entryRows) {
       const store = document.createElement('button');
       const bound = INVENTORY_ITEMS.get(entry.id).bound;
       store.textContent = 'Store';
@@ -2134,7 +2386,9 @@ function renderInventory() {
 }
 
 function canAccessConvoy(unit) {
-  return maria.hp > 0 && (unit === maria || Math.abs(unit.x - maria.x) + Math.abs(unit.z - maria.z) === 1);
+  const leader = partyLeader();
+  return leader.hp > 0 && playerTeam.includes(leader) &&
+    (unit === leader || Math.abs(unit.x - leader.x) + Math.abs(unit.z - leader.z) === 1);
 }
 
 function storeInConvoy(entry) {
@@ -2168,7 +2422,7 @@ let pendingSwap = null;
 // A unit that no longer holds its equipped weapon is unarmed until it equips another.
 function settleTradedWeapons(unit, received) {
   let note = '';
-  if (unit.weapon && !unit.inventory.some((held) => held.id === unit.weapon.id)) {
+  if (unit.weapon && !findWeaponEntry(unit)) {
     unit.weapon = null;
     note = ` ${unit.name} is now unarmed.`;
   }
@@ -2215,7 +2469,7 @@ function renderTradeColumn(side, owner, other) {
   tradeDialog.querySelector(`#trade-${side}-name`).textContent = `${owner.name}`;
   const list = tradeDialog.querySelector(`#trade-${side}-items`);
   list.replaceChildren();
-  const equippedIndex = owner.inventory.findIndex((entry) => entry.id === owner.weapon?.id);
+  const equippedIndex = owner.inventory.indexOf(findWeaponEntry(owner));
   const otherFull = other.inventory.length >= MAX_INVENTORY_SIZE;
   for (const [slot, entry] of owner.inventory.entries()) {
     const equipped = slot === equippedIndex;
@@ -2306,43 +2560,80 @@ function closeTrade() {
 const healDialog = document.querySelector('#heal-dialog');
 
 // Staves are used from the action menu or inventory; the unit keeps its real weapon equipped.
-function healStaffFor(unit) {
-  for (const entry of unit.inventory) {
-    const item = INVENTORY_ITEMS.get(entry.id);
-    if (item?.type === 'Staff' && item.heal && entry.uses !== 0 && canEquipWeapon(unit, item)) return item;
-  }
-  return undefined;
+// Each staff also casts the spells unlocked for it with Insight (Mend, Physic, Hold, Stasis), each with its own uses.
+function castableStaffSpells(unit, kind) {
+  return carriedWeapons(unit).filter((spell) => spell.type === 'Staff' && spell[kind] && !weaponUseBlockReason(unit, spell));
 }
 
-function healTargets(unit) {
-  const staff = healStaffFor(unit);
-  if (!staff || unit.acted) return [];
+// Physic reaches Magic / 2 tiles; class abilities (Bishop) add to every staff.
+const staffMaxRange = (unit, staff) =>
+  Math.max(staff.maxRange, staff.rangeFromMagic ? Math.floor(unit.magic / staff.rangeFromMagic) : 0) + getStaffRangeBonus(unit);
+
+function healTargets(unit, staff) {
+  if (unit.acted) return [];
+  const staves = staff ? [staff] : castableStaffSpells(unit, 'heal');
   return defendingUnits().filter((ally) => {
     const distance = distanceBetween(unit.x, unit.z, ally.x, ally.z);
     return ally !== unit && ally.hp > 0 && ally.hp < ally.maxHp &&
-      distance >= staff.minRange && distance <= staff.maxRange + getStaffRangeBonus(unit);
+      staves.some((spell) => distance >= spell.minRange && distance <= staffMaxRange(unit, spell));
   });
 }
-function openHeal() {
-  if (!gameState.selected || gameState.mode !== 'unit') return;
-  const targets = healTargets(player);
-  if (!targets.length) return;
-  gameState.mode = 'heal';
-  renderTacticalUi();
-  healDialog.querySelector('#heal-heading').textContent = 'Heal who?';
+
+// One dialog serves both steps: pick a staff spell (when several apply), then pick the target.
+function showStaffDialog(heading, rows) {
+  healDialog.querySelector('#heal-heading').textContent = heading;
   const list = healDialog.querySelector('#heal-targets');
   list.replaceChildren();
-  for (const target of targets) {
+  for (const { label, onClick, weapon, disabled = false } of rows) {
+    if (weapon) {
+      list.append(itemRow({ id: weapon.id, uses: spellUses(findWeaponEntry(player, weapon), weapon) },
+        label, disabled, onClick, false, false));
+      continue;
+    }
     const row = document.createElement('li');
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = `${target.name} · ${target.hp}/${target.maxHp} HP`;
-    button.addEventListener('click', () => void useHealStaff(target));
+    button.disabled = disabled;
+    button.textContent = label;
+    button.addEventListener('click', onClick);
     row.append(button);
     list.append(row);
   }
-  healDialog.showModal();
-  list.querySelector('button')?.focus();
+  if (!healDialog.open) healDialog.showModal();
+  (list.querySelector('button:not(:disabled)') ?? healDialog.querySelector('#heal-close'))?.focus();
+}
+
+// choice is a staff spell picked from the inventory; the action button passes a click event instead.
+function openStaff(kind, choice) {
+  if (!gameState.selected || gameState.mode !== 'unit') return;
+  const targetsFor = kind === 'heal' ? healTargets : freezeTargets;
+  const spells = castableStaffSpells(player, kind).filter((spell) => targetsFor(player, spell).length);
+  if (!spells.length) return;
+  gameState.mode = 'heal';
+  renderTacticalUi();
+  const showTargets = kind === 'heal' ? showHealTargets : showFreezeTargets;
+  const picked = spells.includes(choice) ? choice : null;
+  if (picked) {
+    showTargets(picked);
+    return;
+  }
+  showStaffDialog('Cast which spell?', carriedWeapons(player)
+    .filter((spell) => spell.type === 'Staff' && spell[kind])
+    .map((spell) => {
+      const blocked = weaponUseBlockReason(player, spell) ??
+        (!targetsFor(player, spell).length ? 'No target in range' : undefined);
+      return { weapon: spell, label: blocked ?? 'Use', disabled: Boolean(blocked), onClick: () => showTargets(spell) };
+    }));
+}
+
+const openHeal = (choice) => openStaff('heal', choice);
+const openFreeze = (choice) => openStaff('freeze', choice);
+
+function showHealTargets(staff) {
+  showStaffDialog(`${staff.name}: heal who?`, healTargets(player, staff).map((target) => ({
+    label: `${target.name} · ${target.hp}/${target.maxHp} HP`,
+    onClick: () => void useHealStaff(target, staff),
+  })));
 }
 
 function closeHeal() {
@@ -2354,9 +2645,8 @@ function closeHeal() {
   }
 }
 
-async function useHealStaff(target) {
-  const staff = healStaffFor(player);
-  if (!staff || !healTargets(player).includes(target)) return;
+async function useHealStaff(target, staff) {
+  if (!castableStaffSpells(player, 'heal').includes(staff) || !healTargets(player, staff).includes(target)) return;
   if (healDialog.open) healDialog.close();
   gameState.mode = 'combat';
   combatants.add(player);
@@ -2368,11 +2658,10 @@ async function useHealStaff(target) {
   const healed = Math.min(staff.heal + player.magic, target.maxHp - target.hp);
   target.hp += healed;
   showCombatResult(target, `+${healed}`, 'heal');
-  const staffEntry = player.inventory.find((entry) => entry.id === staff.id && entry.uses !== 0);
-  if (Number.isInteger(staffEntry?.uses)) staffEntry.uses--;
+  spendWeaponUse(player, staff);
   const rankUps = [];
   recordRankUp(player, staff, rankUps);
-  setMessage(withRankUps(`${player.name} healed ${target.name} for ${healed} HP.`, rankUps));
+  setMessage(withRankUps(`${player.name} cast ${staff.name} and healed ${target.name} for ${healed} HP.`, rankUps));
   await casting;
   await wait(1100);
   const experienceGained = staff.healExperience ?? 20;
@@ -2382,54 +2671,29 @@ async function useHealStaff(target) {
   finishUnit();
 }
 
-const freezeStaffFor = (unit) => unit.inventory
-  .map((entry) => entry.uses !== 0 && INVENTORY_ITEMS.get(entry.id))
-  .find((item) => item?.freeze && canEquipWeapon(unit, item));
-
-const freezeRange = (unit) => Math.max(1, unit.magic);
-
-const freezeHitRate = (unit, target, staff) =>
-  Math.max(10, Math.min(100, staff.hit + (unit.magic - target.resistance) * 6));
-
-function freezeTargets(unit) {
-  if (!freezeStaffFor(unit) || unit.acted) return [];
+function freezeTargets(unit, staff) {
+  if (unit.acted || !(staff ? [staff] : castableStaffSpells(unit, 'freeze')).length) return [];
   return enemies.filter((enemy) => {
     const distance = distanceBetween(unit.x, unit.z, enemy.x, enemy.z);
     return enemy.hp > 0 && !enemy.frozen && distance >= 1 && distance <= freezeRange(unit);
   });
 }
 
-function setEnemyFrozen(enemy, frozen) {
-  enemy.frozen = frozen;
-  enemy.mesh.material.color.set(frozen ? 0x8fd4ff : 0xffffff);
+// frozen counts the enemy phases the foe still sits out (Stasis lasts two); 0 thaws it.
+function setEnemyFrozen(enemy, turns) {
+  enemy.frozen = turns > 0 ? turns : false;
+  enemy.mesh.material.color.set(enemy.frozen ? 0x8fd4ff : 0xffffff);
 }
 
-function openFreeze() {
-  if (!gameState.selected || gameState.mode !== 'unit') return;
-  const targets = freezeTargets(player);
-  if (!targets.length) return;
-  const staff = freezeStaffFor(player);
-  gameState.mode = 'heal';
-  renderTacticalUi();
-  healDialog.querySelector('#heal-heading').textContent = 'Freeze who?';
-  const list = healDialog.querySelector('#heal-targets');
-  list.replaceChildren();
-  for (const target of targets) {
-    const row = document.createElement('li');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = `${target.name} · ${target.hp}/${target.maxHp} HP · ${freezeHitRate(player, target, staff)}% Hit`;
-    button.addEventListener('click', () => void useFreezeStaff(target));
-    row.append(button);
-    list.append(row);
-  }
-  healDialog.showModal();
-  list.querySelector('button')?.focus();
+function showFreezeTargets(staff) {
+  showStaffDialog(`${staff.name}: freeze who?`, freezeTargets(player, staff).map((target) => ({
+    label: `${target.name} · ${target.hp}/${target.maxHp} HP · ${freezeHitRate(player, target, staff)}% Hit`,
+    onClick: () => void useFreezeStaff(target, staff),
+  })));
 }
 
-async function useFreezeStaff(target) {
-  const staff = freezeStaffFor(player);
-  if (!staff || !freezeTargets(player).includes(target)) return;
+async function useFreezeStaff(target, staff) {
+  if (!castableStaffSpells(player, 'freeze').includes(staff) || !freezeTargets(player, staff).includes(target)) return;
   if (healDialog.open) healDialog.close();
   gameState.mode = 'combat';
   combatants.add(player);
@@ -2438,16 +2702,16 @@ async function useFreezeStaff(target) {
   player.facing = getFacing(target.x - player.x, target.z - player.z);
   const casting = playAttackAnimation(player, player.facing, false, true);
   await wait(450);
+  const turns = staff.freezeTurns ?? 1;
   const frozen = rollHit(freezeHitRate(player, target, staff));
-  if (frozen) setEnemyFrozen(target, true);
+  if (frozen) setEnemyFrozen(target, turns);
   showCombatResult(target, frozen ? 'FROZEN' : 'Miss', frozen ? 'freeze' : 'miss');
-  const staffEntry = player.inventory.find((entry) => entry.id === staff.id && entry.uses !== 0);
-  if (Number.isInteger(staffEntry?.uses)) staffEntry.uses--;
+  spendWeaponUse(player, staff);
   const rankUps = [];
   recordRankUp(player, staff, rankUps);
   setMessage(withRankUps(frozen
-    ? `${player.name} freezes ${target.name}. It cannot move next enemy phase.`
-    : `${target.name} resists ${player.name}'s Freeze.`, rankUps));
+    ? `${player.name}'s ${staff.name} freezes ${target.name}. It cannot move for ${turns === 1 ? 'the next enemy phase' : `the next ${turns} enemy phases`}.`
+    : `${target.name} resists ${player.name}'s ${staff.name}.`, rankUps));
   await casting;
   await wait(1100);
   const experienceGained = staff.freezeExperience ?? 20;
@@ -2466,10 +2730,11 @@ function closeInventory() {
   }
 }
 
+// itemId may be a spell (Blaze), cast from the tome it is written in.
 function equipInventoryWeapon(itemId) {
-  const entry = player.inventory.find((item) => item.id === itemId);
   const weapon = INVENTORY_ITEMS.get(itemId);
-  if (!entry || weapon?.itemType !== 'weapon') {
+  const entry = findWeaponEntry(player, weapon);
+  if (!entry || weapon?.itemType !== 'weapon' || (weapon.spellbook && !isSpellUnlocked(weapon.id))) {
     throw new Error(`Cannot equip ${itemId}: weapon is not in ${player.name}'s inventory.`);
   }
   if (!canEquipWeapon(player, weapon)) {
@@ -2507,12 +2772,17 @@ function openEnemyProfile(enemy) {
   const list = document.querySelector('#profile-enemy-items');
   list.replaceChildren();
   const entries = [];
-  if (enemy.weapon) entries.push({ entry: { id: enemy.weapon.id, uses: null }, label: 'Equipped' });
+  if (enemy.weapon && !enemy.inventory) entries.push({ entry: { id: enemy.weapon.id, uses: null }, label: 'Equipped' });
+  for (const entry of enemy.inventory ?? []) {
+    entries.push({ entry, label: INVENTORY_ITEMS.get(entry.id)?.type === 'Staff'
+      ? 'Active staff · can be stolen · does not drop' : 'Equipped tome' });
+  }
   if (enemy.drop) entries.push({ entry: { id: enemy.drop, uses: INVENTORY_ITEMS.get(enemy.drop)?.maxUses ?? null }, label: 'Drops on defeat' });
+  for (const id of enemy.stealable ?? []) entries.push({ entry: { id, uses: INVENTORY_ITEMS.get(id).maxUses ?? null }, label: 'Can be stolen · does not drop' });
   for (const { entry, label } of entries) list.append(itemRow(entry, label, true, undefined, false));
   document.querySelector('#profile-enemy-note').textContent = enemy.drop
     ? 'Defeat this enemy to claim its drop.'
-    : 'This enemy carries nothing of value.';
+    : stealableItems(enemy).length ? 'Lena can steal a carried item when faster. Stolen staves retain remaining uses and cannot be cast by the priest afterward.' : 'This enemy carries nothing of value.';
   document.querySelector('#profile-enemy-inventory').hidden = false;
 }
 
@@ -2559,22 +2829,221 @@ async function openChest() {
   if (!gameState.selected || gameState.phase !== 'player' || player.acted) return;
   const chest = chestAvailableToOpen(player);
   if (!chest) return;
+  const picksLock = hasLockpick(player);
   const keyIndex = player.inventory.findIndex((entry) => entry.id === 'chest-key');
-  if (keyIndex < 0) {
+  if (!picksLock && keyIndex < 0) {
     setMessage(`${chest.name} is locked. ${player.name} needs a Chest Key.`);
     return;
   }
-  player.inventory.splice(keyIndex, 1);
+  if (!picksLock) player.inventory.splice(keyIndex, 1);
   const { item, toConvoy } = grantItem(player, chest.rewardId);
   chest.opened = true;
   chest.mesh.material.opacity = 0.35;
   if (chest.glow) chest.glow.intensity = 0;
   player.acted = true;
+  const opened = picksLock ? `${player.name} picked the lock` : `${player.name} unlocked the chest`;
   setMessage(toConvoy
-    ? `${player.name} unlocked the chest. Their inventory is full, so ${item.name} was sent to the convoy.`
-    : `${player.name} unlocked the chest and found ${item.name}.`);
+    ? `${opened}. Their inventory is full, so ${item.name} was sent to the convoy.`
+    : `${opened} and found ${item.name}.`);
   renderTacticalUi();
   await itemPopup.show([{ unit: player, item, toConvoy }]);
+  finishUnit();
+}
+
+const hasLockpick = (unit) => getClassAbilities(unit).some((ability) => ability.lockpick);
+const hasPickpocket = (unit) => getClassAbilities(unit).some((ability) => ability.steal);
+
+function openInfirmaryActions() {
+  if (!gameState.selected || gameState.phase !== 'player' || gameState.mode !== 'unit' || player.acted) return;
+  const actions = infirmaryActions(activeLevel, player, [...playerTeam, ...enemies]);
+  if (!actions.length) return;
+  gameState.mode = 'heal';
+  healDialog.querySelector('#heal-heading').textContent = 'Infirmary Objectives';
+  const list = healDialog.querySelector('#heal-targets');
+  list.replaceChildren();
+  for (const action of actions) {
+    const row = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = `${action.name} · ${action.blockedReason ?? `+${action.exp} EXP${action.insight ? ` · +${action.insight} Insight` : ''} · Uses action`}`;
+    button.disabled = Boolean(action.blockedReason);
+    button.addEventListener('click', () => void actInInfirmary(action.id));
+    row.append(button);
+    list.append(row);
+  }
+  renderTacticalUi();
+  healDialog.showModal();
+  list.querySelector('button:not(:disabled)')?.focus();
+}
+
+async function actInInfirmary(id) {
+  if (gameState.phase !== 'player' || gameState.mode !== 'heal' || player.acted) return;
+  const available = infirmaryActions(activeLevel, player, [...playerTeam, ...enemies]).find((action) => action.id === id);
+  if (!available || available.blockedReason) {
+    setMessage(available?.blockedReason ?? 'This objective is no longer available.');
+    return;
+  }
+  const action = performInfirmaryAction(activeLevel, player, id, [...playerTeam, ...enemies]);
+  healDialog.close();
+  gameState.mode = 'combat';
+  const progression = awardExperience(player, action.exp);
+  const receipts = [];
+  if (action.insight) addInsight(action.insight);
+  if (action.kind === 'patient') {
+    receipts.push({ unit: player, ...grantItem(player, action.target.rewardId ?? 'potion') });
+    if (action.target.mesh) action.target.mesh.visible = false;
+  }
+  if (action.kind === 'ledger' && action.target.mesh) action.target.mesh.material.opacity = 0.35;
+  if (action.kind === 'gate') {
+    for (const mesh of action.target.meshes ?? []) mesh.visible = true;
+    for (const mesh of action.target.openMeshes ?? []) mesh.visible = false;
+    playGateRumble();
+  }
+  refreshInsightLabel();
+  setMessage(`${player.name}: ${action.name}. +${action.exp} EXP${action.kind === 'ledger' ? `, +${action.insight} Insight. The records expose the Church experiments.` : action.kind === 'gate' ? '. This entrance will send no more reinforcements.' : '. The patient reaches the service passage safely.'}`);
+  renderTacticalUi();
+  saveCurrentGame();
+  await showExperienceProgression(progression, action.exp);
+  if (action.kind === 'ledger') await tutorialPopup.show('infirmaryRecords', {}, { force: true });
+  if (receipts.length) await itemPopup.show(receipts);
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+async function completeInfirmaryDefense() {
+  const rules = activeLevel.infirmary;
+  if (!infirmaryVictoryReady(activeLevel)) return false;
+  const rewards = claimInfirmaryCompletion(activeLevel, playerTeam);
+  const message = `The ward held for ${rules.defendTurns} turns. ${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} stranded patients rescued. ${rules.ledger.collected ? 'The treatment ledger is secured.' : 'The ledger is lost in the flames.'} Each surviving deployed ally earns ${rules.completionExp} EXP.`;
+  completeVictory(message);
+  hideTerminalScreen();
+  for (const reward of rewards) await showExperienceProgression(reward.progression, rules.completionExp, reward.unit);
+  await tutorialPopup.show('infirmaryEnding', { evidence: rules.ledger.collected ? 'The ledger names a crimson emblem used to stabilize the treatment. Rictor recognizes the crest he gave Maria.' : 'Without the ledger, Rictor has only what he witnessed: the Church sealed living patients inside with the dead.' }, { force: true });
+  experienceDisplay.reset(player.level, player.experience);
+  showTerminalScreen('victory', message);
+  return true;
+}
+
+function cellAvailableToUnlock(unit) {
+  if (unit.acted || (!hasLockpick(unit) && !unit.inventory.some((entry) => entry.id === 'chest-key'))) return undefined;
+  return activeLevel.cells.find((cell) =>
+    !cell.opened && distanceBetween(unit.x, unit.z, cell.door.x, cell.door.z) === 1);
+}
+
+// Hunched prisoners wait in the dark behind closed doors. They are drawn as villagers until the door opens.
+let prisonerSilhouettes = [];
+
+function refreshPrisonerSilhouettes() {
+  for (const figure of prisonerSilhouettes) {
+    scene.remove(figure.mesh);
+    figure.mesh.material.dispose();
+  }
+  prisonerSilhouettes = [];
+  for (const cell of activeLevel.cells) {
+    if (cell.opened) continue;
+    for (const prisoner of cell.prisoners) {
+      const figure = { ...prisoner, cellId: cell.id, spriteSet: 'villager', facing: 'south', hp: 1, maxHp: 1 };
+      createUnitMesh(figure);
+      figure.mesh.material.color.set(0x5d5866);
+      prisonerSilhouettes.push(figure);
+    }
+  }
+}
+
+async function unlockCell() {
+  if (!gameState.selected || gameState.mode !== 'unit' || gameState.phase !== 'player' || player.acted) return;
+  const cell = cellAvailableToUnlock(player);
+  if (!cell) return;
+  const picksLock = hasLockpick(player);
+  if (!picksLock) {
+    const keyIndex = player.inventory.findIndex((entry) => entry.id === 'chest-key');
+    if (keyIndex < 0) return;
+    player.inventory.splice(keyIndex, 1);
+  }
+  cell.opened = true;
+  if (cell.mesh) cell.mesh.visible = false;
+  player.acted = true;
+  player.facing = getFacing(cell.door.x - player.x, cell.door.z - player.z);
+  setIdleSprite(player);
+  gameState.mode = 'combat';
+  playDoorCreak();
+  setMessage(`${player.name} ${picksLock ? 'picks the lock' : 'turns a Chest Key in the lock'}. The cell door swings open.`);
+  renderTacticalUi();
+  await wait(600);
+  const figures = prisonerSilhouettes.filter((figure) => figure.cellId === cell.id);
+  prisonerSilhouettes = prisonerSilhouettes.filter((figure) => figure.cellId !== cell.id);
+  const revealed = [];
+  for (const figure of figures) {
+    scene.remove(figure.mesh);
+    figure.mesh.material.dispose();
+    const undead = createEnemy(figure.x, figure.z, figure.id, { level: figure.level, ai: 'guard' });
+    enemies.push(undead);
+    revealed.push(undead);
+    showCombatResult(undead, 'UNDEAD!', 'critical');
+  }
+  if (revealed.length) {
+    playHitImpact({ critical: true });
+    setMessage(`The prisoner${revealed.length > 1 ? 's lurch' : ' lurches'} upright. ${revealed.length > 1 ? 'They are' : 'It is'} not alive anymore!`);
+    await wait(1100);
+  }
+  saveCurrentGame();
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
+function stealTargets(unit) {
+  if (!hasPickpocket(unit) || unit.acted) return [];
+  return enemies.filter((enemy) =>
+    enemy.hp > 0 && stealableItems(enemy).length && distanceBetween(unit.x, unit.z, enemy.x, enemy.z) === 1);
+}
+
+function openSteal() {
+  if (!gameState.selected || gameState.mode !== 'unit') return;
+  const targets = stealTargets(player);
+  if (!targets.length) return;
+  gameState.mode = 'heal';
+  renderTacticalUi();
+  healDialog.querySelector('#heal-heading').textContent = 'Steal from whom?';
+  const list = healDialog.querySelector('#heal-targets');
+  list.replaceChildren();
+  for (const target of targets) {
+    for (const itemId of stealableItems(target)) {
+      const row = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      const faster = player.speed > target.speed;
+      button.textContent = `${target.name} · ${INVENTORY_ITEMS.get(itemId).name} · ${faster ? 'Steal' : `Too slow (Spd ${player.speed} vs ${target.speed})`}`;
+      button.disabled = !faster;
+      button.addEventListener('click', () => void stealFrom(target, itemId));
+      row.append(button);
+      list.append(row);
+    }
+  }
+  healDialog.showModal();
+  list.querySelector('button:not(:disabled)')?.focus();
+}
+
+async function stealFrom(target, itemId) {
+  if (!canSteal(player, target, itemId)) return;
+  if (healDialog.open) healDialog.close();
+  gameState.mode = 'combat';
+  player.facing = getFacing(target.x - player.x, target.z - player.z);
+  setIdleSprite(player);
+  const { item, toConvoy } = stealItem(player, target, itemId);
+  const marker = !target.drop && target.mesh.userData.dropMarker;
+  if (marker) {
+    target.mesh.remove(marker);
+    marker.material.dispose();
+    delete target.mesh.userData.dropMarker;
+  }
+  player.acted = true;
+  showCombatResult(target, 'STOLEN', 'freeze');
+  setMessage(toConvoy
+    ? `${player.name} lifts ${item.name} from ${target.name}. Her hands are full, so it goes to the convoy.`
+    : `${player.name} lifts ${item.name} from ${target.name} without a sound.`);
+  renderTacticalUi();
+  await itemPopup.show([{ unit: player, item, toConvoy }]);
+  gameState.mode = 'unit';
   finishUnit();
 }
 
@@ -2696,6 +3165,11 @@ async function usePocketwatch(entry) {
 
 // Defeated enemies carrying an item hand it to whoever landed the final blow.
 async function collectEnemyDrop(enemy, recipient) {
+  if (enemy.id === 'corvis' && activeLevel.courtyard && !activeLevel.courtyard.recruit.recruited) {
+    activeLevel.courtyard.recruit.dead = true;
+    saveCurrentGame();
+    await tutorialPopup.show('corvisLost', {}, { force: true });
+  }
   let gateBeast;
   if (shouldSpawnGateBeast(activeLevel, enemies)) {
     const encounter = activeLevel.gateEncounter;
@@ -2800,11 +3274,21 @@ function updateUnitHoverCard() {
   const weaponName = document.createElement('span');
   weaponName.textContent = unit.weapon?.name ?? 'Unarmed';
   weapon.append(weaponName);
-  if (unit.civilian || unit === linus && rescueState && !rescueState.recruited) {
+  if (unit.civilian || neutralUnits().includes(unit)) {
     const note = document.createElement('small');
     note.textContent = unit.civilian
       ? unit.status === 'sheltered' ? 'Visit this house to begin an escort.' : 'Escorting to the green refuge. Keep the route clear.'
-      : 'Move Maria adjacent and choose Talk to recruit.';
+      : unit === eveline ? 'Move Rictor adjacent and choose Talk to recruit. Undead can attack her.' : 'Move Maria adjacent and choose Talk to recruit.';
+    weapon.append(note);
+  }
+  if (unit.id === 'corvis' && enemies.includes(unit) && activeLevel.courtyard) {
+    const note = document.createElement('small');
+    note.textContent = 'Move Eveline adjacent and choose Talk to recruit.';
+    weapon.append(note);
+  }
+  if (unit.frozen && playerTeam.includes(unit)) {
+    const note = document.createElement('small');
+    note.textContent = 'Frozen: movement blocked this player phase; actions available.';
     weapon.append(note);
   }
   if (unit.weapon?.effect?.length) {
@@ -2814,12 +3298,23 @@ function updateUnitHoverCard() {
   }
   if (unit.weapon?.reaves?.length) {
     const reaves = document.createElement('small');
-    reaves.textContent = `Double triangle bonus vs ${unit.weapon.reaves.join(', ')}`;
+    reaves.textContent = `Double triangle: strong vs ${unit.weapon.reaves.join(', ')}, weak vs ${unit.weapon.type === 'Spear' ? 'Sword' : 'Axe'}`;
     weapon.append(reaves);
   }
   if (unit.drop) {
     const carries = document.createElement('small');
     carries.textContent = `Drops ${INVENTORY_ITEMS.get(unit.drop)?.name ?? unit.drop}`;
+    weapon.append(carries);
+  }
+  for (const id of unit.stealable ?? []) {
+    const carries = document.createElement('small');
+    carries.textContent = `Can be stolen: ${INVENTORY_ITEMS.get(id).name} · no drop`;
+    weapon.append(carries);
+  }
+  if (enemies.includes(unit)) for (const entry of unit.inventory ?? []) {
+    if (INVENTORY_ITEMS.get(entry.id)?.type !== 'Staff') continue;
+    const carries = document.createElement('small');
+    carries.textContent = `Can be stolen: ${INVENTORY_ITEMS.get(entry.id).name} · ${entry.uses} uses · no drop`;
     weapon.append(carries);
   }
   unitHoverCard.append(name, unitClass, hp, weapon);
@@ -2883,10 +3378,19 @@ function openUnitList() {
 }
 
 function renderTacticalUi() {
+  if (activeLevel.courtyard && !activeLevel.courtyard.recruit.recruited &&
+    !enemies.some((enemy) => enemy.id === 'corvis' && enemy.hp > 0)) {
+    activeLevel.courtyard.recruit.dead = true;
+  }
+  if (activeLevel.streets && !activeLevel.streets.recruit.recruited) {
+    activeLevel.streets.recruit.hp = Math.max(0, eveline.hp);
+    activeLevel.streets.recruit.dead = eveline.hp <= 0;
+    activeLevel.streets.recruit.inventory = eveline.inventory.map(copyEntry);
+  }
   phaseLabel.textContent = `${gameState.phase.toUpperCase()} PHASE - TURN ${gameState.turn}`;
   objectiveLabel.textContent = `OBJECTIVE · ${objectiveDescription()}`;
   const rescueStatus = document.querySelector('#rescue-status');
-  rescueStatus.hidden = !rescueState;
+  rescueStatus.hidden = !rescueState && !activeLevel.infirmary && !activeLevel.streets;
   const rescueDestination = document.querySelector('#rescue-destination');
   rescueDestination.hidden = !rescueState;
   if (rescueState) {
@@ -2897,6 +3401,25 @@ function renderTacticalUi() {
     rescueStatus.textContent = `${rescueState.villagers.map((unit) => `${unit.name}: ${unit.status} (${unit.hp} HP)`).join(' · ')}. ${warning}.`;
     rescueDestination.textContent = 'REFUGE: green tiles on the west edge. Escorts walk up to 3 tiles before each enemy phase, then leave safely.';
   }
+  if (activeLevel.infirmary) {
+    rescueStatus.textContent = infirmaryWarning(activeLevel, gameState.turn);
+    rescueDestination.hidden = false;
+    rescueDestination.textContent = 'DEFEND: the marked service door. Adjacent Ward Objectives seal gates, rescue patients, and recover the ledger. Each can be completed once.';
+  }
+  if (activeLevel.streets) {
+    rescueStatus.hidden = false;
+    rescueStatus.textContent = streetWarning(activeLevel, gameState.turn);
+    rescueDestination.hidden = false;
+    rescueDestination.textContent = 'RECRUIT: Troy can clear the eastern street, but Rictor must Talk to Eveline. Visit three houses; Lena can steal the attendant’s emblem. Defeat Veyr, then move Rictor onto the gate controls.';
+  }
+  if (activeLevel.courtyard) {
+    rescueStatus.hidden = false;
+    rescueStatus.textContent = activeLevel.courtyard.triggers.map((trigger) => {
+      const wave = activeLevel.reinforcements.find((entry) => entry.entranceId === trigger.id);
+      const name = trigger.id === 'courtyard-ravens' ? 'Ravens' : 'Cavalry';
+      return `${name}: ${wave.spawned ? 'arrived' : trigger.warnedTurn === null ? 'not signaled' : `WARNING: turn ${wave.turn}`}`;
+    }).join(' · ');
+  }
   const movementUnit = player.movement === 1 ? 'tile' : 'tiles';
   const rangeText = weaponRangeLabel(player.weapon);
   updateUnitHoverCard();
@@ -2905,16 +3428,24 @@ function renderTacticalUi() {
     : 'Back';
   actionPanel.hidden = !gameState.selected || gameState.mode !== 'unit';
   actionPanel.querySelector('strong').textContent = player.name.toUpperCase();
-  document.querySelector('#attack-action').disabled = player.acted || !canAttack(player);
+  document.querySelector('#attack-action').disabled = player.acted || !attackWeapons(player).some((weapon) => !weaponUseBlockReason(player, weapon));
   const house = houseAvailableToVisit(player);
   visitActionButton.hidden = !house;
   visitActionButton.textContent = house?.villagerId ? 'Rescue Villager' : 'Visit';
   visitActionButton.title = house?.villagerId
     ? 'Begin this villager\'s automatic escort to the western refuge. Uses this unit\'s action.'
     : 'Visit this house.';
-  document.querySelector('#talk-action').hidden = !canRecruitLinus(player, linus, rescueState);
+  const streetTalk = canRecruitEveline(activeLevel, player, eveline);
+  const corvisTalk = canRecruitCorvis(activeLevel, player, enemies.find((enemy) => enemy.id === 'corvis'));
+  document.querySelector('#talk-action').hidden = !streetTalk && !corvisTalk && !canRecruitLinus(player, linus, rescueState);
+  document.querySelector('#talk-action').textContent = corvisTalk ? 'Talk to Corvis' : streetTalk ? 'Talk to Eveline' : 'Talk to Linus';
   const chestHere = chestAvailableToOpen(player);
   chestActionButton.hidden = !chestHere;
+  const unlockButton = document.querySelector('#unlock-action');
+  unlockButton.hidden = !gameState.selected || !cellAvailableToUnlock(player);
+  unlockButton.textContent = hasLockpick(player) ? 'Pick Lock' : 'Unlock Cell (Key)';
+  document.querySelector('#steal-action').hidden = !gameState.selected || stealTargets(player).length === 0;
+  document.querySelector('#infirmary-action').hidden = !gameState.selected || infirmaryActions(activeLevel, player, [...playerTeam, ...enemies]).length === 0;
   document.querySelector('#trade-action').hidden = !gameState.selected || adjacentAllies(player).length === 0;
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
   document.querySelector('#freeze-action').hidden = !gameState.selected || freezeTargets(player).length === 0;
@@ -3140,7 +3671,7 @@ function openMariaActions() {
 }
 
 function startMove() {
-  if (!gameState.selected || player.moved || player.acted) return;
+  if (!gameState.selected || player.moved || player.acted || player.frozen) return;
   movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam);
   gameState.mode = 'move';
   setCursor(player.x, player.z);
@@ -3192,6 +3723,30 @@ function undoMove() {
 }
 
 function startAttack() {
+  if (!gameState.selected || gameState.mode !== 'unit' || player.acted) return;
+  gameState.mode = 'heal';
+  renderTacticalUi();
+  showStaffDialog('Choose a weapon or spell', attackWeapons(player).map((weapon) => {
+    const blocked = weaponUseBlockReason(player, weapon);
+    return {
+      weapon, label: blocked ?? 'Use', disabled: Boolean(blocked),
+      onClick: () => {
+        const reason = weaponUseBlockReason(player, weapon);
+        if (reason) {
+          setMessage(reason);
+          return;
+        }
+        healDialog.close();
+        equipAttackWeapon(player, weapon);
+        setIdleSprite(player);
+        saveCurrentGame();
+        beginAttackTargeting();
+      },
+    };
+  }));
+}
+
+function beginAttackTargeting() {
   if (!gameState.selected || player.acted || !canAttack(player)) return;
   const targets = getAttackTargets(player, enemies);
   gameState.mode = 'attack';
@@ -3378,6 +3933,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
       const hit = rollHit(counterHitRate);
       return { hit, critical: hit && rollCritical(counterCriticalRate) };
     });
+    spendWeaponUse(target);
   }
 
   const strikeOrder = getStrikeOrder(playerVolleys, getStrikesPerAttack(player), counterVolleys, getStrikesPerAttack(target));
@@ -3492,15 +4048,20 @@ function getEnemyReach(enemy) {
 // Walkable tiles the enemy could hit from any reachable tile, excluding the reachable tiles themselves.
 function getEnemyThreatTiles(enemy, reach) {
   const threat = new Map();
+  if (!enemy.weapon || enemy.weapon.type === 'Staff' && !enemy.weapon.freeze) return [];
+  if (enemy.weapon.freeze && !enemy.inventory?.some((entry) => entry.id === enemy.weapon.id && entry.uses > 0)) return [];
+  const maxRange = enemy.weapon.freeze ? freezeRange(enemy) : enemy.weapon.maxRange;
   for (const key of reach.keys()) {
     const [originX, originZ] = key.split(',').map(Number);
-    for (let z = originZ - enemy.weapon.maxRange; z <= originZ + enemy.weapon.maxRange; z++) {
-      for (let x = originX - enemy.weapon.maxRange; x <= originX + enemy.weapon.maxRange; x++) {
+    for (let z = originZ - maxRange; z <= originZ + maxRange; z++) {
+      for (let x = originX - maxRange; x <= originX + maxRange; x++) {
         const tile = tileKey(x, z);
         if (
           !reach.has(tile) && !threat.has(tile) &&
           isWalkable(activeLevel, x, z, enemy) &&
-          isInWeaponRange(enemy, enemy, distanceBetween(originX, originZ, x, z))
+          (enemy.weapon.freeze
+            ? distanceBetween(originX, originZ, x, z) >= 1 && distanceBetween(originX, originZ, x, z) <= maxRange
+            : isInWeaponRange(enemy, enemy, distanceBetween(originX, originZ, x, z)))
         ) threat.set(tile, { x, z });
       }
     }
@@ -3522,6 +4083,8 @@ function chooseEnemyTarget(enemy, livingTeam) {
     });
   }
   if (enemy.ai !== 'mobile' || enemy.frozen) return null;
+  if (activeLevel.infirmary) return infirmaryApproachTarget(activeLevel, enemy, livingTeam);
+  if (enemy.id === 'street-undead' && livingTeam.includes(eveline)) return eveline;
   return livingTeam.reduce((nearest, unit) =>
     distanceBetween(enemy.x, enemy.z, unit.x, unit.z) < distanceBetween(enemy.x, enemy.z, nearest.x, nearest.z)
       ? unit : nearest);
@@ -3534,28 +4097,72 @@ async function enemyPhase() {
   renderTacticalUi();
   showPhaseBanner('Enemy', gameState.turn);
   await wait(900);
+  await showCathedralStory();
+  for (const id of triggerProgressWaves(activeLevel, playerTeam, gameState.turn)) {
+    await tutorialPopup.show(activeLevel.cathedral ? `cathedral-${id}` :
+      id === 'courtyard-ravens' ? 'courtyardRavenWarning' : 'courtyardCavalryWarning', {}, { force: true });
+    saveCurrentGame();
+  }
+  if (activeLevel.streets && gameState.turn === 5) {
+    await tutorialPopup.show('streetsWarning', {}, { force: true });
+  }
+  if (neutralUnits().includes(eveline) && eveline.hp < eveline.maxHp) {
+    const potion = eveline.inventory.find((entry) => entry.id === 'potion' && entry.uses > 0);
+    if (potion) {
+      const healed = Math.min(INVENTORY_ITEMS.get(potion.id).heal, eveline.maxHp - eveline.hp);
+      eveline.hp += healed;
+      potion.uses--;
+      if (!potion.uses) eveline.inventory.splice(eveline.inventory.indexOf(potion), 1);
+      showCombatResult(eveline, `+${healed}`, 'heal');
+      renderTacticalUi();
+    }
+  }
   await advanceVillagers();
   await heartrootPhase();
   const frozenEnemies = [];
   for (const enemy of [...enemies]) {
     if (!enemies.includes(enemy)) continue;
-    const livingTeam = activeLevel.rescue && enemy.type !== 'beast'
+    const livingTeam = activeLevel.rescue && enemy.type !== 'beast' || activeLevel.streets && enemy.type !== 'undead'
       ? playerTeam.filter((unit) => unit.hp > 0)
       : defendingUnits();
     if (!livingTeam.length) break;
     if (enemy.frozen) frozenEnemies.push(enemy);
+    if (enemy.inventory?.some((entry) => INVENTORY_ITEMS.get(entry.id)?.type === 'Staff')) {
+      const action = chooseEnemyStaffAction(enemy, enemies, livingTeam);
+      if (action) {
+        cameraFollowTarget = enemy.mesh.position;
+        enemy.facing = getFacing(action.target.x - enemy.x, action.target.z - enemy.z);
+        gameState.mode = 'combat';
+        combatants.add(enemy);
+        combatants.add(action.target);
+        renderTacticalUi();
+        await playAttackAnimation(enemy, enemy.facing, false, true);
+        const result = useEnemyStaff(enemy, action, gameState.turn);
+        if (action.staff.freeze && result.hit) action.target.mesh.material.color.set(0x8fd4ff);
+        showCombatResult(action.target, action.staff.freeze ? result.hit ? 'FROZEN' : 'MISS' : `+${result.healed}`,
+          action.staff.freeze ? result.hit ? 'freeze' : 'miss' : 'heal');
+        setMessage(action.staff.freeze
+          ? result.hit ? `${enemy.name} freezes ${action.target.name}. Movement is blocked next player phase; actions remain available.`
+            : `${action.target.name} resists ${enemy.name}'s Freeze.`
+          : `${enemy.name} heals ${action.target.name} for ${result.healed} HP.`);
+        await wait(650);
+        gameState.mode = 'cursor';
+        renderTacticalUi();
+      }
+      if (action || enemy.weapon?.type === 'Staff') continue;
+    }
     const foe = chooseEnemyTarget(enemy, livingTeam);
     if (!foe) continue;
     cameraFollowTarget = enemy.mesh.position;
     await wait(500);
     if (enemy.ai !== 'stationary' && !enemy.frozen &&
-        !isInWeaponRange(enemy, foe, distanceBetween(enemy.x, enemy.z, foe.x, foe.z))) {
+        (foe.objectiveTarget || !isInWeaponRange(enemy, foe, distanceBetween(enemy.x, enemy.z, foe.x, foe.z)))) {
       const blocked = new Set(defendingUnits().map((other) => tileKey(other.x, other.z)));
       const occupied = new Set(enemies
         .filter((other) => other !== enemy)
         .map((other) => tileKey(other.x, other.z)));
-      const attackPositions = [];
-      for (let z = foe.z - enemy.weapon.maxRange; z <= foe.z + enemy.weapon.maxRange; z++) {
+      const attackPositions = foe.objectiveTarget ? [{ x: foe.x, z: foe.z }] : [];
+      for (let z = foe.z - enemy.weapon.maxRange; !foe.objectiveTarget && z <= foe.z + enemy.weapon.maxRange; z++) {
         for (let x = foe.x - enemy.weapon.maxRange; x <= foe.x + enemy.weapon.maxRange; x++) {
           if (
             isInWeaponRange(
@@ -3602,7 +4209,12 @@ async function enemyPhase() {
       }
     }
     const range = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
-    if (isInWeaponRange(enemy, foe, range)) {
+    if (infirmaryBreached(activeLevel, enemies)) {
+      activeLevel.infirmary.breached = true;
+      completeGameOver();
+      return;
+    }
+    if (!foe.objectiveTarget && isInWeaponRange(enemy, foe, range)) {
       enemy.facing = getFacing(foe.x - enemy.x, foe.z - enemy.z);
       setIdleSprite(enemy);
       gameState.mode = 'combat';
@@ -3617,6 +4229,7 @@ async function enemyPhase() {
       const attacks = enemyVolleys * getStrikesPerAttack(enemy);
       const hitRate = getHitRate(enemy, foe, terrain);
       const criticalRate = getCriticalRate(enemy, foe);
+      spendWeaponUse(enemy);
       let hits = 0;
       let criticalHits = 0;
       let totalDamage = 0;
@@ -3701,6 +4314,11 @@ async function enemyPhase() {
           setMessage(`${foe.name} has been lost. The chapter can still be completed, but the rescue reward is reduced.`);
         } else if (foe === linus && rescueState && !rescueState.recruited) {
           setMessage('Linus has fallen defending the village before he could join you.');
+        } else if (foe === eveline && activeLevel.streets && !activeLevel.streets.recruit.recruited) {
+          activeLevel.streets.recruit.dead = true;
+          activeLevel.streets.recruit.hp = 0;
+          setMessage('Eveline has fallen before Rictor could recruit her. The gatehouse can still be seized.');
+          await tutorialPopup.show('evelineLost', {}, { force: true });
         }
       }
       if (partyDefeated()) {
@@ -3741,15 +4359,18 @@ async function enemyPhase() {
       gameState.mode = 'cursor';
       renderTacticalUi();
     } else {
-      setMessage(`${enemy.name} advances across the ships.`);
+      setMessage(`${enemy.name} advances${activeLevel.infirmary ? ' toward the evacuation door' : activeLevel.streets ? ' through the city streets' : ' across the ships'}.`);
     }
   }
-  for (const enemy of frozenEnemies) setEnemyFrozen(enemy, false);
+  for (const enemy of frozenEnemies) setEnemyFrozen(enemy, enemy.frozen - 1);
+  if (activeLevel.infirmary && finishInfirmaryEnemyPhase(activeLevel)) {
+    if (await completeInfirmaryDefense()) return;
+  }
   if (checkDefeatAllVictory()) return;
   gameState.turn++;
   gameState.phase = 'player';
   for (const unit of playerTeam) {
-    unit.moved = false;
+    unit.moved = Boolean(unit.frozen);
     unit.acted = false;
     unit.moveOrigin = null;
   }
@@ -3775,6 +4396,9 @@ async function enemyPhase() {
   }
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  if (activeLevel.infirmary && reinforcementResult.units.some((unit) => unit.id === 'rotten')) {
+    await tutorialPopup.show('rottenArrival', {}, { force: true });
+  }
   for (const ally of reinforcementResult.allies ?? []) await tutorialPopup.show(ally.id);
   window.setTimeout(() => void runTutorials(), 1300);
 }
@@ -3788,11 +4412,17 @@ function spawnTurnReinforcements() {
       .map((unit) => tileKey(unit.x, unit.z)),
   );
   for (const wave of activeLevel.reinforcements) {
+    if (infirmaryWaveSealed(activeLevel, wave)) {
+      wave.spawned = true;
+      wave.spawnedCount = wave.units.length;
+      continue;
+    }
     if (wave.requiresHeartroots && !wave.spawned && !enemies.some((enemy) => enemy.id === 'heartroot')) {
       wave.spawned = true;
       continue;
     }
-    if (wave.turn > gameState.turn || wave.spawned) continue;
+    if (wave.turn > gameState.turn || wave.spawned || !courtyardWaveEnabled(activeLevel, wave) ||
+        !cathedralWaveEnabled(activeLevel, wave)) continue;
     while (wave.spawnedCount < wave.units.length) {
       const placement = wave.units[wave.spawnedCount];
       const candidates = [];
@@ -3806,7 +4436,10 @@ function spawnTurnReinforcements() {
       candidates.sort((first, second) =>
         distanceBetween(first.x, first.z, placement.x, placement.z) -
         distanceBetween(second.x, second.z, placement.x, placement.z));
-      const [spawnTile] = candidates;
+      const spawnTile = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral
+        ? infirmarySpawnTile(activeLevel, placement, [...defendingUnits(), ...enemies])
+        : candidates[0];
+      if (!spawnTile && (activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral)) break;
       if (!spawnTile) {
         return {
           units: createdUnits,
@@ -3819,7 +4452,8 @@ function spawnTurnReinforcements() {
       wave.spawnedCount++;
       createdUnits.push(unit);
     }
-    wave.spawned = true;
+    wave.spawned = wave.spawnedCount === wave.units.length;
+    if (!wave.spawned) continue;
     for (const placement of wave.allies ?? []) {
       const ally = roster[placement.id];
       if (!ally || fullTeam.includes(ally)) continue;
@@ -3848,6 +4482,10 @@ function spawnTurnReinforcements() {
 async function endPlayerPhase() {
   if (gameState.phase !== 'player' || gameState.defeated || playerMovement) return;
   for (const unit of playerTeam) {
+    if (unit.frozen && unit.frozen <= gameState.turn) {
+      delete unit.frozen;
+      unit.mesh.material.color.set(0xffffff);
+    }
     unit.moved = true;
     unit.acted = true;
     unit.moveOrigin = null;
@@ -3987,8 +4625,11 @@ document.querySelector('#cancel-combat').addEventListener('click', cancelCombatF
 document.querySelector('#profile-action').addEventListener('click', openCharacterProfile);
 document.querySelector('#finish-action').addEventListener('click', finishUnit);
 visitActionButton.addEventListener('click', () => void visitHouse());
-document.querySelector('#talk-action').addEventListener('click', () => void recruitLinus());
+document.querySelector('#talk-action').addEventListener('click', () => void (activeLevel.courtyard ? recruitCourtyardShaman() : activeLevel.streets ? recruitStreetHealer() : recruitLinus()));
 chestActionButton.addEventListener('click', () => void openChest());
+document.querySelector('#unlock-action').addEventListener('click', () => void unlockCell());
+document.querySelector('#steal-action').addEventListener('click', openSteal);
+document.querySelector('#infirmary-action').addEventListener('click', openInfirmaryActions);
 backActionButton.addEventListener('click', () => {
   if (player.moveOrigin && player.moved && !player.acted) undoMove();
   else cancelAction();
@@ -4033,6 +4674,11 @@ document.querySelector('#options-restart').addEventListener('click', () => {
 });
 initializeUiSounds();
 document.querySelector('#resume-game').addEventListener('click', closeOptionsMenu);
+document.querySelector('#options-objective').addEventListener('click', () => {
+  const panel = document.querySelector('#objective-panel');
+  panel.hidden = !panel.hidden;
+  document.querySelector('#options-objective').setAttribute('aria-expanded', String(!panel.hidden));
+});
 document.querySelector('#return-to-menu').addEventListener('click', returnToMainMenu);
 optionsDialog.addEventListener('cancel', () => {
   if (sessionStarted && gameState.mode === 'options') {
@@ -4089,7 +4735,7 @@ const savedGame = refreshContinueButton();
 let backCtrlPending = false;
 
 function goBack() {
-  if (document.querySelector('#level-up-dialog')?.open || document.querySelector('#rank-up-dialog')?.open || document.querySelector('#prep-dialog')?.open || itemPopup.open || tutorialPopup.open) return false;
+  if (document.querySelector('#level-up-dialog')?.open || document.querySelector('#rank-up-dialog')?.open || itemPopup.open || tutorialPopup.open) return false;
   if (combatForecastDialog.open) {
     cancelCombatForecast();
     return true;
@@ -4122,6 +4768,11 @@ function goBack() {
     closeOptionsMenu();
     return true;
   }
+  if (prepMenu?.open) return prepMenu.back();
+  if (mapViewActive) {
+    endMapView();
+    return true;
+  }
   if (
     !sessionStarted || !mainMenu.hidden || !terminalScreen.hidden || gameState.defeated ||
     gameState.phase !== 'player' || playerMovement
@@ -4152,6 +4803,8 @@ window.addEventListener('keyup', (event) => {
 });
 
 window.addEventListener('keydown', (event) => {
+  if (event.code !== 'ControlLeft' && event.code !== 'ControlRight') backCtrlPending = false;
+  else if (!event.repeat) backCtrlPending = true;
   if (event.repeat) return;
   const menuDirections = {
     ArrowUp: 'up',
@@ -4179,8 +4832,6 @@ window.addEventListener('keydown', (event) => {
       return;
     }
   }
-  if (event.code !== 'ControlLeft' && event.code !== 'ControlRight') backCtrlPending = false;
-  else backCtrlPending = true;
   if (!terminalScreen.hidden) {
     if (event.code === 'Enter' || event.code === 'Space') {
       event.preventDefault();
@@ -4337,8 +4988,8 @@ function update(dt, t) {
   }
   for (const unit of enemies) {
     if (unit.attackAnimation) {
-      const { direction, frameIndex } = unit.attackAnimation;
-      setUnitSprite(unit, unitTextures(unit).attack[direction]?.[frameIndex]);
+      const { direction, frameIndex, kind } = unit.attackAnimation;
+      setUnitSprite(unit, unitTextures(unit)[kind]?.[direction]?.[frameIndex]);
     }
   }
   for (let index = hitEffects.length - 1; index >= 0; index--) {
@@ -4379,8 +5030,8 @@ function update(dt, t) {
     floatingText.material.opacity = 1 - age / 1.1;
   }
   const walkingTime = playerMovement ? t - playerMovement.startedAt : t;
-  for (const unit of [maria, bartz, cypher, seymour, stark, linus]) {
-    const fielded = (playerTeam.includes(unit) || unit === linus && Boolean(rescueState) && !rescueState.recruited) && unit.hp > 0;
+  for (const unit of Object.values(roster)) {
+    const fielded = (playerTeam.includes(unit) || neutralUnits().includes(unit)) && unit.hp > 0;
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
     if (!fielded) continue;
@@ -4423,6 +5074,7 @@ function update(dt, t) {
     );
     if (healthBar.displayRatio === undefined) healthBar.displayRatio = targetRatio;
     healthBar.group.visible =
+      (healthBar.unit === eveline && neutralUnits().includes(eveline)) ||
       (gameState.mode === 'combat' && combatants.has(healthBar.unit)) || t < healthBar.revealUntil;
     if (!healthBar.group.visible) {
       healthBar.displayRatio = targetRatio;
@@ -4465,10 +5117,36 @@ function update(dt, t) {
     const limitZ = activeLevel.height / 2 - 3;
     target.z = THREE.MathUtils.clamp(target.z, -limitZ, limitZ);
   }
-  const cameraScale = Math.max(0.55, activeLevel.width / 21, activeLevel.height / 19);
-  const desired = target.clone().addScaledVector(CAM_OFFSET, cameraScale);
+  const cameraScale = Math.max(activeLevel.infirmary ? 1.45 : 0.55, activeLevel.width / 21, activeLevel.height / 19);
+  const offset = CAM_OFFSET.clone().multiplyScalar(cameraScale);
+  const cityBackdrop = levelGroup.userData.cityBackdrop;
+  const northLimit = worldZ(activeLevel.exit.z);
+  if (activeLevel.streets || activeLevel.courtyard) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
+  else if (cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
+  if (activeLevel.infirmary) constrainInteriorCamera(target, offset, camera.aspect, activeLevel.width, activeLevel.height);
+  const desired = target.clone().add(offset);
   camera.position.sub(cameraShakeOffset);
   camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
+  let fov = TACTICAL_FOV;
+  if (activeLevel.streets || activeLevel.courtyard) {
+    target.copy(camera.position).sub(offset);
+    fov = constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
+    camera.position.copy(target).add(offset);
+  } else if (cityBackdrop) {
+    // Keep camera easing parallel to the skyline, including while following enemies or cutscenes.
+    target.copy(camera.position).sub(offset);
+    fov = constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
+    camera.position.copy(target).add(offset);
+  }
+  if (activeLevel.infirmary) {
+    target.copy(camera.position).sub(offset);
+    fov = constrainInteriorCamera(target, offset, camera.aspect, activeLevel.width, activeLevel.height);
+    camera.position.copy(target).add(offset);
+  }
+  if (camera.fov !== fov) {
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+  }
   if (t < cameraShake.until) {
     const falloff = (cameraShake.until - t) / 0.3;
     cameraShakeOffset.set(

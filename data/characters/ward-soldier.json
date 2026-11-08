@@ -1,0 +1,15 @@
+{
+  "id": "ward-soldier",
+  "name": "Ward Soldier",
+  "classId": "soldier",
+  "type": "infantry",
+  "spriteSet": "genericSoldier",
+  "sprite": "assets/character/Generic_Soldier/rotations/south.png",
+  "level": 8,
+  "experience": 0,
+  "weaponId": "iron-spear",
+  "ai": "guard",
+  "baseStats": { "hp": 25, "strength": 10, "magic": 0, "dexterity": 8, "speed": 7, "luck": 3, "defense": 7, "resistance": 2, "movement": 5, "build": 8 },
+  "currentStats": { "hp": 25, "strength": 10, "magic": 0, "dexterity": 8, "speed": 7, "luck": 3, "defense": 7, "resistance": 2, "movement": 5, "build": 8 },
+  "growthRates": { "hp": 60, "strength": 40, "magic": 0, "dexterity": 35, "speed": 30, "luck": 20, "defense": 30, "resistance": 10, "movement": 0, "build": 0 }
+}

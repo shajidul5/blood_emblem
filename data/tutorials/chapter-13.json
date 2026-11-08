@@ -1,0 +1,130 @@
+{
+  "streets": {
+    "pages": [
+      {
+        "kicker": "Part Three - Chapter 13",
+        "title": "The Procession of Ash",
+        "paragraphs": [
+          "Smoke follows Rictor, Lena and Arlan out of the infirmary. At the southern junction a city-watch rider reins in his horse. \"Troy,\" Arlan calls. \"You still know the old watch route?\"",
+          "\"Until the Church put a commander on every corner,\" Troy says. \"Veyr controls the northern gatehouse. Defeat him, then Rictor can seize the gate controls and open the Cathedral approach.\" Troy joins immediately, carrying a Steel Sword, Steel Lance and Javelin.",
+          "Beyond the roofs, the clocktower burns with cold light. The Cathedral is farther east, untouched by the smoke. \"They lit the ward to silence its witnesses,\" Rictor says. \"We will not let the streets finish their work.\""
+        ]
+      },
+      {
+        "kicker": "The East Service Street",
+        "title": "A Healer Among the Ashes",
+        "paragraphs": [
+          "Eveline is treating survivors beside the shuttered apothecary, at (20,16). She is a mounted healer, not an invulnerable marker. Undead are moving down the east street toward her.",
+          "Send Troy ahead to intercept. Rictor must stand adjacent to Eveline and choose Talk to recruit her; Troy and other allies cannot recruit her. Talking consumes Rictor's action. Her Heal staff can support the party immediately afterward.",
+          "She holds her position and can use her Potion if wounded. Losing her prevents recruitment, but does not lose the chapter. Check enemy move-plus-attack ranges before advancing: the middle cross street reconnects the healer route, main avenue and market."
+        ]
+      },
+      {
+        "kicker": "Open the Cathedral Approach",
+        "title": "Supplies, Proof and a Way Forward",
+        "paragraphs": [
+          "Any controllable ally can Visit the three marked south-facing house doors, once each. The coachman offers an Axereaver, the bellkeeper an Armorslayer, and the apothecary two Potions. These rewards remain available even if Eveline is lost.",
+          "An undead attendant in the western service pocket carries an Orders Emblem that can only be stolen. Lena must be adjacent and faster than the attendant. Killing it awards nothing. Veyr drops a separate Orders Emblem when defeated.",
+          "More undead roam the middle streets, and a Rotten guards the western market near the bellkeeper. Its tendrils strike at range 1-2; draw it away from the other undead rather than fighting the whole alley at once.",
+          "Defeating every enemy does not end the chapter. Defeat Veyr and have Rictor seize the northern controls. Options > Objective records the recruitment, houses, theft and quarantine warning."
+        ],
+        "button": "Take the Streets"
+      }
+    ]
+  },
+  "eveline": {
+    "pages": [
+      {
+        "kicker": "Eveline - Troubadour",
+        "title": "Someone Still Alive",
+        "paragraphs": [
+          "\"They called it treatment,\" Eveline says. \"I watched the patients come back without their voices.\"",
+          "\"Then come with us,\" Rictor answers. \"The Cathedral will answer for what happened here.\"",
+          "\"First, help me keep someone alive.\" She gathers her satchel and turns her chestnut horse toward the company. Eveline joins with a Heal staff and Potion."
+        ],
+        "button": "Welcome Eveline"
+      }
+    ]
+  },
+  "evelineLost": {
+    "pages": [
+      {
+        "kicker": "The East Service Street",
+        "title": "A Voice Lost to the Ashes",
+        "paragraphs": [
+          "Eveline falls beside the people she refused to abandon. Her staff slips from her hand.",
+          "\"They will answer for her too,\" Rictor says. Recruitment is lost, but the chapter continues. Defeat Veyr and seize the gate controls; the three house rewards remain available."
+        ],
+        "button": "Keep Moving"
+      }
+    ]
+  },
+  "streetsWarning": {
+    "pages": [
+      {
+        "kicker": "Turn 5 - Western Quarantine",
+        "title": "The Barrier Is Opening",
+        "paragraphs": [
+          "A bell rings twice behind the market. Troy turns toward the marked western entrance. \"That is not a call to prayer. They are opening the quarantine barrier.\"",
+          "Two undead and a Rotten will arrive on turn 6 near (3,17), before the party acts. The Rotten is slow, but its tendrils strike at range 1-2. This is one finite wave, not a repeating assault. Occupied entrance tiles queue their arrivals; they will not appear behind a defender to make room.",
+          "You have the player phase to respond before they attack on enemy phase 6. Prepare a rear guard or keep advancing together. This warning remains available in Options > Objective."
+        ],
+        "button": "Prepare the Rear Guard"
+      }
+    ]
+  },
+  "coachman": {
+    "pages": [
+      {
+        "kicker": "Coachman's Home",
+        "title": "The Old Watch Route",
+        "paragraphs": [
+          "\"Troy used to stop here before the night patrol,\" the coachman says. \"Now the Church marches prisoners up that avenue, and none come back.\"",
+          "He offers an Axereaver lance. \"Made for turning aside an axeman. Keep it away from a swordsman.\" It reverses and doubles the lance triangle: advantage against axes, disadvantage against swords, neutral against ordinary lances."
+        ],
+        "button": "Take the Axereaver"
+      }
+    ]
+  },
+  "bellkeeper": {
+    "pages": [
+      {
+        "kicker": "Bellkeeper's Home",
+        "title": "Bells Without Worshippers",
+        "paragraphs": [
+          "\"The bells summon watch officers now, not worshippers,\" the bellkeeper whispers. \"The clocktower gives the signal. The Cathedral decides who disappears.\"",
+          "An Armorslayer lies wrapped beneath the bell rope. \"The commander wears his orders like armor. This may help you reach the controls.\""
+        ],
+        "button": "Take the Armorslayer"
+      }
+    ]
+  },
+  "apothecary": {
+    "pages": [
+      {
+        "kicker": "Shuttered Apothecary",
+        "title": "Medicine for the Cathedral",
+        "paragraphs": [
+          "The apothecary opens the door only a crack. \"The Church requisitioned the medicine for the Cathedral. Eveline stayed outside to treat the people they left behind.\"",
+          "Two Potions pass through the gap. \"These are all I could hide. Whatever they are doing beyond that gate, it is not healing.\""
+        ],
+        "button": "Take the Potions"
+      }
+    ]
+  },
+  "streetsEnding": {
+    "pages": [
+      {
+        "kicker": "The Procession of Ash - Aftermath",
+        "title": "Beyond the Clocktower",
+        "paragraphs": [
+          "Veyr falls, but the gate does not open by itself. Rictor pulls the controls, and the ironwork shudders away from the Cathedral approach.",
+          "{recruitment}",
+          "Lena studies the Orders Emblem against the light. \"The same crest in the ward records. The same one Maria carries.\" Arlan looks back at the smoke. \"Then we follow the orders to their source.\"",
+          "Above the northern roofs the clocktower strikes again. The Cathedral waits beyond the eastern skyline. The road is open; the answer is still inside."
+        ],
+        "button": "Toward the Cathedral"
+      }
+    ]
+  }
+}

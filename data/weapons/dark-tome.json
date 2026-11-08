@@ -1,0 +1,19 @@
+{
+  "id": "dark-tome",
+  "name": "Flux",
+  "type": "Dark",
+  "damageType": "magical",
+  "might": 10,
+  "weight": 10,
+  "hit": 80,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "requiredRank": "E",
+  "maxUses": 20,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Dark_Tome/dark_tome.png",
+  "description": "A heavy dark tome. Flux strikes with high might but slows its caster.",
+  "lore": "Silver fittings hold the cover shut. The pages turn toward the reader even when there is no wind."
+}

@@ -1,0 +1,23 @@
+{
+  "id": "gale",
+  "name": "Gale",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 6,
+  "weight": 4,
+  "hit": 95,
+  "critical": 5,
+  "maxUses": 10,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [
+    "flying"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/Wind_tome/rotations/Wind_tome.png",
+  "spellbook": "wind-tome",
+  "requiredRank": "D",
+  "tier": 2,
+  "description": "A cutting crosswind, still light and precise.",
+  "lore": "Siege notes for clearing archers from a wall. The ink is smeared where someone wept."
+}

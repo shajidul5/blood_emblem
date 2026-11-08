@@ -1,0 +1,22 @@
+{
+  "id": "luna",
+  "name": "Luna",
+  "type": "Dark",
+  "damageType": "magical",
+  "might": 8,
+  "weight": 10,
+  "hit": 75,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "requiredRank": "D",
+  "maxUses": 8,
+  "halvesResistance": true,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Dark_Tome/dark_tome.png",
+  "spellbook": "dark-tome",
+  "tier": 2,
+  "description": "Ignores half the target's Resistance.",
+  "lore": "A crescent opens in the dark. Even the Church's wards cast a shadow."
+}

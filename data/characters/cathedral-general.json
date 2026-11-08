@@ -1,0 +1,9 @@
+{
+  "id": "cathedral-general", "name": "Cathedral General", "classId": "general", "type": "armor",
+  "spriteSet": "generalSeverin", "sprite": "assets/character/General_Severin/rotations/south.png",
+  "scale": 1.2, "level": 20, "experience": 0, "weaponId": "silver-lance",
+  "weaponExp": { "Spear": 120, "Axe": 0 }, "ai": "guard",
+  "baseStats": { "hp": 44, "strength": 18, "magic": 0, "dexterity": 13, "speed": 7, "luck": 4, "defense": 19, "resistance": 9, "movement": 4, "build": 15 },
+  "currentStats": { "hp": 44, "strength": 18, "magic": 0, "dexterity": 13, "speed": 7, "luck": 4, "defense": 19, "resistance": 9, "movement": 4, "build": 15 },
+  "growthRates": { "hp": 60, "strength": 40, "magic": 0, "dexterity": 35, "speed": 15, "luck": 20, "defense": 40, "resistance": 25, "movement": 0, "build": 0 }
+}

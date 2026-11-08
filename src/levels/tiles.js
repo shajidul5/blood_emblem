@@ -32,12 +32,44 @@ function buildDefinition(entry) {
 }
 
 export const TILE_DEFS = new Map(shipTileset.tiles.list.map((entry) => [entry.id, buildDefinition(entry)]));
+for (const [id, name, walkable, bonuses] of [
+  ['cathedral_floor', 'Cathedral Marble', true, {}],
+  ['cathedral_carpet', 'Processional Carpet', true, {}],
+  ['cathedral_stairs', 'Cathedral Stairs', true, { moveCost: 2 }],
+  ['cathedral_altar', 'Consecrated Marble', true, { avoid: 10, defense: 2 }],
+  ['cathedral_pew', 'Oak Pew', false, {}],
+  ['cathedral_pillar', 'Ribbed Pillar', false, {}],
+  ['cathedral_wall', 'Cathedral Wall', false, {}],
+  ['cathedral_rail', 'Gallery Balustrade', false, {}],
+]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...bonuses }));
 export const VILLAGE_GRAVEL_TILE_IDS = new Set([
   'village_gravel_a',
   'village_gravel_b',
   'village_gravel_c',
   'village_building',
 ]);
+export const STREET_TILE_IDS = new Set(['street_curb', 'street_lamp']);
+export const COURTYARD_TILE_IDS = new Set([
+  'courtyard_paving', 'courtyard_lawn', 'courtyard_hedge', 'courtyard_wall',
+  'courtyard_fountain', 'courtyard_cathedral',
+]);
+for (const [id, name, walkable, bonuses] of [
+  ['courtyard_paving', 'Pale Paving', true, {}],
+  ['courtyard_lawn', 'Formal Garden', true, { avoid: 10, defense: 1 }],
+  ['courtyard_hedge', 'Clipped Hedge', false, {}],
+  ['courtyard_wall', 'Low Limestone Wall', false, {}],
+  ['courtyard_fountain', 'Dry Fountain', false, {}],
+  ['courtyard_cathedral', 'Cathedral Wall', false, {}],
+]) {
+  TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...bonuses }));
+}
+for (const id of STREET_TILE_IDS) {
+  TILE_DEFS.set(id, buildDefinition({
+    id,
+    name: id === 'street_lamp' ? 'Gas Lamp' : 'Raised Curb',
+    walkable: false,
+  }));
+}
 for (const id of VILLAGE_GRAVEL_TILE_IDS) {
   const building = id === 'village_building';
   TILE_DEFS.set(id, buildDefinition({
@@ -62,14 +94,33 @@ export function isTileWalkable(tileId) {
   return getTileDef(tileId).walkable;
 }
 
+export function isInfirmaryRecoveryWard(x, z) {
+  return (((x >= 1 && x <= 5) || (x >= 18 && x <= 22)) && z >= 2 && z <= 6) ||
+    (((x >= 7 && x <= 10) || (x >= 14 && x <= 16)) && z >= 7 && z <= 10);
+}
+
+export function infirmaryDoorOrientation(level, x, z) {
+  const wallAt = (dx, dz) => {
+    const id = level.tileIds[z + dz]?.[x + dx];
+    return id?.startsWith('mans_wall') || id === 'mans_door_open' ? 1 : 0;
+  };
+  const horizontal = wallAt(-1, 0) + wallAt(1, 0);
+  const vertical = wallAt(0, -1) + wallAt(0, 1);
+  const side = vertical > horizontal;
+  return { direction: side ? 'side' : 'front', mirrored: side && x >= level.width / 2 };
+}
+
 export function isLevelTileWalkable(level, x, z, unit) {
   const tileId = level?.tileIds?.[z]?.[x];
   const flying = unit?.type === 'flying';
   return Boolean(tileId) && (flying
-    ? TILE_DEFS.has(tileId) && !['city_wall', 'village_building'].includes(tileId) && !tileId.startsWith('mans_wall')
+    ? TILE_DEFS.has(tileId) && !['city_wall', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
     : isTileWalkable(tileId)) &&
     !(level?.gateEncounter && !level.gateEncounter.spawned &&
       level.gateEncounter.x === x && level.gateEncounter.z === z) &&
+    !(level?.cells ?? []).some((cell) => !cell.opened && cell.door.x === x && cell.door.z === z) &&
+    !(level?.infirmary?.gates ?? []).some((gate) => gate.closed &&
+      (gate.blocks ?? []).some((block) => block.x === x && block.z === z)) &&
     ![...(level?.houses ?? []), ...(level?.decorativeHouses ?? [])].some((house) =>
       x >= house.x && x < house.x + house.width &&
       z >= house.z && z < house.z + house.height);

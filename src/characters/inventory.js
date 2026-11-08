@@ -5,6 +5,13 @@ import ironAxe from '../../data/weapons/iron-axe.json';
 import ironSpear from '../../data/weapons/iron-spear.json';
 import steelSpear from '../../data/weapons/steel-spear.json';
 import steelLance from '../../data/weapons/steel-lance.json';
+import steelSword from '../../data/weapons/steel-sword.json';
+import steelAxe from '../../data/weapons/steel-axe.json';
+import killerBow from '../../data/weapons/killer-bow.json';
+import killingEdge from '../../data/weapons/killing-edge.json';
+import silverLance from '../../data/weapons/silver-lance.json';
+import axereaver from '../../data/weapons/axereaver.json';
+import armorslayer from '../../data/weapons/armorslayer.json';
 import javelin from '../../data/weapons/javelin.json';
 import fireTome from '../../data/weapons/fire-tome.json';
 import thunderTome from '../../data/weapons/thunder-tome.json';
@@ -21,7 +28,8 @@ import huntersHatchet from '../../data/weapons/hunters-hatchet.json';
 import pocketwatch from '../../data/items/pocketwatch.json';
 import lightTome from '../../data/weapons/light-tome.json';
 import heartrootBark from '../../data/weapons/heartroot-bark.json';
-import raikiri from '../../data/weapons/raikiri.json';
+import bloodletter from '../../data/weapons/bloodletter.json';
+import longinus from '../../data/weapons/longinus.json';
 import healStaff from '../../data/weapons/heal-staff.json';
 import potion from '../../data/items/potion.json';
 import chestKey from '../../data/items/chest-key.json';
@@ -34,7 +42,16 @@ import bloodrootTonic from '../../data/items/bloodroot-tonic.json';
 import alphaFang from '../../data/items/alpha-fang.json';
 import orsenJournal from '../../data/items/orsen-journal.json';
 import crossingKeepsake from '../../data/items/crossing-keepsake.json';
-import { getUsesMultiplier } from './classes.js';
+import vigilLance from '../../data/weapons/vigil-lance.json';
+import undeadClaws from '../../data/weapons/undead-claws.json';
+import ridersbane from '../../data/weapons/ridersbane.json';
+import blightedTendrils from '../../data/weapons/blighted-tendrils.json';
+import darkTome from '../../data/weapons/dark-tome.json';
+import { canEquipWeapon, equipBlockReason, getUsesMultiplier } from './classes.js';
+
+// Higher-tier spells (Blaze, Mend...) live in their own files and name the tome they are written in.
+const SPELL_DATA = Object.values(import.meta.glob('../../data/weapons/*.json', { eager: true, import: 'default' }))
+  .filter((weapon) => weapon.spellbook);
 
 const WEAPON_SPRITES = import.meta.glob('../../assets/weapons/**/*.{png,svg}', {
   eager: true,
@@ -72,6 +89,10 @@ export const INVENTORY_ITEMS = new Map([
   [ironSpear.id, createWeaponItem(ironSpear)],
   [steelSpear.id, createWeaponItem(steelSpear)],
   [steelLance.id, createWeaponItem(steelLance)],
+  [steelSword.id, createWeaponItem(steelSword)],
+  [silverLance.id, createWeaponItem(silverLance)],
+  [axereaver.id, createWeaponItem(axereaver)],
+  [armorslayer.id, createWeaponItem(armorslayer)],
   [javelin.id, createWeaponItem(javelin)],
   [fireTome.id, createWeaponItem(fireTome)],
   [thunderTome.id, createWeaponItem(thunderTome)],
@@ -89,7 +110,8 @@ export const INVENTORY_ITEMS = new Map([
   [lightTome.id, createWeaponItem(lightTome)],
   [healStaff.id, createWeaponItem(healStaff)],
   [heartrootBark.id, createWeaponItem(heartrootBark)],
-  [raikiri.id, createWeaponItem(raikiri)],
+  [bloodletter.id, createWeaponItem(bloodletter)],
+  [longinus.id, createWeaponItem(longinus)],
   [potion.id, createConsumableItem(potion)],
   [chestKey.id, createConsumableItem(chestKey)],
   [masterEmblem.id, createConsumableItem(masterEmblem)],
@@ -101,7 +123,117 @@ export const INVENTORY_ITEMS = new Map([
   [alphaFang.id, createConsumableItem(alphaFang)],
   [orsenJournal.id, createConsumableItem(orsenJournal)],
   [crossingKeepsake.id, createConsumableItem(crossingKeepsake)],
+  [vigilLance.id, createWeaponItem(vigilLance)],
+  [undeadClaws.id, createWeaponItem(undeadClaws)],
+  [ridersbane.id, createWeaponItem(ridersbane)],
+  [blightedTendrils.id, createWeaponItem(blightedTendrils)],
+  [darkTome.id, createWeaponItem(darkTome)],
+  ...[steelAxe, killerBow, killingEdge].map((weapon) => [weapon.id, createWeaponItem(weapon)]),
+  ...SPELL_DATA.map((spell) => [spell.id, createWeaponItem(spell)]),
 ]);
+
+// Item ids renamed since older saves were written.
+export const LEGACY_ITEM_IDS = { raikiri: bloodletter.id };
+export const currentItemId = (id) => LEGACY_ITEM_IDS[id] ?? id;
+
+// Tome or staff id -> its unlockable spells, lowest tier first.
+const SPELLBOOKS = new Map();
+for (const spell of [...SPELL_DATA].sort((a, b) => a.tier - b.tier)) {
+  if (!SPELLBOOKS.has(spell.spellbook)) SPELLBOOKS.set(spell.spellbook, []);
+  SPELLBOOKS.get(spell.spellbook).push(INVENTORY_ITEMS.get(spell.id));
+}
+const unlockedSpells = new Set();
+
+export const bookOf = (weapon) => weapon?.spellbook ?? weapon?.id;
+export const spellsOf = (bookId) => SPELLBOOKS.get(bookId) ?? [];
+export const isSpellUnlocked = (spellId) => unlockedSpells.has(spellId);
+export const unlockedSpellsOf = (bookId) => spellsOf(bookId).filter((spell) => unlockedSpells.has(spell.id));
+
+export function carriedWeapons(unit) {
+  return [...new Set((unit.inventory ?? []).flatMap((entry) => {
+    const item = INVENTORY_ITEMS.get(entry.id);
+    const authored = (unit.authoredSpells ?? []).map((id) => INVENTORY_ITEMS.get(id))
+      .filter((spell) => spell?.spellbook === entry.id);
+    return item?.itemType === 'weapon' ? [item, ...unlockedSpellsOf(entry.id), ...authored] : [];
+  }))];
+}
+
+export function attackWeapons(unit) {
+  return carriedWeapons(unit).filter((weapon) => weapon.type !== 'Staff' && !weapon.passive)
+    .sort((a, b) => Number(b.id === unit.weapon?.id) - Number(a.id === unit.weapon?.id));
+}
+
+export function equipAttackWeapon(unit, weapon) {
+  const reason = weaponUseBlockReason(unit, weapon);
+  if (reason || weapon.type === 'Staff' || weapon.passive) {
+    throw new Error(reason ?? `${weapon.name} cannot be used to attack.`);
+  }
+  unit.weapon = weapon;
+}
+
+export function weaponUseBlockReason(unit, weapon) {
+  const blocked = equipBlockReason(unit, weapon);
+  if (blocked) return blocked;
+  if (weapon.spellbook && !unit.authoredSpells?.includes(weapon.id) && !isSpellUnlocked(weapon.id)) return 'Unlock with Insight';
+  const entry = findWeaponEntry(unit, weapon);
+  if (!entry) return 'Not carried';
+  return spellUses(entry, weapon) === 0 ? 'No uses left' : undefined;
+}
+
+// Insight owns which spells are unlocked; it reports them here so inventories can follow.
+export function setUnlockedSpells(spellIds) {
+  unlockedSpells.clear();
+  for (const id of spellIds) unlockedSpells.add(id);
+}
+
+// Copies an inventory entry for saving or trading, keeping per-spell uses.
+export function copyEntry({ id, uses, spells }) {
+  return spells ? { id, uses, spells: { ...spells } } : { id, uses };
+}
+
+// A tome entry keeps each unlocked spell's uses in entry.spells; the book's own spell uses entry.uses.
+export function spellUses(entry, weapon) {
+  if (!entry) return undefined;
+  return weapon?.spellbook ? entry.spells?.[weapon.id] ?? 0 : entry.uses;
+}
+
+function spendSpellUse(entry, weapon) {
+  if (weapon?.spellbook) {
+    if (Number.isInteger(entry.spells?.[weapon.id]) && entry.spells[weapon.id] > 0) entry.spells[weapon.id]--;
+  } else if (Number.isInteger(entry.uses) && entry.uses > 0) entry.uses--;
+}
+
+// The inventory entry a weapon or spell is cast from, preferring one that still has uses.
+export function findWeaponEntry(unit, weapon = unit?.weapon) {
+  if (!weapon || !unit?.inventory) return undefined;
+  const holders = unit.inventory.filter((entry) => entry.id === bookOf(weapon));
+  return holders.find((entry) => {
+    const uses = spellUses(entry, weapon);
+    return !Number.isInteger(uses) || uses > 0;
+  }) ?? holders[0];
+}
+
+// Adds newly unlocked spells (with full uses) and drops refunded ones. refill restores every spell.
+export function syncSpellUses(entry, unit, refill = false) {
+  const spells = unlockedSpellsOf(entry.id);
+  if (!spells.length) {
+    delete entry.spells;
+    return;
+  }
+  entry.spells = Object.fromEntries(spells.map((spell) => {
+    const current = entry.spells?.[spell.id];
+    return [spell.id, refill || !Number.isInteger(current) ? maxUsesFor(spell, unit) : current];
+  }));
+}
+
+// Keeps carried tomes in step with the unlocked spells; units holding a refunded spell fall back to the book.
+export function syncSpellbooks(units, convoyEntries = convoy) {
+  for (const unit of units) {
+    for (const entry of unit.inventory ?? []) syncSpellUses(entry, unit);
+    if (unit.weapon?.spellbook && !isSpellUnlocked(unit.weapon.id)) unit.weapon = INVENTORY_ITEMS.get(unit.weapon.spellbook);
+  }
+  for (const entry of convoyEntries) syncSpellUses(entry);
+}
 
 export function createMariaInventory() {
   return [
@@ -115,7 +247,9 @@ export function createInventory(itemIds) {
   return itemIds.map((id) => {
     const item = INVENTORY_ITEMS.get(id);
     if (!item) throw new Error(`Unknown inventory item ${id}.`);
-    return { id, uses: freshUses(item) };
+    const entry = { id, uses: freshUses(item) };
+    syncSpellUses(entry);
+    return entry;
   });
 }
 
@@ -136,6 +270,7 @@ export function refreshMagicUses(entries, unit) {
   for (const entry of entries) {
     const item = INVENTORY_ITEMS.get(entry.id);
     if (item?.itemType === 'weapon' && item.maxUses) entry.uses = maxUsesFor(item, unit);
+    syncSpellUses(entry, unit, true);
   }
 }
 
@@ -146,13 +281,16 @@ export function rescaleMagicUses(unit, previousMultiplier) {
   for (const entry of unit.inventory) {
     const item = INVENTORY_ITEMS.get(entry.id);
     if (item?.itemType === 'weapon' && item.maxUses && Number.isInteger(entry.uses)) entry.uses += item.maxUses * gain;
+    for (const spell of unlockedSpellsOf(entry.id)) {
+      if (Number.isInteger(entry.spells?.[spell.id])) entry.spells[spell.id] += spell.maxUses * gain;
+    }
   }
 }
 
 // Spends one use of the unit's equipped weapon, if it is limited.
-export function spendWeaponUse(unit) {
-  const entry = unit.inventory?.find((candidate) => candidate.id === unit.weapon?.id);
-  if (entry && Number.isInteger(entry.uses) && entry.uses > 0) entry.uses--;
+export function spendWeaponUse(unit, weapon = unit.weapon) {
+  const entry = findWeaponEntry(unit, weapon);
+  if (entry) spendSpellUse(entry, weapon);
 }
 
 export const MAX_INVENTORY_SIZE = 5;
@@ -162,15 +300,16 @@ export const convoy = [];
 
 export function setConvoy(entries) {
   convoy.length = 0;
-  convoy.push(...(entries ?? []).map(({ id, uses }) => legacyEntry({ id, uses })));
+  convoy.push(...(entries ?? []).map((entry) => legacyEntry(copyEntry(entry))));
+  for (const entry of convoy) syncSpellUses(entry);
 }
 
 // Saves from before tomes and staves had limited uses stored null; treat that as full.
 function legacyEntry(entry) {
+  entry.id = currentItemId(entry.id);
   const item = INVENTORY_ITEMS.get(entry.id);
-  return item?.itemType === 'weapon' && item.maxUses && entry.uses === null
-    ? { id: entry.id, uses: item.maxUses }
-    : entry;
+  if (item?.itemType === 'weapon' && item.maxUses && entry.uses === null) entry.uses = item.maxUses;
+  return entry;
 }
 
 // Adds a fresh copy of the item (units may hold duplicates). When the unit already carries
@@ -179,6 +318,7 @@ export function grantItem(unit, itemId) {
   const item = INVENTORY_ITEMS.get(itemId);
   if (!item) throw new Error(`Unknown inventory item ${itemId}.`);
   const entry = { id: itemId, uses: freshUses(item, unit) };
+  syncSpellUses(entry, unit, true);
   const toConvoy = unit.inventory.length >= MAX_INVENTORY_SIZE;
   (toConvoy ? convoy : unit.inventory).push(entry);
   return { item, toConvoy };
@@ -186,8 +326,9 @@ export function grantItem(unit, itemId) {
 
 export function restoreMariaInventory(unit, savedInventory, equippedWeaponId) {
   unit.inventory = savedInventory
-    ? savedInventory.map((entry) => legacyEntry({ ...entry }))
+    ? savedInventory.map((entry) => legacyEntry(copyEntry(entry)))
     : createMariaInventory();
+  for (const entry of unit.inventory) syncSpellUses(entry, unit);
   // Older saves predate the Blood Emblem; only Maria carries it (bound items can't be traded).
   if (unit.id === 'maria') {
     if (!unit.inventory.some((entry) => entry.id === bloodEmblem.id)) {
@@ -202,10 +343,13 @@ export function restoreMariaInventory(unit, savedInventory, equippedWeaponId) {
     unit.weapon = null;
     return;
   }
-  const weaponId = equippedWeaponId ?? rapier.id;
-  const equippedEntry = unit.inventory.find((entry) => entry.id === weaponId);
-  const equippedItem = INVENTORY_ITEMS.get(weaponId);
-  if (!equippedEntry || equippedItem?.itemType !== 'weapon') {
+  const weaponId = currentItemId(equippedWeaponId ?? rapier.id);
+  let equippedItem = INVENTORY_ITEMS.get(weaponId);
+  // A refunded spell falls back to the tome it was written in.
+  if (equippedItem?.spellbook && (!isSpellUnlocked(equippedItem.id) || !canEquipWeapon(unit, equippedItem))) {
+    equippedItem = INVENTORY_ITEMS.get(equippedItem.spellbook);
+  }
+  if (!findWeaponEntry(unit, equippedItem) || equippedItem?.itemType !== 'weapon') {
     throw new Error(`Cannot equip ${weaponId}: it is not in ${unit.name}'s inventory.`);
   }
   unit.weapon = equippedItem;

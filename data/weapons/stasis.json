@@ -1,0 +1,23 @@
+{
+  "id": "stasis",
+  "name": "Stasis",
+  "type": "Staff",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 3,
+  "hit": 60,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "B",
+  "freeze": true,
+  "freezeExperience": 40,
+  "maxUses": 3,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Freeze_Staff/freeze_staff.png",
+  "spellbook": "freeze-staff",
+  "tier": 3,
+  "freezeTurns": 2,
+  "lore": "The foe is stilled so completely that time seems to forget it for a while."
+}

@@ -4,7 +4,7 @@
   "name": "Chest Key",
   "type": "consumable",
   "effect": "key",
-  "description": "Opens a locked chest.",
+  "description": "Opens a locked chest or cell door.",
   "maxUses": 1,
   "sprite": "assets/items/Chest_Key/chest_key.svg"
 }

@@ -1,20 +1,14 @@
 import data from '../../data/upgrades.json';
-import { INVENTORY_ITEMS } from '../characters/inventory.js';
+import { INVENTORY_ITEMS, setUnlockedSpells } from '../characters/inventory.js';
 
 export const BOSS_INSIGHT = data.bossInsight;
 export const MAX_LEADERSHIP = data.leadership.costs.length;
 export const LEADERSHIP_HIT = data.leadership.hit;
 export const LEADERSHIP_AVOID = data.leadership.avoid;
-export const MAX_WEAPON_TIER = data.weaponCosts.length;
 export const FIRST_PREP_CHAPTER = data.firstPrepChapter;
-export const AWAKEN = data.awaken;
 export const BLOOD_EMBLEM = data.bloodEmblem;
 
-const STAT_LABELS = { might: 'Might', hit: 'Hit', critical: 'Crit', heal: 'Heal', maxRange: 'Range' };
-const BASE_FIELDS = ['name', 'might', 'hit', 'critical', 'heal', 'maxRange'];
-const baseWeapons = new Map();
-
-const freshState = () => ({ insight: 0, leadership: 0, leadershipPaid: [], tiers: {}, awakened: false, bloodEmblem: false, bloodEmblemEquipped: false });
+const freshState = () => ({ insight: 0, leadership: 0, leadershipPaid: [], spells: {}, evolved: {}, evolutionPaid: {}, bloodEmblem: false, bloodEmblemEquipped: false });
 // Star prices before the leadership rebalance; saves that predate leadershipPaid were charged these.
 const LEGACY_LEADERSHIP_COSTS = [2, 3, 4, 5, 6];
 let state = freshState();
@@ -23,7 +17,6 @@ const clampInt = (value, min, max) => (Number.isInteger(value) ? Math.max(min, M
 
 export const getInsight = () => state.insight;
 export const getLeadership = () => state.leadership;
-export const isAwakened = () => state.awakened;
 export const isBloodEmblemUpgraded = () => state.bloodEmblem;
 export const isBloodEmblemEquipped = () => state.bloodEmblemEquipped;
 
@@ -66,7 +59,7 @@ export function healBloodEmblemKill(unit) {
 }
 
 export function snapshotInsight() {
-  return { ...state, leadershipPaid: [...state.leadershipPaid], tiers: { ...state.tiers } };
+  return { ...state, leadershipPaid: [...state.leadershipPaid], spells: { ...state.spells }, evolved: { ...state.evolved }, evolutionPaid: { ...state.evolutionPaid } };
 }
 
 // Tolerates missing or hand-edited data: anything unrecognised falls back to nothing spent.
@@ -78,24 +71,37 @@ export function restoreInsight(snapshot) {
     const paid = Array.isArray(snapshot.leadershipPaid) ? snapshot.leadershipPaid : LEGACY_LEADERSHIP_COSTS;
     state.leadershipPaid = Array.from({ length: state.leadership }, (_, i) =>
       clampInt(paid[i], 0, data.leadership.costs[i]));
-    for (const id of Object.keys(data.weapons)) {
-      const tier = clampInt(snapshot.tiers?.[id], 0, MAX_WEAPON_TIER);
-      if (tier) state.tiers[id] = tier;
+    for (const [bookId, spells] of Object.entries(data.spellbooks)) {
+      const tier = clampInt(snapshot.spells?.[bookId], 0, spells.length);
+      if (tier) state.spells[bookId] = tier;
     }
-    state.awakened = snapshot.awakened === true && state.tiers[AWAKEN.weaponId] === MAX_WEAPON_TIER;
+    for (const baseId of Object.keys(EVOLUTIONS)) {
+      if (snapshot.evolved?.[baseId] !== true) continue;
+      state.evolved[baseId] = true;
+      state.evolutionPaid[baseId] = clampInt(snapshot.evolutionPaid?.[baseId] ?? data.legacy.evolutionCost, 0, EVOLUTIONS[baseId].cost);
+    }
+    // Old saves: refund the retired weapon tiers. An awakened Rapier is already the Bloodletter, so keep it evolved.
+    state.insight += legacyRefund(snapshot);
+    if (snapshot.awakened === true && !state.evolved.rapier) {
+      state.evolved.rapier = true;
+      state.evolutionPaid.rapier = Math.min(state.insight, data.legacy.evolutionCost);
+      state.insight -= state.evolutionPaid.rapier;
+    }
     state.bloodEmblem = snapshot.bloodEmblem === true;
     state.bloodEmblemEquipped = state.bloodEmblem && snapshot.bloodEmblemEquipped === true;
   }
-  applyWeaponUpgrades();
+  publishSpells();
 }
 
 export function addInsight(amount) {
   state.insight += amount;
 }
 
-// Leadership aids recruited player units, not enemies or neutral villagers and riders.
+// Leadership aids Maria's recruited units, not enemies, neutral villagers and riders, or Rictor's separate party.
 export function leadershipBonus(unit, kind) {
-  return unit?.ai === undefined && !unit?.neutral ? state.leadership * data.leadership[kind] : 0;
+  return unit?.ai === undefined && !unit?.neutral && (unit?.party ?? 'maria') === 'maria'
+    ? state.leadership * data.leadership[kind]
+    : 0;
 }
 
 export const leadershipCost = () => data.leadership.costs[state.leadership];
@@ -116,75 +122,87 @@ export function refundLeadership() {
   return true;
 }
 
-export const upgradableWeaponIds = () => Object.keys(data.weapons);
-export const isUpgradable = (id) => id in data.weapons;
-export const weaponTier = (id) => state.tiers[id] ?? 0;
-export const nextWeaponCost = (id) => data.weaponCosts[weaponTier(id)];
+// Spellbooks: each Insight unlock in a tome or staff teaches the next spell, shared by the whole party.
+export const SPELL_COSTS = data.spellCosts;
+export const SPELLBOOK_IDS = Object.keys(data.spellbooks);
+export const spellTier = (bookId) => state.spells[bookId] ?? 0;
+export const nextSpellId = (bookId) => data.spellbooks[bookId]?.[spellTier(bookId)];
+export const nextSpellCost = (bookId) => (nextSpellId(bookId) ? SPELL_COSTS[spellTier(bookId)] : undefined);
+export const unlockedSpellIds = () =>
+  Object.entries(state.spells).flatMap(([bookId, tier]) => data.spellbooks[bookId].slice(0, tier));
 
-export function describeTierBonus(id, tier) {
-  const bonus = data.weapons[id]?.[tier - 1];
-  return bonus ? Object.entries(bonus).map(([stat, amount]) => `+${amount} ${STAT_LABELS[stat]}`).join(', ') : '';
-}
+const publishSpells = () => setUnlockedSpells(unlockedSpellIds());
 
-export function upgradeWeapon(id) {
-  const cost = nextWeaponCost(id);
-  if (!isUpgradable(id) || cost === undefined || state.insight < cost) return false;
+export function unlockSpell(bookId) {
+  const cost = nextSpellCost(bookId);
+  if (cost === undefined || state.insight < cost) return false;
   state.insight -= cost;
-  state.tiers[id] = weaponTier(id) + 1;
-  applyWeaponUpgrades();
+  state.spells[bookId] = spellTier(bookId) + 1;
+  publishSpells();
   return true;
 }
 
-export function refundWeapon(id) {
-  const tier = weaponTier(id);
-  if (!tier || (id === AWAKEN.weaponId && state.awakened)) return false;
-  state.insight += data.weaponCosts[tier - 1];
-  if (tier === 1) delete state.tiers[id];
-  else state.tiers[id] = tier - 1;
-  applyWeaponUpgrades();
+// Refunds the highest spell learned from the book.
+export function refundSpell(bookId) {
+  const tier = spellTier(bookId);
+  if (!tier) return false;
+  state.insight += SPELL_COSTS[tier - 1];
+  if (tier === 1) delete state.spells[bookId];
+  else state.spells[bookId] = tier - 1;
+  publishSpells();
   return true;
 }
 
-export const canAwaken = () =>
-  !state.awakened && weaponTier(AWAKEN.weaponId) === MAX_WEAPON_TIER && state.insight >= AWAKEN.cost;
+// Evolutions: a personal weapon is reforged into a new one (Rapier -> Bloodletter, Vigil Lance -> Longinus).
+export const EVOLUTIONS = data.evolutions;
+export const EVOLVING_WEAPON_IDS = Object.keys(EVOLUTIONS);
+export const isEvolved = (baseId) => state.evolved[baseId] === true;
 
-// Swaps the base weapon for its evolution in the owner's inventory; the caller picks the unit.
-export function awaken(unit) {
-  if (!canAwaken()) return false;
-  const entry = unit.inventory.find((candidate) => candidate.id === AWAKEN.weaponId);
-  if (!entry) return false;
-  entry.id = AWAKEN.into;
-  entry.uses = null;
-  if (unit.weapon?.id === AWAKEN.weaponId) unit.weapon = INVENTORY_ITEMS.get(AWAKEN.into);
-  state.insight -= AWAKEN.cost;
-  state.awakened = true;
-  return true;
-}
-
-export function revertAwakening(unit) {
-  if (!state.awakened) return false;
-  const entry = unit.inventory.find((candidate) => candidate.id === AWAKEN.into);
-  if (!entry) return false;
-  entry.id = AWAKEN.weaponId;
-  entry.uses = null;
-  if (unit.weapon?.id === AWAKEN.into) unit.weapon = INVENTORY_ITEMS.get(AWAKEN.weaponId);
-  state.insight += AWAKEN.cost;
-  state.awakened = false;
-  return true;
-}
-
-// Weapon items are shared objects, so upgrades are written onto them from a pristine copy.
-export function applyWeaponUpgrades() {
-  for (const [id, tiers] of Object.entries(data.weapons)) {
-    const item = INVENTORY_ITEMS.get(id);
-    if (!item) continue;
-    if (!baseWeapons.has(id)) baseWeapons.set(id, Object.fromEntries(BASE_FIELDS.map((field) => [field, item[field]])));
-    const base = baseWeapons.get(id);
-    for (const field of BASE_FIELDS) if (base[field] !== undefined) item[field] = base[field];
-    const tier = weaponTier(id);
-    for (const bonus of tiers.slice(0, tier)) {
-      for (const [stat, amount] of Object.entries(bonus)) item[stat] = (item[stat] ?? 0) + amount;
-    }
-    if (tier) item.name = `${base.name} +${tier}`;
+// Finds the carried copy of an item: on a unit (who may have it equipped) or in the convoy.
+function findHolder(itemId, units, convoyEntries) {
+  for (const unit of units) {
+    const entry = unit.inventory?.find((candidate) => candidate.id === itemId);
+    if (entry) return { unit, entry };
   }
+  const entry = convoyEntries.find((candidate) => candidate.id === itemId);
+  return entry ? { unit: null, entry } : null;
+}
+
+function reforge(fromId, toId, units, convoyEntries) {
+  const holder = findHolder(fromId, units, convoyEntries);
+  if (!holder) return false;
+  holder.entry.id = toId;
+  holder.entry.uses = null;
+  if (holder.unit?.weapon?.id === fromId) holder.unit.weapon = INVENTORY_ITEMS.get(toId);
+  return true;
+}
+
+export const canEvolve = (baseId) =>
+  Boolean(EVOLUTIONS[baseId]) && !isEvolved(baseId) && state.insight >= EVOLUTIONS[baseId].cost;
+
+export function evolveWeapon(baseId, units, convoyEntries = []) {
+  if (!canEvolve(baseId) || !reforge(baseId, EVOLUTIONS[baseId].into, units, convoyEntries)) return false;
+  state.insight -= EVOLUTIONS[baseId].cost;
+  state.evolved[baseId] = true;
+  state.evolutionPaid[baseId] = EVOLUTIONS[baseId].cost;
+  return true;
+}
+
+export function revertEvolution(baseId, units, convoyEntries = []) {
+  if (!isEvolved(baseId) || !reforge(EVOLUTIONS[baseId].into, baseId, units, convoyEntries)) return false;
+  state.insight += state.evolutionPaid[baseId];
+  delete state.evolved[baseId];
+  delete state.evolutionPaid[baseId];
+  return true;
+}
+
+// Insight spent under the old incremental weapon tiers (and the Raikiri awakening), returned in full.
+function legacyRefund(snapshot) {
+  const { weaponCosts, awaken } = data.legacy;
+  let refund = 0;
+  for (const tier of Object.values(snapshot.tiers ?? {})) {
+    refund += weaponCosts.slice(0, clampInt(tier, 0, weaponCosts.length)).reduce((sum, cost) => sum + cost, 0);
+  }
+  if (snapshot.awakened === true) refund += awaken.cost;
+  return refund;
 }

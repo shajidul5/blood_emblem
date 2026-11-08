@@ -1,0 +1,7 @@
+{
+  "id": "killer-bow", "name": "Killer Bow", "type": "Bow", "damageType": "physical",
+  "might": 7, "weight": 6, "hit": 80, "critical": 30,
+  "minRange": 2, "maxRange": 2, "requiredRank": "D", "effect": ["flying"], "sound": "bow",
+  "sprite": "assets/weapons/Cathedral/killer_bow.png",
+  "lore": "A precise bow kept for the Church's silent watch. Its low draw weight favors an Assassin's aim."
+}

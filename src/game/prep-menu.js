@@ -1,11 +1,12 @@
 import {
-  AWAKEN, LEADERSHIP_AVOID, LEADERSHIP_HIT, MAX_LEADERSHIP, MAX_WEAPON_TIER, awaken, buyLeadership, canAwaken, describeTierBonus, getInsight,
-  getLeadership, isAwakened, leadershipCost, nextWeaponCost, refundLeadership, refundWeapon, revertAwakening,
-  upgradableWeaponIds, upgradeWeapon, weaponTier,
+  EVOLUTIONS, EVOLVING_WEAPON_IDS, LEADERSHIP_AVOID, LEADERSHIP_HIT, MAX_LEADERSHIP, SPELLBOOK_IDS, buyLeadership, canEvolve,
+  evolveWeapon, getInsight, getLeadership, isEvolved, leadershipCost, nextSpellCost, nextSpellId, refundLeadership, refundSpell,
+  revertEvolution, spellTier, unlockSpell,
   BLOOD_EMBLEM, bloodEmblemDescription, buyBloodEmblem, isBloodEmblemEquipped, isBloodEmblemUpgraded,
   refundBloodEmblem, toggleBloodEmblem,
 } from './insight.js';
 import { renderInsightLabel } from './insight-display.js';
+import { spellsOf } from '../characters/inventory.js';
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -43,6 +44,7 @@ const PARENT = {
 export function createPrepMenu({
   dialog, getTeam, getConvoy, items, statItems, readInsight, settle, maxSize, maxDeployed,
   isDeployed, setDeployed, getInfo, portrait, onProfile, onSave, onOptions, onViewMap, onChange,
+  isRequired = (unit) => unit.id === 'maria',
 }) {
   let view = 'hub';
   let subjectId = null;
@@ -66,6 +68,12 @@ export function createPrepMenu({
     flash = '';
     focusPending = true;
     render();
+  };
+
+  const back = () => {
+    if (!dialog.open) return false;
+    if (view !== 'hub') go(PARENT[view]);
+    return true;
   };
 
   const sortEntries = (entries) => {
@@ -147,6 +155,10 @@ export function createPrepMenu({
     text.append(el('strong', '', item?.name ?? entry.id));
     if (entry.id === 'blood-emblem') text.append(el('span', 'item-effect', bloodEmblemDescription()));
     else if (Number.isInteger(entry.uses)) text.append(el('span', '', `Uses: ${entry.uses}`));
+    if (entry.spells) {
+      text.append(el('span', 'item-effect', `Spells: ${Object.entries(entry.spells)
+        .map(([id, uses]) => `${items.get(id)?.name ?? id} (${uses})`).join(' · ')}`));
+    }
     if (showLore && item?.lore) text.append(el('span', 'item-lore', item.lore));
     info.append(text);
     row.append(info);
@@ -214,11 +226,12 @@ export function createPrepMenu({
 
   const renderUnits = (body) => {
     const deployed = team().filter(isDeployed).length;
-    body.append(el('p', 'prep-note', `Choose who fights this chapter: ${deployed}/${maxDeployed} deployed. Maria always deploys.`));
+    const requiredNames = team().filter(isRequired).map((unit) => unit.name).join(' and ');
+    body.append(el('p', 'prep-note', `Choose who fights this chapter: ${deployed}/${maxDeployed} deployed. ${requiredNames} always deploy${team().filter(isRequired).length === 1 ? 's' : ''}.`));
     const grid = el('div', 'prep-grid prep-units-grid');
     for (const unit of team()) {
       const on = isDeployed(unit);
-      const required = unit.id === 'maria';
+      const required = isRequired(unit);
       grid.append(card(unit, () => { setDeployed(unit, !on); render(); }, {
         selected: on,
         disabled: required || (!on && deployed >= maxDeployed),
@@ -229,7 +242,7 @@ export function createPrepMenu({
     const actions = el('div', 'prep-actions');
     actions.append(
       button('Select all', () => { for (const unit of team()) setDeployed(unit, true); render(); }),
-      button('Clear', () => { for (const unit of team()) if (unit.id !== 'maria') setDeployed(unit, false); render(); }),
+      button('Clear', () => { for (const unit of team()) if (!isRequired(unit)) setDeployed(unit, false); render(); }),
     );
     body.append(actions);
   };
@@ -364,7 +377,18 @@ export function createPrepMenu({
     return row;
   };
 
-  const pipString = (filled, total) => '◆'.repeat(filled) + '◇'.repeat(total - filled);
+  // One line describing a spell or evolved weapon for the Insight screen.
+  const describeSpell = (item) => {
+    const uses = item.maxUses ? ` · ${item.maxUses} uses` : '';
+    let stats;
+    if (item.heal) stats = `Heals ${item.heal} + Magic${item.rangeFromMagic ? ' · Range 1 to Magic/2' : ''}`;
+    else if (item.freeze) stats = `Hit ${item.hit}${item.freezeTurns ? ` · Freezes ${item.freezeTurns} turns` : ''}`;
+    else stats = `Mt ${item.might} · Wt ${item.weight} · Hit ${item.hit} · Crit ${item.critical}`
+      + (item.maxRange > 2 || item.minRange > 1 ? ` · Range ${item.minRange}-${item.maxRange}` : '');
+    const extra = item.description ?? (item.effect?.length ? `Effective vs ${item.effect.join(', ')}.` : '');
+    const rank = item.requiredRank ? ` · Requires ${item.type} rank ${item.requiredRank}` : '';
+    return `${item.name} · ${stats}${rank}${uses}${extra ? `. ${extra}` : ''}`;
+  };
 
   const renderInsight = (body) => {
     const insight = getInsight();
@@ -372,7 +396,8 @@ export function createPrepMenu({
     const list = el('ul', 'item-list');
 
     const stars = getLeadership();
-    list.append(upgradeRow(
+    // Maria's own upgrades only show while her party is in the field; the Insight pool is shared.
+    if (maria()) list.append(upgradeRow(
       'Maria · Leadership',
       `Each star gives the whole party +${LEADERSHIP_HIT} Hit and +${LEADERSHIP_AVOID} Avoid (now +${stars * LEADERSHIP_HIT} Hit, +${stars * LEADERSHIP_AVOID} Avoid).`,
       '★'.repeat(stars) + '☆'.repeat(MAX_LEADERSHIP - stars),
@@ -385,7 +410,7 @@ export function createPrepMenu({
     ));
 
     const emblem = maria()?.inventory.some((entry) => entry.id === 'blood-emblem');
-    list.append(upgradeRow('Blood Emblem', bloodEmblemDescription(), isBloodEmblemUpgraded() ? 'Awakened' : 'Dormant', [
+    if (maria()) list.append(upgradeRow('Blood Emblem', bloodEmblemDescription(), isBloodEmblemUpgraded() ? 'Awakened' : 'Dormant', [
       button(`Upgrade (${BLOOD_EMBLEM.cost} Insight)`, () => { buyBloodEmblem(); onChange(); },
         !emblem || isBloodEmblemUpgraded() || insight < BLOOD_EMBLEM.cost),
       button(isBloodEmblemEquipped() ? 'Unequip' : 'Equip', () => { toggleBloodEmblem(maria()); onChange(); },
@@ -394,27 +419,45 @@ export function createPrepMenu({
     ], items.get('blood-emblem')));
 
     const owned = new Set([...team().flatMap((unit) => unit.inventory), ...getConvoy()].map((entry) => entry.id));
-    if (isAwakened()) owned.add(AWAKEN.weaponId);
-    for (const id of upgradableWeaponIds()) {
-      if (!owned.has(id) && !weaponTier(id)) continue;
-      const tier = weaponTier(id);
-      const base = items.get(id);
-      const awakened = id === AWAKEN.weaponId && isAwakened();
-      const buttons = [
-        button(`Upgrade (${costLabel(nextWeaponCost(id))})`, () => { upgradeWeapon(id); onChange(); },
-          tier >= MAX_WEAPON_TIER || insight < nextWeaponCost(id)),
-        button('Refund', () => { refundWeapon(id); onChange(); }, tier === 0 || awakened),
-      ];
-      if (id === AWAKEN.weaponId && tier === MAX_WEAPON_TIER) {
-        buttons.unshift(awakened
-          ? button('Revert', () => { revertAwakening(maria()); onChange(); })
-          : button(`Awaken (${AWAKEN.cost} Insight)`, () => { awaken(maria()); onChange(); },
-            !canAwaken() || !maria().inventory.some((entry) => entry.id === AWAKEN.weaponId)));
-      }
-      const name = awakened ? `${items.get(AWAKEN.into).name} (awakened ${base.name})` : base.name;
-      const next = describeTierBonus(id, tier + 1);
-      list.append(upgradeRow(name, tier >= MAX_WEAPON_TIER ? 'Fully upgraded.' : `Next: ${next}`, pipString(tier, MAX_WEAPON_TIER), buttons,
-        awakened ? items.get(AWAKEN.into) : base));
+
+    // Spellbooks: each unlock teaches the party the next spell written in the tome or staff.
+    for (const bookId of SPELLBOOK_IDS) {
+      const tier = spellTier(bookId);
+      if (!owned.has(bookId) && !tier) continue;
+      const book = items.get(bookId);
+      const ladder = [book, ...spellsOf(bookId)];
+      const nextId = nextSpellId(bookId);
+      const next = nextId && items.get(nextId);
+      const cost = nextSpellCost(bookId);
+      list.append(upgradeRow(
+        book.name,
+        next ? `Next: ${describeSpell(next)}` : 'Every spell in this book is unlocked.',
+        ladder.map((spell, index) => `${index <= tier ? '◆' : '◇'} ${spell.name}`).join('   '),
+        [
+          button(next ? `Unlock (${cost} Insight)` : 'Mastered', () => { unlockSpell(bookId); onChange(); },
+            !next || insight < cost),
+          button('Refund', () => { refundSpell(bookId); onChange(); }, tier === 0),
+        ],
+        book,
+      ));
+    }
+
+    // Evolutions: a personal weapon reforged into its true form.
+    for (const baseId of EVOLVING_WEAPON_IDS) {
+      const { into, cost } = EVOLUTIONS[baseId];
+      const evolved = isEvolved(baseId);
+      if (!owned.has(evolved ? into : baseId)) continue;
+      const base = items.get(baseId);
+      const result = items.get(into);
+      list.append(upgradeRow(
+        evolved ? `${result.name} (reforged ${base.name})` : base.name,
+        `${evolved ? '' : 'Evolves into '}${describeSpell(result)}`,
+        `${evolved ? '◇' : '◆'} ${base.name}   ${evolved ? '◆' : '◇'} ${result.name}`,
+        [evolved
+          ? button('Revert', () => { revertEvolution(baseId, team(), getConvoy()); onChange(); })
+          : button(`Evolve (${cost} Insight)`, () => { evolveWeapon(baseId, team(), getConvoy()); onChange(); }, !canEvolve(baseId))],
+        evolved ? result : base,
+      ));
     }
     body.append(list);
   };
@@ -439,17 +482,17 @@ export function createPrepMenu({
     dialog.append(body);
 
     dialog.append(el('p', 'prep-note prep-flash', flash));
-    if (view !== 'hub') dialog.append(button('Back', () => go(PARENT[view])));
+    if (view !== 'hub') dialog.append(button('Back', back));
     if (focusPending) {
       focusPending = false;
       (body.querySelector('button:not(:disabled)') ?? dialog.querySelector('button:not(:disabled)'))?.focus();
     }
   };
 
-  // Escape steps back a screen instead of closing the hub.
+  // Every back control steps to the parent without closing the preparation hub.
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    if (view !== 'hub') go(PARENT[view]);
+    back();
   });
 
   dialog.addEventListener('close', () => {
@@ -460,6 +503,7 @@ export function createPrepMenu({
 
   return {
     get open() { return dialog.open; },
+    back,
     refresh: () => render(),
     // Brings the hub back after View Map hid it.
     resume() {

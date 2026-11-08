@@ -31,6 +31,7 @@ export function terrainMoveCost(level, x, z, unit) {
 // `enemies` block movement; `allies` can be passed through but not stopped on.
 export function getMovementRange(unit, level, enemies, allies = []) {
   const distances = new Map([[tileKey(unit.x, unit.z), 0]]);
+  if (unit.frozen) return distances;
   const open = [{ x: unit.x, z: unit.z, cost: 0 }];
   while (open.length) {
     open.sort((a, b) => a.cost - b.cost);

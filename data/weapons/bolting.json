@@ -1,0 +1,23 @@
+{
+  "id": "bolting",
+  "name": "Bolting",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 12,
+  "weight": 12,
+  "hit": 60,
+  "critical": 5,
+  "maxUses": 4,
+  "minRange": 3,
+  "maxRange": 6,
+  "effect": [
+    "aqua"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/Thunder_tome/rotations/Thunder_tome.png",
+  "spellbook": "thunder-tome",
+  "requiredRank": "A",
+  "tier": 3,
+  "description": "Calls lightning from far away (range 3-6). Cannot strike or counter up close.",
+  "lore": "A siege-rite. The hedge-mage never cast it; the page is folded shut and sewn closed."
+}

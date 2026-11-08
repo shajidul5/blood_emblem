@@ -1,0 +1,16 @@
+{
+  "id": "undead-claws",
+  "name": "Grave Nails",
+  "lore": "Fingernails that kept growing after the heart stopped. They are cracked, yellow and caked with plaster from the cell walls.",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 4,
+  "hit": 75,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Wolf_Claws/rotations/Wolf_Claws.png"
+}

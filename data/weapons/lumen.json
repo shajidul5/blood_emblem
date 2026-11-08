@@ -1,0 +1,23 @@
+{
+  "id": "lumen",
+  "name": "Lumen",
+  "type": "Light",
+  "damageType": "magical",
+  "might": 8,
+  "weight": 8,
+  "hit": 80,
+  "critical": 5,
+  "maxUses": 8,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [
+    "undead"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/light_tome/rotations/light_tome.png",
+  "spellbook": "light-tome",
+  "requiredRank": "D",
+  "tier": 2,
+  "description": "A lance of pale radiance that sears the unholy.",
+  "lore": "A second litany, to a dawn the island has not seen in a generation."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "rictor",
+  "name": "Rictor",
+  "classId": "oathkeeper",
+  "type": "infantry",
+  "spriteSet": "rictor",
+  "sprite": "assets/character/Rictor_Templar/rotations/south.png",
+  "level": 10,
+  "experience": 0,
+  "weaponId": "vigil-lance",
+  "weaponExp": { "Spear": 60 },
+  "inventory": ["vigil-lance", "potion"],
+  "baseStats": { "hp": 32, "strength": 13, "magic": 3, "dexterity": 11, "speed": 10, "luck": 7, "defense": 10, "resistance": 5, "movement": 5, "build": 10 },
+  "currentStats": { "hp": 32, "strength": 13, "magic": 3, "dexterity": 11, "speed": 10, "luck": 7, "defense": 10, "resistance": 5, "movement": 5, "build": 10 },
+  "growthRates": { "hp": 70, "strength": 50, "magic": 25, "dexterity": 45, "speed": 40, "luck": 35, "defense": 45, "resistance": 30, "movement": 0, "build": 5 }
+}

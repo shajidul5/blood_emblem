@@ -1,6 +1,27 @@
 {
   "classes": [
     {
+      "id": "shaman",
+      "name": "Shaman",
+      "tier": "base",
+      "weaponTypes": ["Dark"],
+      "promotesTo": "dark-sage",
+      "promotionWeaponRanks": { "Staff": "D" },
+      "promotionBonuses": {
+        "hp": 4, "strength": 0, "magic": 3, "dexterity": 2, "speed": 1,
+        "luck": 1, "defense": 2, "resistance": 3, "movement": 1, "build": 1
+      }
+    },
+    {
+      "id": "dark-sage",
+      "name": "Dark Sage",
+      "tier": "advanced",
+      "weaponTypes": ["Dark", "Staff"],
+      "sprites": {
+        "corvis": { "spriteSet": "darkSageCorvis", "sprite": "assets/character/Dark_Sage_Corvis/rotations/south.png" }
+      }
+    },
+    {
       "id": "civilian",
       "name": "Villager",
       "tier": "base",
@@ -202,6 +223,7 @@
       "tier": "base",
       "weaponTypes": ["Spear", "Sword"],
       "promotesTo": "paladin",
+      "sprites": { "troy": { "spriteSet": "troy", "sprite": "assets/character/Troy/rotations/south.png", "scale": 1.15 } },
       "promotionBonuses": { "hp": 3, "strength": 2, "magic": 0, "dexterity": 2, "speed": 2, "luck": 0, "defense": 2, "resistance": 2, "movement": 1, "build": 1 }
     },
     {
@@ -219,6 +241,11 @@
           "spriteSet": "paladinLinus",
           "sprite": "assets/character/Paladin_Linus/rotations/south.png",
           "scale": 1.2
+        },
+        "troy": {
+          "spriteSet": "paladinTroy",
+          "sprite": "assets/character/Paladin_Troy/rotations/south.png",
+          "scale": 1.2
         }
       }
     },
@@ -234,6 +261,7 @@
       "id": "general",
       "name": "General",
       "tier": "advanced",
+      "sprites": { "arlan": { "spriteSet": "generalArlan", "sprite": "assets/character/General_Arlan/rotations/south.png" } },
       "weaponTypes": ["Spear", "Axe"]
     },
     {
@@ -253,6 +281,81 @@
       "abilities": [
         { "id": "deadeye", "name": "Deadeye", "description": "Bow critical rate rises by 15.", "critBonus": 15 }
       ]
-    }
+    },
+    {
+      "id": "soldier",
+      "name": "Soldier",
+      "tier": "base",
+      "weaponTypes": ["Spear"],
+      "promotesTo": "halberdier",
+      "promotionBonuses": { "hp": 4, "strength": 3, "magic": 0, "dexterity": 3, "speed": 2, "luck": 1, "defense": 3, "resistance": 1, "movement": 1, "build": 1 }
+    },
+    {
+      "id": "halberdier",
+      "name": "Halberdier",
+      "tier": "advanced",
+      "weaponTypes": ["Spear"]
+    },
+    {
+      "id": "oathkeeper",
+      "name": "Oathkeeper",
+      "tier": "base",
+      "type": "infantry",
+      "weaponTypes": ["Spear"],
+      "sprites": { "rictor": { "spriteSet": "rictor", "sprite": "assets/character/Rictor_Templar/rotations/south.png", "scale": 1 } },
+      "promotesTo": "templar",
+      "promotionWeaponRanks": { "Light": "D" },
+      "promotionBonuses": { "hp": 4, "strength": 2, "magic": 3, "dexterity": 2, "speed": 1, "luck": 1, "defense": 2, "resistance": 3, "movement": 3, "build": 1 }
+    },
+    {
+      "id": "templar",
+      "name": "Templar",
+      "tier": "advanced",
+      "type": "cavalry",
+      "minimumMovement": 8,
+      "weaponTypes": ["Spear", "Light"],
+      "sprites": { "rictor": { "spriteSet": "templarRictor", "sprite": "assets/character/Rictor_Mounted_Templar/rotations/south.png", "scale": 1.2 } },
+      "abilities": [
+        { "id": "vigil", "name": "Vigil", "description": "Deals effective damage against undead units.", "effectiveAgainst": ["undead"] }
+      ]
+    },
+    {
+      "id": "thief",
+      "name": "Thief",
+      "tier": "base",
+      "weaponTypes": ["Sword"],
+      "promotesTo": "assassin",
+      "promotionWeaponRanks": { "Bow": "D" },
+      "promotionBonuses": { "hp": 3, "strength": 2, "magic": 0, "dexterity": 3, "speed": 2, "luck": 1, "defense": 1, "resistance": 1, "movement": 1, "build": 1 },
+      "abilities": [
+        { "id": "lockpick", "name": "Lockpick", "description": "Opens chests and cell doors without a key.", "lockpick": true },
+        { "id": "pickpocket", "name": "Pickpocket", "description": "Steals an adjacent enemy's carried item when faster than the target.", "steal": true }
+      ]
+    },
+    {
+      "id": "assassin",
+      "name": "Assassin",
+      "tier": "advanced",
+      "weaponTypes": ["Sword", "Bow"],
+      "sprites": { "lena": { "spriteSet": "assassinLena", "sprite": "assets/character/Assassin_Lena/rotations/south.png" } },
+      "abilities": [
+        { "id": "lockpick", "name": "Lockpick", "description": "Opens chests and cell doors without a key.", "lockpick": true },
+        { "id": "pickpocket", "name": "Pickpocket", "description": "Steals an adjacent enemy's carried item when faster than the target.", "steal": true },
+        { "id": "lethality", "name": "Lethality", "description": "+15% critical chance in combat.", "critBonus": 15 }
+      ]
+    },
+    {
+      "id": "troubadour", "name": "Troubadour", "tier": "base", "type": "cavalry",
+      "minimumMovement": 7, "weaponTypes": ["Staff"], "promotesTo": "valkyrie",
+      "promotionWeaponRanks": { "Anima": "D" },
+      "promotionBonuses": { "hp": 3, "strength": 0, "magic": 3, "dexterity": 2, "speed": 2, "luck": 1, "defense": 2, "resistance": 3, "movement": 1, "build": 1 }
+    },
+    {
+      "id": "valkyrie", "name": "Valkyrie", "tier": "advanced", "type": "cavalry",
+      "minimumMovement": 8, "weaponTypes": ["Staff", "Anima"],
+      "sprites": { "eveline": { "spriteSet": "valkyrieEveline", "sprite": "assets/character/Eveline_Valkyrie/rotations/south.png", "scale": 1.2 } }
+    },
+    { "id": "undead", "name": "Undead", "tier": "monster", "weaponTypes": ["Claw"] },
+    { "id": "rotten", "name": "Rotten", "tier": "advanced", "weaponTypes": ["Claw"] }
   ]
 }

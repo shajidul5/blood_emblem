@@ -1,0 +1,7 @@
+{
+  "id": "silver-lance", "name": "Silver Lance", "type": "Spear", "damageType": "physical",
+  "might": 12, "weight": 10, "hit": 75, "critical": 0, "minRange": 1, "maxRange": 1,
+  "effect": [], "sound": "stab",
+  "lore": "Silver plating conceals the iron underneath. The Church calls it a symbol of mercy.",
+  "sprite": "assets/weapons/Steel_Spear/rotations/Steel_Spear.png"
+}

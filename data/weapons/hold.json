@@ -1,0 +1,22 @@
+{
+  "id": "hold",
+  "name": "Hold",
+  "type": "Staff",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 3,
+  "hit": 60,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "D",
+  "freeze": true,
+  "freezeExperience": 35,
+  "maxUses": 4,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Freeze_Staff/freeze_staff.png",
+  "spellbook": "freeze-staff",
+  "tier": 2,
+  "lore": "The winter linen tightens. Few can shake its grip."
+}

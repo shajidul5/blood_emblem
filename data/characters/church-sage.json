@@ -1,0 +1,17 @@
+{
+  "id": "church-sage",
+  "name": "Church Sage",
+  "classId": "sage",
+  "type": "infantry",
+  "spriteSet": "genericSage",
+  "sprite": "assets/character/Generic_Sage/rotations/south.png",
+  "scale": 1,
+  "level": 20,
+  "experience": 0,
+  "weaponId": "inferno",
+  "weaponExp": { "Anima": 120 },
+  "ai": "guard",
+  "baseStats": { "hp": 36, "strength": 2, "magic": 18, "dexterity": 14, "speed": 10, "luck": 4, "defense": 7, "resistance": 16, "movement": 5, "build": 9 },
+  "currentStats": { "hp": 36, "strength": 2, "magic": 18, "dexterity": 14, "speed": 10, "luck": 4, "defense": 7, "resistance": 16, "movement": 5, "build": 9 },
+  "growthRates": { "hp": 45, "strength": 0, "magic": 45, "dexterity": 35, "speed": 25, "luck": 20, "defense": 15, "resistance": 40, "movement": 0, "build": 0 }
+}

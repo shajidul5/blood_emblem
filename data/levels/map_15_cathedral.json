@@ -1,0 +1,111 @@
+{
+  "name": "Chapter 15 - Beneath the Sacred Blood",
+  "width": 26, "height": 36,
+  "objective": "defeat-boss", "leader": "rictor", "requiredUnits": ["rictor"],
+  "lighting": "dusk", "noFence": true,
+  "spawn": { "x": 12, "z": 33 }, "exit": { "x": 12, "z": 3 },
+  "tiles": [
+    "TTTTTTTTTTTTTTTTTTTTTTTTTT",
+    "TQQQQQQQQQTTTTTTQQQQQQQQQT",
+    "TQQQQQQQQQIIIIIIQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQOQQQQOQQQRRQQQOQQQQOQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQOQQQQOQQQRRQQQOQQQQOQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQQQQQQQQQQQQQQT",
+    "TQQQVVVVUUUUUUUUUUVVVVQQQT",
+    "TTTTVVVVTTTTTTTTTTVVVVTTTT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQOQQQQOQQQRRQQQOQQQQOQQT",
+    "TQQQQQQQQQTQRRQTQQQQQQQQQT",
+    "TQQQQQQQQQTQRRQTQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQTQRRQTQQQQQQQQQT",
+    "TQQOQQQQOQTQRRQTQOQQQQOQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQQQQQQQQQQQQQQT",
+    "TQQQVVVVUUUUUUUUUUVVVVQQQT",
+    "TTTTVVVVTTTTTTTTTTVVVVTTTT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQOQQQQEEEQRRQEEEQQQQOQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQOQQQQEEEQRRQEEEQQQQOQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQOQQQQEEEQRRQEEEQQQQOQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TTTTTTTTTTTTRRTTTTTTTTTTTT"
+  ],
+  "players": [
+    { "id": "rictor", "x": 12, "z": 33 },
+    { "id": "lena", "x": 11, "z": 34 },
+    { "id": "arlan", "x": 14, "z": 34 },
+    { "id": "troy", "x": 13, "z": 33 }
+  ],
+  "enemies": [
+    { "id": "cathedral-general", "x": 12, "z": 28, "ai": "guard" },
+    { "id": "cathedral-general", "x": 13, "z": 27, "ai": "stationary" },
+    { "id": "cathedral-paladin", "x": 4, "z": 27, "ai": "mobile", "weaponId": "steel-lance" },
+    { "id": "cathedral-paladin", "x": 21, "z": 26, "ai": "mobile", "weaponId": "steel-sword" },
+    { "id": "golden-mage", "x": 6, "z": 29, "level": 20, "ai": "guard", "weaponId": "blaze" },
+    { "id": "golden-mage", "x": 19, "z": 28, "level": 20, "ai": "guard", "weaponId": "blaze" },
+    { "id": "church-sage", "x": 10, "z": 25, "level": 20, "ai": "stationary", "weaponId": "inferno" },
+    { "id": "church-sage", "x": 15, "z": 25, "level": 20, "ai": "stationary", "weaponId": "inferno" },
+    { "id": "cathedral-general", "x": 5, "z": 22, "ai": "guard" },
+    { "id": "cathedral-general", "x": 20, "z": 21, "ai": "guard", "weaponId": "steel-axe" },
+    { "id": "cathedral-bolting", "x": 5, "z": 16, "ai": "stationary" },
+    { "id": "cathedral-bolting", "x": 20, "z": 18, "ai": "stationary" },
+    { "id": "golden-mage", "x": 9, "z": 19, "level": 22, "ai": "guard", "weaponId": "thunder-tome" },
+    { "id": "golden-mage", "x": 16, "z": 17, "level": 22, "ai": "guard", "weaponId": "blaze" },
+    { "id": "church-sage", "x": 12, "z": 16, "level": 22, "ai": "guard", "weaponId": "inferno" },
+    { "id": "church-sage", "x": 13, "z": 20, "level": 21, "ai": "stationary", "weaponId": "blaze" },
+    { "id": "cathedral-bishop", "x": 6, "z": 15, "stealable": ["heal-staff"] },
+    { "id": "cathedral-paladin", "x": 19, "z": 14, "ai": "guard", "weaponId": "javelin" },
+    { "id": "cathedral-general", "x": 5, "z": 9, "ai": "stationary" },
+    { "id": "cathedral-general", "x": 20, "z": 9, "ai": "stationary" },
+    { "id": "church-sage", "x": 9, "z": 8, "level": 23, "ai": "stationary", "weaponId": "inferno" },
+    { "id": "church-sage", "x": 16, "z": 7, "level": 23, "ai": "stationary", "weaponId": "inferno" },
+    { "id": "cathedral-general", "x": 11, "z": 5, "level": 22, "ai": "guard" },
+    { "id": "cathedral-general", "x": 14, "z": 5, "level": 22, "ai": "guard", "weaponId": "steel-axe" },
+    { "id": "church-sage", "x": 6, "z": 5, "level": 23, "ai": "guard", "weaponId": "blaze" },
+    { "id": "church-sage", "x": 19, "z": 4, "level": 23, "ai": "guard", "weaponId": "thunder-tome" },
+    { "id": "cathedral-bishop", "x": 13, "z": 4, "stealable": ["heal-staff"] },
+    { "id": "voss", "x": 12, "z": 3 }
+  ],
+  "chests": [
+    { "id": "nave-axe", "name": "Armory Chest", "x": 5, "z": 30, "rewardId": "steel-axe" },
+    { "id": "nave-seal", "name": "Order Commission", "x": 20, "z": 30, "rewardId": "orders-emblem" },
+    { "id": "gallery-bow", "name": "Silent Watch Chest", "x": 4, "z": 18, "rewardId": "killer-bow" },
+    { "id": "gallery-edge", "name": "Confessor's Chest", "x": 21, "z": 16, "rewardId": "killing-edge" },
+    { "id": "gallery-seal", "name": "Senior Commission", "x": 12, "z": 14, "rewardId": "orders-emblem" }
+  ],
+  "reinforcements": [
+    { "turn": 999, "entranceId": "nave-paladins", "units": [
+      { "id": "cathedral-paladin", "x": 4, "z": 34, "weaponId": "steel-lance" },
+      { "id": "cathedral-paladin", "x": 12, "z": 34, "weaponId": "steel-sword" },
+      { "id": "cathedral-paladin", "x": 21, "z": 34, "weaponId": "javelin" }
+    ] },
+    { "turn": 999, "entranceId": "gallery-paladins", "units": [
+      { "id": "cathedral-paladin", "x": 5, "z": 25, "weaponId": "silver-lance" },
+      { "id": "cathedral-paladin", "x": 20, "z": 25, "weaponId": "steel-sword" }
+    ] }
+  ],
+  "cathedral": {
+    "bossId": "voss",
+    "beats": [
+      { "id": "summons", "thresholdZ": 28, "seen": false },
+      { "id": "records", "thresholdZ": 22, "seen": false },
+      { "id": "sanctuary", "thresholdZ": 10, "seen": false }
+    ],
+    "triggers": [
+      { "id": "nave-paladins", "thresholdZ": 22, "warnedTurn": null },
+      { "id": "gallery-paladins", "thresholdZ": 10, "warnedTurn": null }
+    ]
+  }
+}

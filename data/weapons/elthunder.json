@@ -1,0 +1,23 @@
+{
+  "id": "elthunder",
+  "name": "Elthunder",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 9,
+  "weight": 7,
+  "hit": 70,
+  "critical": 20,
+  "maxUses": 8,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [
+    "aqua"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/Thunder_tome/rotations/Thunder_tome.png",
+  "spellbook": "thunder-tome",
+  "requiredRank": "D",
+  "tier": 2,
+  "description": "A forked bolt that strikes with killing precision more often than not.",
+  "lore": "The sigils fork like the lightning they call. The sea flinches harder."
+}

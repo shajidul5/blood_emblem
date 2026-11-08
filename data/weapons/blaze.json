@@ -1,0 +1,23 @@
+{
+  "id": "blaze",
+  "name": "Blaze",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 9,
+  "weight": 7,
+  "hit": 80,
+  "critical": 5,
+  "maxUses": 8,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [
+    "beast"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/Fire_tome/rotations/Fire_tome.png",
+  "spellbook": "fire-tome",
+  "requiredRank": "D",
+  "tier": 2,
+  "description": "A roaring gout of flame. Heavier to channel than Fire, but it burns hotter.",
+  "lore": "The second rite in the margins, written in a hand that grew steadier as the pages burned."
+}

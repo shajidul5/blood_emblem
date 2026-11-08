@@ -1,0 +1,22 @@
+{
+  "id": "longinus",
+  "lore": "The Vigil Lance with its crest filed clean away. Underneath was an older mark: a spear through a church bell. Rictor does not know who carved it, only that the dead fear it.",
+  "name": "Longinus",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 10,
+  "weight": 6,
+  "hit": 85,
+  "critical": 5,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [
+    "undead",
+    "cavalry",
+    "armor"
+  ],
+  "sound": "slash",
+  "sprite": "assets/weapons/Vigil_Lance/rotations/Vigil_Lance.png",
+  "exclusiveTo": "rictor",
+  "description": "The Demonslayer Lance. Effective against undead, cavalry and armored foes."
+}

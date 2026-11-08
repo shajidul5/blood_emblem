@@ -1,0 +1,18 @@
+{
+  "id": "severin",
+  "name": "General Severin",
+  "classId": "general",
+  "type": "armor",
+  "spriteSet": "generalSeverin",
+  "sprite": "assets/character/General_Severin/rotations/south.png",
+  "scale": 1.2,
+  "level": 20,
+  "experience": 0,
+  "weaponId": "silver-lance",
+  "weaponExp": { "Spear": 120 },
+  "isBoss": true,
+  "ai": "stationary",
+  "baseStats": { "hp": 54, "strength": 20, "magic": 0, "dexterity": 14, "speed": 7, "luck": 5, "defense": 20, "resistance": 10, "movement": 4, "build": 16 },
+  "currentStats": { "hp": 54, "strength": 20, "magic": 0, "dexterity": 14, "speed": 7, "luck": 5, "defense": 20, "resistance": 10, "movement": 4, "build": 16 },
+  "growthRates": { "hp": 65, "strength": 45, "magic": 0, "dexterity": 35, "speed": 15, "luck": 20, "defense": 45, "resistance": 30, "movement": 0, "build": 0 }
+}

@@ -1,0 +1,80 @@
+{
+  "infirmary": {
+    "pages": [
+      {
+        "kicker": "Part Three - Chapter 12",
+        "title": "The House of Mercy",
+        "paragraphs": [
+          "Rictor and Lena climb into the infirmary's main floor. The beds are overturned. Someone has chained the isolation doors shut from outside. Behind them, the dead are still demanding treatment.",
+          "A knight braces his shield across the service passage. \"Arlan,\" he says. \"City watch. I was posted here to protect these people, not bury them alive.\" He lowers his spear as he recognizes Rictor.",
+          "\"The porters need eight turns to get the ward through the passage. Hold this floor until they're clear. The Church has sent riders through the carriage entrance to make sure no witnesses leave.\""
+        ]
+      },
+      {
+        "kicker": "Hold the Door",
+        "title": "Eight Enemy Phases",
+        "paragraphs": [
+          "Defend the marked evacuation door through all eight enemy phases. An enemy reaching that tile loses the chapter immediately. Killing every enemy does not end the defense early. Rictor and Lena must survive.",
+          "Arlan joins at level 11 as a Knight. His defense makes him the natural anchor for the narrow approaches. His Ridersbane is effective against cavalry; swap to his Iron Spear against undead if you want to conserve it.",
+          "Undead are slow, strong and tough. Keep the approaches blocked, rotate wounded defenders, trade healing supplies, and let Lena finish weakened enemies. Check Options > Objective for defense progress and wave warnings one turn ahead. Occupied entrance tiles queue arrivals rather than moving them elsewhere."
+        ],
+        "icon": "ridersbane"
+      },
+      {
+        "kicker": "More Than Survival",
+        "title": "Leave No One Behind",
+        "paragraphs": [
+          "Stand adjacent to a ward objective and choose Ward Objective. Seal the west and east isolation gates to stop their future waves. Lena needs no key; other allies consume a Chest Key. Clear the blocked gate tiles before sealing. Each seal grants 45 EXP.",
+          "Elise and Mara are stranded in the distant west and east wards, with undead guarding the approaches. Reach them for healing consumables and 30 EXP each. Recover the Treatment Ledger for 5 Insight and 60 EXP. The roaming undead in the west isolation wing carries a Chest Key and drops it on defeat. These are optional, one-time actions, so divide the work among the party.",
+          "On turn six the Rotten emerges. Defeating him earns boss Insight and a valuable drop, but is not required to survive. All living deployed allies gain 100 EXP after the eighth enemy phase. Combat and objectives together aim for about two to three levels this chapter; promotion still requires level 20.",
+          "The Church is preparing to burn the infirmary. Hold until the service passage is clear, then take whatever proof you can carry."
+        ],
+        "button": "Hold the Ward"
+      }
+    ]
+  },
+  "infirmaryRecords": {
+    "pages": [
+      {
+        "kicker": "Treatment Records - 5 Insight",
+        "title": "A Cure Without Consent",
+        "paragraphs": [
+          "The public ledger lists fever remedies. Beneath it, Lena finds a second register: civilian names replaced by numbers, with doses of a crimson extract increased until the patients stopped answering.",
+          "The Church was testing whether tainted blood could be purified inside a living host. Those who survived the first infusion were kept for repeated trials. Those who died were not released to their families: the register calls their return to movement a successful response.",
+          "One page records a crimson emblem that held the reaction in check. Without it, the subjects grew violent and their bodies began to change. The emblem was removed from the ward by a minister whose name has been scraped away.",
+          "Rictor recognizes the crest in the margin. It is the emblem he entrusted to Maria. The quarantine was not protecting the city from these patients. It was protecting the Church from witnesses."
+        ],
+        "button": "Keep the Evidence"
+      }
+    ]
+  },
+  "rottenArrival": {
+    "pages": [
+      {
+        "kicker": "The Isolation Wing",
+        "title": "The Rotten",
+        "paragraphs": [
+          "The isolation doors buckle. A body drags itself through the wreckage, its blighted tendrils reaching farther than its ruined arms should allow.",
+          "Arlan recognizes the patient number sewn into its gown. \"They told his family he had recovered.\"",
+          "The Rotten has arrived. His tendrils attack at range 1-2. You do not have to defeat him: keep the evacuation door secure until all eight enemy phases are complete."
+        ],
+        "button": "Hold Fast"
+      }
+    ]
+  },
+  "infirmaryEnding": {
+    "pages": [
+      {
+        "kicker": "The House of Mercy - Aftermath",
+        "title": "Mercy in Ashes",
+        "paragraphs": [
+          "The last porter pounds on the service door. \"Clear!\" Arlan backs into the passage, shield still raised, as Lena drops the final bolt. Above them, the first windows turn orange.",
+          "Church soldiers set the infirmary alight while people are still inside. This was never a quarantine. It was a way to hide what their treatment had done.",
+          "{evidence}",
+          "\"There is an old watch route through the city,\" Arlan says. \"I know a rider who may still be alive. We find him, then we find the truth.\" Rictor looks toward the outer gate. Somewhere beyond it, Maria carries the answer."
+        ],
+        "button": "Into the City"
+      }
+    ]
+  }
+}

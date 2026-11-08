@@ -1,0 +1,7 @@
+{
+  "id": "killing-edge", "name": "Killing Edge", "type": "Sword", "damageType": "physical",
+  "might": 8, "weight": 6, "hit": 80, "critical": 30,
+  "minRange": 1, "maxRange": 1, "requiredRank": "D", "effect": [], "sound": "sword",
+  "sprite": "assets/weapons/Cathedral/killing_edge.png",
+  "lore": "A narrow blade issued to the Cathedral's confessors. It rewards precision rather than brute force."
+}

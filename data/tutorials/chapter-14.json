@@ -1,0 +1,94 @@
+{
+  "courtyard": {
+    "pages": [
+      {
+        "kicker": "Part Three - Chapter 14",
+        "title": "The Silent Courtyard",
+        "paragraphs": [
+          "Beyond the smoke, the Cathedral courtyard is immaculate. Pale paving runs between clipped hedges and low limestone walls. The fountain is dry. No worshippers wait here; only soldiers in golden armor.",
+          "General Severin stands before the northern doors. \"You have crossed the last boundary,\" he says. \"The Bishop receives no petition from armed fugitives.\" Rictor lowers his lance. \"Then you will hear it instead.\"",
+          "Defeat General Severin to win. There are no houses, civilian rescues, treasure or gate controls to seize. Rictor, Lena, Arlan and Troy begin at the south entrance; Eveline accompanies them only if she joined in the streets. Carried supplies remain your own."
+        ]
+      },
+      {
+        "kicker": "A Courtyard Built for Defense",
+        "title": "Choose a Lane, Not a Killing Ground",
+        "paragraphs": [
+          "Six aggressive cavaliers advance from staggered positions. Five knights defend the gardens while four mages and two Inferno Sages hold the central lanes. Their overlapping magic punishes a direct rush; use the outer garden walks to flank them. The hedge openings and fountain bypasses reconnect the lanes. Garden lawns, including their flowerbeds, grant +10 Avoid and +1 Defense; hedges, low walls and the fountain block ground movement.",
+          "The western priest casts Freeze within five tiles and remains behind a knight. The northern healer stands next to Severin and can restore adjacent injured defenders. Check each enemy's actual range and remaining staff uses rather than rushing into several spells together.",
+          "Passing the fountain midpoint calls one cavalry wave from the marked south gate. Entering the upper courtyard calls one final raven wave from the marked north corners. Each warning grants the next player phase before the arrivals attack; occupied arrival tiles queue their units without moving them elsewhere."
+        ],
+        "button": "Enter the Courtyard"
+      }
+    ]
+  },
+  "corvis": {
+    "pages": [
+      {
+        "kicker": "Corvis - Shaman",
+        "title": "A Familiar Voice",
+        "paragraphs": [
+          "\"Corvis?\" Eveline stops at the western side of the fountain. \"You were assigned to the ward. Look at the smoke behind us.\"",
+          "He closes his dark tome halfway. \"I was told the gates were keeping the sickness out.\" \"They kept us in,\" she answers. \"Come and see who gave the order.\"",
+          "Only Eveline can stand adjacent to living Corvis and choose Talk. Talking consumes her action. Corvis joins in his current condition, keeping his remaining HP and tome uses; recruitment is not a free heal. Without Eveline, he remains a defender, and defeating Severin still ends the chapter."
+        ],
+        "button": "Welcome Corvis"
+      }
+    ]
+  },
+  "corvisLost": {
+    "pages": [
+      {
+        "kicker": "The Western Walk",
+        "title": "An Answer Too Late",
+        "paragraphs": [
+          "Corvis falls beside the dry fountain, his book closing against the pale stone. Whatever doubt he carried can no longer become a choice.",
+          "His recruitment is lost, but the chapter continues. There is no rescue objective to replace it. Keep the company together and defeat General Severin at the northern doors."
+        ],
+        "button": "Keep Advancing"
+      }
+    ]
+  },
+  "courtyardCavalryWarning": {
+    "pages": [
+      {
+        "kicker": "Beyond the Fountain Midpoint",
+        "title": "Hooves Behind the Gate",
+        "paragraphs": [
+          "An officer raises two fingers as the company passes the fountain's midpoint. Troy hears hooves beyond the southern ironwork. \"That gate was never unguarded. They waited until we were inside.\"",
+          "One finite wave of three level-20 cavaliers will arrive next turn on the marked south entrance tiles (11,29), (12,29) and (14,29). They arrive before your player phase and cannot attack until the following enemy phase.",
+          "Occupied arrival tiles delay those units on their exact marked tiles; no rider is relocated behind your line. Cover the rear or keep advancing together. Crossing the midpoint again cannot call another wave."
+        ],
+        "button": "Watch the South Gate"
+      }
+    ]
+  },
+  "courtyardRavenWarning": {
+    "pages": [
+      {
+        "kicker": "The Upper Courtyard",
+        "title": "The Bell Calls an Envoy",
+        "paragraphs": [
+          "The Cathedral bell gives a single measured stroke. Black wings lift beyond the northern walls. The knights do not turn; Severin's officers tighten their formation as though this arrival was expected.",
+          "\"An envoy called by the Church's own bell,\" Arlan says. \"Even their birds know the signal.\" Lena watches the northern corners. \"Then we know where they will come from.\"",
+          "This is the final finite wave: four level-18 ravens arrive next turn at (1,3), (2,3), (23,3) and (24,3). Your player phase comes before their first attacks. Occupied marked tiles queue arrivals without relocation. There are no repeating waves; Severin remains the sole victory target."
+        ],
+        "button": "Prepare for the Envoy"
+      }
+    ]
+  },
+  "courtyardEnding": {
+    "pages": [
+      {
+        "kicker": "The Silent Courtyard - Aftermath",
+        "title": "The Last Door",
+        "paragraphs": [
+          "Severin's armored knees strike the paving. The defenders hesitate, and the company gathers beneath the Cathedral's closed doors.",
+          "\"He was guarding someone, not a sanctuary,\" Lena says. Rictor looks at the brass-bound wood. \"The orders did not begin in this courtyard.\"",
+          "Beyond the doors the Bishop is still inside. Arlan lifts the latch while Troy watches the emptied fountain. No answer has been given yet. The company enters the Cathedral."
+        ],
+        "button": "Enter the Cathedral"
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "troy",
+  "name": "Troy",
+  "classId": "cavalier",
+  "type": "cavalry",
+  "spriteSet": "troy",
+  "sprite": "assets/character/Troy/rotations/south.png",
+  "scale": 1.15,
+  "level": 13,
+  "experience": 0,
+  "weaponId": "steel-lance",
+  "weaponExp": { "Spear": 60, "Sword": 60 },
+  "inventory": ["steel-sword", "steel-lance", "javelin", "potion"],
+  "baseStats": { "hp": 35, "strength": 13, "magic": 1, "dexterity": 13, "speed": 15, "luck": 10, "defense": 9, "resistance": 10, "movement": 7, "build": 9 },
+  "currentStats": { "hp": 35, "strength": 13, "magic": 1, "dexterity": 13, "speed": 15, "luck": 10, "defense": 9, "resistance": 10, "movement": 7, "build": 9 },
+  "growthRates": { "hp": 65, "strength": 45, "magic": 5, "dexterity": 50, "speed": 55, "luck": 40, "defense": 35, "resistance": 45, "movement": 0, "build": 5 }
+}

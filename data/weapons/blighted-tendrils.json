@@ -1,0 +1,16 @@
+{
+  "id": "blighted-tendrils",
+  "name": "Blighted Tendrils",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 6,
+  "weight": 8,
+  "hit": 85,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "claw",
+  "description": "Twisted growths lash out at range 1-2.",
+  "lore": "The physician's hands no longer remember how to heal. They reach through the ward doors, grasping for the patients he promised to save."
+}

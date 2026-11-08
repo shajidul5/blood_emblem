@@ -1,0 +1,22 @@
+{
+  "id": "eclipse",
+  "name": "Eclipse",
+  "type": "Dark",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 14,
+  "hit": 30,
+  "critical": 0,
+  "minRange": 3,
+  "maxRange": 5,
+  "requiredRank": "B",
+  "maxUses": 4,
+  "halvesCurrentHp": true,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Dark_Tome/dark_tome.png",
+  "spellbook": "dark-tome",
+  "tier": 3,
+  "description": "Inaccurate long-range magic that removes half current HP. Cannot kill, double or critically strike.",
+  "lore": "The final page contains no words. For an instant, the world forgets half of what it was holding."
+}

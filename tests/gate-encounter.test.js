@@ -81,21 +81,51 @@ test('Chapter 10 story popup displays both pages even with tutorials disabled', 
   }
 });
 
-test('all ten chapters validate, including legacy lighting and objectives', async () => {
+test('all thirteen chapters validate, including legacy lighting and objectives', async () => {
   const files = await readdir(new URL('../data/levels/', import.meta.url));
-  assert.equal(levels.CHAPTER_COUNT, 10);
+  assert.equal(levels.CHAPTER_COUNT, 15);
   for (const file of files.filter((name) => name.endsWith('.json'))) {
     const raw = JSON.parse(await readFile(new URL(`../data/levels/${file}`, import.meta.url), 'utf8'));
-    assert.ok(levels.validateLevel(raw), file);
+    const validated = levels.validateLevel(raw);
+    assert.ok(validated, file);
+    assert.deepEqual(levels.validateLevel(validated), validated, `${file} can restart from its validated map`);
+    assert.deepEqual(levels.validateLevel(JSON.parse(JSON.stringify(validated))), validated, `${file} can reload its saved map`);
   }
   const level = fresh();
   assert.equal(level.lighting, 'dusk');
   assert.equal(level.objective, 'seize-gate');
   assert.equal(level.width, 19);
   assert.equal(level.height, 36);
-  assert.equal(level.enemies.length, 14);
+  assert.equal(level.enemies.length, 20);
   assert.ok(level.enemies.every((enemy) => enemy.ai === 'guard'));
   assert.equal(level.enemies.find((unit) => unit.id === 'golden-captain').drop, 'master-emblem');
+});
+
+test('the Quarantine Ward is a guarded Rictor and Lena escape with locked cells of undead', async () => {
+  const raw = JSON.parse(await readFile(new URL('../data/levels/map_11_ward.json', import.meta.url), 'utf8'));
+  const ward = levels.validateLevel(raw);
+  assert.equal(ward.objective, 'escape');
+  assert.equal(ward.leader, 'rictor');
+  assert.deepEqual(ward.requiredUnits, ['rictor', 'lena']);
+  assert.ok(ward.enemies.every((enemy) => enemy.ai === 'guard'));
+  assert.ok(ward.enemies.some((enemy) => enemy.id === 'ward-warden'));
+  assert.ok(ward.cells.some((cell) => cell.prisoners.length));
+  const jailerReward = inventory.INVENTORY_ITEMS.get(ward.chests.find((chest) => chest.id === 'chest-ward-key').rewardId);
+  assert.equal(jailerReward.id, 'pocketwatch');
+  assert.equal(jailerReward.effect, 'strength-up');
+  assert.equal(jailerReward.maxUses, 1);
+  assert.ok(!ward.chests.some((chest) => chest.rewardId === 'chest-key'));
+  const tiles = await server.ssrLoadModule('/src/levels/tiles.js');
+  const cell = ward.cells[0];
+  assert.equal(tiles.isLevelTileWalkable(ward, cell.door.x, cell.door.z), false);
+  cell.opened = true;
+  assert.equal(tiles.isLevelTileWalkable(ward, cell.door.x, cell.door.z), true);
+  const undead = characters.createEnemyUnit('undead', 1, 1, {});
+  assert.equal(undead.type, 'undead');
+  const lena = characters.createLenaAlly();
+  assert.equal(lena.party, 'rictor');
+  assert.equal(characters.createRictorAlly().inventory[0].id, 'vigil-lance');
+  assert.ok(lena.speed > characters.createEnemyUnit('ward-soldier', 1, 1, {}).speed);
 });
 
 test('sandbags block movement but leave a connected alternating route up the bridge', () => {
@@ -114,14 +144,72 @@ test('mages use their own assets and Fire behind every sandbag line', () => {
   const level = fresh();
   const mages = defenders(level).filter((unit) => unit.id === 'golden-mage');
   assert.equal(mages.length, 4);
+  assert.equal(mages.filter((mage) => mage.weapon.id === 'blaze').length, 1);
   for (const mage of mages) {
     assert.equal(mage.spriteSet, 'genericMage');
     assert.equal(mage.weapon.damageType, 'magical');
-    assert.equal(mage.weapon.id, 'fire-tome');
+    assert.equal(inventory.bookOf(mage.weapon), 'fire-tome');
     assert.equal(mage.weapon.minRange, 1);
     assert.equal(mage.weapon.maxRange, 2);
     assert.equal(level.tileIds[mage.z + 1][mage.x], 'bridge_sandbags');
     assert.equal(grid.findPath(mage, [{ x: mage.x, z: mage.z + 2 }], new Set(), level).length > 3, true);
+  }
+});
+
+const firingPositions = (level, enemy, roster, target, party) => {
+  const reach = grid.getMovementRange(enemy, level, [...party, target], roster.filter((unit) => unit !== enemy));
+  return [...reach.keys()].filter((key) => {
+    const [x, z] = key.split(',').map(Number);
+    return combat.isInWeaponRange(enemy, target, grid.distanceBetween(x, z, target.x, target.z));
+  });
+};
+
+test('new bridge infantry use generic assets and do not threaten the starting party tiles', () => {
+  const level = fresh();
+  const roster = defenders(level);
+  const additions = roster.filter((unit) => ['golden-soldier', 'golden-archer'].includes(unit.id));
+  assert.equal(additions.length, 6);
+  const party = level.players.map((placement) => ({ ...characters.createMaria(), ...placement }));
+  for (const enemy of additions) {
+    assert.equal(enemy.ai, 'guard');
+    assert.equal(enemy.spriteSet, enemy.id === 'golden-soldier' ? 'genericSoldier' : 'genericArcher');
+    assert.equal(grid.isWalkable(level, enemy.x, enemy.z, enemy), true);
+    assert.ok(enemy.hp < characters.createEnemyUnit('golden-knight', 0, 0).hp);
+    for (const unit of party) {
+      assert.equal(firingPositions(level, enemy, roster, unit, party).length, 0,
+        `${enemy.id} at ${enemy.x},${enemy.z} should not reach the starting ${unit.id}`);
+    }
+    if (enemy.id === 'golden-archer') {
+      assert.equal(enemy.weapon.minRange, 2);
+      assert.equal(enemy.weapon.maxRange, 2);
+    }
+  }
+  assert.equal(additions.find((unit) => unit.id === 'golden-soldier' && unit.z === 28).weapon.id, 'javelin');
+});
+
+test('four bridge approaches expose the same tile to two guards with distinct firing positions', () => {
+  const level = fresh();
+  const roster = defenders(level);
+  const party = level.players.map((placement) => ({ ...characters.createMaria(), ...placement }));
+  const formations = [
+    { tile: { x: 12, z: 28 }, guards: [[11, 28], [12, 25]] },
+    { tile: { x: 6, z: 22 }, guards: [[7, 22], [6, 19]] },
+    { tile: { x: 12, z: 16 }, guards: [[11, 16], [12, 14]] },
+    { tile: { x: 7, z: 9 }, guards: [[10, 7], [11, 8]] },
+  ];
+  for (const { tile, guards } of formations) {
+    assert.equal(grid.isWalkable(level, tile.x, tile.z), true, `Approach tile ${tile.x},${tile.z}`);
+    assert.ok(!roster.some((unit) => unit.x === tile.x && unit.z === tile.z));
+    const target = { ...characters.createMaria(), ...tile };
+    const positions = guards.map(([x, z]) => {
+      const enemy = roster.find((unit) => unit.x === x && unit.z === z);
+      assert.ok(enemy, `Missing formation guard at ${x},${z}`);
+      const origins = firingPositions(level, enemy, roster, target, party);
+      assert.ok(origins.length > 0, `${enemy.id} at ${x},${z} cannot cover ${tile.x},${tile.z}`);
+      return origins;
+    });
+    assert.ok(positions[0].some((first) => positions[1].some((second) => first !== second)),
+      `Both guards need different attack positions to cover ${tile.x},${tile.z}`);
   }
 });
 
@@ -269,7 +357,7 @@ test('every bow and Wind deals exactly triple effective might to flying units, n
   assert.equal(combat.isWeaponEffective(characters.createEnemyUnit('golden-mage', 7, 8), raven), false);
 });
 
-test('Wind is the lightest, most accurate and weakest anima tome, and can be upgraded', async () => {
+test('Wind is the lightest, most accurate and weakest anima tome, and unlocks Gale then Tempest', async () => {
   const insight = await server.ssrLoadModule('/src/game/insight.js');
   const tome = (id) => inventory.INVENTORY_ITEMS.get(id);
   const wind = tome('wind-tome');
@@ -278,12 +366,13 @@ test('Wind is the lightest, most accurate and weakest anima tome, and can be upg
     assert.ok(wind.might < tome(id).might && wind.weight < tome(id).weight && wind.hit > tome(id).hit, id);
   }
   assert.equal(wind.minRange, 1);
-  assert.equal(insight.isUpgradable('wind-tome'), true);
-  insight.restoreInsight({ insight: 3 });
-  assert.equal(insight.upgradeWeapon('wind-tome'), true);
-  assert.equal(tome('wind-tome').might, 4);
-  insight.restoreInsight(null);
+  assert.deepEqual(inventory.spellsOf('wind-tome').map((spell) => spell.id), ['gale', 'tempest']);
+  insight.restoreInsight({ insight: 6 });
+  assert.equal(insight.unlockSpell('wind-tome'), true);
+  assert.equal(inventory.isSpellUnlocked('gale'), true);
   assert.equal(tome('wind-tome').might, 3);
+  insight.restoreInsight(null);
+  assert.equal(inventory.isSpellUnlocked('gale'), false);
 });
 
 test("a tome's final use still deals damage when the use is spent after the forecast", () => {

@@ -1,0 +1,7 @@
+{
+  "id": "steel-sword", "name": "Steel Sword", "type": "Sword", "damageType": "physical",
+  "might": 8, "weight": 8, "hit": 80, "critical": 0, "minRange": 1, "maxRange": 1,
+  "requiredRank": "D", "effect": [], "sound": "slash",
+  "lore": "A workmanlike city-watch blade, its edge kept keen through long nights on the barricades.",
+  "sprite": "assets/weapons/Iron_katana/rotations/Iron_katana.png"
+}

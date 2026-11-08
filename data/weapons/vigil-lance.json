@@ -1,0 +1,17 @@
+{
+  "id": "vigil-lance",
+  "lore": "Rictor's lance. The guard carries the same half-filed crest as the Rapier he left with Maria. He filed both himself on the night he stopped trusting the church.",
+  "name": "Vigil Lance",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 4,
+  "hit": 85,
+  "critical": 5,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "slash",
+  "sprite": "assets/weapons/Vigil_Lance/rotations/Vigil_Lance.png",
+  "exclusiveTo": "rictor"
+}

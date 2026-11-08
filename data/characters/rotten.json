@@ -1,0 +1,17 @@
+{
+  "id": "rotten",
+  "name": "The Rotten",
+  "classId": "rotten",
+  "type": "undead",
+  "spriteSet": "rotten",
+  "sprite": "assets/character/Rotten/rotations/south.png",
+  "scale": 1.25,
+  "level": 15,
+  "experience": 0,
+  "weaponId": "blighted-tendrils",
+  "isBoss": true,
+  "ai": "mobile",
+  "baseStats": { "hp": 65, "strength": 18, "magic": 0, "dexterity": 9, "speed": 3, "luck": 0, "defense": 7, "resistance": 2, "movement": 3, "build": 18 },
+  "currentStats": { "hp": 65, "strength": 18, "magic": 0, "dexterity": 9, "speed": 3, "luck": 0, "defense": 7, "resistance": 2, "movement": 3, "build": 18 },
+  "growthRates": { "hp": 80, "strength": 50, "magic": 0, "dexterity": 20, "speed": 5, "luck": 0, "defense": 20, "resistance": 10, "movement": 0, "build": 0 }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "lena",
+  "name": "Lena",
+  "classId": "thief",
+  "type": "infantry",
+  "spriteSet": "lena",
+  "sprite": "assets/character/Lena/rotations/south.png",
+  "level": 9,
+  "experience": 0,
+  "weaponId": "iron-katana",
+  "weaponExp": { "Sword": 30 },
+  "inventory": ["iron-katana", "potion"],
+  "baseStats": { "hp": 25, "strength": 8, "magic": 1, "dexterity": 13, "speed": 16, "luck": 11, "defense": 5, "resistance": 4, "movement": 6, "build": 6 },
+  "currentStats": { "hp": 25, "strength": 8, "magic": 1, "dexterity": 13, "speed": 16, "luck": 11, "defense": 5, "resistance": 4, "movement": 6, "build": 6 },
+  "growthRates": { "hp": 55, "strength": 35, "magic": 10, "dexterity": 55, "speed": 65, "luck": 50, "defense": 20, "resistance": 25, "movement": 0, "build": 0 }
+}

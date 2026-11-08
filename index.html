@@ -46,6 +46,8 @@
         text-align: left; text-shadow: 0 2px 0 #000; pointer-events: none;
       }
       #objective-panel[hidden], #unit-hover-card[hidden] { display: none; }
+      #options-dialog #objective-panel { width: 100%; margin: 12px 0; }
+      #objective-panel span { display: block; margin-top: 8px; }
       #objective-label { display: block; color: #c9bd9c; font-size: 11px; }
       #unit-hover-card .unit-card-name { display: block; color: #e2c582; font-size: 13px; }
       #unit-hover-card .unit-card-class { color: #c9bd9c; }
@@ -281,6 +283,8 @@
       .item-list li .item-icon img { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
       .item-list li .item-effect { color: #e2c582; }
       .item-list li .item-lore { color: #a79b83; font-style: italic; font-size: 12px; line-height: 1.4; }
+      /* Spells unlocked in a tome or staff sit indented under the book they are written in. */
+      .item-list li.spell-row { margin-left: 28px; border-style: dashed; }
       .item-list li span, #inventory-empty, #inventory-capacity, #convoy-empty, #trade-note,
       #trade-left-capacity, #trade-right-capacity { color: #c9bd9c; }
       #inventory-capacity, #trade-left-capacity, #trade-right-capacity { margin: 10px 0 0; font-size: 12px; }
@@ -913,8 +917,8 @@
         filter: brightness(1.3); color: #fff; text-shadow: 0 0 8px var(--g-blood), 2px 2px 0 #000;
       }
       #action-panel button:disabled:hover { padding-left: 6px; background: none; border-color: transparent; }
-      #action-panel #visit-action, #action-panel #chest-action { color: #d7ffd0; }
-      #action-panel #visit-action:is(:hover, :focus-visible), #action-panel #chest-action:is(:hover, :focus-visible) {
+      #action-panel #visit-action, #action-panel #chest-action, #action-panel #unlock-action, #action-panel #steal-action, #action-panel #infirmary-action { color: #d7ffd0; }
+      #action-panel #visit-action:is(:hover, :focus-visible), #action-panel #chest-action:is(:hover, :focus-visible), #action-panel #unlock-action:is(:hover, :focus-visible), #action-panel #steal-action:is(:hover, :focus-visible), #action-panel #infirmary-action:is(:hover, :focus-visible) {
         color: #d8f0cc; border-color: transparent; background: none; box-shadow: none;
       }
       #action-panel #action-help { padding: 0 10px 6px; color: var(--g-ash); font-family: var(--g-font); }
@@ -943,12 +947,6 @@
         <input id="level-file" type="file" accept=".json,application/json" hidden />
       </div>
       <div id="level-status" role="status" aria-live="polite"></div>
-      <aside id="objective-panel" aria-label="Map objective">
-        <strong id="objective-label"></strong>
-        <strong id="insight-label" hidden></strong>
-        <span id="rescue-status" hidden aria-live="polite"></span>
-        <span id="rescue-destination" hidden></span>
-      </aside>
       <aside id="unit-hover-card" aria-live="polite" hidden></aside>
       <aside id="exp-panel" aria-label="Experience" hidden>
         <div id="exp-label">LV 1 · EXP 0/100</div>
@@ -972,6 +970,9 @@
         <button id="visit-action" type="button" hidden>Visit</button>
         <button id="talk-action" type="button" hidden>Talk to Linus</button>
         <button id="chest-action" type="button" hidden>Open Chest</button>
+        <button id="unlock-action" type="button" hidden>Unlock Cell</button>
+        <button id="steal-action" type="button" hidden>Steal</button>
+        <button id="infirmary-action" type="button" hidden>Ward Objective</button>
         <button id="attack-action" type="button">Attack</button>
         <button id="heal-action" type="button" hidden>Heal</button>
         <button id="freeze-action" type="button" hidden>Freeze</button>
@@ -1004,6 +1005,13 @@
       <p>Move with the arrow keys or WASD. Enter or Space selects. Escape goes back.</p>
       <div class="menu-actions">
         <button id="options-end-phase" type="button">End Phase</button>
+        <button id="options-objective" type="button" aria-expanded="false" aria-controls="objective-panel">Objective</button>
+        <aside id="objective-panel" aria-label="Map objective" hidden>
+          <strong id="objective-label"></strong>
+          <strong id="insight-label" hidden></strong>
+          <span id="rescue-status" hidden aria-live="polite"></span>
+          <span id="rescue-destination" hidden></span>
+        </aside>
         <button id="open-unit-list" type="button">Unit List</button>
         <button id="open-save-game" type="button">Save Game</button>
         <button id="toggle-ocean-sound" type="button" aria-pressed="true">Ocean Sound: On</button>

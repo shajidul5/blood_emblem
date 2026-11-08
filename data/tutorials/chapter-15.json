@@ -1,0 +1,70 @@
+{
+  "cathedral": { "pages": [
+    { "kicker": "Part Three - Chapter 15", "title": "Beneath the Sacred Blood", "paragraphs": [
+      "The Cathedral doors close behind the party. No congregation waits in the nave. Empty oak pews face a carpet without a footprint; above them, the Church's blood-drop banners hang beside the Golden Order's sun.",
+      "\"No bells for the dead,\" Lena says. Arlan looks toward the galleries. \"No graves, either.\" At the high altar, a figure in white watches them climb.",
+      "Defeat Bishop Aurel Voss. This is one continuous battle through the nave, archive galleries and high sanctuary. There is no free healing or supply refill between tiers. Rictor must survive. Eveline and Corvis accompany you only if previously recruited."
+    ] },
+    { "kicker": "The Cathedral Defenses", "title": "Climb Together", "paragraphs": [
+      "Promoted Generals seal the aisles, Paladins advance through the flanks, and Sages cover their approaches. The pew gaps reconnect the nave; twin stairways climb each tier. Stairs cost two movement points. Use their lower landings to regroup rather than splitting your party across both galleries.",
+      "Two stationary Storm Canons cast Bolting at range 3-6. Each has exactly four casts, with no close counterattack. Their fields do not overlap; check the threatened tiles and their remaining uses. Healing Bishops support injured defenders, while Voss carries Aureole and six healing casts.",
+      "Entering the galleries and then the sanctuary warns two finite Paladin waves from below. Arrivals occur at the start of the next player phase and cannot attack until you have acted. Occupied arrival tiles queue their riders. There are five optional chests: a Steel Axe, Killer Bow, Killing Edge and two Orders Emblems."
+    ], "button": "Enter the Nave" }
+  ] },
+  "cathedral-summons": { "pages": [
+    { "kicker": "The Nave", "title": "An Invitation, Not an Invasion", "paragraphs": [
+      "A sealed command lies beneath a fallen lectern: \"By petition of Bishop Aurel Voss, the Golden Order will secure the treatment wards, contain the afflicted, and safeguard all medicinal consignments.\" The Church's seal is intact.",
+      "Troy reads the date twice. \"They asked the Order to come.\" Rictor studies the paired banners. \"And told us we were protecting a city. Not keeping its people in cages.\""
+    ] }
+  ] },
+  "cathedral-records": { "pages": [
+    { "kicker": "The Archive Galleries", "title": "The Scourge Had a Prescription", "paragraphs": [
+      "Behind the paintings are treatment ledgers. The same red preparation appears beside every outbreak: larger doses, stronger recoveries, then fever, hunger, and transformation. The Church's summons predates the first public alarm.",
+      "One instruction is repeated in the Bishop's own hand: \"Continue refinement. No evacuation of treated subjects. Witnesses and failed subjects remain under observation. The Order will protect all research consignments.\"",
+      "\"The treatments caused this,\" Arlan says. \"He knew, and he kept giving them.\" Rictor closes the ledger. \"The Order's commanders protected the research. Our soldiers were told they were containing a catastrophe. We will not give either command the same excuse.\""
+    ] }
+  ] },
+  "cathedral-eveline": { "pages": [
+    { "kicker": "Eveline", "title": "The Numbers She Recognizes", "paragraphs": [
+      "\"Those are our ward doses,\" Eveline whispers. \"When the patients screamed, we were told to administer another measure. When they changed, we were told they had arrived too late.\"",
+      "She looks toward the altar. \"They did not arrive too late. We made them sick.\""
+    ] }
+  ] },
+  "cathedral-corvis": { "pages": [
+    { "kicker": "Corvis", "title": "Authorized in Full", "paragraphs": [
+      "\"The cipher is his,\" Corvis says. \"No apprentice could authorize these quantities. Every sealed carriage, every missing patient - approved here.\"",
+      "He traces the Order's countersignature. \"They may not have known what was in the blood. They knew what they were guarding.\""
+    ] }
+  ] },
+  "cathedral-sanctuary": { "pages": [
+    { "kicker": "The High Sanctuary", "title": "The Bishop Is Still Human", "paragraphs": [
+      "The altar is spotless. A red vial hangs in the golden reliquary above Bishop Aurel Voss. He does not retreat. \"That preparation gave the dying years they would never have seen. Thousands walked because of it.\"",
+      "\"And the ones who became beasts?\" Rictor asks. \"Failures,\" Voss answers. \"Failures that demanded refinement. You would burn the only cure because you cannot bear its cost.\"",
+      "Lena draws her blade. \"You locked the cost in a ward and called it mercy.\" Voss opens his tome. \"Then you will deny them salvation as well.\""
+    ] }
+  ] },
+  "cathedral-nave-paladins": { "pages": [
+    { "kicker": "Reinforcement Warning", "title": "Hooves Behind the Doors", "paragraphs": [
+      "The nave entrance shudders. Three Golden Order Paladins are approaching the southern doors: west aisle (4,34), central aisle (12,34), east aisle (21,34).",
+      "They arrive at the start of the next player phase. You will have that full phase before they attack. This is a single finite wave; an occupied arrival tile holds its rider outside."
+    ] }
+  ] },
+  "cathedral-gallery-paladins": { "pages": [
+    { "kicker": "Final Reinforcement Warning", "title": "The Rear Guard Ascends", "paragraphs": [
+      "A last pair of Paladins enters the nave below the gallery stairways: west landing (5,25), east landing (20,25).",
+      "They arrive at the start of the next player phase and cannot attack before you act. This is the final wave. Hold a stairway, face the rear guard, or commit to Voss; defeating him ends the battle without a rout."
+    ] }
+  ] },
+  "cathedral-ending": { "pages": [
+    { "kicker": "Part Three - Finale", "title": "Mercy Without a Cure", "paragraphs": [
+      "Voss falls beside the immaculate altar. The reliquary still shines. No beast returns to human form; no fever breaks in the streets below. Killing the Bishop has stopped the operation, not undone what it made.",
+      "The final shipment ledger names an older source beneath the city. Remaining treatment stock was transferred before the siege. The Cathedral was a laboratory, not the beginning.",
+      "Far away, the clocktower rings once. Rictor takes the ledger. \"We have the truth. Now we find what they moved.\" The party leaves the sacred blood behind."
+    ], "button": "Part Three Complete" }
+  ] },
+  "cathedral-bell": { "pages": [
+    { "kicker": "Corvis", "title": "A Delivery Bell", "paragraphs": [
+      "\"That is not the hour,\" Corvis says. \"And it is not a call to worship. The bell marks a delivery.\" Above the empty sanctuary, something black circles the glass."
+    ] }
+  ] }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "mend",
+  "name": "Mend",
+  "type": "Staff",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 2,
+  "hit": 100,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "D",
+  "heal": 18,
+  "healExperience": 30,
+  "maxUses": 8,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Heal_Staff/heal_staff.png",
+  "spellbook": "heal-staff",
+  "tier": 2,
+  "lore": "The driftwood's hum deepens. Wounds close as if the tide pulled them shut."
+}

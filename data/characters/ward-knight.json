@@ -1,0 +1,16 @@
+{
+  "id": "ward-knight",
+  "name": "Ward Knight",
+  "classId": "knight",
+  "type": "armor",
+  "spriteSet": "genericKnight",
+  "sprite": "assets/character/Generic_Knight/rotations/south.png",
+  "scale": 1.1,
+  "level": 9,
+  "experience": 0,
+  "weaponId": "iron-spear",
+  "ai": "guard",
+  "baseStats": { "hp": 30, "strength": 11, "magic": 0, "dexterity": 8, "speed": 4, "luck": 2, "defense": 13, "resistance": 2, "movement": 4, "build": 12 },
+  "currentStats": { "hp": 30, "strength": 11, "magic": 0, "dexterity": 8, "speed": 4, "luck": 2, "defense": 13, "resistance": 2, "movement": 4, "build": 12 },
+  "growthRates": { "hp": 60, "strength": 40, "magic": 0, "dexterity": 30, "speed": 15, "luck": 15, "defense": 45, "resistance": 10, "movement": 0, "build": 0 }
+}

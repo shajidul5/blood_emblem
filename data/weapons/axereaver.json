@@ -1,0 +1,7 @@
+{
+  "id": "axereaver", "name": "Axereaver", "type": "Spear", "damageType": "physical",
+  "might": 8, "weight": 9, "hit": 75, "critical": 0, "minRange": 1, "maxRange": 1,
+  "requiredRank": "D", "effect": [], "reaves": ["Axe"], "sound": "stab",
+  "lore": "A hooked lance forged to wrench an axe aside. Swords slip past its guard: it reverses and doubles both sides of the weapon triangle.",
+  "sprite": "assets/weapons/Axereaver/axereaver.png"
+}

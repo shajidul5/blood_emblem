@@ -1,0 +1,17 @@
+{
+  "id": "ridersbane",
+  "name": "Ridersbane",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 10,
+  "hit": 80,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": ["cavalry"],
+  "sound": "slash",
+  "sprite": "assets/weapons/Iron_Spear/rotations/Iron_Spear.png",
+  "description": "Effective against cavalry.",
+  "lore": "Arlan's broad-headed spear, forged to turn a charge at a narrow doorway. The haft bears the dents of riders who mistook his patience for surrender."
+}

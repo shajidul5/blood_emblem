@@ -2,6 +2,7 @@ import triangle from '../../data/weapon-triangle.json';
 import { CLASSES, getClassAbilities } from '../characters/classes.js';
 import { getWeaponRank } from '../characters/weapon-levels.js';
 import { leadershipBonus } from '../game/insight.js';
+import { bookOf, findWeaponEntry, spellUses, weaponUseBlockReason } from '../characters/inventory.js';
 
 function getClassCritBonus(unit) {
   return getClassAbilities(unit).reduce((total, ability) => total + (ability.critBonus ?? 0), 0);
@@ -10,9 +11,10 @@ function getClassCritBonus(unit) {
 // Staves heal allies and passive weapons (Heartroots) never strike; neither can attack or counter.
 // Magic that has run out of uses can't either.
 export function canAttack(unit) {
-  if (!unit.weapon || unit.weapon.heal || unit.weapon.passive) return false;
-  const entry = unit.inventory?.find((candidate) => candidate.id === unit.weapon.id);
-  return !(entry && Number.isInteger(entry.uses) && entry.uses <= 0);
+  if (!unit.weapon || unit.weapon.type === 'Staff' || unit.weapon.passive) return false;
+  if (unit.inventory && weaponUseBlockReason(unit, unit.weapon)) return false;
+  const uses = spellUses(findWeaponEntry(unit), unit.weapon);
+  return !(Number.isInteger(uses) && uses <= 0);
 }
 
 // Build only offsets weapon weight; it never adds speed beyond the unit's own Speed.
@@ -21,14 +23,14 @@ export function attackSpeed(unit) {
 }
 
 // +1 when `weapon` beats `opposing`, -1 when it loses, 0 otherwise. Physical weapons only.
-// A weapon that "reaves" the opposing weapon type always wins, with double the usual triangle bonuses.
+// One reaver reverses and doubles the triangle; two reavers cancel the reversal.
 export function getTriangleAdvantage(weapon, opposing) {
   if (!weapon || !opposing || weapon.damageType !== 'physical' || opposing.damageType !== 'physical') return 0;
-  if (weapon.reaves?.includes(opposing.type)) return 2;
-  if (opposing.reaves?.includes(weapon.type)) return -2;
-  if (triangle.beats[weapon.type] === opposing.type) return 1;
-  if (triangle.beats[opposing.type] === weapon.type) return -1;
-  return 0;
+  const normal = triangle.beats[weapon.type] === opposing.type ? 1
+    : triangle.beats[opposing.type] === weapon.type ? -1 : 0;
+  if (!normal) return 0;
+  const reversals = Number(Boolean(weapon.reaves?.length)) + Number(Boolean(opposing.reaves?.length));
+  return reversals === 1 ? normal * -2 : normal;
 }
 
 export function getAvoid(unit, terrain = {}, opposingWeapon = null) {
@@ -49,6 +51,7 @@ export function getHitRate(attacker, defender, defenderTerrain = {}) {
 
 export function getCriticalRate(attacker, defender) {
   if (!canAttack(attacker)) return 0;
+  if (attacker.weapon.halvesCurrentHp) return 0;
   return Math.max(
     0,
     Math.min(
@@ -70,11 +73,14 @@ export function rollCritical(criticalRate, random = Math.random) {
 
 export function getCombatDamage(attacker, defender, defenderTerrain = {}) {
   if (!canAttack(attacker)) return 0;
+  if (attacker.weapon.halvesCurrentHp) return Math.min(Math.floor(defender.hp / 2), Math.max(0, defender.hp - 1));
   const attackStat = attacker.weapon.damageType === 'magical'
     ? attacker.magic
     : attacker.strength;
+  // Aureole pierces wards, halving the target's Resistance.
+  const resistance = attacker.weapon.halvesResistance ? Math.floor(defender.resistance / 2) : defender.resistance;
   const defenseStat = attacker.weapon.damageType === 'magical'
-    ? defender.resistance
+    ? resistance
     : defender.defense + (defenderTerrain.defense ?? 0);
   const triangleDamage = getTriangleAdvantage(attacker.weapon, defender.weapon) * triangle.damage;
   return Math.max(0, attackStat + getEffectiveMight(attacker, defender) + triangleDamage - defenseStat);
@@ -86,7 +92,7 @@ export const EFFECTIVE_MIGHT_MULTIPLIER = 3;
 export function isWeaponEffective(attacker, defender) {
   if (!attacker.weapon || !defender.type) return false;
   if (defender.type === 'flying' &&
-      (attacker.weapon.type === 'Bow' || attacker.weapon.id === 'wind-tome')) return true;
+      (attacker.weapon.type === 'Bow' || bookOf(attacker.weapon) === 'wind-tome')) return true;
   return (attacker.weapon.effect ?? []).includes(defender.type) ||
     getClassAbilities(attacker).some((ability) => ability.effectiveAgainst?.includes(defender.type));
 }
@@ -97,16 +103,18 @@ export function getEffectiveMight(attacker, defender) {
 }
 
 export function getCriticalDamage(attacker, defender, defenderTerrain = {}) {
+  if (attacker.weapon?.halvesCurrentHp) return getCombatDamage(attacker, defender, defenderTerrain);
   return getCombatDamage(attacker, defender, defenderTerrain) * 3;
 }
 
-// Brave weapons (the Raikiri) strike twice in a row every time the wielder attacks.
+// Brave weapons (the Bloodletter) strike twice in a row every time the wielder attacks.
 export function getStrikesPerAttack(unit) {
   return unit.weapon?.brave ? 2 : 1;
 }
 
 export function getAttackCount(attacker, defender) {
   if (!canAttack(attacker)) return 0;
+  if (attacker.weapon.halvesCurrentHp) return 1;
   return attackSpeed(attacker) >= attackSpeed(defender) + 4 ? 2 : 1;
 }
 

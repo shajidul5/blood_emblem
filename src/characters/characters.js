@@ -25,8 +25,30 @@ import goldenCaptainProfile from '../../data/characters/golden-captain.json';
 import goldenCavalierProfile from '../../data/characters/golden-cavalier.json';
 import goldenKnightProfile from '../../data/characters/golden-knight.json';
 import goldenMageProfile from '../../data/characters/golden-mage.json';
+import goldenSoldierProfile from '../../data/characters/golden-soldier.json';
+import goldenArcherProfile from '../../data/characters/golden-archer.json';
 import bloodBeastProfile from '../../data/characters/blood-beast.json';
 import ravenProfile from '../../data/characters/raven.json';
+import rictorProfile from '../../data/characters/rictor.json';
+import lenaProfile from '../../data/characters/lena.json';
+import wardSoldierProfile from '../../data/characters/ward-soldier.json';
+import wardKnightProfile from '../../data/characters/ward-knight.json';
+import wardWardenProfile from '../../data/characters/ward-warden.json';
+import undeadProfile from '../../data/characters/undead.json';
+import arlanProfile from '../../data/characters/arlan.json';
+import rottenProfile from '../../data/characters/rotten.json';
+import infirmaryRiderProfile from '../../data/characters/infirmary-rider.json';
+import troyProfile from '../../data/characters/troy.json';
+import evelineProfile from '../../data/characters/eveline.json';
+import veyrProfile from '../../data/characters/veyr.json';
+import streetUndeadProfile from '../../data/characters/street-undead.json';
+import corvisProfile from '../../data/characters/corvis.json';
+import churchSageProfile from '../../data/characters/church-sage.json';
+import churchFreezerProfile from '../../data/characters/church-freezer.json';
+import churchHealerProfile from '../../data/characters/church-healer.json';
+import severinProfile from '../../data/characters/severin.json';
+const cathedralProfiles = Object.values(import.meta.glob('../../data/characters/cathedral-*.json', { eager: true, import: 'default' }));
+import vossProfile from '../../data/characters/voss.json';
 import rapier from '../../data/weapons/rapier.json';
 import { canEquipWeapon, getClass } from './classes.js';
 import { createInventory, createMariaInventory, INVENTORY_ITEMS } from './inventory.js';
@@ -39,7 +61,7 @@ function createCharacter(profile) {
   const unitClass = getClass(profile.classId);
   const look = unitClass.sprites?.[profile.id] ?? unitClass.sprites?.default;
   if (!weapon && !unitClass.unarmed) throw new Error(`Character ${profile.id} needs a weapon for class ${unitClass.name}.`);
-  if (weapon && !canEquipWeapon({ classId: profile.classId }, weapon)) {
+  if (weapon && !canEquipWeapon({ id: profile.id, classId: profile.classId, weaponExp: profile.weaponExp }, weapon)) {
     throw new Error(`Character ${profile.id} (${unitClass.name}) cannot equip ${weapon.type} weapon ${weapon.id}.`);
   }
   return {
@@ -47,7 +69,8 @@ function createCharacter(profile) {
     name: profile.name,
     classId: profile.classId,
     class: unitClass.name,
-    type: profile.type,
+    type: unitClass.type ?? profile.type,
+    movement: Math.max(profile.currentStats.movement, unitClass.minimumMovement ?? 0),
     sprite: look?.sprite ?? profile.sprite,
     spriteSet: look?.spriteSet ?? profile.spriteSet ?? profile.id,
     scale: look?.scale ?? profile.scale,
@@ -65,6 +88,7 @@ function createCharacter(profile) {
     maxHp: profile.currentStats.hp,
     moved: false,
     acted: false,
+    frozen: false,
   };
 }
 
@@ -138,12 +162,45 @@ export function createVillager(id, name) {
   return { ...createCharacter(villagerProfile), id, name, civilian: true, neutral: true, facing: 'south', inventory: [] };
 }
 
+// Part 3 opens on Rictor's party, a separate squad that fights without Maria.
+function createPartThreeAlly(profile) {
+  return {
+    ...createCharacter(profile),
+    party: 'rictor',
+    facing: 'south',
+    moveOrigin: null,
+    inventory: createInventory(profile.inventory),
+  };
+}
+
+export const createRictorAlly = () => createPartThreeAlly(rictorProfile);
+export const createLenaAlly = () => createPartThreeAlly(lenaProfile);
+export const createArlanAlly = () => createPartThreeAlly(arlanProfile);
+export const createTroyAlly = () => createPartThreeAlly(troyProfile);
+export const createEvelineAlly = () => createPartThreeAlly(evelineProfile);
+export const createCorvisAlly = () => createPartThreeAlly(corvisProfile);
+
 const ENEMY_PROFILES = new Map([
+  [corvisProfile.id, corvisProfile],
+  [churchSageProfile.id, churchSageProfile],
+  [churchFreezerProfile.id, churchFreezerProfile],
+  [churchHealerProfile.id, churchHealerProfile],
+  [severinProfile.id, severinProfile],
+  [veyrProfile.id, veyrProfile],
+  [streetUndeadProfile.id, streetUndeadProfile],
+  [rottenProfile.id, rottenProfile],
+  [infirmaryRiderProfile.id, infirmaryRiderProfile],
+  [wardSoldierProfile.id, wardSoldierProfile],
+  [wardKnightProfile.id, wardKnightProfile],
+  [wardWardenProfile.id, wardWardenProfile],
+  [undeadProfile.id, undeadProfile],
   [ravenProfile.id, ravenProfile],
   [goldenCaptainProfile.id, goldenCaptainProfile],
   [goldenCavalierProfile.id, goldenCavalierProfile],
   [goldenKnightProfile.id, goldenKnightProfile],
   [goldenMageProfile.id, goldenMageProfile],
+  [goldenSoldierProfile.id, goldenSoldierProfile],
+  [goldenArcherProfile.id, goldenArcherProfile],
   [bloodBeastProfile.id, bloodBeastProfile],
   [bridgeCaptainProfile.id, bridgeCaptainProfile],
   [bridgeKnightProfile.id, bridgeKnightProfile],
@@ -164,6 +221,7 @@ const ENEMY_PROFILES = new Map([
   [rootWardenProfile.id, rootWardenProfile],
 ]);
 
+for (const profile of [...cathedralProfiles, vossProfile]) ENEMY_PROFILES.set(profile.id, profile);
 export const ENEMY_IDS = new Set(ENEMY_PROFILES.keys());
 export const enemyMovementType = (id) => ENEMY_PROFILES.get(id)?.type;
 
@@ -189,13 +247,43 @@ function scaleProfileToLevel(profile, level) {
 export const ENEMY_AI_MODES = ['mobile', 'guard', 'stationary'];
 
 // ai: mobile always advances, guard only moves once a player is within move + attack reach,
-// stationary never moves. A placement's ai overrides the character sheet's default.
-export function createEnemyUnit(id, x, z, { level, ai, drop } = {}) {
+// stationary never moves. A placement's ai overrides the character sheet's default, and weaponId its weapon
+// (late-game mages casting higher-tier spells).
+export function createEnemyUnit(id, x, z, { level, ai, drop, weaponId, stealable } = {}) {
   const profile = ENEMY_PROFILES.get(id);
   if (!profile) throw new Error(`Unknown enemy "${id}".`);
   const mode = ai ?? profile.ai ?? 'mobile';
   if (!ENEMY_AI_MODES.includes(mode)) throw new Error(`Enemy ${id} has unknown ai "${mode}".`);
   const enemy = { ...createCharacter(scaleProfileToLevel(profile, level)), ai: mode, x, z };
+  if (profile.inventory) enemy.inventory = createInventory(profile.inventory);
+  if (profile.spellUses) {
+    enemy.authoredSpells = Object.keys(profile.spellUses);
+    for (const entry of enemy.inventory) {
+      const spells = Object.fromEntries(Object.entries(profile.spellUses)
+        .filter(([id]) => INVENTORY_ITEMS.get(id)?.spellbook === entry.id));
+      if (Object.keys(spells).length) entry.spells = spells;
+    }
+  }
+  if (profile.staffUses) {
+    for (const entry of enemy.inventory) {
+      if (profile.staffUses[entry.id] !== undefined) entry.uses = profile.staffUses[entry.id];
+    }
+  }
   if (drop) enemy.drop = drop;
+  if (stealable !== undefined) {
+    if (!Array.isArray(stealable) || !stealable.every((item) => INVENTORY_ITEMS.has(item))) {
+      throw new Error(`Enemy ${id} has invalid stealable items.`);
+    }
+    enemy.stealable = [...stealable];
+  }
+  if (weaponId) {
+    const weapon = INVENTORY_ITEMS.get(weaponId);
+    // Enemy spell loadouts are authored directly, rather than unlocked through player rank progression.
+    if (weapon?.itemType !== 'weapon' || !canEquipWeapon(enemy, { ...weapon, requiredRank: undefined })) {
+      throw new Error(`Enemy ${id} cannot wield ${weaponId}.`);
+    }
+    enemy.weapon = weapon;
+    enemy.weaponId = weaponId;
+  }
   return enemy;
 }

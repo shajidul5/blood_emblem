@@ -1,0 +1,15 @@
+{
+  "id": "street-undead",
+  "name": "Quarantined Undead",
+  "classId": "undead",
+  "type": "undead",
+  "spriteSet": "genericUndead",
+  "sprite": "assets/character/Generic_Undead/rotations/south.png",
+  "level": 13,
+  "experience": 0,
+  "weaponId": "undead-claws",
+  "ai": "mobile",
+  "baseStats": { "hp": 32, "strength": 6, "magic": 0, "dexterity": 4, "speed": 2, "luck": 0, "defense": 4, "resistance": 0, "movement": 3, "build": 12 },
+  "currentStats": { "hp": 32, "strength": 6, "magic": 0, "dexterity": 4, "speed": 2, "luck": 0, "defense": 4, "resistance": 0, "movement": 3, "build": 12 },
+  "growthRates": { "hp": 60, "strength": 0, "magic": 0, "dexterity": 10, "speed": 0, "luck": 0, "defense": 15, "resistance": 0, "movement": 0, "build": 0 }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "inferno",
+  "name": "Inferno",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 13,
+  "weight": 11,
+  "hit": 70,
+  "critical": 5,
+  "maxUses": 5,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [
+    "beast"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/Fire_tome/rotations/Fire_tome.png",
+  "spellbook": "fire-tome",
+  "requiredRank": "B",
+  "tier": 3,
+  "description": "A pillar of fire that swallows its target. Devastating, heavy and hard to aim.",
+  "lore": "The last page is scorched through. Whatever was written there was read once, aloud."
+}

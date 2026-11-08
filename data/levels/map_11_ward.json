@@ -1,0 +1,681 @@
+{
+  "name": "Chapter 11 - The Quarantine Ward",
+  "tileset": "/tiles/ship_oblique/ship_oblique_tileset.json",
+  "tileSize": 32,
+  "width": 24,
+  "height": 16,
+  "objective": "escape",
+  "lighting": "night",
+  "leader": "rictor",
+  "requiredUnits": [
+    "rictor",
+    "lena"
+  ],
+  "extendEdges": true,
+  "noFence": true,
+  "spawn": {
+    "x": 2,
+    "z": 3
+  },
+  "exit": {
+    "x": 23,
+    "z": 7
+  },
+  "exitTiles": [
+    {
+      "x": 23,
+      "z": 6
+    },
+    {
+      "x": 23,
+      "z": 8
+    },
+    {
+      "x": 23,
+      "z": 9
+    }
+  ],
+  "players": [
+    {
+      "id": "rictor",
+      "x": 2,
+      "z": 3
+    },
+    {
+      "id": "lena",
+      "x": 2,
+      "z": 6
+    }
+  ],
+  "enemies": [
+    {
+      "id": "ward-soldier",
+      "level": 8,
+      "x": 6,
+      "z": 8,
+      "ai": "guard",
+      "drop": "chest-key"
+    },
+    {
+      "id": "ward-soldier",
+      "level": 8,
+      "x": 10,
+      "z": 7,
+      "ai": "guard",
+      "drop": "potion"
+    },
+    {
+      "id": "ward-knight",
+      "level": 9,
+      "x": 14,
+      "z": 8,
+      "ai": "guard"
+    },
+    {
+      "id": "ward-soldier",
+      "level": 9,
+      "x": 17,
+      "z": 7,
+      "ai": "guard",
+      "drop": "chest-key"
+    },
+    {
+      "id": "ward-soldier",
+      "level": 9,
+      "x": 21,
+      "z": 3,
+      "ai": "guard",
+      "drop": "bloodroot-tonic"
+    },
+    {
+      "id": "ward-soldier",
+      "level": 9,
+      "x": 21,
+      "z": 12,
+      "ai": "guard"
+    },
+    {
+      "id": "ward-knight",
+      "level": 10,
+      "x": 21,
+      "z": 6,
+      "ai": "guard"
+    },
+    {
+      "id": "ward-warden",
+      "level": 12,
+      "x": 22,
+      "z": 8,
+      "ai": "guard",
+      "drop": "steel-lance"
+    }
+  ],
+  "chests": [
+    {
+      "id": "chest-ward-tome",
+      "name": "Confiscated Satchel",
+      "x": 8,
+      "z": 2,
+      "rewardId": "light-tome"
+    },
+    {
+      "id": "chest-ward-tonic",
+      "name": "Infirmary Chest",
+      "x": 14,
+      "z": 1,
+      "rewardId": "bloodroot-tonic"
+    },
+    {
+      "id": "chest-ward-javelin",
+      "name": "Weapon Locker",
+      "x": 18,
+      "z": 2,
+      "rewardId": "javelin"
+    },
+    {
+      "id": "chest-ward-fang",
+      "name": "Prisoner's Stash",
+      "x": 1,
+      "z": 14,
+      "rewardId": "alpha-fang"
+    },
+    {
+      "id": "chest-ward-potion",
+      "name": "Supply Crate",
+      "x": 7,
+      "z": 13,
+      "rewardId": "potion"
+    },
+    {
+      "id": "chest-ward-watch",
+      "name": "Evidence Box",
+      "x": 14,
+      "z": 14,
+      "rewardId": "pocketwatch"
+    },
+    {
+      "id": "chest-ward-key",
+      "name": "Jailer's Box",
+      "x": 18,
+      "z": 13,
+      "rewardId": "pocketwatch"
+    }
+  ],
+  "cells": [
+    {
+      "id": "cell-n2",
+      "door": {
+        "x": 7,
+        "z": 5
+      },
+      "prisoners": []
+    },
+    {
+      "id": "cell-n3",
+      "door": {
+        "x": 12,
+        "z": 5
+      },
+      "prisoners": [
+        {
+          "id": "undead",
+          "x": 12,
+          "z": 3,
+          "level": 8
+        },
+        {
+          "id": "undead",
+          "x": 13,
+          "z": 2,
+          "level": 8
+        }
+      ]
+    },
+    {
+      "id": "cell-n4",
+      "door": {
+        "x": 17,
+        "z": 5
+      },
+      "prisoners": []
+    },
+    {
+      "id": "cell-s1",
+      "door": {
+        "x": 3,
+        "z": 10
+      },
+      "prisoners": [
+        {
+          "id": "undead",
+          "x": 3,
+          "z": 12,
+          "level": 8
+        }
+      ]
+    },
+    {
+      "id": "cell-s2",
+      "door": {
+        "x": 8,
+        "z": 10
+      },
+      "prisoners": []
+    },
+    {
+      "id": "cell-s3",
+      "door": {
+        "x": 13,
+        "z": 10
+      },
+      "prisoners": [
+        {
+          "id": "undead",
+          "x": 12,
+          "z": 12,
+          "level": 9
+        },
+        {
+          "id": "undead",
+          "x": 13,
+          "z": 13,
+          "level": 9
+        }
+      ]
+    },
+    {
+      "id": "cell-s4",
+      "door": {
+        "x": 18,
+        "z": 10
+      },
+      "prisoners": [
+        {
+          "id": "undead",
+          "x": 17,
+          "z": 12,
+          "level": 9
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "tiles": [
+    [
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_sconce",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_sconce",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_sconce",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_sconce",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_sconce",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_cobweb",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_cobweb",
+      "mans_wall_stone",
+      "mans_cage",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_cobweb",
+      "mans_wall_stone",
+      "mans_candelabra",
+      "mans_armor",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_rubble",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_blood",
+      "mans_wall_stone",
+      "mans_blood",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_blood",
+      "mans_wall_stone",
+      "mans_rubble",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_door_open",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_blood",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_stairs_e"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_blood",
+      "mans_blood",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_stairs_e"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_blood",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_rubble",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_stairs_e"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_cobweb",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_stairs_e"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_cobweb",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_cage",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_cobweb",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_rubble",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_blood",
+      "mans_wall_stone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_cobweb",
+      "mans_wall_stone",
+      "mans_blood",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_cobweb",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_flagstone",
+      "mans_wall_stone",
+      "mans_candelabra",
+      "mans_armor",
+      "mans_wall_stone"
+    ],
+    [
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_cracked",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_cracked",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_pillar",
+      "mans_wall_stone",
+      "mans_wall_stone",
+      "mans_wall_stone"
+    ]
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "corvis",
+  "name": "Corvis",
+  "classId": "shaman",
+  "type": "infantry",
+  "spriteSet": "corvis",
+  "sprite": "assets/character/Corvis/rotations/south.png",
+  "scale": 1,
+  "level": 17,
+  "experience": 0,
+  "weaponId": "dark-tome",
+  "weaponExp": { "Dark": 60 },
+  "inventory": ["dark-tome"],
+  "ai": "guard",
+  "baseStats": { "hp": 32, "strength": 2, "magic": 15, "dexterity": 12, "speed": 10, "luck": 7, "defense": 5, "resistance": 12, "movement": 5, "build": 7 },
+  "currentStats": { "hp": 32, "strength": 2, "magic": 15, "dexterity": 12, "speed": 10, "luck": 7, "defense": 5, "resistance": 12, "movement": 5, "build": 7 },
+  "growthRates": { "hp": 55, "strength": 5, "magic": 55, "dexterity": 45, "speed": 35, "luck": 30, "defense": 20, "resistance": 45, "movement": 0, "build": 5 }
+}

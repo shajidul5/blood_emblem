@@ -1,0 +1,17 @@
+{
+  "id": "eveline",
+  "name": "Eveline",
+  "classId": "troubadour",
+  "type": "cavalry",
+  "spriteSet": "eveline",
+  "sprite": "assets/character/Eveline_Troubadour/rotations/south.png",
+  "scale": 1.15,
+  "level": 13,
+  "experience": 0,
+  "weaponId": "heal-staff",
+  "weaponExp": { "Staff": 60 },
+  "inventory": ["heal-staff", "potion"],
+  "baseStats": { "hp": 28, "strength": 2, "magic": 12, "dexterity": 9, "speed": 12, "luck": 11, "defense": 5, "resistance": 13, "movement": 7, "build": 5 },
+  "currentStats": { "hp": 28, "strength": 2, "magic": 12, "dexterity": 9, "speed": 12, "luck": 11, "defense": 5, "resistance": 13, "movement": 7, "build": 5 },
+  "growthRates": { "hp": 55, "strength": 10, "magic": 60, "dexterity": 40, "speed": 50, "luck": 50, "defense": 20, "resistance": 60, "movement": 0, "build": 0 }
+}

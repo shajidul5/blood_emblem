@@ -1,0 +1,229 @@
+{
+  "name": "Chapter 12 - The House of Mercy",
+  "objective": "defend-infirmary",
+  "width": 24,
+  "height": 20,
+  "lighting": "night",
+  "extendEdges": false,
+  "noFence": true,
+  "leader": "rictor",
+  "requiredUnits": [
+    "rictor",
+    "lena",
+    "arlan"
+  ],
+  "spawn": {
+    "x": 11,
+    "z": 17
+  },
+  "exit": {
+    "x": 12,
+    "z": 18
+  },
+  "startingItems": [
+    "potion"
+  ],
+  "players": [
+    {
+      "id": "arlan",
+      "x": 8,
+      "z": 11
+    },
+    {
+      "id": "rictor",
+      "x": 11,
+      "z": 10
+    },
+    {
+      "id": "lena",
+      "x": 12,
+      "z": 11
+    }
+  ],
+  "enemies": [
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 4,
+      "z": 5,
+      "ai": "guard"
+    },
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 2,
+      "z": 11,
+      "ai": "mobile",
+      "drop": "chest-key"
+    },
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 19,
+      "z": 5,
+      "ai": "guard"
+    },
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 21,
+      "z": 11,
+      "ai": "mobile"
+    }
+  ],
+  "reinforcements": [
+    {
+      "turn": 2,
+      "entranceId": "west",
+      "units": [
+        { "id": "undead", "level": 11, "x": 0, "z": 9, "ai": "mobile" },
+        { "id": "undead", "level": 11, "x": 0, "z": 10, "ai": "mobile" },
+        { "id": "undead", "level": 11, "x": 0, "z": 11, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 3,
+      "entranceId": "east",
+      "units": [
+        { "id": "undead", "level": 11, "x": 23, "z": 9, "ai": "mobile" },
+        { "id": "undead", "level": 11, "x": 23, "z": 10, "ai": "mobile" },
+        { "id": "undead", "level": 11, "x": 23, "z": 11, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 4,
+      "entranceId": "west",
+      "units": [
+        { "id": "undead", "level": 12, "x": 0, "z": 9, "ai": "mobile" },
+        { "id": "undead", "level": 12, "x": 0, "z": 11, "ai": "mobile" },
+        { "id": "infirmary-rider", "level": 14, "x": 0, "z": 10, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 5,
+      "entranceId": "east",
+      "units": [
+        { "id": "undead", "level": 12, "x": 23, "z": 9, "ai": "mobile" },
+        { "id": "undead", "level": 12, "x": 23, "z": 11, "ai": "mobile" },
+        { "id": "infirmary-rider", "level": 14, "x": 23, "z": 10, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 6,
+      "entranceId": "theater",
+      "units": [
+        { "id": "rotten", "level": 15, "x": 12, "z": 2, "ai": "mobile" },
+        { "id": "undead", "level": 13, "x": 10, "z": 2, "ai": "mobile" },
+        { "id": "undead", "level": 13, "x": 13, "z": 2, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 7,
+      "entranceId": "carriage",
+      "units": [
+        { "id": "undead", "level": 12, "x": 10, "z": 18, "ai": "mobile" },
+        { "id": "undead", "level": 12, "x": 13, "z": 18, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 8,
+      "entranceId": "carriage",
+      "units": [
+        { "id": "undead", "level": 13, "x": 11, "z": 19, "ai": "mobile" },
+        { "id": "undead", "level": 13, "x": 12, "z": 19, "ai": "mobile" },
+        { "id": "undead", "level": 13, "x": 10, "z": 19, "ai": "mobile" }
+      ]
+    }
+  ],
+  "chests": [],
+  "objects": [
+    { "id": "infirmary_bed", "x": 3, "z": 4 },
+    { "id": "infirmary_bed", "x": 20, "z": 5 },
+    { "id": "infirmary_barricade", "x": 4, "z": 11 },
+    { "id": "infirmary_barricade", "x": 19, "z": 11 },
+    { "id": "infirmary_operating_table", "x": 20, "z": 4 },
+    { "id": "infirmary_records_cabinet", "x": 3, "z": 15 },
+    { "id": "infirmary_bed", "x": 8, "z": 8 },
+    { "id": "infirmary_bed", "x": 15, "z": 8 },
+    { "id": "infirmary_bed", "x": 5, "z": 3 },
+    { "id": "infirmary_operating_table", "x": 10, "z": 4 },
+    { "id": "infirmary_records_cabinet", "x": 19, "z": 2 },
+    { "id": "infirmary_barricade", "x": 13, "z": 16 }
+  ],
+  "infirmary": {
+    "defendTurns": 8,
+    "defensePoint": { "x": 12, "z": 14 },
+    "gates": [
+      {
+        "id": "west-isolation-gate",
+        "name": "West Isolation Gate",
+        "x": 7,
+        "z": 10,
+        "blocks": [{ "x": 6, "z": 10 }],
+        "entranceId": "west",
+        "closed": false
+      },
+      {
+        "id": "east-isolation-gate",
+        "name": "East Isolation Gate",
+        "x": 16,
+        "z": 10,
+        "blocks": [{ "x": 17, "z": 10 }],
+        "entranceId": "east",
+        "closed": false
+      }
+    ],
+    "ledger": {
+      "id": "treatment-ledger",
+      "name": "Treatment Ledger",
+      "x": 3,
+      "z": 15,
+      "collected": false
+    },
+    "patients": [
+      {
+        "id": "patient-elise",
+        "name": "Elise",
+        "x": 3,
+        "z": 4,
+        "rewardId": "potion",
+        "rescued": false
+      },
+      {
+        "id": "patient-mara",
+        "name": "Mara",
+        "x": 20,
+        "z": 5,
+        "rewardId": "bloodroot-tonic",
+        "rescued": false
+      }
+    ],
+    "completionExp": 100,
+    "interactionExp": 60,
+    "survivedTurns": 0,
+    "rewardsClaimed": false,
+    "breached": false
+  },
+  "tiles": [
+    "xxxxxxxxxxxzzxxxxxxxxxxx",
+    "xuuuuuuuxllillixuuuuyuux",
+    "xuuuuuxyxlillilxyxlililx",
+    "xuuuuuxuxillillxuxililix",
+    "xuuuuuxuxllillixuxlililx",
+    "xuuuuuxuxlillilxuxililix",
+    "xxxzxxxuxxxuuxxxuxxxzxxx",
+    "xuuuuuxxxxxxuxxxxxuuuuux",
+    "xuuuuuxuuuuxuxuuuxuuuuux",
+    "zuuuuuxuuuuxuxuuuxuuuuuz",
+    "zuuuuuzuxxzuuuzxuzuuuuuz",
+    "zuuuuuxuutuuutuuuxuuuuuz",
+    "xxxxxxxuuuuutuuuuxuuuuux",
+    "xuluulxuuuutuuuuuxuuuuux",
+    "xuuuluuxxxxxzxxxxuuuuuux",
+    "xuuluuuuuuuuuuuuuuuuuuux",
+    "xuluuluuuuuuuuuuuuuuuuux",
+    "xuuuluuyuuuuuuuuyuuuuuux",
+    "xuuyuuuuuuuuuuuuuuuuyuux",
+    "xxxxxxxxxxzzzxxxxxxxxxxx"
+  ]
+}

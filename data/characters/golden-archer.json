@@ -1,0 +1,15 @@
+{
+  "id": "golden-archer",
+  "name": "Golden Order Archer",
+  "classId": "archer",
+  "type": "infantry",
+  "spriteSet": "genericArcher",
+  "sprite": "assets/character/Generic_Archer/rotations/south.png",
+  "level": 16,
+  "experience": 0,
+  "weaponId": "iron-bow",
+  "ai": "guard",
+  "baseStats": { "hp": 30, "strength": 12, "magic": 0, "dexterity": 16, "speed": 11, "luck": 5, "defense": 5, "resistance": 5, "movement": 5, "build": 6 },
+  "currentStats": { "hp": 30, "strength": 12, "magic": 0, "dexterity": 16, "speed": 11, "luck": 5, "defense": 5, "resistance": 5, "movement": 5, "build": 6 },
+  "growthRates": { "hp": 50, "strength": 40, "magic": 0, "dexterity": 55, "speed": 45, "luck": 30, "defense": 20, "resistance": 25, "movement": 0, "build": 0 }
+}

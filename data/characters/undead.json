@@ -1,0 +1,15 @@
+{
+  "id": "undead",
+  "name": "Undead Prisoner",
+  "classId": "undead",
+  "type": "undead",
+  "spriteSet": "genericUndead",
+  "sprite": "assets/character/Generic_Undead/rotations/south.png",
+  "level": 8,
+  "experience": 0,
+  "weaponId": "undead-claws",
+  "ai": "guard",
+  "baseStats": { "hp": 38, "strength": 14, "magic": 0, "dexterity": 4, "speed": 2, "luck": 0, "defense": 4, "resistance": 0, "movement": 3, "build": 12 },
+  "currentStats": { "hp": 38, "strength": 14, "magic": 0, "dexterity": 4, "speed": 2, "luck": 0, "defense": 4, "resistance": 0, "movement": 3, "build": 12 },
+  "growthRates": { "hp": 80, "strength": 50, "magic": 0, "dexterity": 15, "speed": 5, "luck": 0, "defense": 20, "resistance": 0, "movement": 0, "build": 0 }
+}

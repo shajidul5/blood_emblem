@@ -1,0 +1,11 @@
+{
+  "id": "voss", "name": "Bishop Aurel Voss", "classId": "bishop", "type": "infantry",
+  "spriteSet": "bishopSeymour", "sprite": "assets/character/Bishop_Seymour/rotations/south.png",
+  "scale": 1.25, "level": 25, "experience": 0, "weaponId": "aureole",
+  "inventory": ["light-tome", "heal-staff"], "spellUses": { "aureole": 10 },
+  "staffUses": { "heal-staff": 6 },
+  "weaponExp": { "Light": 250, "Staff": 180 }, "isBoss": true, "ai": "stationary",
+  "baseStats": { "hp": 62, "strength": 2, "magic": 21, "dexterity": 18, "speed": 12, "luck": 10, "defense": 12, "resistance": 23, "movement": 5, "build": 10 },
+  "currentStats": { "hp": 62, "strength": 2, "magic": 21, "dexterity": 18, "speed": 12, "luck": 10, "defense": 12, "resistance": 23, "movement": 5, "build": 10 },
+  "growthRates": { "hp": 55, "strength": 0, "magic": 50, "dexterity": 35, "speed": 20, "luck": 25, "defense": 25, "resistance": 45, "movement": 0, "build": 0 }
+}

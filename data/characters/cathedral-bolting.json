@@ -1,0 +1,10 @@
+{
+  "id": "cathedral-bolting", "name": "Storm Canon", "classId": "sage", "type": "infantry",
+  "spriteSet": "genericSage", "sprite": "assets/character/Generic_Sage/rotations/south.png",
+  "scale": 1, "level": 20, "experience": 0, "weaponId": "bolting",
+  "inventory": ["thunder-tome"], "spellUses": { "bolting": 4 },
+  "weaponExp": { "Anima": 180 }, "ai": "stationary",
+  "baseStats": { "hp": 34, "strength": 1, "magic": 15, "dexterity": 12, "speed": 9, "luck": 3, "defense": 7, "resistance": 17, "movement": 5, "build": 8 },
+  "currentStats": { "hp": 34, "strength": 1, "magic": 15, "dexterity": 12, "speed": 9, "luck": 3, "defense": 7, "resistance": 17, "movement": 5, "build": 8 },
+  "growthRates": { "hp": 40, "strength": 0, "magic": 40, "dexterity": 35, "speed": 25, "luck": 15, "defense": 20, "resistance": 35, "movement": 0, "build": 0 }
+}

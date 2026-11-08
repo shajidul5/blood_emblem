@@ -1,0 +1,23 @@
+{
+  "id": "physic",
+  "name": "Physic",
+  "type": "Staff",
+  "damageType": "magical",
+  "might": 0,
+  "weight": 2,
+  "hit": 100,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "B",
+  "heal": 18,
+  "healExperience": 35,
+  "maxUses": 5,
+  "effect": [],
+  "sound": "magic",
+  "sprite": "assets/weapons/Heal_Staff/heal_staff.png",
+  "spellbook": "heal-staff",
+  "tier": 3,
+  "rangeFromMagic": 2,
+  "lore": "Salt-light carried on the wind. It finds the wounded wherever they fall."
+}

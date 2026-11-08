@@ -1,0 +1,9 @@
+{
+  "id": "cathedral-paladin", "name": "Golden Order Paladin", "classId": "paladin", "type": "cavalry",
+  "spriteSet": "genericPaladin", "sprite": "assets/character/Generic_Paladin/rotations/south.png",
+  "scale": 1.2, "level": 20, "experience": 0, "weaponId": "silver-lance",
+  "weaponExp": { "Spear": 120, "Sword": 70 }, "ai": "mobile",
+  "baseStats": { "hp": 43, "strength": 17, "magic": 1, "dexterity": 14, "speed": 14, "luck": 6, "defense": 12, "resistance": 10, "movement": 8, "build": 11 },
+  "currentStats": { "hp": 43, "strength": 17, "magic": 1, "dexterity": 14, "speed": 14, "luck": 6, "defense": 12, "resistance": 10, "movement": 8, "build": 11 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 40, "speed": 35, "luck": 25, "defense": 30, "resistance": 25, "movement": 0, "build": 0 }
+}

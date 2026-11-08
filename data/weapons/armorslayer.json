@@ -1,0 +1,7 @@
+{
+  "id": "armorslayer", "name": "Armorslayer", "type": "Sword", "damageType": "physical",
+  "might": 8, "weight": 8, "hit": 75, "critical": 0, "minRange": 1, "maxRange": 1,
+  "requiredRank": "D", "effect": ["armor"], "sound": "slash",
+  "lore": "A reinforced blade once kept by the bellkeeper, built to find the gaps in a Church knight's armor.",
+  "sprite": "assets/weapons/Armorslayer/armorslayer.png"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "church-healer",
+  "name": "Church Physician",
+  "classId": "priest",
+  "type": "infantry",
+  "spriteSet": "genericPriest",
+  "sprite": "assets/character/Generic_Priest/rotations/south.png",
+  "scale": 1,
+  "level": 16,
+  "experience": 0,
+  "weaponId": "heal-staff",
+  "inventory": ["heal-staff"],
+  "weaponExp": { "Staff": 30 },
+  "ai": "guard",
+  "baseStats": { "hp": 28, "strength": 1, "magic": 13, "dexterity": 10, "speed": 7, "luck": 3, "defense": 4, "resistance": 14, "movement": 5, "build": 5 },
+  "currentStats": { "hp": 28, "strength": 1, "magic": 13, "dexterity": 10, "speed": 7, "luck": 3, "defense": 4, "resistance": 14, "movement": 5, "build": 5 },
+  "growthRates": { "hp": 40, "strength": 0, "magic": 40, "dexterity": 30, "speed": 20, "luck": 20, "defense": 10, "resistance": 45, "movement": 0, "build": 0 }
+}

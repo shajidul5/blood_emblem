@@ -1,0 +1,23 @@
+{
+  "id": "tempest",
+  "name": "Tempest",
+  "type": "Anima",
+  "damageType": "magical",
+  "might": 8,
+  "weight": 6,
+  "hit": 90,
+  "critical": 10,
+  "maxUses": 6,
+  "minRange": 1,
+  "maxRange": 3,
+  "effect": [
+    "flying"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/Wind_tome/rotations/Wind_tome.png",
+  "spellbook": "wind-tome",
+  "requiredRank": "B",
+  "tier": 3,
+  "description": "A howling storm that reaches three tiles away.",
+  "lore": "The Golden Order used this rite to scatter crowds. The margins call them \"the infected\"."
+}

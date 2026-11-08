@@ -1,0 +1,16 @@
+{
+  "id": "veyr",
+  "name": "Marshal Veyr",
+  "classId": "paladin",
+  "type": "cavalry",
+  "spriteSet": "genericPaladin",
+  "sprite": "assets/character/Generic_Paladin/rotations/south.png",
+  "level": 16,
+  "experience": 0,
+  "isBoss": true,
+  "weaponId": "silver-lance",
+  "ai": "stationary",
+  "baseStats": { "hp": 44, "strength": 16, "magic": 3, "dexterity": 15, "speed": 11, "luck": 4, "defense": 14, "resistance": 9, "movement": 8, "build": 12 },
+  "currentStats": { "hp": 44, "strength": 16, "magic": 3, "dexterity": 15, "speed": 11, "luck": 4, "defense": 14, "resistance": 9, "movement": 8, "build": 12 },
+  "growthRates": { "hp": 60, "strength": 40, "magic": 0, "dexterity": 35, "speed": 25, "luck": 0, "defense": 35, "resistance": 25, "movement": 0, "build": 0 }
+}

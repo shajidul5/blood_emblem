@@ -1,0 +1,24 @@
+{
+  "id": "aureole",
+  "name": "Aureole",
+  "type": "Light",
+  "damageType": "magical",
+  "might": 11,
+  "weight": 10,
+  "hit": 75,
+  "critical": 10,
+  "maxUses": 5,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [
+    "undead"
+  ],
+  "sound": "magic",
+  "sprite": "assets/weapons/light_tome/rotations/light_tome.png",
+  "spellbook": "light-tome",
+  "requiredRank": "B",
+  "tier": 3,
+  "halvesResistance": true,
+  "description": "A blinding halo. It pierces magical wards, halving the target's Resistance.",
+  "lore": "The final verse is not a prayer. It is an accusation, and it names the church."
+}

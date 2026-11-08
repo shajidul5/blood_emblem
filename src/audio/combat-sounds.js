@@ -72,3 +72,12 @@ export function playBloodBeastRoar() {
   tone({ type: 'sawtooth', from: 1050, to: 230, attack: 0.12, decay: 1, volume: 0.06 });
   tone({ type: 'triangle', from: 1470, to: 310, start: 0.07, decay: 0.95, volume: 0.06 });
 }
+
+// A rusty iron squeal and a heavy latch as a cell door swings open.
+export function playDoorCreak() {
+  if (!ensureContext()) return;
+  noise({ type: 'lowpass', frequency: 900, to: 200, decay: 0.12, volume: 0.35 });
+  tone({ type: 'sawtooth', start: 0.08, from: 420, to: 610, attack: 0.1, decay: 0.7, volume: 0.05 });
+  tone({ type: 'triangle', start: 0.12, from: 880, to: 1150, attack: 0.1, decay: 0.6, volume: 0.04 });
+  tone({ type: 'sine', start: 0.75, from: 120, to: 50, decay: 0.3, volume: 0.35 });
+}

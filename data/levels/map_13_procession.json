@@ -1,0 +1,129 @@
+{
+  "name": "Chapter 13 - The Procession of Ash",
+  "width": 28,
+  "height": 28,
+  "objective": "seize-streets",
+  "leader": "rictor",
+  "requiredUnits": ["rictor", "lena", "arlan", "troy"],
+  "lighting": "night",
+  "extendEdges": false,
+  "noFence": true,
+  "spawn": { "x": 14, "z": 24 },
+  "exit": { "x": 13, "z": 2 },
+  "startingItems": [],
+  "players": [
+    { "id": "rictor", "x": 14, "z": 24 },
+    { "id": "lena", "x": 12, "z": 25 },
+    { "id": "arlan", "x": 13, "z": 25 },
+    { "id": "troy", "x": 17, "z": 23 }
+  ],
+  "enemies": [
+    { "id": "ward-soldier", "level": 12, "x": 13, "z": 18, "ai": "guard" },
+    { "id": "ward-soldier", "level": 12, "x": 15, "z": 14, "ai": "mobile" },
+    { "id": "golden-archer", "level": 16, "x": 15, "z": 16, "ai": "guard" },
+    { "id": "undead", "level": 11, "x": 4, "z": 15, "ai": "mobile" },
+    { "id": "undead", "level": 12, "x": 3, "z": 12, "ai": "mobile" },
+    { "id": "undead", "level": 12, "x": 10, "z": 16, "ai": "mobile" },
+    { "id": "undead", "level": 12, "x": 14, "z": 11, "ai": "mobile" },
+    { "id": "rotten", "level": 15, "x": 9, "z": 14, "ai": "guard" },
+    { "id": "undead", "level": 11, "x": 9, "z": 10, "ai": "guard" },
+    { "id": "undead", "level": 10, "x": 8, "z": 9, "ai": "guard", "stealable": ["master-emblem"] },
+    { "id": "street-undead", "level": 13, "x": 20, "z": 8, "ai": "mobile" },
+    { "id": "street-undead", "level": 13, "x": 22, "z": 10, "ai": "mobile" },
+    { "id": "ward-soldier", "level": 13, "x": 12, "z": 8, "ai": "guard" },
+    { "id": "ward-soldier", "level": 13, "x": 15, "z": 7, "ai": "guard" },
+    { "id": "golden-archer", "level": 16, "x": 17, "z": 9, "ai": "guard" },
+    { "id": "golden-cavalier", "level": 18, "x": 17, "z": 8, "ai": "guard" },
+    { "id": "ward-knight", "level": 14, "x": 12, "z": 5, "ai": "guard" },
+    { "id": "ward-knight", "level": 14, "x": 15, "z": 5, "ai": "guard" },
+    { "id": "veyr", "level": 16, "x": 13, "z": 4, "ai": "stationary", "drop": "master-emblem" }
+  ],
+  "houses": [
+    {
+      "id": "coachman", "name": "Coachman's Home", "x": 5, "z": 18,
+      "width": 4, "height": 3, "door": { "x": 7, "z": 21 },
+      "style": "town-house", "rewardId": "axereaver", "visited": false
+    },
+    {
+      "id": "bellkeeper", "name": "Bellkeeper's Home", "x": 5, "z": 11,
+      "width": 4, "height": 3, "door": { "x": 7, "z": 14 },
+      "style": "town-house", "rewardId": "armorslayer", "visited": false
+    },
+    {
+      "id": "apothecary", "name": "Shuttered Apothecary", "x": 19, "z": 3,
+      "width": 4, "height": 4, "door": { "x": 21, "z": 7 },
+      "style": "apothecary", "rewardId": "potion", "rewardCount": 2, "visited": false
+    }
+  ],
+  "decorativeHouses": [
+    { "id": "clocktower", "x": 8, "z": 0, "width": 3, "height": 6, "style": "clocktower" },
+    { "id": "clock-court-houses", "x": 5, "z": 0, "width": 3, "height": 6, "style": "row-house" },
+    { "id": "west-north", "x": 0, "z": 3, "width": 4, "height": 6, "style": "row-house" },
+    { "id": "west-top", "x": 0, "z": 0, "width": 5, "height": 3, "style": "row-house" },
+    { "id": "west-tenements", "x": 0, "z": 11, "width": 3, "height": 5, "style": "shuttered-shop" },
+    { "id": "west-quarantine", "x": 0, "z": 19, "width": 3, "height": 4, "style": "row-house" },
+    { "id": "west-south", "x": 0, "z": 24, "width": 5, "height": 4, "style": "shuttered-shop" },
+    { "id": "market-south", "x": 5, "z": 23, "width": 6, "height": 5, "style": "row-house" },
+    { "id": "east-south", "x": 19, "z": 24, "width": 4, "height": 4, "style": "row-house" },
+    { "id": "east-bottom", "x": 24, "z": 24, "width": 4, "height": 4, "style": "shuttered-shop" },
+    { "id": "east-low", "x": 23, "z": 17, "width": 5, "height": 7, "style": "row-house" },
+    { "id": "east-mid", "x": 23, "z": 10, "width": 5, "height": 6, "style": "shuttered-shop" },
+    { "id": "east-top", "x": 23, "z": 0, "width": 5, "height": 9, "style": "row-house" },
+    { "id": "north-east", "x": 16, "z": 0, "width": 3, "height": 8, "style": "shuttered-shop" },
+    { "id": "north-west", "x": 11, "z": 0, "width": 5, "height": 2, "style": "row-house" },
+    { "id": "market-upper", "x": 5, "z": 7, "width": 4, "height": 2, "style": "shuttered-shop" },
+    { "id": "market-court", "x": 5, "z": 16, "width": 4, "height": 2, "style": "row-house" },
+    { "id": "east-middle", "x": 16, "z": 11, "width": 3, "height": 3, "style": "shuttered-shop" },
+    { "id": "east-rear", "x": 16, "z": 16, "width": 3, "height": 5, "style": "row-house" }
+  ],
+  "chests": [],
+  "objects": [],
+  "reinforcements": [
+    {
+      "turn": 6, "entranceId": "western-quarantine", "spawned": false, "spawnedCount": 0,
+      "units": [
+        { "id": "undead", "level": 12, "x": 3, "z": 17, "ai": "mobile" },
+        { "id": "rotten", "level": 15, "x": 3, "z": 18, "ai": "mobile" },
+        { "id": "undead", "level": 12, "x": 4, "z": 17, "ai": "mobile" }
+      ]
+    }
+  ],
+  "streets": {
+    "seizePoint": { "x": 13, "z": 2 },
+    "bossId": "veyr",
+    "recruit": {
+      "id": "eveline", "name": "Eveline", "x": 20, "z": 16,
+      "recruiterId": "rictor", "recruited": false, "dead": false, "hp": 28
+    }
+  },
+  "tiles": [
+    "BBBBBBBBBBBBBBBBBBBCCCCBBBBB",
+    "BBBBBBBBBBBBBBBBBBBCCCCBBBBB",
+    "BBBBBBBBBBBCggggBBBCCCCBBBBB",
+    "BBBBCBBBBBBLggggBBBBBBBBBBBB",
+    "BBBBCBBBBBBCggggBBBBBBBBBBBB",
+    "BBBBCBBBBBBCggggBBBBBBBBBBBB",
+    "BBBBCggggggLggggBBBBBBBBBBBB",
+    "BBBBCBBBBggLggggBBBLgggBBBBB",
+    "BBBBCBBBBggCgggggggLgggBBBBB",
+    "CCCggCCCgggggggggggggggLCCCC",
+    "CCLggLCLgggggggggggggggBBBBB",
+    "BBBggBBBBggLggggBBBLgggBBBBB",
+    "BBBggBBBBggCggggBBBLgggBBBBB",
+    "BBBggBBBBggLggggBBBCgggBBBBB",
+    "BBBggggggggggggggggggggBBBBB",
+    "BBBggggggggggggggggggggBBBBB",
+    "CCLggBBBBggLggggBBBggggLCCCC",
+    "CLCggBBBBggCggggBBBggggBBBBB",
+    "CCLggBBBBggLggggBBBLgggBBBBB",
+    "BBBggBBBBggCggggBBBLgggBBBBB",
+    "BBBggBBBBggLggggBBBLgggBBBBB",
+    "BBBggggggggggggggggggggBBBBB",
+    "BBBggggggggggggggggggggBBBBB",
+    "CCCCLBBBBBBCgggggggggggBBBBB",
+    "BBBBBBBBBBBLggggCCLBBBBCBBBB",
+    "BBBBBBBBBBBCggggLCCBBBBCBBBB",
+    "BBBBBBBBBBBLggggCCLBBBBCBBBB",
+    "BBBBBBBBBBBCCCCCCCCBBBBCBBBB"
+  ]
+}

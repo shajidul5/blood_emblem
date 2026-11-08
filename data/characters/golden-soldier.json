@@ -1,0 +1,15 @@
+{
+  "id": "golden-soldier",
+  "name": "Golden Order Soldier",
+  "classId": "soldier",
+  "type": "infantry",
+  "spriteSet": "genericSoldier",
+  "sprite": "assets/character/Generic_Soldier/rotations/south.png",
+  "level": 16,
+  "experience": 0,
+  "weaponId": "iron-spear",
+  "ai": "guard",
+  "baseStats": { "hp": 34, "strength": 14, "magic": 0, "dexterity": 12, "speed": 10, "luck": 4, "defense": 10, "resistance": 3, "movement": 5, "build": 8 },
+  "currentStats": { "hp": 34, "strength": 14, "magic": 0, "dexterity": 12, "speed": 10, "luck": 4, "defense": 10, "resistance": 3, "movement": 5, "build": 8 },
+  "growthRates": { "hp": 60, "strength": 40, "magic": 0, "dexterity": 35, "speed": 30, "luck": 20, "defense": 30, "resistance": 10, "movement": 0, "build": 0 }
+}

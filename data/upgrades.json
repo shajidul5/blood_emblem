@@ -1,17 +1,25 @@
 {
   "firstPrepChapter": 5,
   "bossInsight": 5,
-  "weaponCosts": [3, 5, 8],
+  "spellCosts": [6, 12],
+  "spellbooks": {
+    "fire-tome": ["blaze", "inferno"],
+    "wind-tome": ["gale", "tempest"],
+    "thunder-tome": ["elthunder", "bolting"],
+    "light-tome": ["lumen", "aureole"],
+    "heal-staff": ["mend", "physic"],
+    "freeze-staff": ["hold", "stasis"],
+    "dark-tome": ["luna", "eclipse"]
+  },
+  "evolutions": {
+    "rapier": { "into": "bloodletter", "cost": 30 },
+    "vigil-lance": { "into": "longinus", "cost": 30 }
+  },
+  "legacy": {
+    "evolutionCost": 15,
+    "weaponCosts": [3, 5, 8],
+    "awaken": { "weaponId": "rapier", "into": "raikiri", "cost": 1 }
+  },
   "leadership": { "costs": [4, 6, 8, 10, 12], "hit": 3, "avoid": 3 },
-  "awaken": { "weaponId": "rapier", "into": "raikiri", "cost": 1 },
-  "bloodEmblem": { "cost": 30, "healOnKill": 10 },
-  "weapons": {
-    "fire-tome": [{ "might": 1, "hit": 5 }, { "might": 1, "hit": 5 }, { "might": 2, "hit": 5 }],
-    "thunder-tome": [{ "might": 1, "critical": 3 }, { "might": 1, "critical": 3 }, { "might": 2, "critical": 4 }],
-    "light-tome": [{ "might": 1, "hit": 5 }, { "might": 1, "hit": 5 }, { "might": 2, "hit": 5 }],
-    "heal-staff": [{ "heal": 3 }, { "maxRange": 1 }, { "heal": 4 }],
-    "freeze-staff": [{ "hit": 10 }, { "hit": 10 }, { "hit": 10 }],
-    "rapier": [{ "might": 1, "hit": 5 }, { "might": 1, "critical": 5 }, { "might": 1, "hit": 5 }],
-    "wind-tome": [{ "might": 1, "hit": 5 }, { "might": 1, "critical": 5 }, { "might": 1, "hit": 5 }]
-  }
+  "bloodEmblem": { "cost": 30, "healOnKill": 10 }
 }

@@ -14,8 +14,9 @@
         "kicker": "Bridge Defenses",
         "title": "Break the Golden Line",
         "paragraphs": [
-          "Sandbag barricades force you to alternate between the bridge's lanes. Golden Order Cavaliers, Knights and Mages guard the crossing: they advance only when someone enters their movement and attack reach.",
-          "Mages shelter behind the barricades with Fire tomes, striking at range 1-2. Flank their positions, inspect enemy ranges and avoid exposing low-Resistance allies.",
+          "Sandbag barricades force you to alternate between the bridge's lanes. Golden Order Soldiers, Archers, Cavaliers, Knights and Mages guard the crossing: they advance only when someone enters their movement and attack reach.",
+          "The defenders cover one another. Soldiers hold the detours while archers behind them shoot at range 2; the first soldier carries a Javelin with range 1-2. Entering one guard's reach can expose you to another. Inspect combined enemy ranges before advancing.",
+          "Mages shelter behind the barricades with Fire magic, striking at range 1-2. The mage nearest the gate casts the stronger Blaze, backed by an archer. Lead with durable units, then close on the bowmen or flank the spellcasters; do not leave low-Resistance allies exposed.",
           "Defeat Captain Aurelan to claim his Orders Emblem, then bring Maria to the marked gate tile. Maria must survive. You do not need to defeat every bridge defender."
         ],
         "button": "Cross the Bridge"

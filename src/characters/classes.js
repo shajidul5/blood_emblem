@@ -13,6 +13,9 @@ export const CLASSES = new Map(classData.classes.map((entry) => [entry.id, entry
 function validateClasses() {
   for (const entry of CLASSES.values()) {
     if (!TIERS.includes(entry.tier)) throw new Error(`Class ${entry.id} has unknown tier "${entry.tier}".`);
+    if (entry.minimumMovement !== undefined && (!Number.isInteger(entry.minimumMovement) || entry.minimumMovement < 1)) {
+      throw new Error(`Class ${entry.id} needs a positive integer minimumMovement.`);
+    }
     if (!Array.isArray(entry.weaponTypes) || (!entry.weaponTypes.length && !entry.unarmed) ||
       (entry.unarmed && entry.weaponTypes.length)) {
       throw new Error(`Class ${entry.id} must list weapon types, or be explicitly unarmed with an empty list.`);
@@ -60,18 +63,26 @@ export const MAX_USES_MULTIPLIER = Math.max(1, ...[...CLASSES.values()].map(
   (entry) => (entry.abilities ?? []).reduce((total, ability) => total * (ability.usesMultiplier ?? 1), 1),
 ));
 
-// Sets the unit's class and, when the class defines a look for this character, its sprites.
+// Class movement floors also bring old saves up to date without reapplying promotion bonuses.
 export function applyClass(unit, classId) {
+  if (unit.id === 'rictor' && classId === 'soldier') classId = 'oathkeeper';
   const unitClass = getClass(classId);
   unit.classId = classId;
   unit.class = unitClass.name;
+  if (unitClass.type) unit.type = unitClass.type;
+  if (unitClass.minimumMovement !== undefined) unit.movement = Math.max(unit.movement, unitClass.minimumMovement);
   const look = unitClass.sprites?.[unit.id] ?? unitClass.sprites?.default;
   if (look) Object.assign(unit, look);
 }
 
 export function weaponSpriteSet(unit) {
-  const swordVariants = { linus: 'linusSword', paladinLinus: 'paladinLinusSword', genericPaladin: 'genericPaladinSword' };
-  return unit.weapon?.type === 'Sword' ? swordVariants[unit.spriteSet] ?? unit.spriteSet : unit.spriteSet;
+  const variants = {
+    Sword: { linus: 'linusSword', paladinLinus: 'paladinLinusSword', genericPaladin: 'genericPaladinSword', troy: 'troySword', paladinTroy: 'paladinTroySword' },
+    Light: { templarRictor: 'templarRictorHoly' },
+    Bow: { assassinLena: 'assassinLenaBow' },
+    Staff: { darkSageCorvis: 'darkSageCorvisStaff' },
+  };
+  return variants[unit.weapon?.type]?.[unit.spriteSet] ?? unit.spriteSet;
 }
 
 export function canPromote(unit) {
