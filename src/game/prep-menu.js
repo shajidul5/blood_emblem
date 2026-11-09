@@ -6,7 +6,9 @@ import {
   refundBloodEmblem, toggleBloodEmblem,
 } from './insight.js';
 import { renderInsightLabel } from './insight-display.js';
-import { spellsOf } from '../characters/inventory.js';
+import { rescaleMagicUses, spellsOf } from '../characters/inventory.js';
+import { canPromote, getUsesMultiplier, promoteUnit } from '../characters/classes.js';
+import { snapshotForPromotion } from '../characters/promotion-dialog.js';
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -45,6 +47,7 @@ export function createPrepMenu({
   dialog, getTeam, getConvoy, items, statItems, readInsight, settle, maxSize, maxDeployed,
   isDeployed, setDeployed, getInfo, portrait, onProfile, onSave, onOptions, onViewMap, onChange,
   isRequired = (unit) => unit.id === 'maria',
+  onPromote = () => {},
 }) {
   let view = 'hub';
   let subjectId = null;
@@ -88,6 +91,23 @@ export function createPrepMenu({
   // holder is the unit carrying the entry, or null when it sits in the convoy; user is who benefits.
   const useEntry = (holder, entry, user) => {
     const item = items.get(entry.id);
+    if (item.effect === 'promote') {
+      if (!canUse(user, item) || !listOf(holder).includes(entry) || !(entry.uses > 0)) {
+        flash = 'This Orders Emblem cannot be used by the selected unit.';
+        render();
+        return;
+      }
+      const before = snapshotForPromotion(user, portrait(user));
+      const previousMultiplier = getUsesMultiplier(user);
+      const result = promoteUnit(user);
+      rescaleMagicUses(user, previousMultiplier);
+      entry.uses--;
+      if (!entry.uses) listOf(holder).splice(listOf(holder).indexOf(entry), 1);
+      flash = `${user.name} promoted from ${result.from} to ${result.to}!`;
+      onChange();
+      onPromote(user, before);
+      return;
+    }
     if (item.insight) {
       readInsight(holder, entry);
       flash = `${user.name} read ${item.name}. +${item.insight} Insight.`;
@@ -112,7 +132,14 @@ export function createPrepMenu({
 
   const canUse = (unit, item) =>
     item?.itemType === 'consumable' &&
-    (item.insight || statItems[item.effect] || (item.heal && unit.hp < unit.maxHp));
+    (item.insight || statItems[item.effect] || (item.effect === 'promote' && unit.level >= 20 && canPromote(unit)) ||
+      (item.heal && unit.hp < unit.maxHp));
+
+  const promotionAction = (holder, entry, unit) => {
+    const ready = canUse(unit, items.get(entry.id));
+    return button(ready ? 'Use' : canPromote(unit) ? 'Needs level 20' : 'Already promoted',
+      () => useEntry(holder, entry, unit), !ready);
+  };
 
   const moveEntry = (from, to, entry) => {
     const source = listOf(from);
@@ -290,6 +317,7 @@ export function createPrepMenu({
     const unit = subject();
     body.append(column(`${unit.name} · HP ${unit.hp}/${unit.maxHp}`, unit.inventory, (entry) => {
       const item = items.get(entry.id);
+      if (item.effect === 'promote') return [promotionAction(unit, entry, unit)];
       if (entry.id === 'blood-emblem') {
         return [button(isBloodEmblemEquipped() ? 'Unequip' : 'Equip',
           () => { toggleBloodEmblem(unit); onChange(); }, !isBloodEmblemUpgraded() || unit.id !== 'maria')];
@@ -341,7 +369,8 @@ export function createPrepMenu({
       swapAware(null, entry, () => {
         const item = items.get(entry.id);
         const actions = [];
-        if (canUse(unit, item)) actions.push(button(item.insight ? 'Read' : 'Use', () => useEntry(null, entry, unit)));
+        if (item.effect === 'promote') actions.push(promotionAction(null, entry, unit));
+        else if (canUse(unit, item)) actions.push(button(item.insight ? 'Read' : 'Use', () => useEntry(null, entry, unit)));
         actions.push(
           button('Take', () => moveEntry(null, unit, entry), unit.inventory.length >= maxSize),
           button('Swap', startSwap(null, entry), isBound(entry) || unit.inventory.length === 0),

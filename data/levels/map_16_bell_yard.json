@@ -1,0 +1,512 @@
+{
+  "name": "Chapter 16 - The Delivery Bell",
+  "width": 38,
+  "height": 34,
+  "objective": "bell-lift",
+  "leader": "maria",
+  "requiredUnits": [
+    "maria",
+    "rictor"
+  ],
+  "lighting": "dusk",
+  "noFence": true,
+  "spawn": {
+    "x": 5,
+    "z": 31
+  },
+  "exit": {
+    "x": 18,
+    "z": 2
+  },
+  "tiles": [
+    "MMMMMMYYMMMMYYY00000000YYYMMMMYYMMMMMM",
+    "MMMMMMYYMMMMYYY0SSSSSS0YYYMMMMYYMMMMMM",
+    "MMMMMMYYYYYYYYY0SSSSSS03YYYYYYYYMMMMMM",
+    "MMMMMMYYYYYYXYY0SSSSSS0YYXYYYYYYMMMMMM",
+    "MMMMMMYXXYYYYYY0SSSSSS0YYYYYYXXYMMMMMM",
+    "YYYYYYYYYYYYYYYYYYKYYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYXYYYYKYYYYYXYYYYYYYYYYYYY",
+    "YYYXYYYYYYXYYYYYYYKYYYYYYYYXYYYYYYXYYY",
+    "YYYYYYYYYYYYYYYYYYKYYYYYYYYYYYYYYYYYYY",
+    "ZZZZZJJZZZZZZZZZZZ2JZZZZZZZZZZZJJZZZZZ",
+    "ZZZZZJJZZZZZZZZZZZ2JZZZZZZZZZZZJJZZZZZ",
+    "YYYYYYYYYYYXYYYYYYKYYYYYYYXYYYYYYYYYYY",
+    "YKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKY",
+    "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
+    "MMMMYYYYYYYYYY4444444444YYYYYYYYYYMMMM",
+    "MMMMYYMMMMMYXY4441111444YXYMMMMMYYMMMM",
+    "MMMMYYMMMMMYXY4441111444YXYMMMMMYYMMMM",
+    "YYYYYYMMMMMYYY4441111444YYYMMMMMYYYYYY",
+    "YYYYYYMMMMMYYY4444444444YYYMMMMMYYYYYY",
+    "YYYYYYYYYYYYYYX44444444XYYYYYYYYYYYYYY",
+    "YYYYYXYYYYYYYY4444444444YYYYYYYYXYYYYY",
+    "MMMYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYMMM",
+    "MMMYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYMMM",
+    "MMMYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYMMM",
+    "YYYYYYYYMMMMMYXYYYZZYYXYYMMMMMYYYYYYYY",
+    "YYYYYYYYMMMMMYYYYYZZYYYYYMMMMMYYYYYYYY",
+    "YYYYYXXYMMMMMYYYYYZZYYYYYMMMMMYXXYYYYY",
+    "YYYYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYYYY",
+    "YYYXYYYYYYYYYYYXYYZZYYYXYYYYYYYYYYXYYY",
+    "YYYYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYXYYYYZZYYYYXYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYZZYYYYYYYYYYYYYYYYYY"
+  ],
+  "players": [
+    {
+      "id": "maria",
+      "x": 5,
+      "z": 31
+    },
+    {
+      "id": "bartz",
+      "x": 4,
+      "z": 30
+    },
+    {
+      "id": "cypher",
+      "x": 6,
+      "z": 30
+    },
+    {
+      "id": "seymour",
+      "x": 5,
+      "z": 32
+    },
+    {
+      "id": "stark",
+      "x": 3,
+      "z": 31
+    },
+    {
+      "id": "linus",
+      "x": 7,
+      "z": 31
+    },
+    {
+      "id": "rictor",
+      "x": 32,
+      "z": 31
+    },
+    {
+      "id": "lena",
+      "x": 31,
+      "z": 30
+    },
+    {
+      "id": "arlan",
+      "x": 33,
+      "z": 30
+    },
+    {
+      "id": "troy",
+      "x": 34,
+      "z": 31
+    },
+    {
+      "id": "eveline",
+      "x": 32,
+      "z": 32
+    },
+    {
+      "id": "corvis",
+      "x": 30,
+      "z": 31
+    }
+  ],
+  "enemies": [
+    {
+      "id": "lift-keeper",
+      "level": 24,
+      "x": 18,
+      "z": 2
+    },
+    {
+      "id": "bell-general",
+      "level": 23,
+      "x": 17,
+      "z": 6,
+      "ai": "guard",
+      "weaponId": "silver-lance"
+    },
+    {
+      "id": "bell-general",
+      "level": 23,
+      "x": 19,
+      "z": 6,
+      "ai": "guard",
+      "weaponId": "silver-lance"
+    },
+    {
+      "id": "bell-sage",
+      "level": 23,
+      "x": 13,
+      "z": 3,
+      "ai": "guard"
+    },
+    {
+      "id": "bell-sage",
+      "level": 23,
+      "x": 24,
+      "z": 4,
+      "ai": "guard"
+    },
+    {
+      "id": "cathedral-bishop",
+      "level": 22,
+      "x": 21,
+      "z": 6
+    },
+    {
+      "id": "bell-bolting",
+      "level": 23,
+      "x": 9,
+      "z": 2
+    },
+    {
+      "id": "church-freezer",
+      "x": 14,
+      "z": 7,
+      "level": 22
+    },
+    {
+      "id": "bell-undead",
+      "x": 10,
+      "z": 29,
+      "level": 22,
+      "drop": "chest-key"
+    },
+    {
+      "id": "bell-undead",
+      "x": 13,
+      "z": 22,
+      "level": 23
+    },
+    {
+      "id": "bell-undead",
+      "x": 6,
+      "z": 22,
+      "level": 22,
+      "drop": "chest-key"
+    },
+    {
+      "id": "bell-undead",
+      "x": 15,
+      "z": 31,
+      "level": 22,
+      "ai": "guard"
+    },
+    {
+      "id": "bell-undead",
+      "x": 3,
+      "z": 25,
+      "level": 22,
+      "ai": "guard"
+    },
+    {
+      "id": "ward-soldier",
+      "x": 9,
+      "z": 20,
+      "level": 22
+    },
+    {
+      "id": "ward-soldier",
+      "x": 12,
+      "z": 13,
+      "level": 23,
+      "drop": "chest-key"
+    },
+    {
+      "id": "golden-mage",
+      "x": 4,
+      "z": 19,
+      "level": 22,
+      "weaponId": "wind-tome",
+      "drop": "wind-tome"
+    },
+    {
+      "id": "church-healer",
+      "x": 8,
+      "z": 13,
+      "level": 22
+    },
+    {
+      "id": "bell-paladin",
+      "level": 23,
+      "x": 30,
+      "z": 22,
+      "ai": "mobile",
+      "weaponId": "silver-lance"
+    },
+    {
+      "id": "bell-paladin",
+      "level": 23,
+      "x": 34,
+      "z": 19,
+      "ai": "guard",
+      "weaponId": "steel-sword"
+    },
+    {
+      "id": "ward-knight",
+      "x": 26,
+      "z": 28,
+      "level": 22
+    },
+    {
+      "id": "ward-knight",
+      "x": 24,
+      "z": 22,
+      "level": 23
+    },
+    {
+      "id": "bell-sage",
+      "level": 23,
+      "x": 31,
+      "z": 13,
+      "ai": "guard"
+    },
+    {
+      "id": "bell-general",
+      "level": 23,
+      "x": 28,
+      "z": 13,
+      "ai": "guard",
+      "weaponId": "killer-axe"
+    },
+    {
+      "id": "golden-mage",
+      "x": 35,
+      "z": 26,
+      "level": 22
+    },
+    {
+      "id": "bell-undead",
+      "x": 22,
+      "z": 31,
+      "level": 22
+    },
+    {
+      "id": "bell-undead",
+      "x": 33,
+      "z": 24,
+      "level": 23
+    },
+    {
+      "id": "rotten",
+      "level": 24,
+      "x": 15,
+      "z": 18,
+      "ai": "guard"
+    },
+    {
+      "id": "bell-undead",
+      "x": 21,
+      "z": 20,
+      "level": 23
+    },
+    {
+      "id": "ward-knight",
+      "x": 22,
+      "z": 13,
+      "level": 23
+    },
+    {
+      "id": "treatment-wagon",
+      "x": 3,
+      "z": 12
+    },
+    {
+      "id": "bell-berserker",
+      "level": 23,
+      "x": 14,
+      "z": 25
+    },
+    {
+      "id": "bell-berserker",
+      "level": 23,
+      "x": 28,
+      "z": 21
+    },
+    {
+      "id": "treatment-wagon",
+      "x": 34,
+      "z": 12
+    }
+  ],
+  "chests": [
+    {
+      "id": "west-commission",
+      "name": "Western Commission",
+      "x": 8,
+      "z": 6,
+      "rewardId": "master-emblem"
+    },
+    {
+      "id": "east-commission",
+      "name": "Eastern Commission",
+      "x": 29,
+      "z": 6,
+      "rewardId": "master-emblem"
+    },
+    {
+      "id": "plaza-commission",
+      "name": "Dispatch Commission",
+      "x": 13,
+      "z": 5,
+      "rewardId": "master-emblem"
+    },
+    {
+      "id": "yard-elixir",
+      "name": "Freight Chest",
+      "x": 2,
+      "z": 7,
+      "rewardId": "master-emblem"
+    },
+    {
+      "id": "yard-seal",
+      "name": "Bonded Chest",
+      "x": 35,
+      "z": 7,
+      "rewardId": "killer-axe"
+    }
+  ],
+  "reinforcements": [
+    {
+      "turn": 4,
+      "units": [
+        { "id": "bell-berserker", "level": 23, "x": 3, "z": 33 },
+        { "id": "bell-rotten", "level": 24, "x": 8, "z": 33 }
+      ]
+    },
+    {
+      "turn": 4,
+      "units": [
+        { "id": "bell-berserker", "level": 23, "x": 34, "z": 33 },
+        { "id": "bell-rotten", "level": 24, "x": 29, "z": 33 }
+      ]
+    },
+    {
+      "turn": 7,
+      "units": [
+        { "id": "bell-berserker", "level": 23, "x": 3, "z": 33 },
+        { "id": "bell-rotten", "level": 24, "x": 8, "z": 33 }
+      ]
+    },
+    {
+      "turn": 7,
+      "units": [
+        { "id": "bell-berserker", "level": 23, "x": 34, "z": 33 },
+        { "id": "bell-rotten", "level": 24, "x": 29, "z": 33 }
+      ]
+    },
+    {
+      "turn": 3,
+      "units": [
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 9,
+          "z": 3
+        },
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 28,
+          "z": 3
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "units": [
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 9,
+          "z": 3
+        },
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 28,
+          "z": 3
+        }
+      ]
+    },
+    {
+      "turn": 9,
+      "units": [
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 9,
+          "z": 3
+        },
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 28,
+          "z": 3
+        }
+      ]
+    },
+    {
+      "turn": 12,
+      "units": [
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 9,
+          "z": 3
+        },
+        {
+          "id": "raven",
+          "level": 22,
+          "x": 28,
+          "z": 3
+        }
+      ]
+    }
+  ],
+  "bellYard": {
+    "bossId": "lift-keeper",
+    "wagonId": "treatment-wagon",
+    "cargo": {
+      "id": "bell-undead",
+      "level": 22
+    },
+    "reunited": false,
+    "escaped": 0,
+    "released": 0,
+    "departures": [
+      {
+        "x": 1,
+        "z": 12,
+        "turn": 4,
+        "departed": false
+      },
+      {
+        "x": 36,
+        "z": 12,
+        "turn": 4,
+        "departed": false
+      }
+    ],
+    "beats": [
+      {
+        "id": "bell",
+        "turn": 2,
+        "thresholdZ": null,
+        "seen": false
+      },
+      {
+        "id": "lift",
+        "turn": null,
+        "thresholdZ": 8,
+        "seen": false
+      }
+    ]
+  }
+}

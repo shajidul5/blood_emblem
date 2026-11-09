@@ -142,6 +142,26 @@ export function writeSave(save) {
 export const SAVE_SLOT_COUNT = 3;
 const slotKey = (slot) => `${SAVE_KEY}-slot-${slot}`;
 
+function validateSlot(slot) {
+  if (!Number.isInteger(slot) || slot < 1 || slot > SAVE_SLOT_COUNT) {
+    throw new Error(`Choose a save slot from 1 to ${SAVE_SLOT_COUNT}.`);
+  }
+}
+
+export function exportSaveFile(slot = null) {
+  if (slot !== null) validateSlot(slot);
+  const raw = localStorage.getItem(slot === null ? SAVE_KEY : slotKey(slot));
+  if (raw === null) throw new Error(slot === null ? 'There is no current save to export.' : 'That save slot is empty.');
+  return JSON.stringify(parseSave(raw), null, 2);
+}
+
+export function importSaveFile(text, slot) {
+  validateSlot(slot);
+  const save = parseSave(text);
+  localStorage.setItem(slotKey(slot), JSON.stringify({ ...save, savedAt: new Date().toISOString() }));
+  return save;
+}
+
 // Light summary for the slot list; the full validation happens when the slot is loaded.
 export function describeSaveSlot(slot) {
   const raw = localStorage.getItem(slotKey(slot));
@@ -183,7 +203,10 @@ export function loadSlotIntoCurrentSave(slot) {
 export function readSave() {
   const rawSave = localStorage.getItem(SAVE_KEY);
   if (rawSave === null) return null;
+  return parseSave(rawSave);
+}
 
+export function parseSave(rawSave) {
   let save;
   try {
     save = JSON.parse(rawSave);

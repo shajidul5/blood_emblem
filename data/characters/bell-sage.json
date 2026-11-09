@@ -1,0 +1,8 @@
+{
+  "id": "bell-sage", "name": "Freight Guard Sage", "classId": "sage", "type": "infantry",
+  "spriteSet": "genericSage", "sprite": "assets/character/Generic_Sage/rotations/south.png",
+  "level": 23, "experience": 0, "weaponId": "inferno", "weaponExp": { "Anima": 180 }, "ai": "guard",
+  "baseStats": { "hp": 48, "strength": 2, "magic": 24, "dexterity": 40, "speed": 18, "luck": 10, "defense": 11, "resistance": 20, "movement": 5, "build": 11 },
+  "currentStats": { "hp": 48, "strength": 2, "magic": 24, "dexterity": 40, "speed": 18, "luck": 10, "defense": 11, "resistance": 20, "movement": 5, "build": 11 },
+  "growthRates": { "hp": 50, "strength": 0, "magic": 50, "dexterity": 40, "speed": 30, "luck": 25, "defense": 20, "resistance": 40, "movement": 0, "build": 0 }
+}

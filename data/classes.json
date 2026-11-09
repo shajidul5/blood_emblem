@@ -218,6 +218,12 @@
       "weaponTypes": ["Root"]
     },
     {
+      "id": "treatment-wagon",
+      "name": "Treatment Wagon",
+      "tier": "monster",
+      "weaponTypes": ["Cargo"]
+    },
+    {
       "id": "cavalier",
       "name": "Cavalier",
       "tier": "base",

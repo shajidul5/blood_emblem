@@ -42,7 +42,20 @@ for (const [id, name, walkable, bonuses] of [
   ['cathedral_pillar', 'Ribbed Pillar', false, {}],
   ['cathedral_wall', 'Cathedral Wall', false, {}],
   ['cathedral_rail', 'Gallery Balustrade', false, {}],
+  ['bell_cobble', 'Freight Yard Cobbles', true, {}],
+  ['bell_plaza', 'Clocktower Plaza', true, {}],
+  ['bell_track', 'Wagon Rails', true, {}],
+  ['bell_track_bridge', 'Rail Bridge', true, {}],
+  ['bell_bridge', 'Canal Footbridge', true, {}],
+  ['bell_canal', 'Freight Canal', false, {}],
+  ['bell_crates', 'Freight Crates', true, { avoid: 20, defense: 1, moveCost: 2 }],
+  ['bell_lift', 'Bell Lift Platform', true, {}],
+  ['bell_shaft', 'Lift Shaft', false, {}],
+  ['bell_winch', 'Lift Winch', false, {}],
+  ['bell_warehouse', 'Bonded Warehouse', false, {}],
+  ['bell_tower', 'Clocktower', false, {}],
 ]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...bonuses }));
+export const BELL_YARD_TILE_IDS = new Set([...TILE_DEFS.keys()].filter((id) => id.startsWith('bell_')));
 export const VILLAGE_GRAVEL_TILE_IDS = new Set([
   'village_gravel_a',
   'village_gravel_b',
@@ -115,7 +128,7 @@ export function isLevelTileWalkable(level, x, z, unit) {
   const tileId = level?.tileIds?.[z]?.[x];
   const flying = unit?.type === 'flying';
   return Boolean(tileId) && (flying
-    ? TILE_DEFS.has(tileId) && !['city_wall', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
+    ? TILE_DEFS.has(tileId) && !['city_wall', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
     : isTileWalkable(tileId)) &&
     !(level?.gateEncounter && !level.gateEncounter.spawned &&
       level.gateEncounter.x === x && level.gateEncounter.z === z) &&

@@ -1,0 +1,11 @@
+{
+  "id": "lift-keeper", "name": "Archdeacon Halloran, Lift-Keeper", "classId": "bishop", "type": "infantry",
+  "spriteSet": "liftKeeper", "sprite": "assets/character/Archdeacon_Lift_Keeper/rotations/south.png",
+  "scale": 1.25, "level": 22, "experience": 0, "weaponId": "aureole",
+  "inventory": ["light-tome", "heal-staff"], "spellUses": { "aureole": 8 },
+  "staffUses": { "heal-staff": 4 },
+  "weaponExp": { "Light": 250, "Staff": 180 }, "isBoss": true, "ai": "stationary",
+  "baseStats": { "hp": 64, "strength": 2, "magic": 24, "dexterity": 40, "speed": 16, "luck": 8, "defense": 15, "resistance": 22, "movement": 5, "build": 10 },
+  "currentStats": { "hp": 64, "strength": 2, "magic": 24, "dexterity": 40, "speed": 16, "luck": 8, "defense": 15, "resistance": 22, "movement": 5, "build": 10 },
+  "growthRates": { "hp": 55, "strength": 0, "magic": 50, "dexterity": 35, "speed": 20, "luck": 25, "defense": 25, "resistance": 45, "movement": 0, "build": 0 }
+}

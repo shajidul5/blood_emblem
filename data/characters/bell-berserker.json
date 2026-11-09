@@ -1,0 +1,8 @@
+{
+  "id": "bell-berserker", "name": "Freight Yard Berserker", "classId": "berserker", "type": "infantry",
+  "spriteSet": "genericBerserker", "sprite": "assets/character/Generic_Berserker/rotations/south.png",
+  "level": 23, "experience": 0, "weaponId": "steel-axe", "weaponExp": { "Axe": 180 }, "ai": "mobile",
+  "baseStats": { "hp": 58, "strength": 25, "magic": 0, "dexterity": 40, "speed": 19, "luck": 8, "defense": 11, "resistance": 7, "movement": 6, "build": 15 },
+  "currentStats": { "hp": 58, "strength": 25, "magic": 0, "dexterity": 40, "speed": 19, "luck": 8, "defense": 11, "resistance": 7, "movement": 6, "build": 15 },
+  "growthRates": { "hp": 70, "strength": 50, "magic": 0, "dexterity": 40, "speed": 35, "luck": 20, "defense": 25, "resistance": 20, "movement": 0, "build": 0 }
+}

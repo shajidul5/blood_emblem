@@ -3,7 +3,7 @@
   "name": "Orders Emblem",
   "type": "consumable",
   "effect": "promote",
-  "description": "Promotes a level 10+ unit to their advanced class.",
+  "description": "Promotes a level 20+ unit to their advanced class.",
   "lore": "A tarnished knight's seal, stamped with the crest of an order that sailed here and never wrote home. Whoever bears it is said to carry the order's full authority, and to be bound by it.",
   "maxUses": 1,
   "sprite": "assets/items/Master_Emblem/master_emblem.png"

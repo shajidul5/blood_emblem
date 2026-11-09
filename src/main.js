@@ -59,11 +59,13 @@ import { canRecruitEveline, recruitEveline, freshStreets, streetWarning, streets
 import { canSteal, stealableItems, stealItem } from './game/stealing.js';
 import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled } from './game/courtyard.js';
 import { advanceCathedralStory, CATHEDRAL_ELEVATIONS, cathedralWaveEnabled, freshCathedral } from './game/cathedral.js';
+import { advanceBellYardStory, bellYardVictoryReady, canReunite, dueDepartures, freshBellYard, planWagonMove } from './game/bell-yard.js';
 import { chooseEnemyStaffAction, freezeHitRate, freezeRange, healStaffRange, useEnemyStaff } from './game/enemy-staves.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
+import { unitSpriteScale } from './characters/sprite-size.js';
 import {
   SAVE_SLOT_COUNT, copyCurrentSaveToSlot, createSaveData, describeSaveSlot, loadSlotIntoCurrentSave,
-  readSave, serializeUnit, writeSave,
+  exportSaveFile, importSaveFile, parseSave, readSave, serializeUnit, writeSave,
 } from './game/save.js';
 import {
   buildLevel,
@@ -429,9 +431,10 @@ async function runTutorials() {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
       const intro = CHAPTER_INTROS[tutorialProgress.chapter];
-      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral'].includes(intro) });
+      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral', 'bellYard'].includes(intro) });
     }
     await showCathedralStory();
+    if (activeLevel.bellYard) await showBellYardStory();
     if (!tutorialProgress.houses) {
       tutorialProgress.houses = true;
       const house = activeLevel.houses.filter((entry) => !entry.visited)
@@ -511,6 +514,10 @@ async function openPrepMenu() {
     portrait: portraitUrl,
     getInfo: () => ({ chapter: activeLevel.name, objective: objectiveDescription() }),
     onProfile: (unit) => openUnitProfile(unit),
+    onPromote: (unit, before) => {
+      refreshUnitAppearance(unit);
+      void promotionDialogUi.show(unit, before, portraitUrl(unit));
+    },
     onSave: () => saveCurrentGame(),
     onOptions: () => openOptionsMenu(),
     onViewMap: startMapView,
@@ -584,22 +591,10 @@ function createUnitSpriteGeometry() {
     new THREE.Quaternion().setFromEuler(SPRITE_TILT).invert(),
   );
   geometry.translate(shift.x, shift.y, shift.z);
+  geometry.computeBoundingBox();
   return geometry;
 }
 
-// Per-character scale adjustments to normalize visual sizes
-const CHARACTER_SCALES = {
-  maria: 1.0,
-  bartz: 0.9,
-  raider: 0.9,
-  merfolk: 0.9,
-  cypher: 0.85,
-  seymour: 0.85,
-  ravagerMaria: 1.0,
-  berserkerBartz: 0.9,
-  sageCypher: 0.85,
-  bishopSeymour: 0.85,
-};
 let playerMovement;
 let enemyMovement;
 let cameraFollowTarget;
@@ -637,7 +632,7 @@ const characterSprites = await loadCharacterSprites();
 const unitGeometry = createUnitSpriteGeometry();
 const HERO_DECK_HEIGHT = 0.12;
 function unitSpriteHeightAt(x, z, unit) {
-  const scale = unit?.scale ?? CHARACTER_SCALES[unit?.spriteSet] ?? 1;
+  const scale = unitSpriteScale(unit, unit.mesh?.material.map ?? unitTextures(unit).idle[unit.facing ?? 'south']);
   return UNIT_SPRITE_HEIGHT * scale / 2 + HERO_DECK_HEIGHT + getTileElevation(activeLevel, x, z) +
     (unit?.type === 'flying' ? 0.85 : 0);
 }
@@ -655,7 +650,19 @@ function unitTextures(unit) {
 
 // Each unit owns its material, so animation is just swapping the texture.
 function setUnitSprite(unit, texture) {
-  if (!texture || unit.mesh.material.map === texture) return;
+  if (!texture) return;
+  const scale = unitSpriteScale(unit, texture);
+  unit.mesh.position.y += UNIT_SPRITE_HEIGHT * (scale - unit.mesh.scale.x) / 2;
+  unit.mesh.scale.set(scale, scale, 1);
+  const bar = unit.mesh.userData.healthBar?.group;
+  const marker = unit.mesh.userData.dropMarker;
+  const top = unit.mesh.geometry.boundingBox.min.y + UNIT_SPRITE_HEIGHT * texture.userData.idleHeightRatio;
+  if (bar) {
+    bar.scale.set(1 / scale, 1 / scale, 1);
+    bar.position.y = top + 0.2 / scale;
+  }
+  if (marker) marker.position.y = top + 0.5 / scale;
+  if (unit.mesh.material.map === texture) return;
   unit.mesh.material.map = texture;
   unit.mesh.material.needsUpdate = true;
 }
@@ -673,7 +680,7 @@ function createUnitMesh(unit, renderOrder = 2) {
       side: THREE.DoubleSide,
     }),
   );
-  const scale = unit.scale ?? CHARACTER_SCALES[unit.spriteSet] ?? 1;
+  const scale = unitSpriteScale(unit, mesh.material.map);
   mesh.scale.set(scale, scale, 1);
   mesh.rotation.copy(SPRITE_TILT);
   mesh.renderOrder = renderOrder;
@@ -687,8 +694,6 @@ function createUnitMesh(unit, renderOrder = 2) {
 // Re-syncs a unit's mesh with its current sprite set (after a promotion or a restored save).
 function refreshUnitAppearance(unit) {
   if (!unit.mesh) return;
-  const scale = unit.scale ?? CHARACTER_SCALES[unit.spriteSet] ?? 1;
-  unit.mesh.scale.set(scale, scale, 1);
   setIdleSprite(unit);
 }
 
@@ -1002,6 +1007,7 @@ function hasPendingReinforcements() {
 }
 
 function checkDefeatAllVictory() {
+  if (activeLevel.bellYard) return checkBellYardObjective();
   if (activeLevel.courtyard) return checkCourtyardObjective();
   if (activeLevel.streets) return checkStreetObjective();
   if (activeLevel.infirmary) return false;
@@ -1025,6 +1031,13 @@ function checkDefeatAllVictory() {
 }
 
 function objectiveDescription(level = activeLevel) {
+  if (level.bellYard) {
+    const rules = level.bellYard;
+    const keeper = enemies.some((enemy) => enemy.id === rules.bossId) ? 'Defeat the Lift-Keeper' : 'Lift-Keeper defeated';
+    return [keeper, 'then Maria and Rictor board the Bell Lift',
+      rules.reunited ? 'Parties reunited' : 'Maria and Rictor: Talk to reunite',
+      `Wagons escaped ${rules.escaped}`].join(' · ');
+  }
   if (level.cathedral) {
     const incoming = level.reinforcements.filter((wave) => !wave.spawned && cathedralWaveEnabled(level, wave))
       .map((wave) => `Paladins ${wave.turn <= gameState.turn ? 'queued' : `arrive turn ${wave.turn}`}`);
@@ -1123,7 +1136,8 @@ function showTerminalScreen(outcome, message, { ending = false } = {}) {
   terminalMessage.textContent = ending ? endingText.message : message;
   const nextChapterButton = document.querySelector('#next-chapter');
   nextChapterButton.hidden = !(outcome === 'victory' && (hasNextChapter() || showingPartVictory));
-  nextChapterButton.textContent = ending ? (partTwoEnd ? 'Begin Part Three' : 'Begin Part Two') : showingPartVictory ? 'Continue' : 'Next Chapter';
+  nextChapterButton.textContent = ending ? (partTwoEnd ? 'Begin Part Three' : 'Begin Part Two')
+    : showingPartVictory ? 'Continue' : activeLevel.cathedral ? 'Begin Part Four' : 'Next Chapter';
   terminalScreen.classList.remove('visible');
   terminalScreen.hidden = false;
   requestAnimationFrame(() => terminalScreen.classList.add('visible'));
@@ -1145,6 +1159,99 @@ function completeVictory(message) {
   showTerminalScreen('victory', message);
   saveCurrentGame();
   if (activeLevel.cathedral) void showCathedralEnding();
+  if (activeLevel.bellYard) void showBellYardEnding();
+}
+
+async function showBellYardStory() {
+  for (const id of advanceBellYardStory(activeLevel, playerTeam, gameState.turn)) {
+    saveCurrentGame();
+    await tutorialPopup.show(`bellYard-${id}`, {}, { force: true });
+  }
+}
+
+async function showBellYardEnding() {
+  const escaped = activeLevel.bellYard.escaped;
+  await tutorialPopup.show('bellYard-ending', {
+    cargo: escaped === 0 ? 'Not one treatment wagon reached the lift. Whatever waits below will be hungry.'
+      : `${escaped} treatment wagon${escaped === 1 ? '' : 's'} went down ahead of them. Whatever waits below has been fed.`,
+  }, { force: true });
+}
+
+function checkBellYardObjective() {
+  if (gameState.phase === 'victory') return true;
+  if (!bellYardVictoryReady(activeLevel, enemies, maria, rictor)) return false;
+  completeVictory('Maria throws the brake. The Bell Lift drops into the dark with both parties aboard.');
+  return true;
+}
+
+async function reuniteParties() {
+  const REUNION_INSIGHT = 5;
+  const other = player === maria ? rictor : maria;
+  if (!gameState.selected || gameState.mode !== 'unit' || gameState.phase !== 'player' ||
+    !canReunite(activeLevel, player, other)) return;
+  activeLevel.bellYard.reunited = true;
+  for (const unit of [maria, rictor]) {
+    const healed = unit.maxHp - unit.hp;
+    unit.hp = unit.maxHp;
+    if (healed > 0) showCombatResult(unit, `+${healed}`, 'heal');
+  }
+  gainInsight(REUNION_INSIGHT, 'the parties reunite');
+  finishUnit();
+  saveCurrentGame();
+  await tutorialPopup.show('bellYard-reunion', { insight: REUNION_INSIGHT }, { force: true });
+}
+
+// Wagons roll along the rails toward the Bell Lift; any unit on the rails stops them.
+async function advanceTreatmentWagon(wagon) {
+  const occupied = new Set([...defendingUnits(), ...enemies]
+    .filter((unit) => unit !== wagon && unit.hp > 0)
+    .map((unit) => tileKey(unit.x, unit.z)));
+  const { path, escapes } = planWagonMove(activeLevel, wagon, occupied);
+  if (path.length < 2) return;
+  cameraFollowTarget = wagon.mesh.position;
+  enemyMovement = { enemy: wagon, path, startedAt: clock.elapsedTime, duration: Math.max(0.35, (path.length - 1) * 0.24) };
+  await wait(enemyMovement.duration * 1000);
+  enemyMovement = undefined;
+  const end = path[path.length - 1];
+  Object.assign(wagon, { x: end.x, z: end.z });
+  wagon.mesh.position.set(worldX(end.x), unitSpriteHeightAt(end.x, end.z, wagon), worldZ(end.z));
+  setIdleSprite(wagon);
+  if (!escapes) return;
+  activeLevel.bellYard.escaped++;
+  scene.remove(wagon.mesh);
+  enemies = enemies.filter((unit) => unit !== wagon);
+  showPhaseBanner('Wagon escaped', gameState.turn);
+  setMessage(`A treatment wagon rolls onto the Bell Lift and is lowered into the dark (${activeLevel.bellYard.escaped} escaped).`);
+  renderTacticalUi();
+  saveCurrentGame();
+  await wait(700);
+}
+
+function departTreatmentWagons() {
+  const rules = activeLevel.bellYard;
+  if (!rules) return [];
+  const occupied = new Set([...defendingUnits(), ...enemies].filter((unit) => unit.hp > 0).map((unit) => tileKey(unit.x, unit.z)));
+  const departed = [];
+  for (const entry of dueDepartures(activeLevel, gameState.turn)) {
+    // A unit parked on the depot siding holds the wagon in its shed.
+    if (occupied.has(tileKey(entry.x, entry.z))) continue;
+    entry.departed = true;
+    const wagon = createEnemy(entry.x, entry.z, rules.wagonId);
+    enemies.push(wagon);
+    occupied.add(tileKey(entry.x, entry.z));
+    departed.push(wagon);
+  }
+  return departed;
+}
+
+// A broken wagon spills its "treated" cargo back onto the cobbles.
+function releaseWagonCargo(wagon) {
+  const rules = activeLevel.bellYard;
+  if (!rules || wagon.id !== rules.wagonId) return null;
+  rules.released++;
+  const cargo = createEnemy(wagon.x, wagon.z, rules.cargo.id, { level: rules.cargo.level, ai: 'mobile' });
+  enemies.push(cargo);
+  return cargo;
 }
 
 async function showCathedralStory() {
@@ -1172,6 +1279,7 @@ async function showCathedralEnding() {
 
 function fallenRequiredUnit() {
   if (activeLevel.rescue || activeLevel.gateEncounter) return maria.hp <= 0 ? maria : undefined;
+  if (activeLevel.bellYard) return requiredUnits().find((unit) => unit.hp <= 0);
   return activeLevel.requiredUnits.length && activeLevel.leader !== 'maria'
     ? requiredUnits().find((unit) => unit.hp <= 0)
     : undefined;
@@ -1185,6 +1293,7 @@ function gameOverMessage() {
   if (activeLevel.infirmary?.breached) return 'The evacuation ward has been breached. The service passage is lost.';
   const fallen = fallenRequiredUnit();
   if (fallen === maria) return 'Maria has fallen. The road to Aldermere is lost.';
+  if (fallen && activeLevel.bellYard) return `${fallen.name} has fallen in the freight yard. The two parties never meet again.`;
   if (fallen) return `${fallen.name} has fallen. The ward keeps its prisoners.`;
   return 'The last light has died. The sea keeps what it claims.';
 }
@@ -1481,8 +1590,13 @@ function checkRescueVictory() {
 
 // Fields the level's listed player units (or Maria alone at the spawn point).
 function deployTeam(level, carry = null) {
-  const placements = [...(level.players.length
-    ? level.players
+  const carried = new Set((carry?.allies ?? []).map((ally) => ally.id));
+  // The reunion map lists both full parties; units never recruited (or left behind) stay off the field.
+  const listed = level.bellYard && Array.isArray(carry?.allies)
+    ? level.players.filter((placement) => level.requiredUnits.includes(placement.id) || carried.has(placement.id))
+    : level.players;
+  const placements = [...(listed.length
+    ? listed
     : [{ id: 'maria', x: level.spawn.x, z: level.spawn.z }])];
   const taken = new Set(placements.map((placement) => tileKey(placement.x, placement.z)));
   const origin = placements[0];
@@ -1623,6 +1737,7 @@ function restartLevel() {
     streets: freshStreets(activeLevel.streets),
     courtyard: freshCourtyard(activeLevel.courtyard),
     cathedral: freshCathedral(activeLevel.cathedral),
+    bellYard: freshBellYard(activeLevel.bellYard),
     reinforcements: activeLevel.reinforcements.map((wave) => ({
       ...wave,
       turn: activeLevel.cathedral ? 999 : wave.turn,
@@ -1794,7 +1909,9 @@ function returnToMainMenu() {
 const saveSlotsDialog = document.querySelector('#save-slots-dialog');
 const saveSlotsList = document.querySelector('#save-slots-list');
 const saveSlotsStatus = document.querySelector('#save-slots-status');
+const importSaveInput = document.querySelector('#import-save-file');
 let saveSlotsMode = 'load';
+let importSaveSlot = null;
 
 function renderSaveSlots() {
   saveSlotsList.replaceChildren();
@@ -1812,9 +1929,69 @@ function renderSaveSlots() {
     button.append(title, detail);
     button.disabled = !saving && !info;
     button.addEventListener('click', () => chooseSaveSlot(slot, info));
-    saveSlotsList.append(button);
+    const row = document.createElement('div');
+    row.className = 'save-slot-row';
+    const exportButton = document.createElement('button');
+    exportButton.type = 'button';
+    exportButton.textContent = 'Export';
+    exportButton.setAttribute('aria-label', `Export slot ${slot}`);
+    exportButton.disabled = !info;
+    exportButton.addEventListener('click', () => downloadSaveFile(slot));
+    const importButton = document.createElement('button');
+    importButton.type = 'button';
+    importButton.textContent = 'Import';
+    importButton.setAttribute('aria-label', `Import into slot ${slot}`);
+    importButton.addEventListener('click', () => {
+      importSaveSlot = slot;
+      importSaveInput.value = '';
+      importSaveInput.click();
+    });
+    row.append(button, exportButton, importButton);
+    saveSlotsList.append(row);
   }
 }
+
+function downloadSaveFile(slot = null) {
+  let url;
+  try {
+    if (slot === null && sessionStarted && !saveCurrentGame()) {
+      throw new Error('The current game could not be saved.');
+    }
+    const text = exportSaveFile(slot);
+    const save = JSON.parse(text);
+    url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `blood-emblem-${slot === null ? 'current' : `slot-${slot}`}-chapter-${(save.chapter ?? 0) + 1}-turn-${save.turn}.json`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    saveSlotsStatus.textContent = 'Save file exported. Keep the downloaded JSON somewhere safe.';
+  } catch (error) {
+    console.error('Save export failed:', error);
+    saveSlotsStatus.textContent = `Could not export save: ${error.message}`;
+  } finally {
+    if (url) window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
+
+importSaveInput.addEventListener('change', async () => {
+  const slot = importSaveSlot;
+  const file = importSaveInput.files[0];
+  if (!file || slot === null) return;
+  try {
+    const text = await file.text();
+    parseSave(text);
+    if (describeSaveSlot(slot) && !window.confirm(`Overwrite slot ${slot} with ${file.name}?`)) return;
+    importSaveFile(text, slot);
+    renderSaveSlots();
+    saveSlotsStatus.textContent = `Imported into slot ${slot}. Choose that slot in Load Game to play. Your current game was not changed.`;
+  } catch (error) {
+    console.error('Save import failed:', error);
+    saveSlotsStatus.textContent = `Could not import save: ${error.message}`;
+  }
+});
+document.querySelector('#export-current-save').addEventListener('click', () => downloadSaveFile());
 
 function openSaveSlots(mode) {
   saveSlotsMode = mode;
@@ -3208,6 +3385,8 @@ async function collectEnemyDrop(enemy, recipient) {
     saveCurrentGame();
     await tutorialPopup.show('corvisLost', {}, { force: true });
   }
+  const cargo = releaseWagonCargo(enemy);
+  if (cargo) setMessage('The wagon splits open, and its "patient" climbs out of the straw.');
   let gateBeast;
   if (shouldSpawnGateBeast(activeLevel, enemies)) {
     const encounter = activeLevel.gateEncounter;
@@ -3482,8 +3661,10 @@ function renderTacticalUi() {
     : 'Visit this house.';
   const streetTalk = canRecruitEveline(activeLevel, player, eveline);
   const corvisTalk = canRecruitCorvis(activeLevel, player, enemies.find((enemy) => enemy.id === 'corvis'));
-  document.querySelector('#talk-action').hidden = !streetTalk && !corvisTalk && !canRecruitLinus(player, linus, rescueState);
-  document.querySelector('#talk-action').textContent = corvisTalk ? 'Talk to Corvis' : streetTalk ? 'Talk to Eveline' : 'Talk to Linus';
+  const reunionTalk = canReunite(activeLevel, player, player === maria ? rictor : maria);
+  document.querySelector('#talk-action').hidden = !reunionTalk && !streetTalk && !corvisTalk && !canRecruitLinus(player, linus, rescueState);
+  document.querySelector('#talk-action').textContent = reunionTalk ? `Talk to ${player === maria ? 'Rictor' : 'Maria'}`
+    : corvisTalk ? 'Talk to Corvis' : streetTalk ? 'Talk to Eveline' : 'Talk to Linus';
   const chestHere = chestAvailableToOpen(player);
   chestActionButton.hidden = !chestHere;
   const unlockButton = document.querySelector('#unlock-action');
@@ -4161,6 +4342,7 @@ async function enemyPhase() {
   showPhaseBanner('Enemy', gameState.turn);
   await wait(900);
   await showCathedralStory();
+  if (activeLevel.bellYard) await showBellYardStory();
   for (const id of triggerProgressWaves(activeLevel, playerTeam, gameState.turn)) {
     await tutorialPopup.show(activeLevel.cathedral ? `cathedral-${id}` :
       id === 'courtyard-ravens' ? 'courtyardRavenWarning' : 'courtyardCavalryWarning', {}, { force: true });
@@ -4190,6 +4372,11 @@ async function enemyPhase() {
       ? playerTeam.filter((unit) => unit.hp > 0)
       : defendingUnits();
     if (!livingTeam.length) break;
+    if (activeLevel.bellYard && enemy.id === activeLevel.bellYard.wagonId) {
+      if (!enemy.frozen) await advanceTreatmentWagon(enemy);
+      else frozenEnemies.push(enemy);
+      continue;
+    }
     if (enemy.frozen) frozenEnemies.push(enemy);
     if (enemy.inventory?.some((entry) => INVENTORY_ITEMS.get(entry.id)?.type === 'Staff')) {
       const action = chooseEnemyStaffAction(enemy, enemies, livingTeam);
@@ -4447,6 +4634,7 @@ async function enemyPhase() {
   cursorOutline.visible = true;
   setCursor(player.x, player.z);
   spawnGateRavens();
+  const departedWagons = departTreatmentWagons();
   const reinforcementResult = spawnTurnReinforcements();
   if (reinforcementResult.error) {
     console.error('Unable to spawn chapter reinforcements:', reinforcementResult.error);
@@ -4458,6 +4646,7 @@ async function enemyPhase() {
       ? `${boss.name} has arrived with reinforcements!`
       : `${reinforcementResult.units.length} reinforcements have arrived!`);
   }
+  if (departedWagons.length) setMessage('Treatment wagons leave the depots! Block the rails or break them before they reach the lift.');
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
   await healOnRestorativeTiles(playerTeam);
@@ -4501,10 +4690,10 @@ function spawnTurnReinforcements() {
       candidates.sort((first, second) =>
         distanceBetween(first.x, first.z, placement.x, placement.z) -
         distanceBetween(second.x, second.z, placement.x, placement.z));
-      const spawnTile = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral
+      const spawnTile = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard
         ? infirmarySpawnTile(activeLevel, placement, [...defendingUnits(), ...enemies])
         : candidates[0];
-      if (!spawnTile && (activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral)) break;
+      if (!spawnTile && (activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard)) break;
       if (!spawnTile) {
         return {
           units: createdUnits,
@@ -4691,7 +4880,7 @@ document.querySelector('#cancel-combat').addEventListener('click', cancelCombatF
 document.querySelector('#profile-action').addEventListener('click', openCharacterProfile);
 document.querySelector('#finish-action').addEventListener('click', finishUnit);
 visitActionButton.addEventListener('click', () => void visitHouse());
-document.querySelector('#talk-action').addEventListener('click', () => void (activeLevel.courtyard ? recruitCourtyardShaman() : activeLevel.streets ? recruitStreetHealer() : recruitLinus()));
+document.querySelector('#talk-action').addEventListener('click', () => void (activeLevel.bellYard ? reuniteParties() : activeLevel.courtyard ? recruitCourtyardShaman() : activeLevel.streets ? recruitStreetHealer() : recruitLinus()));
 chestActionButton.addEventListener('click', () => void openChest());
 document.querySelector('#unlock-action').addEventListener('click', () => void unlockCell());
 document.querySelector('#steal-action').addEventListener('click', openSteal);
@@ -5041,8 +5230,10 @@ function update(dt, t) {
     const from = path[stepIndex];
     const to = path[stepIndex + 1];
     enemy.facing = getFacing(to.x - from.x, to.z - from.z);
-    const walkFrames = unitTextures(enemy).walking[enemy.facing];
-    setUnitSprite(enemy, walkFrames[Math.floor((t - startedAt) / 0.09) % walkFrames.length]);
+    const walkFrames = unitTextures(enemy).walking?.[enemy.facing];
+    setUnitSprite(enemy, walkFrames?.length
+      ? walkFrames[Math.floor((t - startedAt) / 0.09) % walkFrames.length]
+      : unitTextures(enemy).idle[enemy.facing]);
     enemy.mesh.position.set(
       THREE.MathUtils.lerp(worldX(from.x), worldX(to.x), stepProgress),
       THREE.MathUtils.lerp(
@@ -5098,6 +5289,8 @@ function update(dt, t) {
   const walkingTime = playerMovement ? t - playerMovement.startedAt : t;
   for (const unit of Object.values(roster)) {
     const fielded = (playerTeam.includes(unit) || neutralUnits().includes(unit)) && unit.hp > 0;
+    // Bell Yard clears building depth at order 1; allies must render after it, just like enemies.
+    unit.mesh.renderOrder = activeLevel.bellYard || activeLevel.cells.length ? 2 : 0;
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
     if (!fielded) continue;
@@ -5110,12 +5303,15 @@ function update(dt, t) {
       const walkingFrames = textures.walking[unit.facing];
       sprite = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];
     }
+    const previousScale = unit.mesh.scale.x;
     setUnitSprite(unit, sprite);
     const unitX = unit === player ? playerWorldX : worldX(unit.x);
-    const unitY = unit === player ? playerWorldY : unitSpriteHeightAt(unit.x, unit.z, unit);
+    const unitY = unit === player
+      ? playerWorldY + UNIT_SPRITE_HEIGHT * (unit.mesh.scale.x - previousScale) / 2
+      : unitSpriteHeightAt(unit.x, unit.z, unit);
     const unitZ = unit === player ? playerWorldZ : worldZ(unit.z);
     unit.mesh.position.set(unitX, unitY + (unitMoving ? Math.abs(Math.sin(t * 28)) * 0.08 : 0), unitZ);
-    const scale = unit.scale ?? CHARACTER_SCALES[unit.spriteSet] ?? 1;
+    const scale = unitSpriteScale(unit, sprite);
     unit.blob.position.set(unitX, unitY - UNIT_SPRITE_HEIGHT * scale / 2 - HERO_DECK_HEIGHT + 0.02, unitZ);
   }
   const healthBarMeshes = [...defendingUnits(), ...enemies].map((unit) => unit.mesh);
@@ -5187,14 +5383,14 @@ function update(dt, t) {
   const offset = CAM_OFFSET.clone().multiplyScalar(cameraScale);
   const cityBackdrop = levelGroup.userData.cityBackdrop;
   const northLimit = worldZ(activeLevel.exit.z);
-  if (activeLevel.streets || activeLevel.courtyard) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
+  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
   else if (cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
   if (activeLevel.infirmary) constrainInteriorCamera(target, offset, camera.aspect, activeLevel.width, activeLevel.height);
   const desired = target.clone().add(offset);
   camera.position.sub(cameraShakeOffset);
   camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
   let fov = TACTICAL_FOV;
-  if (activeLevel.streets || activeLevel.courtyard) {
+  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard) {
     target.copy(camera.position).sub(offset);
     fov = constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
     camera.position.copy(target).add(offset);

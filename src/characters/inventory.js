@@ -7,6 +7,7 @@ import steelSpear from '../../data/weapons/steel-spear.json';
 import steelLance from '../../data/weapons/steel-lance.json';
 import steelSword from '../../data/weapons/steel-sword.json';
 import steelAxe from '../../data/weapons/steel-axe.json';
+import killerAxe from '../../data/weapons/killer-axe.json';
 import killerBow from '../../data/weapons/killer-bow.json';
 import killingEdge from '../../data/weapons/killing-edge.json';
 import silverLance from '../../data/weapons/silver-lance.json';
@@ -28,6 +29,7 @@ import huntersHatchet from '../../data/weapons/hunters-hatchet.json';
 import pocketwatch from '../../data/items/pocketwatch.json';
 import lightTome from '../../data/weapons/light-tome.json';
 import heartrootBark from '../../data/weapons/heartroot-bark.json';
+import sealedCargo from '../../data/weapons/sealed-cargo.json';
 import bloodletter from '../../data/weapons/bloodletter.json';
 import longinus from '../../data/weapons/longinus.json';
 import healStaff from '../../data/weapons/heal-staff.json';
@@ -90,6 +92,7 @@ export const INVENTORY_ITEMS = new Map([
   [steelSpear.id, createWeaponItem(steelSpear)],
   [steelLance.id, createWeaponItem(steelLance)],
   [steelSword.id, createWeaponItem(steelSword)],
+  [killerAxe.id, createWeaponItem(killerAxe)],
   [silverLance.id, createWeaponItem(silverLance)],
   [axereaver.id, createWeaponItem(axereaver)],
   [armorslayer.id, createWeaponItem(armorslayer)],
@@ -110,6 +113,7 @@ export const INVENTORY_ITEMS = new Map([
   [lightTome.id, createWeaponItem(lightTome)],
   [healStaff.id, createWeaponItem(healStaff)],
   [heartrootBark.id, createWeaponItem(heartrootBark)],
+  [sealedCargo.id, createWeaponItem(sealedCargo)],
   [bloodletter.id, createWeaponItem(bloodletter)],
   [longinus.id, createWeaponItem(longinus)],
   [potion.id, createConsumableItem(potion)],

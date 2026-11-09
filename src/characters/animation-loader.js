@@ -92,7 +92,7 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
     
     // Draw the sprite centered in the new canvas
     const offsetX = Math.round((frameSize - bounds.width) / 2);
-    const offsetY = Math.round((frameSize - bounds.height) / 2);
+    const offsetY = frameSize - bounds.height;
     
     normalizedCtx.drawImage(
       texture.image,
@@ -108,6 +108,7 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
     
     // Create a new texture from the normalized canvas
     texture.image = normalizedCanvas;
+    texture.userData.idleHeightRatio = boundsList[0].height / frameSize;
     texture.needsUpdate = true;
     normalizedSprites.push(texture);
   }
@@ -218,6 +219,13 @@ const genericPriestStaffFrames = import.meta.glob('../../assets/character/Generi
 const genericBishopIdleSprites = import.meta.glob('../../assets/character/Generic_Bishop/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const genericBishopWalkingFrames = import.meta.glob('../../assets/character/Generic_Bishop/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericBishopCastFrames = import.meta.glob('../../assets/character/Generic_Bishop/animations/The_figure_raises_their_right_hand_to_the_chest_to/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const liftKeeperIdleSprites = import.meta.glob('../../assets/character/Archdeacon_Lift_Keeper/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const liftKeeperWalkingFrames = import.meta.glob('../../assets/character/Archdeacon_Lift_Keeper/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const liftKeeperCastFrames = import.meta.glob('../../assets/character/Archdeacon_Lift_Keeper/animations/The_figure_raises_their_right_hand_to_the_chest_to/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const treatmentWagonIdleSprites = import.meta.glob('../../assets/character/Treatment_Wagon/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericBerserkerIdleSprites = import.meta.glob('../../assets/character/Generic_Berserker/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericBerserkerWalkingFrames = import.meta.glob('../../assets/character/Generic_Berserker/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericBerserkerAttackFrames = import.meta.glob('../../assets/character/Generic_Berserker/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const rottenIdleSprites = import.meta.glob('../../assets/character/Rotten/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const rottenWalkingFrames = import.meta.glob('../../assets/character/Rotten/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const rottenAttackFrames = import.meta.glob('../../assets/character/Rotten/animations/The_left_arm_s_blighted_tendrils_draw_back_against/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -519,6 +527,9 @@ export async function loadCharacterSprites() {
     ['generalSeverin', 'General_Severin', generalSeverinIdleSprites, generalSeverinWalkingFrames, generalSeverinAttackFrames],
     ['genericPriest', 'Generic_Priest', genericPriestIdleSprites, genericPriestWalkingFrames, genericPriestStaffFrames],
     ['genericBishop', 'Generic_Bishop', genericBishopIdleSprites, genericBishopWalkingFrames, genericBishopCastFrames],
+    ['liftKeeper', 'Archdeacon_Lift_Keeper', liftKeeperIdleSprites, liftKeeperWalkingFrames, liftKeeperCastFrames],
+    ['treatmentWagon', 'Treatment_Wagon', treatmentWagonIdleSprites, {}, {}],
+    ['genericBerserker', 'Generic_Berserker', genericBerserkerIdleSprites, genericBerserkerWalkingFrames, genericBerserkerAttackFrames],
     ['rotten', 'Rotten', rottenIdleSprites, rottenWalkingFrames, rottenAttackFrames],
     ['troy', 'Troy', troyIdleSprites, troyWalkingFrames, troyAttackFrames],
     ['troySword', 'Troy Sword', troySwordIdleSprites, troyWalkingFrames, troySwordAttackFrames],
@@ -532,7 +543,7 @@ export async function loadCharacterSprites() {
     result[`${key}WalkingFrames`] = data.walking;
     result[`${key}AttackFrames`] = data.attacking;
     // The bishop's single raised-hand gesture serves for both Aureole and its healing staff.
-    if (key === 'eveline' || key === 'valkyrieEveline' || key === 'genericPriest' || key === 'genericBishop') {
+    if (key === 'eveline' || key === 'valkyrieEveline' || key === 'genericPriest' || key === 'genericBishop' || key === 'liftKeeper') {
       result[`${key}StaffFrames`] = data.attacking;
     }
   }

@@ -1,0 +1,8 @@
+{
+  "id": "bell-rotten", "name": "Discarded Rotten", "classId": "rotten", "type": "undead",
+  "spriteSet": "rotten", "sprite": "assets/character/Rotten/rotations/south.png", "scale": 1.25,
+  "level": 24, "experience": 0, "weaponId": "blighted-tendrils", "ai": "mobile",
+  "baseStats": { "hp": 76, "strength": 25, "magic": 0, "dexterity": 34, "speed": 7, "luck": 4, "defense": 12, "resistance": 7, "movement": 4, "build": 18 },
+  "currentStats": { "hp": 76, "strength": 25, "magic": 0, "dexterity": 34, "speed": 7, "luck": 4, "defense": 12, "resistance": 7, "movement": 4, "build": 18 },
+  "growthRates": { "hp": 80, "strength": 50, "magic": 0, "dexterity": 35, "speed": 10, "luck": 10, "defense": 25, "resistance": 20, "movement": 0, "build": 0 }
+}

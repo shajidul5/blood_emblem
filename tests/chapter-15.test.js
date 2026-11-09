@@ -11,10 +11,16 @@ const priorImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
 const priorStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
 const storage = new Map();
 before(async () => {
+  const propSizes = new Map(await Promise.all(['throne', 'records'].map(async (key) => {
+    const png = await readFile(new URL(`../assets/tiles/Cathedral_Interior/${key}.png`, import.meta.url));
+    return [key, { width: png.readUInt32BE(16), height: png.readUInt32BE(20) }];
+  })));
   globalThis.Image = class {
     set src(value) {
       this.width = value.includes('/altar.png') ? 192 : 64;
       this.height = value.includes('/altar.png') ? 160 : value.includes('banner') ? 128 : 64;
+      const size = [...propSizes].find(([key]) => value.includes(`/${key}.png`))?.[1];
+      if (size) Object.assign(this, size);
       queueMicrotask(() => this.onload());
     }
   };
@@ -58,7 +64,7 @@ function reachable(level, start, blocked = () => false) {
 
 test('Chapter 15 has a valid promoted roster, sole Bishop objective and promotion-friendly rewards', async () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 15);
+  assert.equal(levels.CHAPTER_COUNT, 16);
   assert.equal(level.objective, 'defeat-boss');
   assert.throws(() => levels.validateLevel({ ...structuredClone(raw), cathedral: null }), /Cathedral battle rules/);
   assert.deepEqual(level.players.map((unit) => unit.id), ['rictor', 'lena', 'arlan', 'troy']);
@@ -184,6 +190,31 @@ test('Generated art covers every tile at gameplay height and keeps props off wal
     if (prop && !['altar', 'throne'].includes(prop.key)) assert.equal(tiles.isLevelTileWalkable(level, Math.floor(prop.x), Math.floor(prop.z)), false);
   }
   assert.ok(group.children.some((mesh) => mesh.userData.cathedralProp?.key === 'throne' && mesh.userData.cathedralProp.x === 12));
+  const upgraded = group.children.filter((mesh) => ['throne', 'records'].includes(mesh.userData.cathedralProp?.key));
+  assert.equal(upgraded.length, 5, 'the throne and four central archive cabinets use the upgraded art');
+  for (const mesh of upgraded) {
+    assert.equal(mesh.rotation.x, -Math.atan2(14, 10), 'props match the Chapter 1 object pitch');
+    assert.equal(mesh.rotation.y, 0, 'front faces stay straight');
+    assert.equal(mesh.material.map.magFilter, THREE.NearestFilter);
+    if (mesh.userData.cathedralProp.key === 'throne') {
+      assert.equal(mesh.material.depthTest, false, 'the altar cannot clip the chair back');
+      assert.equal(mesh.renderOrder, 0.5, 'the throne draws after scenery but before units');
+      assert.ok(Math.abs(mesh.geometry.parameters.height - 0.85) < 1e-6,
+        'the throne matches the bishop infantry silhouette height');
+      const { width, height } = mesh.geometry.parameters;
+      const depth = height * Math.sin(-mesh.rotation.x);
+      const tileX = 12 + 0.5 - level.width / 2;
+      const tileZ = 3 + 0.5 - level.height / 2;
+      assert.ok(mesh.position.x - width / 2 >= tileX - 0.5);
+      assert.ok(mesh.position.x + width / 2 <= tileX + 0.5);
+      assert.ok(mesh.position.z - depth >= tileZ - 0.5);
+      assert.ok(mesh.position.z <= tileZ + 0.5, 'the entire throne fits its single tile');
+    }
+    mesh.geometry.computeBoundingBox();
+    assert.ok(Math.abs(mesh.geometry.boundingBox.min.y) < 1e-6, 'props pivot at their bases');
+    const prop = mesh.userData.cathedralProp;
+    assert.equal(mesh.position.y, cathedralElevation(prop.z) + (prop.key === 'records' ? 1 : 0) + 0.08);
+  }
   const depthReset = group.getObjectByName('cathedral-unit-depth-reset');
   assert.ok(depthReset && !depthReset.frustumCulled, 'units must render above Cathedral walls and tiers');
   assert.ok(group.children.every((mesh) => mesh === depthReset || mesh.renderOrder < depthReset.renderOrder));

@@ -71,6 +71,7 @@
       #save-slots-dialog::backdrop { background: rgba(4, 7, 14, .78); }
       #save-slots-dialog h2 { margin: 0 0 12px; color: #e2c582; font: 22px Georgia, "Times New Roman", serif; }
       #save-slots-list { display: grid; gap: 8px; }
+      .save-slot-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; }
       #save-slots-dialog button {
         border: 1px solid #655467; border-radius: 5px; background: #17121d;
         color: #e8d9d9; padding: 8px 14px; font: inherit; cursor: pointer;
@@ -1025,6 +1026,8 @@
     <dialog id="save-slots-dialog" aria-labelledby="save-slots-heading">
       <h2 id="save-slots-heading">Save Game</h2>
       <div id="save-slots-list"></div>
+      <button id="export-current-save" type="button">Export Current Save</button>
+      <input id="import-save-file" type="file" accept=".json,application/json" hidden />
       <div id="save-slots-status" role="status" aria-live="polite"></div>
       <button id="save-slots-close" type="button">Close</button>
     </dialog>

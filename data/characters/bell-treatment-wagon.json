@@ -1,0 +1,8 @@
+{
+  "id": "treatment-wagon", "name": "Treatment Wagon", "classId": "treatment-wagon", "type": "armor",
+  "spriteSet": "treatmentWagon", "sprite": "assets/character/Treatment_Wagon/rotations/south.png",
+  "scale": 1.1, "level": 10, "experience": 0, "weaponId": "sealed-cargo", "ai": "stationary",
+  "baseStats": { "hp": 34, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 9, "resistance": 4, "movement": 4, "build": 20 },
+  "currentStats": { "hp": 34, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 9, "resistance": 4, "movement": 4, "build": 20 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

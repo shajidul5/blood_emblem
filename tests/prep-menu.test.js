@@ -35,6 +35,91 @@ test('universal preparation Back matches button and Escape navigation in every s
     if (previous) Object.defineProperty(globalThis, 'document', previous);
     else delete globalThis.document;
   });
+
+  test('Orders Emblems promote from convoy and carried inventory without spending battle actions', async (t) => {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+    globalThis.document = { createElement: (tag) => new Element(tag) };
+    t.after(() => {
+      if (previous) Object.defineProperty(globalThis, 'document', previous);
+      else delete globalThis.document;
+    });
+    const characters = await server.ssrLoadModule('/src/characters/characters.js');
+    const inventory = await server.ssrLoadModule('/src/characters/inventory.js');
+    for (const source of ['convoy', 'carried']) {
+      const unit = characters.createCypherAlly();
+      unit.level = 20;
+      unit.inventory = inventory.createInventory(['fire-tome', 'potion', 'potion', 'potion', 'potion']);
+      const emblem = { id: 'master-emblem', uses: 1 };
+      const convoy = source === 'convoy' ? [emblem, { id: 'potion', uses: 3 }] : [];
+      if (source === 'carried') unit.inventory[4] = emblem;
+      const dialog = new Element('dialog');
+      let changes = 0, promotions = 0, before;
+      const menu = createPrepMenu({
+        dialog, getTeam: () => [unit], getConvoy: () => convoy, items: inventory.INVENTORY_ITEMS,
+        statItems: {}, maxSize: 5, maxDeployed: 12, isDeployed: () => true,
+        portrait: () => 'portrait', settle: () => '', getInfo: () => ({ chapter: 'Test', objective: 'Test' }),
+        onChange() { changes++; menu.refresh(); },
+        onPromote(promoted, snapshot) { promotions++; assert.equal(promoted, unit); before = snapshot; },
+      });
+      const click = (label) => {
+        const node = dialog.all().find((node) => node.tag === 'button' && !node.disabled &&
+          node.all().map((child) => child.textContent).join('') === label);
+        assert.ok(node, `missing ${label} (${source})`);
+        node.dispatchEvent(new Event('click'));
+        return node;
+      };
+      const closed = menu.show();
+      click('Inventory');
+      dialog.all().find((node) => node.className === 'prep-card').dispatchEvent(new Event('click'));
+      click(source === 'convoy' ? 'Convoy' : 'Use Item');
+      const action = click('Use');
+      assert.equal(unit.classId, 'sage');
+      assert.equal(unit.spriteSet, 'sageCypher');
+      assert.equal(unit.inventory[0].uses, inventory.INVENTORY_ITEMS.get('fire-tome').maxUses * 2);
+      assert.equal(unit.weaponExp.Staff, 30);
+      assert.equal(unit.acted, false);
+      assert.equal(unit.moved, false);
+      assert.equal(unit.inventory.length, source === 'convoy' ? 5 : 4);
+      assert.ok(!(source === 'convoy' ? convoy : unit.inventory).includes(emblem));
+      assert.equal(changes, 1);
+      assert.equal(promotions, 1);
+      assert.equal(before.className, 'Mage');
+      action.dispatchEvent(new Event('click'));
+      assert.equal(changes, 1, 'stale Use cannot consume another emblem or repeat bonuses');
+      dialog.close();
+      await closed;
+    }
+  });
+
+  test('Preparation emblems explain level and class restrictions without consuming items', async (t) => {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+    globalThis.document = { createElement: (tag) => new Element(tag) };
+    t.after(() => {
+      if (previous) Object.defineProperty(globalThis, 'document', previous);
+      else delete globalThis.document;
+    });
+    for (const [classId, level, label] of [['mage', 19, 'Needs level 20'], ['sage', 20, 'Already promoted']]) {
+      const unit = { id: 'cypher', name: 'Cypher', classId, level, inventory: [], hp: 20, maxHp: 20 };
+      const convoy = [{ id: 'master-emblem', uses: 1 }];
+      const dialog = new Element('dialog');
+      const menu = createPrepMenu({
+        dialog, getTeam: () => [unit], getConvoy: () => convoy,
+        items: new Map([['master-emblem', { name: 'Orders Emblem', itemType: 'consumable', effect: 'promote' }]]),
+        statItems: {}, maxSize: 5, maxDeployed: 12, isDeployed: () => true, portrait: () => null,
+        getInfo: () => ({ chapter: 'Test', objective: 'Test' }),
+      });
+      const closed = menu.show();
+      const click = (text) => dialog.all().find((node) => node.tag === 'button' &&
+        node.textContent === text).dispatchEvent(new Event('click'));
+      click('Inventory');
+      dialog.all().find((node) => node.className === 'prep-card').dispatchEvent(new Event('click'));
+      click('Convoy');
+      assert.equal(dialog.all().find((node) => node.textContent === label).disabled, true);
+      assert.equal(convoy[0].uses, 1);
+      dialog.close();
+      await closed;
+    }
+  });
   const dialog = new Element('dialog');
   const team = ['rictor', 'lena'].map((id) => ({
     id, name: id, inventory: [{ id: 'potion', uses: 3 }], hp: 10, maxHp: 20,

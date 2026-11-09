@@ -121,21 +121,21 @@
     {
       "id": "chest-ward-tonic",
       "name": "Infirmary Chest",
-      "x": 14,
+      "x": 7,
       "z": 1,
       "rewardId": "bloodroot-tonic"
     },
     {
       "id": "chest-ward-javelin",
       "name": "Weapon Locker",
-      "x": 18,
-      "z": 2,
+      "x": 9,
+      "z": 3,
       "rewardId": "javelin"
     },
     {
       "id": "chest-ward-fang",
       "name": "Prisoner's Stash",
-      "x": 1,
+      "x": 6,
       "z": 14,
       "rewardId": "alpha-fang"
     },
@@ -149,15 +149,15 @@
     {
       "id": "chest-ward-watch",
       "name": "Evidence Box",
-      "x": 14,
+      "x": 9,
       "z": 14,
       "rewardId": "pocketwatch"
     },
     {
       "id": "chest-ward-key",
       "name": "Jailer's Box",
-      "x": 18,
-      "z": 13,
+      "x": 6,
+      "z": 4,
       "rewardId": "pocketwatch"
     }
   ],

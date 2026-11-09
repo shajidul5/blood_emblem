@@ -13,8 +13,11 @@ import chapterTwelveMapUrl from '../../data/levels/map_12_infirmary.json?url&no-
 import chapterThirteenMapUrl from '../../data/levels/map_13_procession.json?url&no-inline';
 import chapterFourteenMapUrl from '../../data/levels/map_14_courtyard.json?url&no-inline';
 import chapterFifteenMapUrl from '../../data/levels/map_15_cathedral.json?url&no-inline';
+import chapterSixteenMapUrl from '../../data/levels/map_16_bell_yard.json?url&no-inline';
 import { validateCathedral } from '../game/cathedral.js';
 import { addCathedralInterior } from './cathedral-interior.js';
+import { validateBellYard } from '../game/bell-yard.js';
+import { addBellYard } from './bell-yard.js';
 import { getTileElevation } from '../battle/terrain.js';
 import { STREET_CAMERA_PADDING } from '../game/camera-bounds.js';
 import { validateRescueRules } from '../game/rescue.js';
@@ -43,25 +46,30 @@ import infirmaryPatientUrl from '../../assets/character/Villager/rotations/south
 import infirmaryDoorFrontUrl from '../../assets/tiles/Infirmary/infirmary_door_front.png?url';
 import infirmaryDoorSideUrl from '../../assets/tiles/Infirmary/infirmary_door_side.png?url';
 import infirmaryDoorClosedUrl from '../../assets/tiles/Infirmary/infirmary_door_closed.png?url';
+import wardOpenCellUrl from '../../assets/tiles/Quarantine_Ward/open_cell.png?url';
 import infirmaryWallFaceUrl from '../../assets/tiles/Infirmary/infirmary_wall_face.png?url';
 import infirmaryWallCapUrl from '../../assets/tiles/Infirmary/infirmary_wall_cap.png?url';
 import streetLampUrl from '../../assets/tiles/Cathedral_Streets/gas_lamp_front.png?url';
-import streetRowHouseUrl from '../../assets/tiles/Cathedral_Streets/gothic_row_house.png?url';
+import streetRowHouseUrl from '../../assets/tiles/Cathedral_Streets/complete_townhouse.png?url';
+import streetCompleteShopUrl from '../../assets/tiles/Cathedral_Streets/complete_shop.png?url';
+import streetApothecaryUrl from '../../assets/tiles/Cathedral_Streets/complete_apothecary.png?url';
 import streetShopUrl from '../../assets/tiles/Cathedral_Streets/gothic_shuttered_shop.png?url';
 import streetClocktowerUrl from '../../assets/tiles/Cathedral_Streets/clocktower.png?url';
 import courtyardFountainUrl from '../../assets/tiles/Cathedral_Courtyard/dry_fountain.png?url';
-import courtyardDoorsUrl from '../../assets/tiles/Cathedral_Courtyard/cathedral_doors.png?url';
+import courtyardDoorsUrl from '../../assets/tiles/Cathedral_Courtyard/entrance_portal.png?url';
 import courtyardTopiaryUrl from '../../assets/tiles/Cathedral_Courtyard/topiary.png?url';
+import courtyardBuildingUrl from '../../assets/tiles/Cathedral_Courtyard/cathedral_building.png?url';
 const courtyardDetailUrls = import.meta.glob('../../assets/tiles/Cathedral_Courtyard/detail_*.png',
   { eager: true, query: '?url', import: 'default' });
 const creepTreeUrls = import.meta.glob('../../assets/tiles/Creep_Trees/*.png', { eager: true, query: '?url', import: 'default' });
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
-import { COURTYARD_TILE_IDS, getTileDef, infirmaryDoorOrientation, isInfirmaryRecoveryWard, isLevelTileWalkable, isTileWalkable, STREET_TILE_IDS, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
+import { BELL_YARD_TILE_IDS, COURTYARD_TILE_IDS, getTileDef, infirmaryDoorOrientation, isInfirmaryRecoveryWard, isLevelTileWalkable, isTileWalkable, STREET_TILE_IDS, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
 import { enemyMovementType } from '../characters/characters.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B', 'C', 'L', 'u', 'i', 'l', 't', 'x', 'y', 'z', 'P', 'A', 'H', 'W', 'F', 'D']);
 for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I', 'N']) LEVEL_TILES.add(id);
-export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general']);
+for (const id of ['Y', '4', 'K', '2', 'J', 'Z', 'X', 'S', '0', '3', 'M', '1']) LEVEL_TILES.add(id);
+export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general', 'bell-lift']);
 
 const TILE_SIZE = shipTileset.tileSize;
 const WATER_TILE_IDS = new Set(['water_a', 'water_b', 'water_foam']);
@@ -158,7 +166,7 @@ function createWaterMaterial(THREE, texture) {
   return material;
 }
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
-const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS, ...STREET_TILE_IDS, ...COURTYARD_TILE_IDS]);
+const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS, ...STREET_TILE_IDS, ...COURTYARD_TILE_IDS, ...BELL_YARD_TILE_IDS]);
 for (const id of ['floor', 'carpet', 'stairs', 'altar', 'throne', 'pew', 'pillar', 'wall', 'rail']) ATLAS_TILE_IDS.add(`cathedral_${id}`);
 const BLOCKING_OBJECTS = new Set(
   shipTileset.objects.list
@@ -194,6 +202,18 @@ const LEGACY_ATLAS_TILES = {
   U: 'cathedral_rail',
   I: 'cathedral_altar',
   N: 'cathedral_throne',
+  Y: 'bell_cobble',
+  4: 'bell_plaza',
+  K: 'bell_track',
+  2: 'bell_track_bridge',
+  J: 'bell_bridge',
+  Z: 'bell_canal',
+  X: 'bell_crates',
+  S: 'bell_lift',
+  0: 'bell_shaft',
+  3: 'bell_winch',
+  M: 'bell_warehouse',
+  1: 'bell_tower',
   h: 'hull_n',
   d: 'deck_a',
   a: 'deck_b',
@@ -272,13 +292,17 @@ const [cityGateImage, victorianCityImage, cityEmbankmentImage] = await Promise.a
   loadImage(victorianCityUrl),
   loadImage(cityEmbankmentUrl),
 ]);
-const [streetLampImage, streetRowHouseImage, streetShopImage, streetClocktowerImage] = await Promise.all([
+const wardOpenCellImage = await loadImage(wardOpenCellUrl);
+const [streetLampImage, streetRowHouseImage, streetShopImage, streetClocktowerImage,
+  streetCompleteShopImage, streetApothecaryImage] = await Promise.all([
   loadImage(streetLampUrl),
   loadImage(streetRowHouseUrl), loadImage(streetShopUrl), loadImage(streetClocktowerUrl),
+  loadImage(streetCompleteShopUrl), loadImage(streetApothecaryUrl),
 ]);
 const courtyardImages = new Map(await Promise.all([
   ['fountain', courtyardFountainUrl], ['doors', courtyardDoorsUrl],
   ['topiary', courtyardTopiaryUrl],
+  ['building', courtyardBuildingUrl],
   ...Object.entries(courtyardDetailUrls).map(([path, url]) =>
     [path.split('/').at(-1).replace('detail_', '').replace('.png', ''), url]),
 ].map(async ([id, url]) => [id, await loadImage(url)])));
@@ -894,6 +918,7 @@ export function validateLevel(value) {
   level.streets = validateStreets(value.streets, level);
   level.courtyard = validateCourtyard(value.courtyard, level);
   level.cathedral = validateCathedral(value.cathedral, level);
+  level.bellYard = validateBellYard(value.bellYard, level);
   return level;
 }
 
@@ -1005,7 +1030,7 @@ function validateCells(value, level) {
 }
 
 const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl, chapterSixMapUrl, chapterSevenMapUrl, chapterEightMapUrl, chapterNineMapUrl, chapterTenMapUrl, chapterElevenMapUrl, chapterTwelveMapUrl, chapterThirteenMapUrl, chapterFourteenMapUrl];
-CHAPTER_URLS.push(chapterFifteenMapUrl);
+CHAPTER_URLS.push(chapterFifteenMapUrl, chapterSixteenMapUrl);
 export const CHAPTER_COUNT = CHAPTER_URLS.length;
 
 export async function loadChapterLevel(index) {
@@ -1357,7 +1382,7 @@ function streetFacade(THREE, material, image, width, x, z, upright = true) {
 
 function addStreetBlock(THREE, levelGroup, level, house) {
   const image = house.style === 'clocktower' ? streetClocktowerImage
-    : house.style === 'shuttered-shop' ? streetShopImage : streetRowHouseImage;
+    : house.style === 'shuttered-shop' ? streetCompleteShopImage : streetRowHouseImage;
   const material = streetMaterial(THREE, image);
   const ratio = image.height / image.width * Math.sin(OBJECT_TILT);
   const rows = house.style === 'clocktower' ? 1 : Math.max(1, Math.round(house.height / 3));
@@ -1406,8 +1431,8 @@ function addStreetTown(THREE, levelGroup, level) {
   }
   paving.instanceMatrix.needsUpdate = true;
   town.add(paving);
-  const facadeMaterial = streetMaterial(THREE, streetShopImage, 0x818591);
-  const addHouse = (x, z) => town.add(streetFacade(THREE, facadeMaterial, streetShopImage, 2.8, x, z));
+  const facadeMaterial = streetMaterial(THREE, streetCompleteShopImage, 0x818591);
+  const addHouse = (x, z) => town.add(streetFacade(THREE, facadeMaterial, streetCompleteShopImage, 2.8, x, z));
   for (let z = -level.height / 2 - 2; z <= level.height / 2 + 6; z += 4) {
     for (const side of [-1, 1]) {
       addHouse(side * (level.width / 2 + 3), z);
@@ -1528,17 +1553,19 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
   courtyard.name = 'cathedral-courtyard-architecture';
   const pavingGeometry = new THREE.PlaneGeometry(1, 1);
   pavingGeometry.rotateX(-Math.PI / 2);
-  const pavingMaterial = new THREE.MeshBasicMaterial({ map: courtyardTexture(THREE, 'paving'), color: 0xa3a4a6 });
+  const pavingMaterial = new THREE.MeshBasicMaterial({
+    map: atlasTexture(THREE, shipTilesImage, shipTileset.tiles, 'ground_cobble_a'), color: 0x85848e,
+  });
   const count = (level.width + STREET_CAMERA_PADDING * 2) * (level.height + STREET_CAMERA_PADDING * 2) -
     level.width * level.height;
   const border = new THREE.InstancedMesh(pavingGeometry, pavingMaterial, count);
-  border.name = 'courtyard-scenic-paving';
+  border.name = 'courtyard-lower-city-paving';
   const transform = new THREE.Object3D();
   let index = 0;
   for (let z = -STREET_CAMERA_PADDING; z < level.height + STREET_CAMERA_PADDING; z++) {
     for (let x = -STREET_CAMERA_PADDING; x < level.width + STREET_CAMERA_PADDING; x++) {
       if (x >= 0 && x < level.width && z >= 0 && z < level.height) continue;
-      transform.position.set(x + 0.5 - level.width / 2, -0.03, z + 0.5 - level.height / 2);
+      transform.position.set(x + 0.5 - level.width / 2, -4.03, z + 0.5 - level.height / 2);
       transform.updateMatrix();
       border.setMatrixAt(index++, transform.matrix);
     }
@@ -1546,6 +1573,48 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
   border.instanceMatrix.needsUpdate = true;
   courtyard.add(border);
   const materialFor = (id, color) => streetMaterial(THREE, courtyardImages.get(id), color);
+  const foundationMaterial = materialFor('masonry', 0x929095);
+  foundationMaterial.map.wrapS = foundationMaterial.map.wrapT = THREE.RepeatWrapping;
+  foundationMaterial.map.repeat.set(level.width / 2, 2);
+  const foundation = new THREE.Mesh(new THREE.BoxGeometry(level.width, 4, level.height), foundationMaterial);
+  foundation.name = 'courtyard-raised-terrace';
+  foundation.position.y = -2.04;
+  courtyard.add(foundation);
+  const stairs = new THREE.Group();
+  stairs.name = 'courtyard-city-staircase';
+  const stairTop = materialFor('paving');
+  const stairSide = materialFor('wall_side');
+  for (let index = 0; index < 16; index++) {
+    const height = 4 - index * 0.25;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(8, height, 0.5),
+      [stairSide, stairSide, stairTop, stairSide, stairSide, stairSide]);
+    step.position.set(0, -4.04 + height / 2, level.height / 2 + index * 0.5 + 0.25);
+    stairs.add(step);
+  }
+  courtyard.add(stairs);
+  const lowerCity = new THREE.Group();
+  lowerCity.name = 'courtyard-lower-city';
+  const cityMaterial = streetMaterial(THREE, streetCompleteShopImage, 0x747680);
+  const addCityHouse = (x, z) => {
+    const house = streetFacade(THREE, cityMaterial, streetCompleteShopImage, 2.8, x, z, false);
+    house.position.y = -3.98;
+    lowerCity.add(house);
+  };
+  for (let z = -level.height / 2; z <= level.height / 2 + 5; z += 4) {
+    for (const side of [-1, 1]) {
+      addCityHouse(side * (level.width / 2 + 3), z);
+      addCityHouse(side * (level.width / 2 + 6.5), z + 2);
+    }
+  }
+  for (const side of [-1, 1]) {
+    for (const x of [6.5, 10, 13.5, 17]) addCityHouse(side * x, level.height / 2 + 7);
+  }
+  courtyard.add(lowerCity);
+  const buildingImage = courtyardImages.get('building');
+  const building = streetFacade(THREE, materialFor('building'), buildingImage, 22,
+    13 - level.width / 2, 2.6 - level.height / 2, false);
+  building.name = 'courtyard-cathedral-building';
+  courtyard.add(building);
   const hedgeTop = materialFor('hedge');
   const hedgeSide = materialFor('hedge_side');
   const wallTop = materialFor('wall');
@@ -1554,7 +1623,7 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
   for (const [id, height, top, side] of [
     ['courtyard_hedge', 0.38, hedgeTop, hedgeSide],
     ['courtyard_wall', 0.28, wallTop, wallSide],
-    ['courtyard_cathedral', 0.75, wallTop, cathedralSide],
+    ['courtyard_cathedral', 0.15, wallTop, cathedralSide],
   ]) {
     const cells = [];
     for (let z = 0; z < level.height; z++) {
@@ -1578,7 +1647,7 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
   for (const [north, south] of [[5, 8], [10, 14], [20, 24]]) {
     for (const x of [3, 8, 17, 22]) {
       for (const z of [north, south]) {
-        const bush = streetFacade(THREE, topiaryMaterial, topiaryImage, 0.65,
+        const bush = streetFacade(THREE, topiaryMaterial, topiaryImage, 0.92,
           x + 0.5 - level.width / 2, z + 0.95 - level.height / 2, false);
         bush.position.y = 0.4;
         bush.name = `courtyard-topiary-${x}-${z}`;
@@ -1588,10 +1657,12 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
     }
   }
   const doorsImage = courtyardImages.get('doors');
-  const doors = streetFacade(THREE, materialFor('doors'), doorsImage, 5.4,
-    13 - level.width / 2, 2.8 - level.height / 2);
+  const doors = streetFacade(THREE, materialFor('doors'), doorsImage, 22 * doorsImage.width / buildingImage.width,
+    13 - level.width / 2, 2.6 - level.height / 2, false);
   doors.name = 'courtyard-cathedral-doors';
-  doors.userData.footprint = { x: 10, z: -2, width: 6, height: 5 };
+  doors.material.depthTest = false;
+  doors.renderOrder = 0.5;
+  doors.userData.footprint = { x: 10, z: -3, width: 6, height: 6 };
   courtyard.add(doors);
   const fountainImage = courtyardImages.get('fountain');
   const fountain = streetFacade(THREE, materialFor('fountain'), fountainImage, 3.2,
@@ -1740,6 +1811,7 @@ export function buildLevel(THREE, levelGroup, value) {
   for (let z = 0; z < level.height; z++) {
     for (let x = 0; x < level.width; x++) {
       let atlasId = level.tileIds[z][x];
+      if (level.cells.length && !level.infirmary && atlasId === 'mans_door_open') atlasId = 'mans_flagstone';
       if (level.gateEncounter && atlasId === 'city_wall') {
         if (z < level.exit.z - 1) continue;
         // Pave beneath the tilted gate, keeping its foundation impassable.
@@ -1810,8 +1882,9 @@ export function buildLevel(THREE, levelGroup, value) {
   geometry.rotateX(-Math.PI / 2);
   if (level.courtyard) addCourtyardGround(THREE, levelGroup, level);
   if (level.cathedral) addCathedralInterior(THREE, levelGroup, level);
+  if (level.bellYard) addBellYard(THREE, levelGroup, level);
   for (const [atlasId, cells] of tileGroups) {
-    if (level.courtyard || level.cathedral) continue;
+    if (level.courtyard || level.cathedral || level.bellYard) continue;
     const isWater = WATER_TILE_IDS.has(atlasId);
     const texture = STREET_TILE_IDS.has(atlasId)
       ? atlasTexture(THREE, shipTilesImage, shipTileset.tiles, 'ground_cobble_b')
@@ -1831,7 +1904,7 @@ export function buildLevel(THREE, levelGroup, value) {
       : new THREE.MeshStandardMaterial({
         map: texture,
         roughness: 0.9,
-        transparent: true,
+        transparent: !level.cells.length,
         alphaTest: 0.08,
         side: THREE.DoubleSide,
         // Cover tiles glow a sickly green so players can spot the avoid/defense ground at a glance.
@@ -1877,11 +1950,15 @@ export function buildLevel(THREE, levelGroup, value) {
       if (level.tileIds[z][x] === 'mast_base') mastBases.push({ x, z });
     }
   }
+  const mastGeometry = new THREE.PlaneGeometry(3, 3);
+  mastGeometry.translate(0, 1.5, 0);
   for (const base of mastBases) {
-    const mast = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), mastMaterial);
+    const mast = new THREE.Mesh(mastGeometry, mastMaterial);
+    mast.name = 'ship-mast';
+    mast.rotation.x = -OBJECT_TILT;
     mast.position.set(
       base.x - level.width / 2 + 0.5,
-      1.5,
+      0.12 + getTileElevation(level, base.x, base.z),
       base.z - level.height / 2 + 0.5,
     );
     mast.renderOrder = 2;
@@ -2114,7 +2191,7 @@ export function buildLevel(THREE, levelGroup, value) {
   const tentGeometry = new THREE.PlaneGeometry(houseWidth, houseWidth * orderTentImage.height / orderTentImage.width);
   tentGeometry.translate(0, tentGeometry.parameters.height / 2, 0);
   for (const house of level.houses) {
-    const image = streetShopImage;
+    const image = house.style === 'apothecary' ? streetApothecaryImage : streetRowHouseImage;
     const streetWidth = Math.min(
       2 * Math.min(house.door.x + 0.5 - house.x, house.x + house.width - house.door.x - 0.5),
       house.height * 0.98 / (image.height / image.width * Math.sin(OBJECT_TILT)),
@@ -2203,6 +2280,21 @@ export function buildLevel(THREE, levelGroup, value) {
   }
   levelGroup.userData.houseMarkers = [];
   if (level.cells.length) {
+    if (!level.infirmary) {
+      const material = streetMaterial(THREE, wardOpenCellImage);
+      material.depthTest = false;
+      material.depthWrite = false;
+      for (let z = 0; z < level.height; z++) {
+        for (let x = 0; x < level.width; x++) {
+          if (level.tileIds[z][x] !== 'mans_door_open') continue;
+          const frame = streetFacade(THREE, material, wardOpenCellImage, 0.96,
+            x + 0.5 - level.width / 2, z + 0.95 - level.height / 2, false);
+          frame.name = `ward-open-cell-${x}-${z}`;
+          frame.renderOrder = 0.5;
+          levelGroup.add(frame);
+        }
+      }
+    }
     const barsTexture = atlasTexture(THREE, shipTilesImage, shipTileset.tiles, 'mans_gate');
     const barsGeometry = new THREE.PlaneGeometry(1, 1.15);
     barsGeometry.translate(0, 0.575, 0);

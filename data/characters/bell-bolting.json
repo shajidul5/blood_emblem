@@ -1,0 +1,10 @@
+{
+  "id": "bell-bolting", "name": "Freight Guard Storm Canon", "classId": "sage", "type": "infantry",
+  "spriteSet": "genericSage", "sprite": "assets/character/Generic_Sage/rotations/south.png",
+  "level": 23, "experience": 0, "weaponId": "bolting",
+  "inventory": ["thunder-tome"], "spellUses": { "bolting": 4 },
+  "weaponExp": { "Anima": 180 }, "ai": "stationary",
+  "baseStats": { "hp": 45, "strength": 1, "magic": 21, "dexterity": 40, "speed": 15, "luck": 10, "defense": 11, "resistance": 20, "movement": 5, "build": 11 },
+  "currentStats": { "hp": 45, "strength": 1, "magic": 21, "dexterity": 40, "speed": 15, "luck": 10, "defense": 11, "resistance": 20, "movement": 5, "build": 11 },
+  "growthRates": { "hp": 50, "strength": 0, "magic": 40, "dexterity": 40, "speed": 25, "luck": 25, "defense": 20, "resistance": 35, "movement": 0, "build": 0 }
+}

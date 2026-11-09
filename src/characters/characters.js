@@ -47,7 +47,7 @@ import churchSageProfile from '../../data/characters/church-sage.json';
 import churchFreezerProfile from '../../data/characters/church-freezer.json';
 import churchHealerProfile from '../../data/characters/church-healer.json';
 import severinProfile from '../../data/characters/severin.json';
-const cathedralProfiles = Object.values(import.meta.glob('../../data/characters/cathedral-*.json', { eager: true, import: 'default' }));
+const cathedralProfiles = Object.values(import.meta.glob('../../data/characters/{cathedral,bell}-*.json', { eager: true, import: 'default' }));
 import vossProfile from '../../data/characters/voss.json';
 import rapier from '../../data/weapons/rapier.json';
 import { canEquipWeapon, getClass } from './classes.js';

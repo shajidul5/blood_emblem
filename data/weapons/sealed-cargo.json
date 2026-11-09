@@ -1,0 +1,16 @@
+{
+  "id": "sealed-cargo",
+  "name": "Sealed Cargo",
+  "lore": "Iron-banded crates stamped with the Church's blood-drop. Something inside is still breathing.",
+  "type": "Cargo",
+  "damageType": "physical",
+  "might": 0,
+  "weight": 0,
+  "hit": 0,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "passive": true,
+  "effect": [],
+  "sound": "axe"
+}

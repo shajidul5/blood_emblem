@@ -12,11 +12,23 @@ const previousImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
 const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
 
 before(async () => {
+  const topiaryPng = await readFile(new URL('../assets/tiles/Cathedral_Courtyard/topiary.png', import.meta.url));
+  const topiarySize = { width: topiaryPng.readUInt32BE(16), height: topiaryPng.readUInt32BE(20) };
+  const buildingPng = await readFile(new URL('../assets/tiles/Cathedral_Courtyard/cathedral_building.png', import.meta.url));
+  const portalPng = await readFile(new URL('../assets/tiles/Cathedral_Courtyard/entrance_portal.png', import.meta.url));
   globalThis.Image = class {
     set src(value) {
       this.width = value.includes('cathedral_doors') ? 192 : value.includes('dry_fountain') ? 160 : 32;
-      if (value.includes('topiary')) this.width = 96;
-      this.height = value.includes('topiary') ? 112 : this.width;
+      this.height = this.width;
+      if (value.includes('topiary')) Object.assign(this, topiarySize);
+      if (value.includes('cathedral_building')) {
+        this.width = buildingPng.readUInt32BE(16);
+        this.height = buildingPng.readUInt32BE(20);
+      }
+      if (value.includes('entrance_portal')) {
+        this.width = portalPng.readUInt32BE(16);
+        this.height = portalPng.readUInt32BE(20);
+      }
       queueMicrotask(() => this.onload());
     }
   };
@@ -78,7 +90,7 @@ function coverage(level, enemy) {
 
 test('Chapter 14 loads the courtyard with four core allies and only Severin as the objective', async () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 15);
+  assert.equal(levels.CHAPTER_COUNT, 16);
   assert.deepEqual([level.width, level.height], [26, 30]);
   assert.equal(level.objective, 'defeat-courtyard-general');
   assert.equal(level.courtyard.bossId, 'severin');
@@ -239,7 +251,36 @@ test('courtyard art stays axis-aligned and inside blocked footprints with bounde
   assert.equal(group.userData.courtyardGeometry.cameraPadding, STREET_CAMERA_PADDING);
   assert.equal(group.userData.streetTown, undefined);
   assert.equal(group.userData.cityBackdrop, undefined);
-  assert.equal(group.getObjectByName('courtyard-scenic-paving').count, 42 * 46 - 26 * 30);
+  const cityPaving = group.getObjectByName('courtyard-lower-city-paving');
+  assert.equal(cityPaving.count, 42 * 46 - 26 * 30);
+  const cityMatrix = new THREE.Matrix4();
+  cityPaving.getMatrixAt(0, cityMatrix);
+  assert.ok(cityMatrix.elements[13] < -4, 'city streets lie below the playable terrace');
+  const terrace = group.getObjectByName('courtyard-raised-terrace');
+  assert.equal(terrace.geometry.parameters.height, 4);
+  assert.ok(terrace.position.y + terrace.geometry.parameters.height / 2 < 0);
+  const stairs = group.getObjectByName('courtyard-city-staircase');
+  assert.equal(stairs.children.length, 16);
+  for (const [index, step] of stairs.children.entries()) {
+    assert.equal(step.geometry.parameters.width, 8);
+    assert.ok(step.position.z - 0.25 >= level.height / 2, 'stairs remain outside gameplay');
+    assert.ok(Math.abs(step.position.y + step.geometry.parameters.height / 2 + 0.04 + index * 0.25) < 1e-6);
+  }
+  const building = group.getObjectByName('courtyard-cathedral-building');
+  assert.equal(building.position.x, 0, 'full cathedral aligns with the northern entry');
+  assert.ok(building.position.z < 3 - level.height / 2);
+  assert.equal(building.rotation.x, -Math.atan2(14, 10));
+  assert.equal(building.rotation.y, 0);
+  assert.equal(building.material.map.magFilter, THREE.NearestFilter);
+  const city = group.getObjectByName('courtyard-lower-city');
+  assert.ok(city.children.length >= 40);
+  for (const house of city.children) {
+    assert.ok(house.position.y < -3.9);
+    const halfWidth = house.geometry.parameters.width / 2;
+    const depth = house.geometry.parameters.height * Math.sin(-house.rotation.x);
+    assert.ok(Math.abs(house.position.x) - halfWidth > level.width / 2 ||
+      house.position.z - depth > level.height / 2, 'city houses never overlap the battlefield');
+  }
   assert.equal(group.getObjectByName('courtyard_hedge').geometry.parameters.height, 0.38);
   assert.equal(group.getObjectByName('courtyard_wall').geometry.parameters.height, 0.28);
   const ground = group.children.filter(({ name }) => name.startsWith('courtyard-ground-'));
@@ -271,6 +312,12 @@ test('courtyard art stays axis-aligned and inside blocked footprints with bounde
     assert.equal(level.tileIds[z][x], 'courtyard_hedge', 'garden props never obstruct walkable tiles');
     assert.ok(bush.position.y > 0.38, 'planters sit above the hedge rather than being buried inside it');
     const width = bush.geometry.parameters.width;
+    assert.equal(width, 0.92, 'fuller bushes are larger than the original 0.65-tile props');
+    assert.equal(bush.rotation.x, -Math.atan2(14, 10), 'bushes share the Chapter 1 object pitch');
+    assert.equal(bush.rotation.y, 0, 'planters face straight ahead');
+    assert.equal(bush.material.map.magFilter, THREE.NearestFilter);
+    bush.geometry.computeBoundingBox();
+    assert.ok(Math.abs(bush.geometry.boundingBox.min.y) < 1e-6, 'planters stay anchored at their base');
     const depth = bush.geometry.parameters.height * Math.sin(Math.abs(bush.rotation.x));
     assert.ok(bush.position.x - width / 2 >= x - level.width / 2);
     assert.ok(bush.position.x + width / 2 <= x + 1 - level.width / 2);

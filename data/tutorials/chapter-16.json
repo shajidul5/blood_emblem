@@ -1,0 +1,43 @@
+{
+  "bellYard": { "pages": [
+    { "kicker": "Part Four - Chapter 16", "title": "The Delivery Bell", "paragraphs": [
+      "Behind the Cathedral, Voss's ledgers named one more address: the Delivery Yard, where the Church's \"treated\" patients were crated, loaded onto rail wagons and lowered beneath the city on the Bell Lift.",
+      "Maria's party comes up through the western warehouses. Across the canal, Rictor's party breaks through the eastern gate. For the first time since the forest, both parties are fighting in the same place. They can see each other, but the yard lies between them.",
+      "Defeat Archdeacon Halloran, the Lift-Keeper, and then move both Maria and Rictor onto the Bell Lift. Maria and Rictor must both survive."
+    ] },
+    { "kicker": "The Delivery Yard", "title": "Rails, Canals and Wagons", "paragraphs": [
+      "Treatment Wagons roll along the rails toward the lift, four tiles every enemy phase. Any unit standing on the rails blocks them. Breaking a wagon frees its cargo: a level-22 Freight Yard Undead climbs out of the straw. These patients are stronger and quicker than the quarantined undead in the streets. Wagons that reach the lift are lowered into the dark, and the yard keeps count.",
+      "The yard's defenders are levels 22-24. Promoted freight guards are tougher and more accurate than the Cathedral's soldiers: do not rely on dodging every blow. Berserkers carry axes and have a dangerous critical bonus; sword users and ranged attacks can help handle them. Three enemies along the western route carry Chest Keys, enough for Maria's side to open its three chests without waiting for Lena. The western mage wields a Wind Tome and drops it when defeated.",
+      "More wagons leave the east and west depot sidings on turn 4. A unit standing on a siding holds that wagon in its shed. Crates give +20 Avoid and +1 Defense but cost two movement points. Canals can only be crossed at bridges.",
+      "When Maria and Rictor stand next to each other, they can Talk to reunite the parties. All five freight chests wait on the northern quay, beyond the canal. Four hold Orders Emblems. With the eight available in earlier chapters, there are enough to promote all twelve allies if collected. The far eastern chest holds a Killer Axe, a deadly critical weapon for Bartz.",
+      "On turns 4 and 7, a Berserker and a discarded Rotten enter through each southern gate. They arrive at the start of your turn, giving you time to respond. Keep a rear guard while your faster riders race to block the rails. Occupied entrance tiles hold the arriving enemies outside until there is room.",
+      "Halloran waits on the lift behind two Generals, with Sages and a Bolting caster covering the northern quay. Ravens circle the headframe."
+    ], "button": "Into the Yard" }
+  ] },
+  "bellYard-bell": { "pages": [
+    { "kicker": "The Headframe", "title": "The Delivery Bell Rings", "paragraphs": [
+      "A cracked bell swings in the lift headframe, and every gate in the yard shudders open. Somewhere below, chains begin to wind.",
+      "Lena squints at the depots. \"That's not an alarm. It's a schedule.\" Rictor's voice carries over the canal: \"Maria! Hold the rails. Whatever those wagons carry, it does not go down that shaft.\"",
+      "Behind them, the southern gates rattle. Berserkers drive discarded Rotten toward both parties. The first rear wave is due on turn 4, the last on turn 7. Maria calls back: \"Watch our wounded. Leave someone to hold the rear!\""
+    ] }
+  ] },
+  "bellYard-reunion": { "pages": [
+    { "kicker": "The Reunion", "title": "Two Roads, One Party", "paragraphs": [
+      "Rictor lowers his sword first. \"You found the ledgers.\" Maria nods. \"You found the Church.\" Neither of them says what both of them know: the Order was asked to come here.",
+      "Both parties crowd together, counting faces. For one breath the yard is quiet. Maria and Rictor are fully healed, and the reunion grants {insight} Insight."
+    ] }
+  ] },
+  "bellYard-lift": { "pages": [
+    { "kicker": "The Northern Quay", "title": "The Lift-Keeper", "paragraphs": [
+      "Archdeacon Halloran stands at the brake lever in soot-stained vestments. \"Every wagon is a patient, every patient a prayer. The Deep has always answered prayers, child. It only asks that they be delivered.\"",
+      "Maria goes very still. \"The Deep. That's what the merfolk called the water under the island.\" Far beneath the city, something vast shifts, and the water in the canals trembles."
+    ] }
+  ] },
+  "bellYard-ending": { "pages": [
+    { "kicker": "Part Four - Chapter 16 Complete", "title": "The Long Descent", "paragraphs": [
+      "Halloran's hand slips from the lever. Maria throws the brake herself, and the Bell Lift drops: past the cisterns, past the catacomb vaults, past walls that sweat seawater.",
+      "{cargo}",
+      "Rictor watches the light of the yard shrink to a coin above them. \"Whatever the Church was feeding,\" he says, \"it lives down there.\" The chains scream. The lift keeps falling."
+    ] }
+  ] }
+}

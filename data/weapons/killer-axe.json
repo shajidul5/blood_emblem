@@ -1,0 +1,7 @@
+{
+  "id": "killer-axe", "name": "Killer Axe", "type": "Axe", "damageType": "physical",
+  "might": 10, "weight": 9, "hit": 80, "critical": 30,
+  "minRange": 1, "maxRange": 1, "requiredRank": "D", "effect": [], "sound": "axe",
+  "sprite": "assets/weapons/Bell_Yard/killer_axe.png",
+  "lore": "A crescent executioner's axe seized from the freight guards. Its keen inner edge turns a practiced stroke into a killing blow."
+}

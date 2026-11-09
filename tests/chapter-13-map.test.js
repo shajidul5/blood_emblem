@@ -12,12 +12,21 @@ const previousImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
 const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
 
 before(async () => {
+  const buildingSizes = new Map(await Promise.all(
+    ['complete_townhouse', 'complete_shop', 'complete_apothecary'].map(async (name) => {
+      const png = await readFile(new URL(`../assets/tiles/Cathedral_Streets/${name}.png`, import.meta.url));
+      return [name, { width: png.readUInt32BE(16), height: png.readUInt32BE(20) }];
+    }),
+  ));
   globalThis.Image = class {
     set src(value) {
+      const size = [...buildingSizes].find(([name]) => value.includes(name))?.[1];
       this.width = value.includes('clocktower') ? 59 : value.includes('gothic_row_house') ? 86
         : value.includes('gothic_shuttered_shop') ? 112 : value.includes('gas_lamp') ? 32 : 96;
       this.height = value.includes('clocktower') ? 256 : value.includes('gothic_row_house') ? 161
         : value.includes('gothic_shuttered_shop') ? 169 : value.includes('gas_lamp') ? 80 : 112;
+      if (size) Object.assign(this, size);
+      this.url = value;
       queueMicrotask(() => this.onload());
     }
   };
@@ -81,7 +90,7 @@ function attackCoverage(level, enemy) {
 
 test('Chapter 13 registers four watch-route allies and a separate boss-then-seize objective', () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 15);
+  assert.equal(levels.CHAPTER_COUNT, 16);
   assert.ok(levels.LEVEL_OBJECTIVES.has('seize-streets'));
   assert.deepEqual([level.width, level.height], [28, 28]);
   assert.equal(level.objective, 'seize-streets');
@@ -327,6 +336,7 @@ test('dense streets use individual Gothic buildings, a blocked clocktower and cu
   'scenic border buildings stay outside the playable grid');
   for (const facade of group.userData.streetTown.children.filter((child) => !child.isInstancedMesh)) {
     assert.equal(facade.userData.uprightFacade, true, 'exterior houses render upright');
+    assert.match(facade.material.map.image.url, /complete_shop/);
   }
   assert.equal(group.userData.streetCameraPadding, STREET_CAMERA_PADDING);
   const paving = group.userData.streetTown.children.find((child) => child.isInstancedMesh);
@@ -338,6 +348,9 @@ test('dense streets use individual Gothic buildings, a blocked clocktower and cu
     assert.equal(facade.position.x, house.door.x + 0.5 - level.width / 2,
       'visitable front doors align with the marked door tile');
     assert.equal(facade.userData.uprightFacade, true, 'visitable houses render upright');
+    assert.match(facade.material.map.image.url,
+      house.style === 'apothecary' ? /complete_apothecary/ : /complete_townhouse/,
+      'visitable houses use complete buildings with centered doors and a distinct apothecary');
   }
   const buildings = [];
   group.traverse((node) => { if (node.userData.footprint) buildings.push(node); });
@@ -348,6 +361,7 @@ test('dense streets use individual Gothic buildings, a blocked clocktower and cu
     const tilt = Math.abs(building.rotation.x);
     const projectedDepth = building.geometry.parameters.height * Math.sin(tilt);
     if (building !== clocktower) assert.equal(building.userData.uprightFacade, true);
+    if (building !== clocktower) assert.match(building.material.map.image.url, /complete_(townhouse|shop|apothecary)/);
     assert.ok(building.position.x - width / 2 >= bounds.x - level.width / 2);
     assert.ok(building.position.x + width / 2 <= bounds.x + bounds.width - level.width / 2);
     assert.ok(building.position.z - projectedDepth >= bounds.z - level.height / 2,

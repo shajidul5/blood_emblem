@@ -105,7 +105,13 @@ export function addCathedralInterior(THREE, group, level) {
     geometry.translate(0, height / 2, 0);
     const mesh = new THREE.Mesh(geometry, material(key, true));
     mesh.position.set(wx(x), cathedralElevation(z) + lift + 0.08, wz(z));
-    mesh.onBeforeRender = (_renderer, _scene, camera) => mesh.quaternion.copy(camera.quaternion);
+    if (key === 'throne' || key === 'records') mesh.rotation.x = -Math.atan2(14, 10);
+    else mesh.onBeforeRender = (_renderer, _scene, camera) => mesh.quaternion.copy(camera.quaternion);
+    if (key === 'throne') {
+      // Keep the chair in front of the altar billboard and behind units.
+      mesh.material.depthTest = false;
+      mesh.renderOrder = 0.5;
+    }
     mesh.name = `cathedral-prop-${key}`;
     mesh.userData.cathedralProp = { key, x, z, width };
     group.add(mesh);
@@ -113,7 +119,10 @@ export function addCathedralInterior(THREE, group, level) {
   prop('altar', 12.5, 1.8, 6);
   for (let z = 0; z < level.height; z++) {
     for (let x = 0; x < level.width; x++) {
-      if (level.tileIds[z][x] === 'cathedral_throne') prop('throne', x, z - 0.35, 1.5);
+      if (level.tileIds[z][x] === 'cathedral_throne') {
+        const image = images.get('throne');
+        prop('throne', x, z + 0.45, 0.85 * image.width / image.height);
+      }
     }
   }
   for (const z of [5, 9, 15, 20, 27, 31]) {
