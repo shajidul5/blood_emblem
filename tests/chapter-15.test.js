@@ -65,7 +65,8 @@ test('Chapter 15 has a valid promoted roster, sole Bishop objective and promotio
   const enemies = level.enemies.map((unit) => characters.createEnemyUnit(unit.id, unit.x, unit.z, unit));
   assert.equal(enemies.filter((unit) => unit.isBoss).length, 1);
   assert.equal(enemies.find((unit) => unit.isBoss).id, 'voss');
-  assert.ok(enemies.filter((unit) => ['general', 'paladin', 'sage', 'bishop'].includes(unit.classId)).length >= 24);
+  assert.ok(enemies.filter((unit) => ['general', 'paladin', 'sage', 'bishop'].includes(unit.classId)).length >= 22);
+  assert.equal(enemies.filter((unit) => unit.classId === 'priest').length, 2);
   const classes = await server.ssrLoadModule('/src/characters/classes.js');
   assert.equal(classes.getClass('thief').promotionWeaponRanks.Bow, 'D');
   const arlan = characters.createArlanAlly(), lena = characters.createLenaAlly();
@@ -79,7 +80,17 @@ test('Chapter 15 has a valid promoted roster, sole Bishop objective and promotio
     assert.ok(weapon.spriteUrl);
   }
   assert.deepEqual(level.chests.map((chest) => chest.rewardId).sort(),
-    ['steel-axe', 'killer-bow', 'killing-edge', 'orders-emblem', 'orders-emblem'].sort());
+    ['steel-axe', 'killer-bow', 'killing-edge', 'master-emblem', 'master-emblem'].sort());
+  for (const chest of level.chests) assert.ok(inventory.INVENTORY_ITEMS.has(chest.rewardId), chest.rewardId);
+  const { readdir } = await import('node:fs/promises');
+  const mapDir = new URL('../data/levels/', import.meta.url);
+  for (const file of (await readdir(mapDir)).filter((name) => name.endsWith('.json'))) {
+    const map = JSON.parse(await readFile(new URL(file, mapDir), 'utf8'));
+    for (const chest of map.chests ?? []) assert.ok(inventory.INVENTORY_ITEMS.has(chest.rewardId), `${file}: ${chest.rewardId}`);
+  }
+  const legacy = structuredClone(raw);
+  legacy.chests[1].rewardId = 'orders-emblem';
+  assert.equal(levels.validateLevel(legacy).chests[1].rewardId, 'master-emblem');
 });
 
 test('Every chest and tier is connected through two real stair routes with safe regroup landings', () => {
@@ -102,7 +113,7 @@ test('Every chest and tier is connected through two real stair routes with safe 
   assert.equal(tiles.isLevelTileWalkable(level, 0, 15, { type: 'flying' }), false);
 });
 
-test('Bolting has exactly four usable casts, no close counter, separated fields and safe opening deployment', () => {
+test('Bolting has exactly four usable casts, range 3-10, no close counter and safe opening deployment', () => {
   const level = fresh();
   inventory.setUnlockedSpells([]);
   const placements = level.enemies.filter((unit) => unit.id === 'cathedral-bolting');
@@ -113,15 +124,14 @@ test('Bolting has exactly four usable casts, no close counter, separated fields 
     assert.equal(inventory.spellUses(inventory.findWeaponEntry(unit), unit.weapon), 4);
     assert.equal(inventory.weaponUseBlockReason(unit, unit.weapon), undefined);
     assert.equal(unit.weapon.minRange, 3);
+    assert.equal(unit.weapon.maxRange, 10);
     for (const player of level.players) {
-      assert.ok(Math.abs(player.x - p.x) + Math.abs(player.z - p.z) > 6);
+      assert.ok(Math.abs(player.x - p.x) + Math.abs(player.z - p.z) > 10);
     }
     for (let i = 0; i < 4; i++) inventory.spendWeaponUse(unit);
     assert.equal(inventory.weaponUseBlockReason(unit, unit.weapon), 'No uses left');
     assert.equal(combat.canAttack(unit), false);
   }
-  assert.ok(reachable(level, level.spawn, ({ x, z }) => placements.some((p) =>
-    Math.abs(x - p.x) + Math.abs(z - p.z) <= 6)).has('12,3'));
 });
 
 test('Story reveals need no chest, optional recruit or enemy death and persist through restart rules', () => {
@@ -165,22 +175,81 @@ test('Generated art covers every tile at gameplay height and keeps props off wal
   assert.equal(floors.reduce((sum, mesh) => sum + mesh.count, 0), level.width * level.height);
   assert.ok(floors.length >= 8);
   for (const mesh of group.children) {
+    if (mesh.name === 'cathedral-unit-depth-reset') continue;
     for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
       assert.ok(material.map, `${mesh.name} needs generated art`);
+      assert.equal(material.transparent, false, `${mesh.name} must draw before units`);
     }
     const prop = mesh.userData.cathedralProp;
-    if (prop && prop.key !== 'altar') assert.equal(tiles.isLevelTileWalkable(level, Math.floor(prop.x), Math.floor(prop.z)), false);
+    if (prop && !['altar', 'throne'].includes(prop.key)) assert.equal(tiles.isLevelTileWalkable(level, Math.floor(prop.x), Math.floor(prop.z)), false);
   }
+  assert.ok(group.children.some((mesh) => mesh.userData.cathedralProp?.key === 'throne' && mesh.userData.cathedralProp.x === 12));
+  const depthReset = group.getObjectByName('cathedral-unit-depth-reset');
+  assert.ok(depthReset && !depthReset.frustumCulled, 'units must render above Cathedral walls and tiers');
+  assert.ok(group.children.every((mesh) => mesh === depthReset || mesh.renderOrder < depthReset.renderOrder));
+  let cleared = 0;
+  depthReset.onBeforeRender({ clearDepth: () => cleared++ });
+  assert.equal(cleared, 1);
   for (const key of ['marble', 'checker', 'carpet', 'stairs', 'wall_top', 'wall_side', 'pew_top', 'pew_side',
     'pillar_top', 'pillar_side', 'altar_floor', 'gallery', 'archive_floor', 'rail', 'blood_mosaic',
-    'threshold', 'altar', 'window', 'candles', 'records', 'church_banner', 'order_banner']) {
+    'threshold', 'altar', 'throne', 'window', 'candles', 'records', 'church_banner', 'order_banner']) {
     const png = await readFile(new URL(`../assets/tiles/Cathedral_Interior/${key}.png`, import.meta.url));
     assert.equal(png.subarray(1, 4).toString(), 'PNG');
-    if (!['altar', 'window', 'candles', 'records', 'church_banner', 'order_banner'].includes(key)) {
+    if (!['altar', 'throne', 'window', 'candles', 'records', 'church_banner', 'order_banner'].includes(key)) {
       assert.equal(png.readUInt32BE(16), 64);
       assert.equal(png.readUInt32BE(20), 64);
     }
   }
+});
+
+test('Voss holds the Bishop\'s Throne: +3 Defense, +20 Avoid, 5 HP each turn, migrated into older saves', async () => {
+  const level = fresh();
+  const voss = level.enemies.find((unit) => unit.id === 'voss');
+  assert.deepEqual([voss.x, voss.z], [12, 3]);
+  const vossUnit = characters.createEnemyUnit('voss', voss.x, voss.z, voss);
+  assert.equal(vossUnit.spriteSet, 'genericBishop');
+  const { readdir } = await import('node:fs/promises');
+  for (const direction of ['south', 'north', 'east', 'west', 'south-east', 'south-west', 'north-east', 'north-west']) {
+    await readFile(new URL(`../assets/character/Generic_Bishop/rotations/${direction}.png`, import.meta.url));
+    for (const animation of ['Walking', 'The_figure_raises_their_right_hand_to_the_chest_to']) {
+      assert.ok((await readdir(new URL(`../assets/character/Generic_Bishop/animations/${animation}/${direction}/`, import.meta.url))).length);
+    }
+  }
+  const throne = terrain.getTerrain(level, 12, 3);
+  assert.equal(level.tileIds[3][12], 'cathedral_throne');
+  assert.equal(throne.defense, 3);
+  assert.equal(throne.avoid, 20);
+  assert.equal(throne.healPerTurn, 5);
+  assert.equal(throne.walkable, true);
+  assert.equal(level.tileIds.flat().filter((id) => id === 'cathedral_throne').length, 1);
+  const legacy = structuredClone(raw);
+  legacy.tiles[3] = legacy.tiles[3].replace('N', 'R');
+  assert.equal(levels.validateLevel(legacy).tileIds[3][12], 'cathedral_throne');
+});
+
+test('Reliquary Priests are non-combat Priests whose Physic heals the weakest defender from Magic/2 tiles', async () => {
+  const { chooseEnemyStaffAction, useEnemyStaff, healStaffRange } = await server.ssrLoadModule('/src/game/enemy-staves.js');
+  const level = fresh();
+  const placements = level.enemies.filter((unit) => unit.id === 'cathedral-bishop');
+  assert.equal(placements.length, 2);
+  const priest = characters.createEnemyUnit(placements[0].id, 10, 10, placements[0]);
+  assert.equal(priest.classId, 'priest');
+  assert.equal(priest.name, 'Reliquary Priest');
+  assert.equal(combat.canAttack(priest), false);
+  const physic = inventory.INVENTORY_ITEMS.get('physic');
+  assert.equal(healStaffRange(priest, physic), Math.floor(priest.magic / 2));
+  assert.ok(healStaffRange(priest, physic) >= 7);
+  const far = { hp: 10, maxHp: 40, x: 10, z: 10 + healStaffRange(priest, physic) };
+  const farther = { hp: 5, maxHp: 40, x: 10, z: 11 + healStaffRange(priest, physic) };
+  const action = chooseEnemyStaffAction(priest, [priest, far, farther], []);
+  assert.equal(action.staff.id, 'physic');
+  assert.equal(action.target, far);
+  assert.equal(useEnemyStaff(priest, action, 1).healed, Math.min(30, physic.heal + priest.magic));
+  for (let i = 0; i < 4; i++) inventory.spendWeaponUse(priest, physic);
+  far.hp = 10;
+  assert.equal(chooseEnemyStaffAction(priest, [priest, far], []), null, 'Heal cannot reach once Physic is spent');
+  far.z = 11;
+  assert.equal(chooseEnemyStaffAction(priest, [priest, far], []).staff.id, 'heal-staff');
 });
 
 test('Cathedral saves round-trip finite enemy magic, warning progress and essential reveals', () => {

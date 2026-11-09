@@ -7,7 +7,7 @@
     ] },
     { "kicker": "The Cathedral Defenses", "title": "Climb Together", "paragraphs": [
       "Promoted Generals seal the aisles, Paladins advance through the flanks, and Sages cover their approaches. The pew gaps reconnect the nave; twin stairways climb each tier. Stairs cost two movement points. Use their lower landings to regroup rather than splitting your party across both galleries.",
-      "Two stationary Storm Canons cast Bolting at range 3-6. Each has exactly four casts, with no close counterattack. Their fields do not overlap; check the threatened tiles and their remaining uses. Healing Bishops support injured defenders, while Voss carries Aureole and six healing casts.",
+      "Two stationary Storm Canons cast Bolting at range 3-10. Each has exactly four casts, with no close counterattack. Their fields overlap across the gallery, so bait out their casts or rush inside range 3 to strike them safely. Two Reliquary Priests cast Physic, mending injured defenders from up to seven tiles away, so strike priority targets hard or silence the priests first. Voss carries Aureole and six healing casts. He sits on the Bishop's Throne (+3 Defense, +20 Avoid, heals 5 HP every turn), so bring enough damage to finish him in one push.",
       "Entering the galleries and then the sanctuary warns two finite Paladin waves from below. Arrivals occur at the start of the next player phase and cannot attack until you have acted. Occupied arrival tiles queue their riders. There are five optional chests: a Steel Axe, Killer Bow, Killing Edge and two Orders Emblems."
     ], "button": "Enter the Nave" }
   ] },

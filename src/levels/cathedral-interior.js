@@ -25,8 +25,9 @@ export function addCathedralInterior(THREE, group, level) {
     texture.generateMipmaps = false;
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.needsUpdate = true;
+    // Props are opaque cutouts so they finish drawing before the unit depth reset below.
     const result = new THREE.MeshBasicMaterial({
-      map: texture, transparent, alphaTest: transparent ? 0.08 : 0,
+      map: texture, alphaTest: transparent ? 0.5 : 0,
       side: THREE.DoubleSide,
     });
     materials.set(key, result);
@@ -38,7 +39,7 @@ export function addCathedralInterior(THREE, group, level) {
   for (let z = 0; z < level.height; z++) {
     for (let x = 0; x < level.width; x++) {
       const id = level.tileIds[z][x];
-      const key = id === 'cathedral_carpet' ? 'carpet'
+      const key = id === 'cathedral_carpet' || id === 'cathedral_throne' ? 'carpet'
         : id === 'cathedral_stairs' ? 'stairs'
           : id === 'cathedral_altar' ? 'altar_floor'
             : z >= 13 && z <= 22 ? (x <= 3 || x >= 22 ? 'archive_floor' : (x + z) % 7 === 0 ? 'blood_mosaic' : 'gallery')
@@ -110,6 +111,11 @@ export function addCathedralInterior(THREE, group, level) {
     group.add(mesh);
   };
   prop('altar', 12.5, 1.8, 6);
+  for (let z = 0; z < level.height; z++) {
+    for (let x = 0; x < level.width; x++) {
+      if (level.tileIds[z][x] === 'cathedral_throne') prop('throne', x, z - 0.35, 1.5);
+    }
+  }
   for (const z of [5, 9, 15, 20, 27, 31]) {
     prop('window', 0, z, 1.1, 0.55);
     prop('window', 25, z, 1.1, 0.55);
@@ -131,5 +137,14 @@ export function addCathedralInterior(THREE, group, level) {
   surround.material.color.set(0x24212b);
   surround.name = 'cathedral-scenic-foundation';
   group.add(surround);
+  // Unit sprites lean back toward the camera, so walls, pews and upper tiers north of a unit would
+  // clip its head. Clearing depth once the Cathedral is drawn keeps every unit above the terrain,
+  // while units still depth-sort among themselves.
+  const depthReset = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+  depthReset.name = 'cathedral-unit-depth-reset';
+  depthReset.frustumCulled = false;
+  depthReset.renderOrder = 1;
+  depthReset.onBeforeRender = (renderer) => renderer.clearDepth();
+  group.add(depthReset);
   group.userData.streetCameraPadding = STREET_CAMERA_PADDING;
 }

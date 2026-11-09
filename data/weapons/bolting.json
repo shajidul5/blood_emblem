@@ -9,7 +9,7 @@
   "critical": 5,
   "maxUses": 4,
   "minRange": 3,
-  "maxRange": 6,
+  "maxRange": 10,
   "effect": [
     "aqua"
   ],
@@ -18,6 +18,6 @@
   "spellbook": "thunder-tome",
   "requiredRank": "A",
   "tier": 3,
-  "description": "Calls lightning from far away (range 3-6). Cannot strike or counter up close.",
+  "description": "Calls lightning from far away (range 3-10). Cannot strike or counter up close.",
   "lore": "A siege-rite. The hedge-mage never cast it; the page is folded shut and sewn closed."
 }

@@ -215,6 +215,9 @@ const generalSeverinAttackFrames = import.meta.glob('../../assets/character/Gene
 const genericPriestIdleSprites = import.meta.glob('../../assets/character/Generic_Priest/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const genericPriestWalkingFrames = import.meta.glob('../../assets/character/Generic_Priest/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericPriestStaffFrames = import.meta.glob('../../assets/character/Generic_Priest/animations/Healing/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericBishopIdleSprites = import.meta.glob('../../assets/character/Generic_Bishop/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const genericBishopWalkingFrames = import.meta.glob('../../assets/character/Generic_Bishop/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const genericBishopCastFrames = import.meta.glob('../../assets/character/Generic_Bishop/animations/The_figure_raises_their_right_hand_to_the_chest_to/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const rottenIdleSprites = import.meta.glob('../../assets/character/Rotten/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const rottenWalkingFrames = import.meta.glob('../../assets/character/Rotten/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const rottenAttackFrames = import.meta.glob('../../assets/character/Rotten/animations/The_left_arm_s_blighted_tendrils_draw_back_against/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -515,6 +518,7 @@ export async function loadCharacterSprites() {
     ['generalArlan', 'General_Arlan', generalArlanIdleSprites, generalArlanWalkingFrames, generalArlanAttackFrames],
     ['generalSeverin', 'General_Severin', generalSeverinIdleSprites, generalSeverinWalkingFrames, generalSeverinAttackFrames],
     ['genericPriest', 'Generic_Priest', genericPriestIdleSprites, genericPriestWalkingFrames, genericPriestStaffFrames],
+    ['genericBishop', 'Generic_Bishop', genericBishopIdleSprites, genericBishopWalkingFrames, genericBishopCastFrames],
     ['rotten', 'Rotten', rottenIdleSprites, rottenWalkingFrames, rottenAttackFrames],
     ['troy', 'Troy', troyIdleSprites, troyWalkingFrames, troyAttackFrames],
     ['troySword', 'Troy Sword', troySwordIdleSprites, troyWalkingFrames, troySwordAttackFrames],
@@ -527,7 +531,8 @@ export async function loadCharacterSprites() {
     result[key] = data.idle;
     result[`${key}WalkingFrames`] = data.walking;
     result[`${key}AttackFrames`] = data.attacking;
-    if (key === 'eveline' || key === 'valkyrieEveline' || key === 'genericPriest') {
+    // The bishop's single raised-hand gesture serves for both Aureole and its healing staff.
+    if (key === 'eveline' || key === 'valkyrieEveline' || key === 'genericPriest' || key === 'genericBishop') {
       result[`${key}StaffFrames`] = data.attacking;
     }
   }

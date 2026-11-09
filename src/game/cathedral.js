@@ -33,6 +33,10 @@ export function validateCathedral(rules, level) {
         level.reinforcements.some((wave) => wave.entranceId === trigger.id))) {
     throw new Error('Cathedral requires Voss, three story thresholds, and two warned Paladin waves.');
   }
+  // Saves made before the throne existed still carry carpet beneath Voss's seat.
+  if (!level.tileIds.some((row) => row.includes('cathedral_throne')) && level.tileIds[3][12] === 'cathedral_carpet') {
+    level.tileIds[3][12] = 'cathedral_throne';
+  }
   return {
     bossId: rules.bossId,
     beats: rules.beats.map(({ id, thresholdZ, seen }) => ({ id, thresholdZ, seen })),

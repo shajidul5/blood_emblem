@@ -23,10 +23,13 @@ The game uses turn-based tactical controls:
 - Click Maria to select her, then click a reachable tile or in-range enemy to confirm; menu actions are also clickable.
 - Selecting Maria immediately opens her movement range; choose a reachable tile to move, or press Escape to skip movement and open her actions.
 - While choosing a movement destination, a thick blue route line with a direction tip shows the path through each tile.
+- Enemy ranges pinned with **Space** stay visible while a unit is selected and moving; during movement every tile the pinned enemies can reach or strike is shown in red beneath the blue movement tiles.
+- **Convoy** appears in the action menu for Maria, Rictor, and any unit standing next to either of them. It opens the inventory with the shared convoy's Store and Take controls and does not use the unit's action.
 - While choosing a movement tile, click Maria to leave movement targeting and open her action menu.
 - After moving, choose **Back · Undo Move** from Maria's action menu to return to her starting tile and select a new destination. The Back button keeps its normal cancel behavior when undo is unavailable. Undo is available until Maria attacks or ends her turn, and is preserved when continuing a saved game.
 - Press **Backspace** to activate the contextual Back action from the keyboard; **Escape** also backs out of movement or attack targeting.
 - Tap either **Ctrl** key (without another shortcut key) or **right-click** for universal Back. In Preparations, these return every subview, including Trade and Convoy, to its parent; nested Profile/Options dialogs close first, and View Map returns to Preparations. Back at the preparation hub keeps it open.
+- **Restart Chapter** after leaving Preparations keeps everything done there: deployment, trades, convoy changes, used items, promotions and Insight purchases. Preparations reopen with those choices so you can adjust them. Starting items are not granted twice.
 - After movement, use the arrow keys or WASD to move focus through the action menu and Space or Enter to activate the focused action.
 - The attack picker lists the equipped weapon or spell first. Choosing an attack weapon equips it immediately, including its matching sprite, and keeps it equipped for counters and saves.
 - Choose **Profile** from Maria's action menu to view her base/current stats, growth rates, level, experience, and equipped weapon.
@@ -49,7 +52,7 @@ The game uses turn-based tactical controls:
   |---|---|---|---|
   | Fire | Fire | Blaze (9 Mt, 7 Wt, 8 uses) | Inferno (13 Mt, 11 Wt, 5 uses) |
   | Wind | Wind | Gale (6 Mt, 4 Wt, 95 Hit) | Tempest (8 Mt, range 1-3) |
-  | Thunder | Thunder | Elthunder (9 Mt, 20 Crit) | Bolting (12 Mt, range 3-6, 4 uses) |
+  | Thunder | Thunder | Elthunder (9 Mt, 20 Crit) | Bolting (12 Mt, range 3-10, 4 uses) |
   | Light | Light | Lumen (8 Mt) | Aureole (11 Mt, halves Resistance) |
   | Heal staff | Heal | Mend (heals 18 + Magic) | Physic (range 1 to Magic/2) |
   | Freeze staff | Freeze | Hold | Stasis (freezes for 2 turns) |
@@ -165,8 +168,8 @@ The game uses turn-based tactical controls:
 ## Chapter 15 - Beneath the Sacred Blood
 
 - Part Three ends in one continuous 26x36 Cathedral battle: empty nave, sealed archive galleries and a pristine high sanctuary. Twin stairs actually raise terrain, units, cursor and chests between three tiers; stairs cost two movement points. There is no healing or refill between tiers.
-- Twenty-eight defenders include eight Sages, two four-cast Bolting Sages, eight Generals, three initial Paladins, two healing Bishops and Bishop Aurel Voss. Bolting fields are separated, with safe opening deployment and a route outside both fields. Five additional Paladins arrive in two finite advance-triggered waves, warned one turn before their first possible attacks. Occupied arrival tiles queue without relocation.
-- **Defeat Voss** is the sole objective; Rictor must survive. Essential Church/Order revelations trigger on progress rather than chest collection or optional recruits. Eveline and Corvis add dialogue only if carried alive. The Bishop knowingly continued scourge-causing treatments, the Church summoned the Order, and senior Order command protected secret research. Stopping Voss does not cure the afflicted; a transferred shipment and the clocktower bell lead onward.
+- Twenty-eight defenders include eight Sages, two four-cast Bolting Sages (range 3-10), eight Generals, three initial Paladins, two Reliquary Priests carrying Physic (heals 18 + Magic from Magic/2 tiles away), and Bishop Aurel Voss. Their long-range fields overlap across the gallery, so their limited casts are the pressure valve; neither can reach the opening deployment. Five additional Paladins arrive in two finite advance-triggered waves, warned one turn before their first possible attacks. Occupied arrival tiles queue without relocation.
+- **Defeat Voss** is the sole objective; Rictor must survive. Voss holds the Bishop's Throne (+3 Defense, +20 Avoid, restores 5 HP at the start of each enemy phase; any unit standing on it gets the same benefit during its own phase). Essential Church/Order revelations trigger on progress rather than chest collection or optional recruits. Eveline and Corvis add dialogue only if carried alive. The Bishop knowingly continued scourge-causing treatments, the Church summoned the Order, and senior Order command protected secret research. Stopping Voss does not cure the afflicted; a transferred shipment and the clocktower bell lead onward.
 - Five optional chests before the sanctuary contain **Steel Axe (E)**, **Killer Bow (D, 30 Crit)**, **Killing Edge (D, 30 Crit)** and two **Orders Emblems**. A newly promoted General can use the axe; Assassin Lena's promotion grants the bow's required D rank.
 - Twenty-two PixelLab interior assets provide marble, checker flooring, embroidered carpet, stair treads, carved walls, oak pews, ribbed pillars, gallery mosaics, balustrades, stained glass, candles, paired Church/Order banners, sealed treatment records and the blood reliquary altar. Enemy spell/staff uses, chests, story progress and warning timing persist through saves; restart clears chapter progress.
 - Content: [map](data/levels/map_15_cathedral.json), [story](data/tutorials/chapter-15.json). Fresh playtest: `?chapter=15` on a separate browser origin; `?chapter=15&save=1` carries that origin's current party. Existing user saves are not migrated or restarted automatically.

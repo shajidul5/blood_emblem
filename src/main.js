@@ -59,7 +59,7 @@ import { canRecruitEveline, recruitEveline, freshStreets, streetWarning, streets
 import { canSteal, stealableItems, stealItem } from './game/stealing.js';
 import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled } from './game/courtyard.js';
 import { advanceCathedralStory, CATHEDRAL_ELEVATIONS, cathedralWaveEnabled, freshCathedral } from './game/cathedral.js';
-import { chooseEnemyStaffAction, freezeHitRate, freezeRange, useEnemyStaff } from './game/enemy-staves.js';
+import { chooseEnemyStaffAction, freezeHitRate, freezeRange, healStaffRange, useEnemyStaff } from './game/enemy-staves.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import {
   SAVE_SLOT_COUNT, copyCurrentSaveToSlot, createSaveData, describeSaveSlot, loadSlotIntoCurrentSave,
@@ -538,6 +538,9 @@ function grantStartingItems(team) {
       pendingPrep = false;
       await openPrepMenu();
       if (!sessionStarted) return;
+      // Restart Chapter resumes from the finished preparations, not the pre-prep roster.
+      chapterStart = { ...serializeCarry(), prepared: true, deployed: playerTeam.map((unit) => unit.id) };
+      saveCurrentGame();
     }
     await runTutorials();
     if (receipts.length) await itemPopup.show(receipts);
@@ -1567,6 +1570,14 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   refreshPrisonerSilhouettes();
   const team = deployTeam(activeLevel, carry);
   fullTeam = [...team];
+  if (carry?.prepared && Array.isArray(carry.deployed)) {
+    const chosen = team.filter((unit) => isRequiredUnit(unit) || carry.deployed.includes(unit.id));
+    if (chosen.length) {
+      playerTeam.length = 0;
+      playerTeam.push(...chosen);
+      player = chosen[0];
+    }
+  }
   playerMovement = undefined;
   enemyMovement = undefined;
   cameraFollowTarget = undefined;
@@ -1593,7 +1604,8 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   hideMainMenu();
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
-  grantStartingItems(team);
+  // A prepared snapshot already holds this chapter's starting items.
+  grantStartingItems(carry?.prepared ? [] : team);
 }
 
 function newGame() {
@@ -1701,7 +1713,13 @@ function continueGame() {
     enemy.hp = savedEnemy.hp;
     enemy.maxHp = savedEnemy.maxHp;
     if (savedEnemy.inventory) {
+      const authored = enemy.inventory;
       enemy.inventory = savedEnemy.inventory.map(copyEntry);
+      // Saves from before an enemy learned an authored spell (e.g. Physic) gain its fresh uses.
+      for (const entry of enemy.inventory) {
+        const fresh = authored?.find((candidate) => candidate.id === entry.id && candidate.spells);
+        if (fresh && !entry.spells) entry.spells = { ...fresh.spells };
+      }
       if (!enemy.inventory.some((entry) => entry.id === bookOf(enemy.weapon))) enemy.weapon = null;
     }
     if (savedEnemy.frozen) setEnemyFrozen(enemy, savedEnemy.frozen === true ? 1 : savedEnemy.frozen);
@@ -2058,8 +2076,9 @@ function refreshHighlights() {
     );
   }
   const cursorInspecting = gameState.mode === 'cursor' && !gameState.selected;
+  const planningMove = gameState.selected && (gameState.mode === 'move' || gameState.mode === 'unit');
   for (const enemy of pinnedEnemyRanges) if (!enemies.includes(enemy) || enemy.hp <= 0) pinnedEnemyRanges.delete(enemy);
-  if (gameState.phase === 'player' && (showAllEnemyRanges || (cursorInspecting && pinnedEnemyRanges.size))) {
+  if (gameState.phase === 'player' && (showAllEnemyRanges || ((cursorInspecting || planningMove) && pinnedEnemyRanges.size))) {
     const shown = showAllEnemyRanges ? enemies.filter((enemy) => enemy.hp > 0) : [...pinnedEnemyRanges];
     const moveTiles = new Map();
     const threatTiles = new Map();
@@ -2074,6 +2093,11 @@ function refreshHighlights() {
       for (const tile of getEnemyThreatTiles(enemy, reach)) threatTiles.set(tileKey(tile.x, tile.z), tile);
     }
     for (const key of moveTiles.keys()) threatTiles.delete(key);
+    // While a unit moves, its own reach is blue, so show every enemy-covered tile as danger.
+    if (gameState.mode === 'move') {
+      for (const [key, tile] of moveTiles) threatTiles.set(key, tile);
+      moveTiles.clear();
+    }
     enemyRangeHighlights = [
       makeHighlights([...moveTiles.values()], rangeMaterial),
       makeHighlights([...threatTiles.values()], targetMaterial),
@@ -2362,7 +2386,7 @@ function renderInventory() {
   inventoryDialog.querySelector('#inventory-capacity').textContent =
     `${player.inventory.length}/${MAX_INVENTORY_SIZE} items · Convoy: ${convoy.length}`;
 
-  // Maria carries the convoy, so she and anyone standing next to her can reach it.
+  // Maria and Rictor both carry convoy access, so they and anyone standing next to them can reach it.
   const convoySection = inventoryDialog.querySelector('#convoy-section');
   const access = canAccessConvoy(player);
   convoySection.hidden = !access;
@@ -2385,10 +2409,20 @@ function renderInventory() {
   convoySection.querySelector('#convoy-empty').hidden = convoy.length > 0;
 }
 
+function convoyKeepers() {
+  return [roster.maria, roster.rictor].filter((keeper) => keeper?.hp > 0 && playerTeam.includes(keeper));
+}
+
 function canAccessConvoy(unit) {
-  const leader = partyLeader();
-  return leader.hp > 0 && playerTeam.includes(leader) &&
-    (unit === leader || Math.abs(unit.x - leader.x) + Math.abs(unit.z - leader.z) === 1);
+  return convoyKeepers().some((keeper) =>
+    unit === keeper || Math.abs(unit.x - keeper.x) + Math.abs(unit.z - keeper.z) === 1);
+}
+
+function openConvoy() {
+  if (!canAccessConvoy(player)) return;
+  openInventory();
+  inventoryDialog.querySelector('#convoy-section').scrollIntoView({ block: 'nearest' });
+  inventoryDialog.querySelector('#convoy-items button:not(:disabled)')?.focus();
 }
 
 function storeInConvoy(entry) {
@@ -2776,6 +2810,10 @@ function openEnemyProfile(enemy) {
   for (const entry of enemy.inventory ?? []) {
     entries.push({ entry, label: INVENTORY_ITEMS.get(entry.id)?.type === 'Staff'
       ? 'Active staff · can be stolen · does not drop' : 'Equipped tome' });
+    for (const [spellId, uses] of Object.entries(entry.spells ?? {})) {
+      const spell = INVENTORY_ITEMS.get(spellId);
+      if (spell?.heal) entries.push({ entry: { id: spellId, uses }, label: `Cast from ${INVENTORY_ITEMS.get(entry.id).name} · range ${healStaffRange(enemy, spell)}` });
+    }
   }
   if (enemy.drop) entries.push({ entry: { id: enemy.drop, uses: INVENTORY_ITEMS.get(enemy.drop)?.maxUses ?? null }, label: 'Drops on defeat' });
   for (const id of enemy.stealable ?? []) entries.push({ entry: { id, uses: INVENTORY_ITEMS.get(id).maxUses ?? null }, label: 'Can be stolen · does not drop' });
@@ -3316,6 +3354,13 @@ function updateUnitHoverCard() {
     const carries = document.createElement('small');
     carries.textContent = `Can be stolen: ${INVENTORY_ITEMS.get(entry.id).name} · ${entry.uses} uses · no drop`;
     weapon.append(carries);
+    for (const [spellId, uses] of Object.entries(entry.spells ?? {})) {
+      const spell = INVENTORY_ITEMS.get(spellId);
+      if (!spell?.heal) continue;
+      const cast = document.createElement('small');
+      cast.textContent = `Casts ${spell.name} · range ${healStaffRange(unit, spell)} · ${uses} uses`;
+      weapon.append(cast);
+    }
   }
   unitHoverCard.append(name, unitClass, hp, weapon);
   unitHoverCard.hidden = false;
@@ -3447,6 +3492,7 @@ function renderTacticalUi() {
   document.querySelector('#steal-action').hidden = !gameState.selected || stealTargets(player).length === 0;
   document.querySelector('#infirmary-action').hidden = !gameState.selected || infirmaryActions(activeLevel, player, [...playerTeam, ...enemies]).length === 0;
   document.querySelector('#trade-action').hidden = !gameState.selected || adjacentAllies(player).length === 0;
+  document.querySelector('#convoy-action').hidden = !gameState.selected || player.acted || !canAccessConvoy(player);
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
   document.querySelector('#freeze-action').hidden = !gameState.selected || freezeTargets(player).length === 0;
   actionHelp.textContent = gameState.mode === 'move'
@@ -4090,6 +4136,23 @@ function chooseEnemyTarget(enemy, livingTeam) {
       ? unit : nearest);
 }
 
+// Thrones and similar tiles restore their occupant at the start of that unit's phase.
+async function healOnRestorativeTiles(units) {
+  let healedAny = false;
+  for (const unit of units) {
+    const heal = getTerrain(activeLevel, unit.x, unit.z).healPerTurn;
+    if (!heal || unit.hp <= 0 || unit.hp >= unit.maxHp) continue;
+    const healed = Math.min(heal, unit.maxHp - unit.hp);
+    unit.hp += healed;
+    showCombatResult(unit, `+${healed}`, 'heal');
+    setMessage(`${unit.name} recovers ${healed} HP on the ${getTerrain(activeLevel, unit.x, unit.z).name}.`);
+    healedAny = true;
+  }
+  if (!healedAny) return;
+  renderTacticalUi();
+  await wait(700);
+}
+
 async function enemyPhase() {
   gameState.phase = 'enemy';
   gameState.selected = false;
@@ -4119,6 +4182,7 @@ async function enemyPhase() {
   }
   await advanceVillagers();
   await heartrootPhase();
+  await healOnRestorativeTiles(enemies);
   const frozenEnemies = [];
   for (const enemy of [...enemies]) {
     if (!enemies.includes(enemy)) continue;
@@ -4144,7 +4208,7 @@ async function enemyPhase() {
         setMessage(action.staff.freeze
           ? result.hit ? `${enemy.name} freezes ${action.target.name}. Movement is blocked next player phase; actions remain available.`
             : `${action.target.name} resists ${enemy.name}'s Freeze.`
-          : `${enemy.name} heals ${action.target.name} for ${result.healed} HP.`);
+          : `${enemy.name} heals ${action.target.name} for ${result.healed} HP with ${action.staff.name}.`);
         await wait(650);
         gameState.mode = 'cursor';
         renderTacticalUi();
@@ -4396,6 +4460,7 @@ async function enemyPhase() {
   }
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  await healOnRestorativeTiles(playerTeam);
   if (activeLevel.infirmary && reinforcementResult.units.some((unit) => unit.id === 'rotten')) {
     await tutorialPopup.show('rottenArrival', {}, { force: true });
   }
@@ -4607,6 +4672,7 @@ function clickBattlefield(event) {
 
 document.querySelector('#attack-action').addEventListener('click', startAttack);
 document.querySelector('#inventory-action').addEventListener('click', openInventory);
+document.querySelector('#convoy-action').addEventListener('click', openConvoy);
 document.querySelector('#trade-action').addEventListener('click', openTrade);
 document.querySelector('#trade-close').addEventListener('click', closeTrade);
 document.querySelector('#heal-action').addEventListener('click', openHeal);

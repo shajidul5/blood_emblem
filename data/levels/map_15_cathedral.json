@@ -8,7 +8,7 @@
     "TTTTTTTTTTTTTTTTTTTTTTTTTT",
     "TQQQQQQQQQTTTTTTQQQQQQQQQT",
     "TQQQQQQQQQIIIIIIQQQQQQQQQT",
-    "TQQQQQQQQQQQRRQQQQQQQQQQQT",
+    "TQQQQQQQQQQQNRQQQQQQQQQQQT",
     "TQQOQQQQOQQQRRQQQOQQQQOQQT",
     "TQQQQQQQQQQQRRQQQQQQQQQQQT",
     "TQQQQQQQQQQQRRQQQQQQQQQQQT",
@@ -65,7 +65,7 @@
     { "id": "golden-mage", "x": 16, "z": 17, "level": 22, "ai": "guard", "weaponId": "blaze" },
     { "id": "church-sage", "x": 12, "z": 16, "level": 22, "ai": "guard", "weaponId": "inferno" },
     { "id": "church-sage", "x": 13, "z": 20, "level": 21, "ai": "stationary", "weaponId": "blaze" },
-    { "id": "cathedral-bishop", "x": 6, "z": 15, "stealable": ["heal-staff"] },
+    { "id": "cathedral-bishop", "x": 6, "z": 15 },
     { "id": "cathedral-paladin", "x": 19, "z": 14, "ai": "guard", "weaponId": "javelin" },
     { "id": "cathedral-general", "x": 5, "z": 9, "ai": "stationary" },
     { "id": "cathedral-general", "x": 20, "z": 9, "ai": "stationary" },
@@ -75,15 +75,15 @@
     { "id": "cathedral-general", "x": 14, "z": 5, "level": 22, "ai": "guard", "weaponId": "steel-axe" },
     { "id": "church-sage", "x": 6, "z": 5, "level": 23, "ai": "guard", "weaponId": "blaze" },
     { "id": "church-sage", "x": 19, "z": 4, "level": 23, "ai": "guard", "weaponId": "thunder-tome" },
-    { "id": "cathedral-bishop", "x": 13, "z": 4, "stealable": ["heal-staff"] },
+    { "id": "cathedral-bishop", "x": 13, "z": 4 },
     { "id": "voss", "x": 12, "z": 3 }
   ],
   "chests": [
     { "id": "nave-axe", "name": "Armory Chest", "x": 5, "z": 30, "rewardId": "steel-axe" },
-    { "id": "nave-seal", "name": "Order Commission", "x": 20, "z": 30, "rewardId": "orders-emblem" },
+    { "id": "nave-seal", "name": "Order Commission", "x": 20, "z": 30, "rewardId": "master-emblem" },
     { "id": "gallery-bow", "name": "Silent Watch Chest", "x": 4, "z": 18, "rewardId": "killer-bow" },
     { "id": "gallery-edge", "name": "Confessor's Chest", "x": 21, "z": 16, "rewardId": "killing-edge" },
-    { "id": "gallery-seal", "name": "Senior Commission", "x": 12, "z": 14, "rewardId": "orders-emblem" }
+    { "id": "gallery-seal", "name": "Senior Commission", "x": 12, "z": 14, "rewardId": "master-emblem" }
   ],
   "reinforcements": [
     { "turn": 999, "entranceId": "nave-paladins", "units": [

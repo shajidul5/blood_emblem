@@ -60,7 +60,7 @@ import { COURTYARD_TILE_IDS, getTileDef, infirmaryDoorOrientation, isInfirmaryRe
 import { enemyMovementType } from '../characters/characters.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B', 'C', 'L', 'u', 'i', 'l', 't', 'x', 'y', 'z', 'P', 'A', 'H', 'W', 'F', 'D']);
-for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I']) LEVEL_TILES.add(id);
+for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I', 'N']) LEVEL_TILES.add(id);
 export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general']);
 
 const TILE_SIZE = shipTileset.tileSize;
@@ -159,7 +159,7 @@ function createWaterMaterial(THREE, texture) {
 }
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
 const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS, ...STREET_TILE_IDS, ...COURTYARD_TILE_IDS]);
-for (const id of ['floor', 'carpet', 'stairs', 'altar', 'pew', 'pillar', 'wall', 'rail']) ATLAS_TILE_IDS.add(`cathedral_${id}`);
+for (const id of ['floor', 'carpet', 'stairs', 'altar', 'throne', 'pew', 'pillar', 'wall', 'rail']) ATLAS_TILE_IDS.add(`cathedral_${id}`);
 const BLOCKING_OBJECTS = new Set(
   shipTileset.objects.list
     .filter((object) => object.blocksMovement)
@@ -193,6 +193,7 @@ const LEGACY_ATLAS_TILES = {
   V: 'cathedral_stairs',
   U: 'cathedral_rail',
   I: 'cathedral_altar',
+  N: 'cathedral_throne',
   h: 'hull_n',
   d: 'deck_a',
   a: 'deck_b',
@@ -762,7 +763,8 @@ export function validateLevel(value) {
     name: chest.name,
     x: chest.x,
     z: chest.z ?? chest.y,
-    rewardId: chest.rewardId,
+    // Early Chapter 15 saves embedded a misspelled Orders Emblem item ID.
+    rewardId: chest.rewardId === 'orders-emblem' ? 'master-emblem' : chest.rewardId,
     opened: chest.opened ?? false,
   }));
   const reinforcements = value.reinforcements ?? [];

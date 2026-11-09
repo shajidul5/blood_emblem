@@ -37,6 +37,7 @@ for (const [id, name, walkable, bonuses] of [
   ['cathedral_carpet', 'Processional Carpet', true, {}],
   ['cathedral_stairs', 'Cathedral Stairs', true, { moveCost: 2 }],
   ['cathedral_altar', 'Consecrated Marble', true, { avoid: 10, defense: 2 }],
+  ['cathedral_throne', 'Bishop\'s Throne', true, { avoid: 20, defense: 3, healPerTurn: 5, bonus: '+20 Avoid, +3 Defense, heals 5 HP each turn' }],
   ['cathedral_pew', 'Oak Pew', false, {}],
   ['cathedral_pillar', 'Ribbed Pillar', false, {}],
   ['cathedral_wall', 'Cathedral Wall', false, {}],

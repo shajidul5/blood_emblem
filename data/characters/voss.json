@@ -1,6 +1,6 @@
 {
   "id": "voss", "name": "Bishop Aurel Voss", "classId": "bishop", "type": "infantry",
-  "spriteSet": "bishopSeymour", "sprite": "assets/character/Bishop_Seymour/rotations/south.png",
+  "spriteSet": "genericBishop", "sprite": "assets/character/Generic_Bishop/rotations/south.png",
   "scale": 1.25, "level": 25, "experience": 0, "weaponId": "aureole",
   "inventory": ["light-tome", "heal-staff"], "spellUses": { "aureole": 10 },
   "staffUses": { "heal-staff": 6 },

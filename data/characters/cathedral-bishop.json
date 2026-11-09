@@ -1,10 +1,10 @@
 {
-  "id": "cathedral-bishop", "name": "Reliquary Bishop", "classId": "bishop", "type": "infantry",
-  "spriteSet": "bishopSeymour", "sprite": "assets/character/Bishop_Seymour/rotations/south.png",
+  "id": "cathedral-bishop", "name": "Reliquary Priest", "classId": "priest", "type": "infantry",
+  "spriteSet": "genericPriest", "sprite": "assets/character/Generic_Priest/rotations/south.png",
   "scale": 1, "level": 20, "experience": 0, "weaponId": "heal-staff", "inventory": ["heal-staff"],
-  "staffUses": { "heal-staff": 8 },
-  "weaponExp": { "Staff": 120, "Light": 120 }, "ai": "stationary",
-  "baseStats": { "hp": 34, "strength": 1, "magic": 15, "dexterity": 12, "speed": 10, "luck": 7, "defense": 7, "resistance": 18, "movement": 5, "build": 8 },
-  "currentStats": { "hp": 34, "strength": 1, "magic": 15, "dexterity": 12, "speed": 10, "luck": 7, "defense": 7, "resistance": 18, "movement": 5, "build": 8 },
-  "growthRates": { "hp": 40, "strength": 0, "magic": 45, "dexterity": 30, "speed": 25, "luck": 25, "defense": 20, "resistance": 40, "movement": 0, "build": 0 }
+  "staffUses": { "heal-staff": 4 }, "spellUses": { "physic": 5 },
+  "weaponExp": { "Staff": 120 }, "ai": "stationary",
+  "baseStats": { "hp": 30, "strength": 1, "magic": 15, "dexterity": 11, "speed": 8, "luck": 5, "defense": 5, "resistance": 16, "movement": 5, "build": 6 },
+  "currentStats": { "hp": 30, "strength": 1, "magic": 15, "dexterity": 11, "speed": 8, "luck": 5, "defense": 5, "resistance": 16, "movement": 5, "build": 6 },
+  "growthRates": { "hp": 40, "strength": 0, "magic": 45, "dexterity": 30, "speed": 20, "luck": 20, "defense": 10, "resistance": 45, "movement": 0, "build": 0 }
 }
