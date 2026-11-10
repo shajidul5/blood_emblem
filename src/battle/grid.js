@@ -1,5 +1,6 @@
 import { isInWeaponRange } from './combat.js';
 import { getTileDef, isLevelTileWalkable } from '../levels/tiles.js';
+import { canTraverseThroneEdge } from '../levels/throne-terraces.js';
 
 export const DIRECTIONS = [
   { x: 0, z: -1 },
@@ -41,7 +42,8 @@ export function getMovementRange(unit, level, enemies, allies = []) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const key = tileKey(x, z);
-      if (!isWalkable(level, x, z, unit) || findEnemyAt(enemies, x, z)) continue;
+      if (!isWalkable(level, x, z, unit) || !canTraverseThroneEdge(level, current, { x, z }, unit) ||
+          findEnemyAt(enemies, x, z)) continue;
       const cost = current.cost + terrainMoveCost(level, x, z, unit);
       if (cost > unit.movement || cost >= (distances.get(key) ?? Infinity)) continue;
       distances.set(key, cost);
@@ -84,7 +86,8 @@ export function findPath(start, goals, blocked, level, unit = start) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const nextKey = tileKey(x, z);
-      if (blocked.has(nextKey) || !isWalkable(level, x, z, unit)) continue;
+      if (blocked.has(nextKey) || !isWalkable(level, x, z, unit) ||
+          !canTraverseThroneEdge(level, current, { x, z }, unit)) continue;
       const cost = current.cost + terrainMoveCost(level, x, z, unit);
       if (cost >= (best.get(nextKey) ?? Infinity)) continue;
       best.set(nextKey, cost);

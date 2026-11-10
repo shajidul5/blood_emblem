@@ -1,0 +1,10 @@
+{
+  "id": "evelynn",
+  "name": "Evelynn",
+  "lore": "Insight reveals the name beneath the Hunter Pistol's worn maker's mark: Evelynn. A carefully restored twin-action mechanism fires two measured shots before the foe can answer. Twenty rounds return by morning, as quietly as the old hunter's ten.",
+  "type": "Gun", "damageType": "physical",
+  "might": 6, "weight": 4, "hit": 80, "critical": 5, "maxUses": 20,
+  "minRange": 1, "maxRange": 2, "brave": true, "effect": [], "sound": "gun",
+  "description": "Strikes twice in a row. Each shot spends one round.",
+  "sprite": "assets/weapons/Ancient_Relics/evelynn.png"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "shore-dark-sage", "name": "Covenant Dark Sage", "classId": "dark-sage", "type": "infantry",
+  "spriteSet": "genericDarkSage", "sprite": "assets/character/Generic_Dark_Sage/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "dark-tome", "weaponExp": { "Dark": 180 }, "ai": "guard",
+  "baseStats": { "hp": 54, "strength": 3, "magic": 29, "dexterity": 40, "speed": 21, "luck": 10, "defense": 15, "resistance": 26, "movement": 6, "build": 11 },
+  "currentStats": { "hp": 54, "strength": 3, "magic": 29, "dexterity": 40, "speed": 21, "luck": 10, "defense": 15, "resistance": 26, "movement": 6, "build": 11 },
+  "growthRates": { "hp": 45, "strength": 0, "magic": 50, "dexterity": 40, "speed": 30, "luck": 20, "defense": 15, "resistance": 45, "movement": 0, "build": 0 }
+}

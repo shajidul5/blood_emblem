@@ -154,10 +154,11 @@
       "ai": "guard"
     },
     {
-      "id": "cathedral-bishop",
+      "id": "bell-bishop",
       "level": 22,
       "x": 21,
-      "z": 6
+      "z": 6,
+      "ai": "stationary"
     },
     {
       "id": "bell-bolting",
@@ -166,7 +167,7 @@
       "z": 2
     },
     {
-      "id": "church-freezer",
+      "id": "bell-warden",
       "x": 14,
       "z": 7,
       "level": 22
@@ -206,28 +207,28 @@
       "ai": "guard"
     },
     {
-      "id": "ward-soldier",
+      "id": "bell-halberdier",
       "x": 9,
       "z": 20,
       "level": 22
     },
     {
-      "id": "ward-soldier",
+      "id": "bell-halberdier",
       "x": 12,
       "z": 13,
       "level": 23,
       "drop": "chest-key"
     },
     {
-      "id": "golden-mage",
+      "id": "bell-sage",
       "x": 4,
       "z": 19,
-      "level": 22,
+      "level": 23,
       "weaponId": "wind-tome",
       "drop": "wind-tome"
     },
     {
-      "id": "church-healer",
+      "id": "bell-bishop",
       "x": 8,
       "z": 13,
       "level": 22
@@ -249,13 +250,13 @@
       "weaponId": "steel-sword"
     },
     {
-      "id": "ward-knight",
+      "id": "bell-halberdier",
       "x": 26,
       "z": 28,
       "level": 22
     },
     {
-      "id": "ward-knight",
+      "id": "bell-general",
       "x": 24,
       "z": 22,
       "level": 23
@@ -276,10 +277,11 @@
       "weaponId": "killer-axe"
     },
     {
-      "id": "golden-mage",
+      "id": "bell-sage",
       "x": 35,
       "z": 26,
-      "level": 22
+      "level": 23,
+      "ai": "mobile"
     },
     {
       "id": "bell-undead",
@@ -294,7 +296,7 @@
       "level": 23
     },
     {
-      "id": "rotten",
+      "id": "bell-rotten-boss",
       "level": 24,
       "x": 15,
       "z": 18,
@@ -307,7 +309,7 @@
       "level": 23
     },
     {
-      "id": "ward-knight",
+      "id": "bell-halberdier",
       "x": 22,
       "z": 13,
       "level": 23
@@ -405,13 +407,13 @@
       "turn": 3,
       "units": [
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 9,
           "z": 3
         },
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 28,
           "z": 3
@@ -422,13 +424,13 @@
       "turn": 6,
       "units": [
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 9,
           "z": 3
         },
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 28,
           "z": 3
@@ -439,13 +441,13 @@
       "turn": 9,
       "units": [
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 9,
           "z": 3
         },
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 28,
           "z": 3
@@ -456,13 +458,13 @@
       "turn": 12,
       "units": [
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 9,
           "z": 3
         },
         {
-          "id": "raven",
+          "id": "bell-raven",
           "level": 22,
           "x": 28,
           "z": 3

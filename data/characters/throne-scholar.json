@@ -1,0 +1,8 @@
+{
+  "id": "throne-scholar", "name": "Testament Scholar", "classId": "dark-sage", "type": "infantry",
+  "spriteSet": "genericDarkSage", "sprite": "assets/character/Generic_Dark_Sage/rotations/south.png",
+  "level": 30, "experience": 0, "weaponId": "dark-tome", "ai": "guard", "weaponExp": { "Dark": 250, "Staff": 180 },
+  "baseStats": { "hp": 55, "strength": 2, "magic": 31, "dexterity": 23, "speed": 17, "luck": 12, "defense": 14, "resistance": 25, "movement": 6, "build": 10 },
+  "currentStats": { "hp": 55, "strength": 2, "magic": 31, "dexterity": 23, "speed": 17, "luck": 12, "defense": 14, "resistance": 25, "movement": 6, "build": 10 },
+  "growthRates": { "hp": 80, "strength": 0, "magic": 70, "dexterity": 45, "speed": 40, "luck": 20, "defense": 35, "resistance": 60, "movement": 0, "build": 0 }
+}

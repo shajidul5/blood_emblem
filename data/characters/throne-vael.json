@@ -1,0 +1,9 @@
+{
+  "id": "throne-vael", "name": "High Cantor Vael", "classId": "abyssal-hierophant", "type": "infantry",
+  "spriteSet": "highCantorVael", "sprite": "assets/character/High_Cantor_Vael/Idle/rotations/south.png",
+  "level": 35, "experience": 0, "weaponId": "last-testament", "isBoss": true, "ai": "stationary",
+  "weaponExp": { "Dark": 300, "Staff": 300 },
+  "baseStats": { "hp": 145, "strength": 3, "magic": 33, "dexterity": 28, "speed": 17, "luck": 18, "defense": 23, "resistance": 30, "movement": 4, "build": 12 },
+  "currentStats": { "hp": 145, "strength": 3, "magic": 33, "dexterity": 28, "speed": 17, "luck": 18, "defense": 23, "resistance": 30, "movement": 4, "build": 12 },
+  "growthRates": { "hp": 90, "strength": 0, "magic": 70, "dexterity": 55, "speed": 30, "luck": 25, "defense": 45, "resistance": 60, "movement": 0, "build": 0 }
+}

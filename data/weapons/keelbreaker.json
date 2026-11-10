@@ -1,0 +1,7 @@
+{
+  "id": "keelbreaker", "name": "Keelbreaker", "type": "Axe", "damageType": "physical",
+  "might": 16, "weight": 12, "hit": 75, "critical": 0,
+  "minRange": 1, "maxRange": 1, "requiredRank": "B", "effect": [], "sound": "axe",
+  "sprite": "assets/weapons/Ancient_Relics/keelbreaker.png",
+  "lore": "A broad axe forged by the shipwrights of the drowned civilization. The wave-cut socket was made to endure a lifetime of salt and hard timber. The shipyards are gone; their finest edge remains."
+}

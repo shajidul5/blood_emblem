@@ -1,0 +1,6 @@
+{
+  "id": "mooring-chains", "name": "Abyssal Claws", "type": "Claw", "damageType": "physical",
+  "might": 12, "weight": 18, "hit": 90, "critical": 0, "minRange": 1, "maxRange": 2,
+  "effect": [], "sound": "axe",
+  "description": "Barnacled claws lash across the plaza beneath the weight of the bell strapped to its back."
+}

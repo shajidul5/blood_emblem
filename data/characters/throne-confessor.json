@@ -1,0 +1,8 @@
+{
+  "id": "throne-confessor", "name": "Veiled Confessor", "classId": "dark-sage", "type": "infantry",
+  "spriteSet": "genericDarkSage", "sprite": "assets/character/Generic_Dark_Sage/rotations/south.png",
+  "level": 30, "experience": 0, "weaponId": "dark-tome", "ai": "guard", "weaponExp": { "Dark": 250, "Staff": 180 },
+  "baseStats": { "hp": 59, "strength": 2, "magic": 29, "dexterity": 22, "speed": 16, "luck": 11, "defense": 18, "resistance": 26, "movement": 5, "build": 12 },
+  "currentStats": { "hp": 59, "strength": 2, "magic": 29, "dexterity": 22, "speed": 16, "luck": 11, "defense": 18, "resistance": 26, "movement": 5, "build": 12 },
+  "growthRates": { "hp": 85, "strength": 0, "magic": 65, "dexterity": 40, "speed": 35, "luck": 20, "defense": 45, "resistance": 55, "movement": 0, "build": 0 }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "bell-drowned", "name": "The Bell-Drowned", "classId": "bell-drowned", "type": "beast",
+  "spriteSet": "bellDrowned", "sprite": "assets/character/Bell_Drowned/rotations/south.png", "scale": 2.4,
+  "level": 28, "experience": 0, "weaponId": "mooring-chains", "isBoss": true, "ai": "stationary",
+  "baseStats": { "hp": 150, "strength": 28, "magic": 0, "dexterity": 32, "speed": 12, "luck": 8, "defense": 28, "resistance": 26, "movement": 0, "build": 22 },
+  "currentStats": { "hp": 150, "strength": 28, "magic": 0, "dexterity": 32, "speed": 12, "luck": 8, "defense": 28, "resistance": 26, "movement": 0, "build": 22 },
+  "growthRates": { "hp": 100, "strength": 55, "magic": 0, "dexterity": 40, "speed": 15, "luck": 10, "defense": 50, "resistance": 45, "movement": 0, "build": 0 }
+}

@@ -64,7 +64,7 @@ function reachable(level, start, blocked = () => false) {
 
 test('Chapter 15 has a valid promoted roster, sole Bishop objective and promotion-friendly rewards', async () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 16);
+  assert.equal(levels.CHAPTER_COUNT, 19);
   assert.equal(level.objective, 'defeat-boss');
   assert.throws(() => levels.validateLevel({ ...structuredClone(raw), cathedral: null }), /Cathedral battle rules/);
   assert.deepEqual(level.players.map((unit) => unit.id), ['rictor', 'lena', 'arlan', 'troy']);

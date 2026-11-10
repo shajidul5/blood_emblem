@@ -1,0 +1,7 @@
+{
+  "id": "tidepiercer", "name": "Tidepiercer", "type": "Spear", "damageType": "physical",
+  "might": 14, "weight": 10, "hit": 80, "critical": 0,
+  "minRange": 1, "maxRange": 1, "requiredRank": "B", "effect": [], "sound": "stab",
+  "sprite": "assets/weapons/Ancient_Relics/tidepiercer.png",
+  "lore": "A lance recovered from the drowned civilization's sea gates. Its wave-marked bronze collar once named an officer of the harbor guard; the dark point remains straight after centuries beneath the tide."
+}

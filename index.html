@@ -918,8 +918,8 @@
         filter: brightness(1.3); color: #fff; text-shadow: 0 0 8px var(--g-blood), 2px 2px 0 #000;
       }
       #action-panel button:disabled:hover { padding-left: 6px; background: none; border-color: transparent; }
-      #action-panel #visit-action, #action-panel #chest-action, #action-panel #unlock-action, #action-panel #steal-action, #action-panel #infirmary-action { color: #d7ffd0; }
-      #action-panel #visit-action:is(:hover, :focus-visible), #action-panel #chest-action:is(:hover, :focus-visible), #action-panel #unlock-action:is(:hover, :focus-visible), #action-panel #steal-action:is(:hover, :focus-visible), #action-panel #infirmary-action:is(:hover, :focus-visible) {
+      #action-panel #visit-action, #action-panel #chest-action, #action-panel #unlock-action, #action-panel #steal-action, #action-panel #infirmary-action, #action-panel #beacon-action, #action-panel #mechanism-action { color: #d7ffd0; }
+      #action-panel #visit-action:is(:hover, :focus-visible), #action-panel #chest-action:is(:hover, :focus-visible), #action-panel #unlock-action:is(:hover, :focus-visible), #action-panel #steal-action:is(:hover, :focus-visible), #action-panel #infirmary-action:is(:hover, :focus-visible), #action-panel #beacon-action:is(:hover, :focus-visible), #action-panel #mechanism-action:is(:hover, :focus-visible) {
         color: #d8f0cc; border-color: transparent; background: none; box-shadow: none;
       }
       #action-panel #action-help { padding: 0 10px 6px; color: var(--g-ash); font-family: var(--g-font); }
@@ -974,6 +974,8 @@
         <button id="unlock-action" type="button" hidden>Unlock Cell</button>
         <button id="steal-action" type="button" hidden>Steal</button>
         <button id="infirmary-action" type="button" hidden>Ward Objective</button>
+        <button id="beacon-action" type="button" hidden>Extinguish Beacon</button>
+        <button id="mechanism-action" type="button" hidden>Activate Mechanism</button>
         <button id="attack-action" type="button">Attack</button>
         <button id="heal-action" type="button" hidden>Heal</button>
         <button id="freeze-action" type="button" hidden>Freeze</button>

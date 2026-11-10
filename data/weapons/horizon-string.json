@@ -1,0 +1,7 @@
+{
+  "id": "horizon-string", "name": "Horizon String", "type": "Bow", "damageType": "physical",
+  "might": 12, "weight": 8, "hit": 85, "critical": 0,
+  "minRange": 2, "maxRange": 2, "requiredRank": "B", "effect": [], "sound": "bow",
+  "sprite": "assets/weapons/Ancient_Relics/horizon_string.png",
+  "lore": "A darkwood bow of the drowned civilization's coastal sentinels. Bronze inlays trace the horizon they watched until their towers slipped beneath it. Its limbs still draw true, without prayer or enchantment."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "shore-drowned", "name": "Drowned Beast", "classId": "drowned-beast", "type": "beast",
+  "spriteSet": "drownedBeast", "sprite": "assets/character/Drowned_Beast/rotations/south.png",
+  "scale": 1.5, "level": 25, "experience": 0, "weaponId": "wolf-claws", "ai": "guard",
+  "baseStats": { "hp": 68, "strength": 30, "magic": 0, "dexterity": 36, "speed": 18, "luck": 8, "defense": 23, "resistance": 15, "movement": 5, "build": 16 },
+  "currentStats": { "hp": 68, "strength": 30, "magic": 0, "dexterity": 36, "speed": 18, "luck": 8, "defense": 23, "resistance": 15, "movement": 5, "build": 16 },
+  "growthRates": { "hp": 60, "strength": 45, "magic": 0, "dexterity": 30, "speed": 20, "luck": 10, "defense": 35, "resistance": 20, "movement": 0, "build": 0 }
+}

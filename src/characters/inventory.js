@@ -49,6 +49,13 @@ import undeadClaws from '../../data/weapons/undead-claws.json';
 import ridersbane from '../../data/weapons/ridersbane.json';
 import blightedTendrils from '../../data/weapons/blighted-tendrils.json';
 import darkTome from '../../data/weapons/dark-tome.json';
+import starlessEdge from '../../data/weapons/starless-edge.json';
+import tidepiercer from '../../data/weapons/tidepiercer.json';
+import keelbreaker from '../../data/weapons/keelbreaker.json';
+import horizonString from '../../data/weapons/horizon-string.json';
+import evelynn from '../../data/weapons/evelynn.json';
+import mooringChains from '../../data/weapons/mooring-chains.json';
+import lastTestament from '../../data/weapons/last-testament.json';
 import { canEquipWeapon, equipBlockReason, getUsesMultiplier } from './classes.js';
 
 // Higher-tier spells (Blaze, Mend...) live in their own files and name the tome they are written in.
@@ -84,6 +91,7 @@ function createWeaponItem(weapon) {
 }
 
 export const INVENTORY_ITEMS = new Map([
+  [mooringChains.id, createWeaponItem(mooringChains)],
   [ironKatana.id, createWeaponItem(ironKatana)],
   [rapier.id, createWeaponItem(rapier)],
   [zanbato.id, createWeaponItem(zanbato)],
@@ -133,11 +141,12 @@ export const INVENTORY_ITEMS = new Map([
   [blightedTendrils.id, createWeaponItem(blightedTendrils)],
   [darkTome.id, createWeaponItem(darkTome)],
   ...[steelAxe, killerBow, killingEdge].map((weapon) => [weapon.id, createWeaponItem(weapon)]),
+  ...[starlessEdge, tidepiercer, keelbreaker, horizonString, evelynn, lastTestament].map((weapon) => [weapon.id, createWeaponItem(weapon)]),
   ...SPELL_DATA.map((spell) => [spell.id, createWeaponItem(spell)]),
 ]);
 
 // Item ids renamed since older saves were written.
-export const LEGACY_ITEM_IDS = { raikiri: bloodletter.id };
+export const LEGACY_ITEM_IDS = { raikiri: bloodletter.id, eclipse: 'nosferatu' };
 export const currentItemId = (id) => LEGACY_ITEM_IDS[id] ?? id;
 
 // Tome or staff id -> its unlockable spells, lowest tier first.

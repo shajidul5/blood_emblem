@@ -1,0 +1,48 @@
+{
+  "id": "city-stalker",
+  "name": "Tide Stalker",
+  "classId": "tide-stalker",
+  "type": "beast",
+  "spriteSet": "tideStalker",
+  "sprite": "assets/character/Tide_Stalker/rotations/south.png",
+  "level": 26,
+  "experience": 0,
+  "weaponId": "wolf-claws",
+  "ai": "guard",
+  "baseStats": {
+    "hp": 45,
+    "strength": 23,
+    "magic": 0,
+    "dexterity": 21,
+    "speed": 25,
+    "luck": 9,
+    "defense": 13,
+    "resistance": 12,
+    "movement": 7,
+    "build": 9
+  },
+  "currentStats": {
+    "hp": 45,
+    "strength": 23,
+    "magic": 0,
+    "dexterity": 21,
+    "speed": 25,
+    "luck": 9,
+    "defense": 13,
+    "resistance": 12,
+    "movement": 7,
+    "build": 9
+  },
+  "growthRates": {
+    "hp": 80,
+    "strength": 55,
+    "magic": 0,
+    "dexterity": 45,
+    "speed": 55,
+    "luck": 15,
+    "defense": 35,
+    "resistance": 35,
+    "movement": 0,
+    "build": 0
+  }
+}

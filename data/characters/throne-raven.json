@@ -1,0 +1,8 @@
+{
+  "id": "throne-raven", "name": "Crowned Raven", "classId": "crowned-raven", "type": "flying",
+  "spriteSet": "gloamRaven", "sprite": "assets/character/Gloam_Raven/rotations/south.png",
+  "level": 30, "experience": 0, "weaponId": "raven-beak", "ai": "guard",
+  "baseStats": { "hp": 46, "strength": 25, "magic": 0, "dexterity": 25, "speed": 25, "luck": 11, "defense": 13, "resistance": 15, "movement": 7, "build": 7 },
+  "currentStats": { "hp": 46, "strength": 25, "magic": 0, "dexterity": 25, "speed": 25, "luck": 11, "defense": 13, "resistance": 15, "movement": 7, "build": 7 },
+  "growthRates": { "hp": 75, "strength": 55, "magic": 0, "dexterity": 50, "speed": 55, "luck": 25, "defense": 30, "resistance": 35, "movement": 0, "build": 0 }
+}

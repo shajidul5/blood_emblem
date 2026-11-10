@@ -1,0 +1,7 @@
+{
+  "id": "starless-edge", "name": "Starless Edge", "type": "Sword", "damageType": "physical",
+  "might": 13, "weight": 8, "hit": 85, "critical": 0,
+  "minRange": 1, "maxRange": 1, "requiredRank": "B", "effect": [], "sound": "slash",
+  "sprite": "assets/weapons/Ancient_Relics/starless_edge.png",
+  "lore": "A midnight-blue blade of the drowned civilization. Its bronze guard bears the last star chart made before the sea swallowed their observatories; the edge has outlasted every name on it."
+}

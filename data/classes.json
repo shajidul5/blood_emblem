@@ -1,6 +1,20 @@
 {
   "classes": [
     {
+      "id": "abyssal-hierophant", "name": "Abyssal Hierophant", "tier": "advanced",
+      "type": "infantry", "weaponTypes": ["Dark", "Staff"],
+      "abilities": [
+        { "id": "last-custodian", "name": "Last Custodian", "description": "Foretold Ruin marks five tiles for 22 damage next enemy phase. Every third enemy phase after rising, channels Profane Benediction instead of attacking: heals one cultist within 6 tiles for up to 30 HP." },
+        { "id": "dark-mastery", "name": "Dark Mastery", "description": "Doubles spell and staff capacity.", "usesMultiplier": 2 }
+      ]
+    },
+    { "id": "crowned-raven", "name": "Crowned Raven", "tier": "monster", "type": "flying", "weaponTypes": ["Claw"] },
+    { "id": "ancient-guardian", "name": "Ancient Guardian", "tier": "advanced", "type": "armor", "weaponTypes": ["Spear"] },
+    { "id": "bell-drowned", "name": "Bell-Drowned", "tier": "monster", "type": "beast", "weaponTypes": ["Claw"] },
+    { "id": "drowned-beast", "name": "Drowned Beast", "tier": "monster", "weaponTypes": ["Claw"] },
+    { "id": "tide-stalker", "name": "Tide Stalker", "tier": "monster", "weaponTypes": ["Claw"] },
+    { "id": "gloam-raven", "name": "Gloam Raven", "tier": "monster", "weaponTypes": ["Claw"] },
+    {
       "id": "shaman",
       "name": "Shaman",
       "tier": "base",
@@ -17,6 +31,9 @@
       "name": "Dark Sage",
       "tier": "advanced",
       "weaponTypes": ["Dark", "Staff"],
+      "abilities": [
+        { "id": "dark-mastery", "name": "Dark Mastery", "description": "Doubles the uses of all spells and staves.", "usesMultiplier": 2 }
+      ],
       "sprites": {
         "corvis": { "spriteSet": "darkSageCorvis", "sprite": "assets/character/Dark_Sage_Corvis/rotations/south.png" }
       }
@@ -300,7 +317,10 @@
       "id": "halberdier",
       "name": "Halberdier",
       "tier": "advanced",
-      "weaponTypes": ["Spear"]
+      "weaponTypes": ["Spear"],
+      "sprites": {
+        "default": { "spriteSet": "genericHalberdier", "sprite": "assets/character/Generic_Halberdier/rotations/south.png" }
+      }
     },
     {
       "id": "oathkeeper",

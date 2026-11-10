@@ -17,6 +17,13 @@ export function canAttack(unit) {
   return !(Number.isInteger(uses) && uses <= 0);
 }
 
+export function healDamageDealt(unit, damage) {
+  if (unit.hp <= 0 || !unit.weapon?.lifeSteal) return 0;
+  const healed = Math.max(0, Math.min(unit.maxHp - unit.hp, Math.floor(damage * unit.weapon.lifeSteal)));
+  unit.hp += healed;
+  return healed;
+}
+
 // Build only offsets weapon weight; it never adds speed beyond the unit's own Speed.
 export function attackSpeed(unit) {
   return unit.speed - Math.max(0, (unit.weapon?.weight ?? 0) - (unit.build ?? 0));
@@ -107,7 +114,7 @@ export function getCriticalDamage(attacker, defender, defenderTerrain = {}) {
   return getCombatDamage(attacker, defender, defenderTerrain) * 3;
 }
 
-// Brave weapons (the Bloodletter) strike twice in a row every time the wielder attacks.
+// Brave weapons strike twice in a row every time the wielder attacks.
 export function getStrikesPerAttack(unit) {
   return unit.weapon?.brave ? 2 : 1;
 }
@@ -116,6 +123,13 @@ export function getAttackCount(attacker, defender) {
   if (!canAttack(attacker)) return 0;
   if (attacker.weapon.halvesCurrentHp) return 1;
   return attackSpeed(attacker) >= attackSpeed(defender) + 4 ? 2 : 1;
+}
+
+// Guns spend ammo per shot, unlike tomes that spend a use per combat.
+export function getAvailableStrikeCount(unit, plannedCount) {
+  if (unit.weapon?.type !== 'Gun') return plannedCount;
+  const uses = spellUses(findWeaponEntry(unit), unit.weapon);
+  return Number.isInteger(uses) ? Math.min(plannedCount, Math.max(0, uses)) : plannedCount;
 }
 
 // Order of strikes in a fight: attacker volley, then counter volley, repeated. A volley is
@@ -127,6 +141,17 @@ export function getStrikeOrder(attackerVolleys, attackerStrikes, counterVolleys,
     if (volley < counterVolleys) for (let strike = 0; strike < counterStrikes; strike++) order.push('counter');
   }
   return order;
+}
+
+export function getCombatStrikeOrder(attacker, counter, attackerVolleys, counterVolleys) {
+  const attackerStrikes = getStrikesPerAttack(attacker);
+  const counterStrikes = getStrikesPerAttack(counter);
+  const remaining = {
+    attacker: getAvailableStrikeCount(attacker, attackerVolleys * attackerStrikes),
+    counter: getAvailableStrikeCount(counter, counterVolleys * counterStrikes),
+  };
+  return getStrikeOrder(attackerVolleys, attackerStrikes, counterVolleys, counterStrikes)
+    .filter((side) => remaining[side]-- > 0);
 }
 
 // Fire Emblem-style scaling: fighting enemies below your level pays less, tougher ones pay more.

@@ -1,0 +1,8 @@
+{
+  "id": "bell-raven", "name": "Bell Yard Raven", "classId": "raven", "type": "flying",
+  "spriteSet": "raven", "sprite": "assets/character/Raven/rotations/south.png", "scale": 0.9,
+  "level": 22, "experience": 0, "weaponId": "raven-beak", "ai": "mobile",
+  "baseStats": { "hp": 28, "strength": 15, "magic": 0, "dexterity": 19, "speed": 25, "luck": 6, "defense": 6, "resistance": 6, "movement": 8, "build": 4 },
+  "currentStats": { "hp": 28, "strength": 15, "magic": 0, "dexterity": 19, "speed": 25, "luck": 6, "defense": 6, "resistance": 6, "movement": 8, "build": 4 },
+  "growthRates": { "hp": 50, "strength": 40, "magic": 0, "dexterity": 40, "speed": 40, "luck": 20, "defense": 20, "resistance": 30, "movement": 0, "build": 0 }
+}

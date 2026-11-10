@@ -9,13 +9,15 @@
     "light-tome": ["lumen", "aureole"],
     "heal-staff": ["mend", "physic"],
     "freeze-staff": ["hold", "stasis"],
-    "dark-tome": ["luna", "eclipse"]
+    "dark-tome": ["luna", "nosferatu"]
   },
   "evolutions": {
     "rapier": { "into": "bloodletter", "cost": 30 },
-    "vigil-lance": { "into": "longinus", "cost": 30 }
+    "vigil-lance": { "into": "longinus", "cost": 30 },
+    "hunter-pistol": { "into": "evelynn", "cost": 20 }
   },
   "legacy": {
+    "evolutionIds": ["rapier", "vigil-lance"],
     "evolutionCost": 15,
     "weaponCosts": [3, 5, 8],
     "awaken": { "weaponId": "rapier", "into": "raikiri", "cost": 1 }

@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import {
   getAttackCount,
-  getStrikeOrder,
+  getAvailableStrikeCount,
+  getCombatStrikeOrder,
+  healDamageDealt,
   getStrikesPerAttack,
   getAvoid,
   getCriticalRate,
@@ -60,9 +62,14 @@ import { canSteal, stealableItems, stealItem } from './game/stealing.js';
 import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled } from './game/courtyard.js';
 import { advanceCathedralStory, CATHEDRAL_ELEVATIONS, cathedralWaveEnabled, freshCathedral } from './game/cathedral.js';
 import { advanceBellYardStory, bellYardVictoryReady, canReunite, dueDepartures, freshBellYard, planWagonMove } from './game/bell-yard.js';
+import { availableBeacon, extinguishBeacon, freshShore, shoreVictoryReady } from './game/starless-shore.js';
+import { activateMechanism, availableMechanism, cityTideWarning, freshWaitingCity, prepareCityPulse, resolveCityPulse, waitingCityVictoryReady } from './game/waiting-city.js';
+import { advanceThroneStory, freshAbyssalThrone, isBenedictionTurn, performBenediction,
+  prepareForetoldRuin, resolveForetoldRuin } from './game/abyssal-throne.js';
 import { chooseEnemyStaffAction, freezeHitRate, freezeRange, healStaffRange, useEnemyStaff } from './game/enemy-staves.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
 import { unitSpriteScale } from './characters/sprite-size.js';
+import { throneFloorElevations } from './levels/throne-terraces.js';
 import {
   SAVE_SLOT_COUNT, copyCurrentSaveToSlot, createSaveData, describeSaveSlot, loadSlotIntoCurrentSave,
   exportSaveFile, importSaveFile, parseSave, readSave, serializeUnit, writeSave,
@@ -82,6 +89,7 @@ import {
   isOceanSoundEnabled,
   onOceanSoundChange,
   setOceanSoundEnabled,
+  setOceanAmbienceGain,
 } from './audio/ocean.js';
 
 initializeAnimatedMenu();
@@ -305,7 +313,9 @@ let activeBackdrop = nightBackdrop;
 
 // Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
 function pickFloorPoint(ray) {
-  for (const elevation of activeLevel?.cathedral ? CATHEDRAL_ELEVATIONS : [0.5, 0.25]) {
+  const elevations = activeLevel?.abyssalThrone ? throneFloorElevations(activeLevel)
+    : activeLevel?.cathedral ? CATHEDRAL_ELEVATIONS : [0.5, 0.25];
+  for (const elevation of elevations) {
     raisedPlane.constant = -(0.11 + elevation);
     const point = ray.intersectPlane(raisedPlane, new THREE.Vector3());
     if (!point || !activeLevel) continue;
@@ -344,9 +354,14 @@ function applyLevelLighting() {
   moon.color.setHex(sunset ? 0xffae68 : 0x9fb4ff);
   moon.intensity = dusk ? 1.3 : sunset ? 1.8 : 0.8;
   moon.position.set(sunset ? -18 : -8, sunset ? 10 : 14, 6);
-  scene.background.setHex(dusk ? 0x8e645b : sunset ? 0xe9b87f : 0x0b0710);
+  scene.background.setHex(activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone ? 0x03070e : dusk ? 0x8e645b : sunset ? 0xe9b87f : 0x0b0710);
   scene.fog.color.copy(scene.background);
-  nightBackdrop.visible = !sunset;
+  scene.fog.near = activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone ? 100 : 35;
+  scene.fog.far = activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone ? 220 : 85;
+  camera.far = activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone ? 220 : 100;
+  camera.updateProjectionMatrix();
+  nightBackdrop.visible = !sunset && !activeLevel.shore && !activeLevel.waitingCity && !activeLevel.abyssalThrone;
+  syncThronePresentation();
   sunsetBackdrop.visible = sunset && !dusk;
   duskBackdrop.visible = dusk;
   activeBackdrop = dusk ? duskBackdrop : sunset ? sunsetBackdrop : nightBackdrop;
@@ -431,10 +446,21 @@ async function runTutorials() {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
       const intro = CHAPTER_INTROS[tutorialProgress.chapter];
-      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral', 'bellYard'].includes(intro) });
+      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral', 'bellYard', 'shore', 'waitingCity', 'abyssalThrone'].includes(intro) });
     }
     await showCathedralStory();
     if (activeLevel.bellYard) await showBellYardStory();
+    if (activeLevel.abyssalThrone) await showThroneStory();
+    if (activeLevel.waitingCity?.opened && !activeLevel.waitingCity.revelationSeen) {
+      activeLevel.waitingCity.revelationSeen = true;
+      saveCurrentGame();
+      await tutorialPopup.show('waitingCity-revelation', {}, { force: true });
+    }
+    if (activeLevel.shore && !activeLevel.shore.silhouetteSeen && playerTeam.some((unit) => unit.hp > 0 && unit.z <= 12)) {
+      activeLevel.shore.silhouetteSeen = true;
+      saveCurrentGame();
+      await tutorialPopup.show('shore-silhouette', {}, { force: true });
+    }
     if (!tutorialProgress.houses) {
       tutorialProgress.houses = true;
       const house = activeLevel.houses.filter((entry) => !entry.visited)
@@ -640,7 +666,8 @@ function unitSpriteHeightAt(x, z, unit) {
 function unitTextures(unit) {
   const set = weaponSpriteSet(unit);
   return {
-    idle: characterSprites[set],
+    idle: set === 'highCantorVael' && activeLevel.abyssalThrone && !activeLevel.abyssalThrone.awakened
+      ? characterSprites.highCantorVaelSeated : characterSprites[set],
     walking: characterSprites[`${set}WalkingFrames`],
     attack: characterSprites[`${set}AttackFrames`],
     staff: characterSprites[`${set}StaffFrames`],
@@ -1007,6 +1034,25 @@ function hasPendingReinforcements() {
 }
 
 function checkDefeatAllVictory() {
+  if (activeLevel.abyssalThrone) {
+    if (enemies.some((enemy) => enemy.id === activeLevel.abyssalThrone.bossId && enemy.hp > 0)) return false;
+    activeLevel.abyssalThrone.ruin = null;
+    levelGroup.userData.abyssalThrone?.sync();
+    completeVictory('The Last Custodian falls. The Blood Emblem answers the empty seal, and the way into the deep opens.');
+    return true;
+  }
+  if (activeLevel.waitingCity) {
+    if (!waitingCityVictoryReady(activeLevel, enemies)) return false;
+    activeLevel.waitingCity.pulse = null;
+    levelGroup.userData.waitingCity?.sync();
+    completeVictory('The Bell-Drowned falls. The ocean withdraws, revealing a stair beneath the ancient city.');
+    return true;
+  }
+  if (activeLevel.shore) {
+    if (!shoreVictoryReady(activeLevel, maria, rictor)) return false;
+    completeVictory('The offering beacons are silent. Maria and Rictor cross the sea gate into the ancient city.');
+    return true;
+  }
   if (activeLevel.bellYard) return checkBellYardObjective();
   if (activeLevel.courtyard) return checkCourtyardObjective();
   if (activeLevel.streets) return checkStreetObjective();
@@ -1031,6 +1077,30 @@ function checkDefeatAllVictory() {
 }
 
 function objectiveDescription(level = activeLevel) {
+  if (level.abyssalThrone) return [
+    'Defeat High Cantor Vael - no switches or seals',
+    level.abyssalThrone.awakened
+      ? isBenedictionTurn(level, gameState.turn) ? 'THIS enemy phase: Benediction instead of attacking'
+        : `Benediction in ${3 - gameState.turn % 3} enemy phase(s)`
+      : 'Vael waits on the northern throne; he rises at the final stairs',
+    level.abyssalThrone.ruin ? 'GOLD tiles: 22 damage next enemy phase - move away!' : 'No Foretold Ruin marked',
+    'Maria and Rictor must survive',
+  ].join(' · ');
+  if (level.waitingCity) {
+    const rules = level.waitingCity;
+    return [`Mechanisms ${rules.mechanisms.filter((entry) => entry.activated).length}/2`,
+      rules.opened ? 'Defeat the Bell-Drowned' : 'Open the central approach',
+      rules.pulse ? 'GOLD tiles: 18 damage next enemy phase - move away!' : 'No lanes resonating',
+      cityTideWarning(level, gameState.turn),
+      'Maria and Rictor must survive'].join(' · ');
+  }
+  if (level.shore) {
+    const lit = level.shore.beacons.filter((beacon) => !beacon.extinguished).length;
+    const waves = level.reinforcements.filter((wave) => !wave.spawned);
+    const next = waves.length ? Math.min(...waves.map((wave) => wave.turn)) : null;
+    return [`Beacons extinguished ${3 - lit}/3`, 'Then Maria AND Rictor reach the northern sea gate',
+      next === null ? 'No further summons' : `Summons ${next <= gameState.turn ? 'queued at marked shores' : `on turn ${next}`} (final turn 9)`].join(' · ');
+  }
   if (level.bellYard) {
     const rules = level.bellYard;
     const keeper = enemies.some((enemy) => enemy.id === rules.bossId) ? 'Defeat the Lift-Keeper' : 'Lift-Keeper defeated';
@@ -1160,6 +1230,31 @@ function completeVictory(message) {
   saveCurrentGame();
   if (activeLevel.cathedral) void showCathedralEnding();
   if (activeLevel.bellYard) void showBellYardEnding();
+  if (activeLevel.shore) void tutorialPopup.show('shore-ending', {}, { force: true });
+  if (activeLevel.waitingCity) void tutorialPopup.show('waitingCity-ending', {}, { force: true });
+  if (activeLevel.abyssalThrone) void tutorialPopup.show('abyssalThrone-ending', {}, { force: true });
+}
+
+function syncThronePresentation() {
+  const rules = activeLevel.abyssalThrone;
+  levelGroup.userData.abyssalThrone?.sync();
+  setOceanAmbienceGain(rules?.beats.some((beat) => beat.id === 'silence' && beat.seen) ? 0
+    : rules?.beats.some((beat) => beat.id === 'receding' && beat.seen) ? 0.45 : 1);
+  if (!rules) return;
+  const boss = enemies.find((unit) => unit.id === rules.bossId);
+  if (boss) {
+    boss.ai = rules.awakened ? 'guard' : 'stationary';
+    if (boss.mesh) setIdleSprite(boss);
+  }
+}
+
+async function showThroneStory() {
+  const beats = advanceThroneStory(activeLevel, playerTeam);
+  syncThronePresentation();
+  for (const id of beats) {
+    saveCurrentGame();
+    await tutorialPopup.show(`abyssalThrone-${id}`, {}, { force: true });
+  }
 }
 
 async function showBellYardStory() {
@@ -1279,7 +1374,7 @@ async function showCathedralEnding() {
 
 function fallenRequiredUnit() {
   if (activeLevel.rescue || activeLevel.gateEncounter) return maria.hp <= 0 ? maria : undefined;
-  if (activeLevel.bellYard) return requiredUnits().find((unit) => unit.hp <= 0);
+  if (activeLevel.bellYard || activeLevel.abyssalThrone) return requiredUnits().find((unit) => unit.hp <= 0);
   return activeLevel.requiredUnits.length && activeLevel.leader !== 'maria'
     ? requiredUnits().find((unit) => unit.hp <= 0)
     : undefined;
@@ -1292,6 +1387,7 @@ function partyDefeated() {
 function gameOverMessage() {
   if (activeLevel.infirmary?.breached) return 'The evacuation ward has been breached. The service passage is lost.';
   const fallen = fallenRequiredUnit();
+  if (fallen && activeLevel.abyssalThrone) return `${fallen.name} has fallen beneath the stars. The last seal is lost.`;
   if (fallen === maria) return 'Maria has fallen. The road to Aldermere is lost.';
   if (fallen && activeLevel.bellYard) return `${fallen.name} has fallen in the freight yard. The two parties never meet again.`;
   if (fallen) return `${fallen.name} has fallen. The ward keeps its prisoners.`;
@@ -1592,7 +1688,7 @@ function checkRescueVictory() {
 function deployTeam(level, carry = null) {
   const carried = new Set((carry?.allies ?? []).map((ally) => ally.id));
   // The reunion map lists both full parties; units never recruited (or left behind) stay off the field.
-  const listed = level.bellYard && Array.isArray(carry?.allies)
+  const listed = (level.bellYard || level.shore || level.waitingCity || level.abyssalThrone) && Array.isArray(carry?.allies)
     ? level.players.filter((placement) => level.requiredUnits.includes(placement.id) || carried.has(placement.id))
     : level.players;
   const placements = [...(listed.length
@@ -1738,6 +1834,9 @@ function restartLevel() {
     courtyard: freshCourtyard(activeLevel.courtyard),
     cathedral: freshCathedral(activeLevel.cathedral),
     bellYard: freshBellYard(activeLevel.bellYard),
+    shore: freshShore(activeLevel.shore),
+    waitingCity: freshWaitingCity(activeLevel.waitingCity),
+    abyssalThrone: freshAbyssalThrone(activeLevel.abyssalThrone),
     reinforcements: activeLevel.reinforcements.map((wave) => ({
       ...wave,
       turn: activeLevel.cathedral ? 999 : wave.turn,
@@ -1841,6 +1940,7 @@ function continueGame() {
     return enemy;
   });
   syncHeartrootFrenzy();
+  syncThronePresentation();
   initializeRescue(save.rescue);
   initializeStreets();
   initializeCourtyard();
@@ -1879,6 +1979,7 @@ function continueGame() {
 }
 
 function returnToMainMenu() {
+  setOceanAmbienceGain(1);
   if (!sessionStarted && !mainMenu.hidden) {
     optionsDialog.close();
     document.querySelector('#title-options').focus();
@@ -3053,6 +3154,7 @@ async function openChest() {
   if (!picksLock) player.inventory.splice(keyIndex, 1);
   const { item, toConvoy } = grantItem(player, chest.rewardId);
   chest.opened = true;
+  levelGroup.userData.waitingCity?.sync();
   chest.mesh.material.opacity = 0.35;
   if (chest.glow) chest.glow.intensity = 0;
   player.acted = true;
@@ -3672,6 +3774,8 @@ function renderTacticalUi() {
   unlockButton.textContent = hasLockpick(player) ? 'Pick Lock' : 'Unlock Cell (Key)';
   document.querySelector('#steal-action').hidden = !gameState.selected || stealTargets(player).length === 0;
   document.querySelector('#infirmary-action').hidden = !gameState.selected || infirmaryActions(activeLevel, player, [...playerTeam, ...enemies]).length === 0;
+  document.querySelector('#beacon-action').hidden = !gameState.selected || !availableBeacon(activeLevel, player);
+  document.querySelector('#mechanism-action').hidden = !gameState.selected || !availableMechanism(activeLevel, player);
   document.querySelector('#trade-action').hidden = !gameState.selected || adjacentAllies(player).length === 0;
   document.querySelector('#convoy-action').hidden = !gameState.selected || player.acted || !canAccessConvoy(player);
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
@@ -4012,7 +4116,7 @@ function showCombatForecast(target) {
       panel.append(note);
     }
     const list = document.createElement('dl');
-    const attacks = opponent ? getAttackCount(unit, opponent) * getStrikesPerAttack(unit) : 0;
+    const attacks = opponent ? getAvailableStrikeCount(unit, getAttackCount(unit, opponent) * getStrikesPerAttack(unit)) : 0;
     const damage = opponent ? getCombatDamage(unit, opponent, terrain) : 0;
     const rows = [
       ['HP', `${unit.hp}/${unit.maxHp}`],
@@ -4021,6 +4125,7 @@ function showCombatForecast(target) {
       ['Hit', opponent ? `${getHitRate(unit, opponent, terrain)}%` : '—'],
       ['Crit', opponent ? `${getCriticalRate(unit, opponent)}%` : '—'],
     ];
+    if (unit.weapon?.lifeSteal) rows.push(['Drain', 'Heals half actual damage on each hit']);
     for (const [label, value] of rows) {
       const term = document.createElement('dt');
       term.textContent = label;
@@ -4125,11 +4230,11 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   const damage = getCombatDamage(player, target, terrain);
   const criticalDamage = getCriticalDamage(player, target, terrain);
   const playerVolleys = getAttackCount(player, target);
-  const playerAttackCount = playerVolleys * getStrikesPerAttack(player);
+  const playerAttackCount = getAvailableStrikeCount(player, playerVolleys * getStrikesPerAttack(player));
   const hitRate = getHitRate(player, target, terrain);
   const criticalRate = getCriticalRate(player, target);
   // Spend the use only after the forecast is locked in, so a tome's final use still strikes.
-  spendWeaponUse(player);
+  if (player.weapon.type !== 'Gun') spendWeaponUse(player);
   const playerStrikeResults = Array.from({ length: playerAttackCount }, () => {
     const hit = rollHit(hitRate);
     return { hit, critical: hit && rollCritical(criticalRate) };
@@ -4138,7 +4243,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   let playerCriticalHits = 0;
   let playerTotalDamage = 0;
   const rankUps = [];
-  // Strikes alternate: attacker, then defender's counter, then the next pair.
+  // Brave volleys stay consecutive, with gunshots capped to the loaded rounds.
   const counterRange = distanceBetween(target.x, target.z, player.x, player.z);
   const canCounter = isInWeaponRange(target, player, counterRange);
   let counterDamage = 0;
@@ -4153,22 +4258,26 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     counterDamage = getCombatDamage(target, player, counterTerrain);
     counterCriticalDamage = getCriticalDamage(target, player, counterTerrain);
     counterVolleys = getAttackCount(target, player);
-    counterAttackCount = counterVolleys * getStrikesPerAttack(target);
+    counterAttackCount = getAvailableStrikeCount(target, counterVolleys * getStrikesPerAttack(target));
     const counterHitRate = getHitRate(target, player, counterTerrain);
     const counterCriticalRate = getCriticalRate(target, player);
     counterResults = Array.from({ length: counterAttackCount }, () => {
       const hit = rollHit(counterHitRate);
       return { hit, critical: hit && rollCritical(counterCriticalRate) };
     });
-    spendWeaponUse(target);
+    if (target.weapon.type !== 'Gun') spendWeaponUse(target);
   }
 
-  const strikeOrder = getStrikeOrder(playerVolleys, getStrikesPerAttack(player), counterVolleys, getStrikesPerAttack(target));
+  const strikeOrder = getCombatStrikeOrder(player, target, playerVolleys, counterVolleys);
   let playerStrike = 0;
   let counterStrike = 0;
   for (const side of strikeOrder) {
     if (target.hp <= 0 || player.hp <= 0) break;
     if (side === 'attacker') {
+      if (player.weapon.type === 'Gun') {
+        if (!canAttack(player)) continue;
+        spendWeaponUse(player);
+      }
       const round = playerStrike++;
       setMessage(`${player.name} attacks ${target.name} (${round + 1}/${playerAttackCount}).`);
       await attack(player.facing, round > 0);
@@ -4179,6 +4288,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
         if (result.critical) playerCriticalHits++;
         const strikeDamage = Math.min(target.hp, result.critical ? criticalDamage : damage);
         target.hp -= strikeDamage;
+        const drained = healDamageDealt(player, strikeDamage);
+        if (drained > 0) showCombatResult(player, `+${drained}`, 'heal');
         playerTotalDamage += strikeDamage;
         showCombatResult(target, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
       } else {
@@ -4187,6 +4298,10 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
       await wait(400);
       if (target.hp === 0) break;
     } else {
+      if (target.weapon.type === 'Gun') {
+        if (!canAttack(target)) continue;
+        spendWeaponUse(target);
+      }
       const round = counterStrike++;
       setMessage(`${target.name} retaliates against ${player.name} (${round + 1}/${counterAttackCount}).`);
       await attackEnemy(target, round > 0);
@@ -4194,6 +4309,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
       if (result.hit) {
         const strikeDamage = Math.min(player.hp, result.critical ? counterCriticalDamage : counterDamage);
         player.hp -= strikeDamage;
+        const drained = healDamageDealt(target, strikeDamage);
+        if (drained > 0) showCombatResult(target, `+${drained}`, 'heal');
         showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
       } else {
         showCombatResult(player, 'MISS', 'miss');
@@ -4341,6 +4458,24 @@ async function enemyPhase() {
   renderTacticalUi();
   showPhaseBanner('Enemy', gameState.turn);
   await wait(900);
+  if (activeLevel.abyssalThrone) await showThroneStory();
+  const resonance = [
+    ...resolveCityPulse(activeLevel, gameState.turn, playerTeam, enemies),
+    ...resolveForetoldRuin(activeLevel, gameState.turn, playerTeam, enemies),
+  ];
+  levelGroup.userData.waitingCity?.sync();
+  levelGroup.userData.abyssalThrone?.sync();
+  for (const { unit, damage } of resonance) {
+    showCombatResult(unit, `-${damage}`, 'hit');
+    if (unit.hp <= 0) { unit.mesh.visible = false; unit.acted = true; }
+  }
+  if (resonance.length) {
+    setMessage(`${activeLevel.abyssalThrone ? 'Foretold Ruin' : "The Bell-Drowned's resonance"} strikes: ${resonance.map(({ unit, damage }) => `${unit.name} -${damage} HP${unit.hp <= 0 ? ' (fallen)' : ''}`).join(', ')}.`);
+    renderTacticalUi();
+    await wait(700);
+    if (partyDefeated()) { completeGameOver(); return; }
+    if (player.hp <= 0) player = playerTeam.find((unit) => unit.hp > 0);
+  }
   await showCathedralStory();
   if (activeLevel.bellYard) await showBellYardStory();
   for (const id of triggerProgressWaves(activeLevel, playerTeam, gameState.turn)) {
@@ -4378,6 +4513,20 @@ async function enemyPhase() {
       continue;
     }
     if (enemy.frozen) frozenEnemies.push(enemy);
+    if (enemy.id === activeLevel.abyssalThrone?.bossId) {
+      const blessing = performBenediction(activeLevel, enemy, enemies, gameState.turn);
+      if (blessing) {
+        cameraFollowTarget = enemy.mesh.position;
+        if (blessing.target) showCombatResult(blessing.target, `+${blessing.healed}`, 'heal');
+        showCombatResult(enemy, 'BENEDICTION', 'heal');
+        setMessage(blessing.target
+          ? `Vael spends his action on Profane Benediction: ${blessing.target.name} recovers ${blessing.healed} HP.`
+          : 'Vael channels Profane Benediction into the empty congregation. He does not attack this phase.');
+        renderTacticalUi();
+        await wait(850);
+        continue;
+      }
+    }
     if (enemy.inventory?.some((entry) => INVENTORY_ITEMS.get(entry.id)?.type === 'Staff')) {
       const action = chooseEnemyStaffAction(enemy, enemies, livingTeam);
       if (action) {
@@ -4477,10 +4626,10 @@ async function enemyPhase() {
       const damage = getCombatDamage(enemy, foe, terrain);
       const criticalDamage = getCriticalDamage(enemy, foe, terrain);
       const enemyVolleys = getAttackCount(enemy, foe);
-      const attacks = enemyVolleys * getStrikesPerAttack(enemy);
+      const attacks = getAvailableStrikeCount(enemy, enemyVolleys * getStrikesPerAttack(enemy));
       const hitRate = getHitRate(enemy, foe, terrain);
       const criticalRate = getCriticalRate(enemy, foe);
-      spendWeaponUse(enemy);
+      if (enemy.weapon.type !== 'Gun') spendWeaponUse(enemy);
       let hits = 0;
       let criticalHits = 0;
       let totalDamage = 0;
@@ -4489,19 +4638,19 @@ async function enemyPhase() {
         return { hit, critical: hit && rollCritical(criticalRate) };
       });
       
-      // Strikes alternate: enemy, then the player's counter, then the next pair.
+      // Brave volleys stay consecutive, with gunshots capped to the loaded rounds.
       const counterRange = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
       const canCounter = isInWeaponRange(foe, enemy, counterRange);
       const counterTerrain = getTerrain(activeLevel, enemy.x, enemy.z);
       const counterVolleys = canCounter ? getAttackCount(foe, enemy) : 0;
-      const counterAttacks = counterVolleys * getStrikesPerAttack(foe);
+      const counterAttacks = getAvailableStrikeCount(foe, counterVolleys * getStrikesPerAttack(foe));
       const counterDamage = canCounter ? getCombatDamage(foe, enemy, counterTerrain) : 0;
       const counterCriticalDamage = canCounter ? getCriticalDamage(foe, enemy, counterTerrain) : 0;
       const counterHitRate = canCounter ? getHitRate(foe, enemy, counterTerrain) : 0;
       const counterCriticalRate = canCounter ? getCriticalRate(foe, enemy) : 0;
       if (canCounter) {
         foe.facing = getFacing(enemy.x - foe.x, enemy.z - foe.z);
-        spendWeaponUse(foe);
+        if (foe.weapon.type !== 'Gun') spendWeaponUse(foe);
       }
       const counterResults = Array.from({ length: counterAttacks }, () => {
         const hit = rollHit(counterHitRate);
@@ -4512,12 +4661,16 @@ async function enemyPhase() {
       let counterTotalDamage = 0;
       const rankUps = [];
 
-      const strikeOrder = getStrikeOrder(enemyVolleys, getStrikesPerAttack(enemy), counterVolleys, getStrikesPerAttack(foe));
+      const strikeOrder = getCombatStrikeOrder(enemy, foe, enemyVolleys, counterVolleys);
       let enemyStrike = 0;
       let foeStrike = 0;
       for (const side of strikeOrder) {
         if (foe.hp <= 0 || enemy.hp <= 0) break;
         if (side === 'attacker') {
+          if (enemy.weapon.type === 'Gun') {
+            if (!canAttack(enemy)) continue;
+            spendWeaponUse(enemy);
+          }
           const round = enemyStrike++;
           await playAttackAnimation(enemy, enemy.facing, round > 0);
           const result = strikeResults[round];
@@ -4526,6 +4679,8 @@ async function enemyPhase() {
             if (result.critical) criticalHits++;
             const strikeDamage = Math.min(foe.hp, result.critical ? criticalDamage : damage);
             foe.hp -= strikeDamage;
+            const drained = healDamageDealt(enemy, strikeDamage);
+            if (drained > 0) showCombatResult(enemy, `+${drained}`, 'heal');
             totalDamage += strikeDamage;
             showCombatResult(foe, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
           } else {
@@ -4535,6 +4690,10 @@ async function enemyPhase() {
           renderTacticalUi();
           if (foe.hp <= 0) break;
         } else {
+          if (foe.weapon.type === 'Gun') {
+            if (!canAttack(foe)) continue;
+            spendWeaponUse(foe);
+          }
           const round = foeStrike++;
           setMessage(`${foe.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
           await playAttackAnimation(foe, foe.facing, round > 0);
@@ -4545,6 +4704,8 @@ async function enemyPhase() {
             if (result.critical) counterCriticalCount++;
             const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
             enemy.hp -= strikeDamage;
+            const drained = healDamageDealt(foe, strikeDamage);
+            if (drained > 0) showCombatResult(foe, `+${drained}`, 'heal');
             counterTotalDamage += strikeDamage;
             showCombatResult(enemy, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
           } else {
@@ -4620,6 +4781,10 @@ async function enemyPhase() {
   if (checkDefeatAllVictory()) return;
   gameState.turn++;
   gameState.phase = 'player';
+  const cityWarning = prepareCityPulse(activeLevel, gameState.turn, enemies);
+  levelGroup.userData.waitingCity?.sync();
+  const throneWarning = prepareForetoldRuin(activeLevel, gameState.turn, playerTeam, enemies);
+  levelGroup.userData.abyssalThrone?.sync();
   for (const unit of playerTeam) {
     unit.moved = Boolean(unit.frozen);
     unit.acted = false;
@@ -4644,9 +4809,14 @@ async function enemyPhase() {
     const boss = reinforcementResult.units.find((unit) => unit.isBoss);
     setMessage(boss
       ? `${boss.name} has arrived with reinforcements!`
-      : `${reinforcementResult.units.length} reinforcements have arrived!`);
+      : activeLevel.waitingCity
+        ? `${reinforcementResult.units.length} ${reinforcementResult.units.length === 1 ? 'creature climbs' : 'creatures climb'} from the black water at the glowing shores!`
+        : `${reinforcementResult.units.length} reinforcements have arrived!`);
   }
   if (departedWagons.length) setMessage('Treatment wagons leave the depots! Block the rails or break them before they reach the lift.');
+  if (cityWarning) setMessage('The Bell-Drowned draws back its chains. GOLD lanes will erupt for 18 damage next enemy phase. Move off them!');
+  if (throneWarning) setMessage('Vael writes a name in The Last Testament. GOLD tiles take 22 damage next enemy phase. Move away!');
+  if (isBenedictionTurn(activeLevel, gameState.turn)) setMessage('Vael begins Profane Benediction. This enemy phase he heals a nearby cultist instead of attacking. Press the opening!');
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
   await healOnRestorativeTiles(playerTeam);
@@ -4666,6 +4836,11 @@ function spawnTurnReinforcements() {
       .map((unit) => tileKey(unit.x, unit.z)),
   );
   for (const wave of activeLevel.reinforcements) {
+    if (activeLevel.waitingCity && !enemies.some((unit) => unit.id === activeLevel.waitingCity.bossId && unit.hp > 0)) {
+      wave.spawned = true;
+      wave.spawnedCount = wave.units.length;
+      continue;
+    }
     if (infirmaryWaveSealed(activeLevel, wave)) {
       wave.spawned = true;
       wave.spawnedCount = wave.units.length;
@@ -4690,10 +4865,10 @@ function spawnTurnReinforcements() {
       candidates.sort((first, second) =>
         distanceBetween(first.x, first.z, placement.x, placement.z) -
         distanceBetween(second.x, second.z, placement.x, placement.z));
-      const spawnTile = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard
+      const spawnTile = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity
         ? infirmarySpawnTile(activeLevel, placement, [...defendingUnits(), ...enemies])
         : candidates[0];
-      if (!spawnTile && (activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard)) break;
+      if (!spawnTile && (activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity)) break;
       if (!spawnTile) {
         return {
           units: createdUnits,
@@ -4730,6 +4905,7 @@ function spawnTurnReinforcements() {
       joinedAllies.push(ally);
     }
   }
+  levelGroup.userData.waitingCity?.sync();
   return { units: createdUnits, allies: joinedAllies, error: null };
 }
 
@@ -4885,6 +5061,31 @@ chestActionButton.addEventListener('click', () => void openChest());
 document.querySelector('#unlock-action').addEventListener('click', () => void unlockCell());
 document.querySelector('#steal-action').addEventListener('click', openSteal);
 document.querySelector('#infirmary-action').addEventListener('click', openInfirmaryActions);
+document.querySelector('#beacon-action').addEventListener('click', () => {
+  if (gameState.phase !== 'player' || gameState.mode !== 'unit' || !gameState.selected ||
+      !availableBeacon(activeLevel, player)) return;
+  const beacon = extinguishBeacon(activeLevel, player);
+  const mesh = levelGroup.userData.shore?.beacons.get(beacon.id);
+  if (mesh) {
+    mesh.material.map = levelGroup.userData.shore.unlitBeacon;
+    mesh.material.needsUpdate = true;
+  }
+  setMessage(`${player.name} extinguishes the offering beacon. Its remaining summons are silenced.`);
+  saveCurrentGame();
+  finishUnit();
+});
+document.querySelector('#mechanism-action').addEventListener('click', () => {
+  if (gameState.phase !== 'player' || gameState.mode !== 'unit' || !gameState.selected ||
+      !availableMechanism(activeLevel, player)) return;
+  activateMechanism(activeLevel, player, gameState.turn);
+  levelGroup.userData.waitingCity?.sync();
+  setMessage(activeLevel.waitingCity.opened
+    ? 'Both mechanisms turn. The central approach opens. Defeat the Bell-Drowned!'
+    : `${player.name} activates the ancient mechanism. One remains.`);
+  finishUnit();
+  saveCurrentGame();
+  void runTutorials();
+});
 backActionButton.addEventListener('click', () => {
   if (player.moveOrigin && player.moved && !player.acted) undoMove();
   else cancelAction();
@@ -5290,7 +5491,7 @@ function update(dt, t) {
   for (const unit of Object.values(roster)) {
     const fielded = (playerTeam.includes(unit) || neutralUnits().includes(unit)) && unit.hp > 0;
     // Bell Yard clears building depth at order 1; allies must render after it, just like enemies.
-    unit.mesh.renderOrder = activeLevel.bellYard || activeLevel.cells.length ? 2 : 0;
+    unit.mesh.renderOrder = activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone || activeLevel.cells.length ? 2 : 0;
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
     if (!fielded) continue;
@@ -5336,6 +5537,7 @@ function update(dt, t) {
     );
     if (healthBar.displayRatio === undefined) healthBar.displayRatio = targetRatio;
     healthBar.group.visible =
+      mesh.userData.cityOccluded ||
       (healthBar.unit === eveline && neutralUnits().includes(eveline)) ||
       (gameState.mode === 'combat' && combatants.has(healthBar.unit)) || t < healthBar.revealUntil;
     if (!healthBar.group.visible) {
@@ -5383,14 +5585,14 @@ function update(dt, t) {
   const offset = CAM_OFFSET.clone().multiplyScalar(cameraScale);
   const cityBackdrop = levelGroup.userData.cityBackdrop;
   const northLimit = worldZ(activeLevel.exit.z);
-  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
+  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
   else if (cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
   if (activeLevel.infirmary) constrainInteriorCamera(target, offset, camera.aspect, activeLevel.width, activeLevel.height);
   const desired = target.clone().add(offset);
   camera.position.sub(cameraShakeOffset);
   camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
   let fov = TACTICAL_FOV;
-  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard) {
+  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) {
     target.copy(camera.position).sub(offset);
     fov = constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
     camera.position.copy(target).add(offset);
@@ -5437,6 +5639,10 @@ const clock = new THREE.Clock();
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
   update(dt, clock.elapsedTime);
+  levelGroup.userData.waitingCity?.occlusion.update(
+    [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
+  levelGroup.userData.abyssalThrone?.occlusion.update(
+    [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
   updateLevelAnimation(clock.elapsedTime);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);

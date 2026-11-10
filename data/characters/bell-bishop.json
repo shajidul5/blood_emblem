@@ -1,0 +1,10 @@
+{
+  "id": "bell-bishop", "name": "Freight Yard Bishop", "classId": "bishop", "type": "infantry",
+  "spriteSet": "genericBishop", "sprite": "assets/character/Generic_Bishop/rotations/south.png",
+  "level": 22, "experience": 0, "weaponId": "heal-staff", "inventory": ["heal-staff"],
+  "staffUses": { "heal-staff": 4 }, "spellUses": { "physic": 5 },
+  "weaponExp": { "Staff": 180, "Light": 180 }, "ai": "guard",
+  "baseStats": { "hp": 35, "strength": 1, "magic": 19, "dexterity": 14, "speed": 10, "luck": 7, "defense": 6, "resistance": 21, "movement": 6, "build": 6 },
+  "currentStats": { "hp": 35, "strength": 1, "magic": 19, "dexterity": 14, "speed": 10, "luck": 7, "defense": 6, "resistance": 21, "movement": 6, "build": 6 },
+  "growthRates": { "hp": 45, "strength": 0, "magic": 45, "dexterity": 30, "speed": 25, "luck": 20, "defense": 20, "resistance": 40, "movement": 0, "build": 0 }
+}

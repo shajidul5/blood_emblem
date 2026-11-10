@@ -48,6 +48,7 @@ import churchFreezerProfile from '../../data/characters/church-freezer.json';
 import churchHealerProfile from '../../data/characters/church-healer.json';
 import severinProfile from '../../data/characters/severin.json';
 const cathedralProfiles = Object.values(import.meta.glob('../../data/characters/{cathedral,bell}-*.json', { eager: true, import: 'default' }));
+const shoreProfiles = Object.values(import.meta.glob('../../data/characters/{shore,city,throne}-*.json', { eager: true, import: 'default' }));
 import vossProfile from '../../data/characters/voss.json';
 import rapier from '../../data/weapons/rapier.json';
 import { canEquipWeapon, getClass } from './classes.js';
@@ -221,7 +222,7 @@ const ENEMY_PROFILES = new Map([
   [rootWardenProfile.id, rootWardenProfile],
 ]);
 
-for (const profile of [...cathedralProfiles, vossProfile]) ENEMY_PROFILES.set(profile.id, profile);
+for (const profile of [...cathedralProfiles, ...shoreProfiles, vossProfile]) ENEMY_PROFILES.set(profile.id, profile);
 export const ENEMY_IDS = new Set(ENEMY_PROFILES.keys());
 export const enemyMovementType = (id) => ENEMY_PROFILES.get(id)?.type;
 

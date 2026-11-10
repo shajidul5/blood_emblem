@@ -95,14 +95,23 @@ function validConvoy(convoy) {
 function migrateItemIds(save) {
   const fixEntries = (entries) => {
     if (!Array.isArray(entries)) return;
-    for (const entry of entries) if (entry && typeof entry.id === 'string') entry.id = currentItemId(entry.id);
+    for (const entry of entries) {
+      if (!entry || typeof entry.id !== 'string') continue;
+      entry.id = currentItemId(entry.id);
+      if (entry.spells && typeof entry.spells === 'object') {
+        entry.spells = Object.fromEntries(Object.entries(entry.spells).map(([id, uses]) => [currentItemId(id), uses]));
+      }
+    }
   };
   const fixUnit = (unit) => {
     if (!unit || typeof unit !== 'object') return;
     fixEntries(unit.inventory);
     if (typeof unit.equippedWeaponId === 'string') unit.equippedWeaponId = currentItemId(unit.equippedWeaponId);
   };
-  for (const unit of [save.player, ...(save.allies ?? []), save.chapterStart, ...(save.chapterStart?.allies ?? [])]) fixUnit(unit);
+  for (const unit of [save.player, ...(save.allies ?? []), ...(save.enemies ?? []), save.chapterStart, ...(save.chapterStart?.allies ?? [])]) {
+    fixUnit(unit);
+    if (typeof unit?.weaponId === 'string') unit.weaponId = currentItemId(unit.weaponId);
+  }
   fixEntries(save.convoy);
   fixEntries(save.chapterStart?.convoy);
 }
@@ -406,6 +415,18 @@ export function parseSave(rawSave) {
       leader.x !== level.streets.seizePoint.x || leader.z !== level.streets.seizePoint.z ||
       save.enemies.some((enemy) => enemy.id === level.streets.bossId))) {
       throw new Error('Saved Cathedral approach victory is invalid.');
+    }
+  }
+  if (level.abyssalThrone) {
+    if (level.abyssalThrone.ruin && level.abyssalThrone.ruin.turn !== save.turn) {
+      throw new Error('Saved Foretold Ruin must resolve during the current turn.');
+    }
+    if (save.phase === 'victory' && save.enemies.some((enemy) => enemy.id === level.abyssalThrone.bossId)) {
+      throw new Error('Saved throne victory requires Vael to be defeated.');
+    }
+    if (save.phase === 'victory' && level.requiredUnits.some((id) =>
+      ![player, ...allies].some((unit) => unit.id === id && unit.stats.hp > 0 && !unit.benched && !unit.reserve))) {
+      throw new Error('Saved throne victory requires Maria and Rictor to survive.');
     }
   }
   const rescue = validateRescueState(save.rescue, level, occupiedTiles, allies);

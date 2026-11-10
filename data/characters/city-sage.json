@@ -1,0 +1,51 @@
+{
+  "id": "city-sage",
+  "name": "Observatory Sage",
+  "classId": "sage",
+  "type": "infantry",
+  "spriteSet": "genericSage",
+  "sprite": "assets/character/Generic_Sage/rotations/south.png",
+  "level": 26,
+  "experience": 0,
+  "weaponId": "inferno",
+  "weaponExp": {
+    "Anima": 180
+  },
+  "ai": "guard",
+  "baseStats": {
+    "hp": 47,
+    "strength": 2,
+    "magic": 25,
+    "dexterity": 19,
+    "speed": 13,
+    "luck": 6,
+    "defense": 11,
+    "resistance": 21,
+    "movement": 5,
+    "build": 9
+  },
+  "currentStats": {
+    "hp": 47,
+    "strength": 2,
+    "magic": 25,
+    "dexterity": 19,
+    "speed": 13,
+    "luck": 6,
+    "defense": 11,
+    "resistance": 21,
+    "movement": 5,
+    "build": 9
+  },
+  "growthRates": {
+    "hp": 75,
+    "strength": 0,
+    "magic": 60,
+    "dexterity": 45,
+    "speed": 40,
+    "luck": 25,
+    "defense": 30,
+    "resistance": 50,
+    "movement": 0,
+    "build": 0
+  }
+}

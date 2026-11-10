@@ -1,0 +1,35 @@
+{
+  "waitingCity": { "pages": [
+    { "kicker": "Part Four - Chapter 18", "title": "The City That Waits", "paragraphs": [
+      "Beyond the sea gate, a city climbs out of the black ocean. Its homes are empty. Its lamps still burn. Above the observatory, stars move against the turning of the sky.",
+      "Stone astronomers face the processional streets. Empty houses crowd the canals beneath ranks of broken arcades. The people who built this place did not flee it. They surrendered their names to remain.",
+      "Maria hears a bell beneath the paving. Rictor stops beside her. \"We heard that in the treatment yard.\" The note rises through the stone, impossibly deep. What they heard above was only an imitation."
+    ] },
+    { "title": "Two Districts, One Approach", "paragraphs": [
+      "Activate the ancient mechanisms beside the western armory and eastern observatory. A living, unacted unit must stand adjacent; activating a mechanism uses its action. Both mechanisms open the central approach. The reunited party may stay together or divide between the districts.",
+      "Green floor highlights show where to stand to interact: beside an inactive mechanism, or directly on an unopened supply chest. They disappear when that object is used. Chests still require a Chest Key or lockpicking; the highlights do not grant terrain bonuses.",
+      "Two-tile bridges cross the canals between the crowded districts. Drowned citizens and Tide Stalkers hold the streets, Gloam Ravens cross the water, Dark Sages tend the old machinery, and armored ancient guardians defend both districts. Magic and armor-effective weapons help against guardians; bows and wind bring down ravens.",
+      "Thin mint-colored Ward Sigils mark six protected floor tiles. A unit standing on one gains +2 Defense and +10 Avoid with no movement penalty. They do not heal or protect against the Bell-Drowned's resonance. Turquoise rings at the shoreline mark creature arrivals, not wards.",
+      "On player turns 4, 7, 10 and 13, two creatures climb out of the black water at the turquoise shore rings. These are four finite waves, not endless summons. Occupied arrival tiles queue their creatures until space opens; they never teleport to a bridge behind you.",
+      "Beyond the sealed approach waits the Bell-Drowned: a pale, barnacled horror with an ancient bell lashed to its back. It has very high Defense and Resistance. Defeat it after opening the approach. Maria and Rictor must both survive. The side chests are optional supply rewards."
+    ], "button": "Enter the Waiting City" }
+  ] },
+  "waitingCity-revelation": { "pages": [
+    { "title": "Not a Summons", "paragraphs": [
+      "The mechanisms turn. Across the bronze mural, tiny figures ring bells above a sleeping shape beneath the ocean. The same figures are shown feeding their own shadows into its dreams.",
+      "\"The bells weren't calling it,\" Maria says. \"They were keeping it asleep.\" Rictor traces the newer cuts in the bronze. \"The custodians changed the rite. Now every offering teaches it another name.\"",
+      "The sealed approach opens. In the plaza, the Bell-Drowned heaves itself upright beneath the bell strapped to its back. Something swims beneath its translucent skin."
+    ] },
+    { "title": "The Bell-Drowned", "paragraphs": [
+      "At the start of a player turn, golden tiles mark the lanes that will resonate during the following enemy phase. Move off those tiles before ending your turn. The pulse deals 18 HP damage regardless of armor and can kill; flying units are not immune.",
+      "The lanes alternate between columns and rows, with two quiet turns between pulses. The creature still attacks and counters normally. It has no invulnerable phase. Defeating it stops all remaining resonance and water arrivals."
+    ] }
+  ] },
+  "waitingCity-ending": { "pages": [
+    { "title": "One Last Note", "paragraphs": [
+      "The Bell-Drowned folds around its broken bell. It rings once. The water leaves the plaza without a ripple, drawing back into cracks that were not there a moment ago.",
+      "A stair descends beneath the city's foundations. There are no offerings upon it. No names. No marks of the Church.",
+      "Rictor looks up. Above them, one of the stars opens its eye."
+    ] }
+  ] }
+}

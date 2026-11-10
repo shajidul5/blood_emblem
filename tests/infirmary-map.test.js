@@ -46,7 +46,7 @@ function reachable(level, start, target) {
 
 test('Chapter 12 registers a readable three-unit infirmary defense map', () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 16);
+  assert.equal(levels.CHAPTER_COUNT, 19);
   assert.ok(levels.LEVEL_OBJECTIVES.has('defend-infirmary'));
   assert.equal(level.objective, 'defend-infirmary');
   assert.deepEqual([level.width, level.height], [24, 20]);

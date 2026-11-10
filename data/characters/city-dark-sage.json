@@ -1,0 +1,51 @@
+{
+  "id": "city-dark-sage",
+  "name": "Covenant Custodian",
+  "classId": "dark-sage",
+  "type": "infantry",
+  "spriteSet": "genericDarkSage",
+  "sprite": "assets/character/Generic_Dark_Sage/rotations/south.png",
+  "level": 26,
+  "experience": 0,
+  "weaponId": "dark-tome",
+  "weaponExp": {
+    "Dark": 180
+  },
+  "ai": "guard",
+  "baseStats": {
+    "hp": 49,
+    "strength": 2,
+    "magic": 27,
+    "dexterity": 20,
+    "speed": 16,
+    "luck": 10,
+    "defense": 12,
+    "resistance": 22,
+    "movement": 6,
+    "build": 8
+  },
+  "currentStats": {
+    "hp": 49,
+    "strength": 2,
+    "magic": 27,
+    "dexterity": 20,
+    "speed": 16,
+    "luck": 10,
+    "defense": 12,
+    "resistance": 22,
+    "movement": 6,
+    "build": 8
+  },
+  "growthRates": {
+    "hp": 80,
+    "strength": 0,
+    "magic": 65,
+    "dexterity": 45,
+    "speed": 40,
+    "luck": 20,
+    "defense": 35,
+    "resistance": 55,
+    "movement": 0,
+    "build": 0
+  }
+}

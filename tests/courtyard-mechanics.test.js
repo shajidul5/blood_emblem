@@ -89,30 +89,30 @@ test('Corvis has Flux, recruits only through Eveline, and promotes using his sup
   assert.ok(classes.canEquipWeapon(corvis, inventory.INVENTORY_ITEMS.get('heal-staff')));
 });
 
-test('Luna halves Resistance and Eclipse halves current HP without lethal damage, doubles or criticals', () => {
-  inventory.setUnlockedSpells(['luna', 'eclipse']);
+test('Luna halves Resistance and Nosferatu heals half actual damage on attacks and counters', () => {
+  inventory.setUnlockedSpells(['luna', 'nosferatu']);
   const caster = characters.createCorvisAlly();
   caster.weaponExp.Dark = 120;
   caster.weapon = inventory.INVENTORY_ITEMS.get('luna');
-  caster.inventory[0].spells = { luna: 8, eclipse: 4 };
+  caster.inventory[0].spells = { luna: 8, nosferatu: 4 };
   const target = { ...characters.createEnemyUnit('ward-knight', 1, 0), resistance: 11, hp: 43 };
   assert.equal(combat.getCombatDamage(caster, target), caster.magic + 8 - 5);
-  caster.weapon = inventory.INVENTORY_ITEMS.get('eclipse');
+  caster.weapon = inventory.INVENTORY_ITEMS.get('nosferatu');
   caster.speed = 99;
-  assert.equal(combat.getCombatDamage(caster, target), 21);
-  assert.equal(combat.getCriticalDamage(caster, target), 21);
-  assert.equal(combat.getCriticalRate(caster, target), 0);
-  assert.equal(combat.getAttackCount(caster, target), 1);
-  assert.equal(caster.weapon.hit, 30);
-  for (const hp of [1, 2, 3, 65]) {
-    target.hp = hp;
-    assert.equal(combat.getCombatDamage(caster, target), Math.floor(hp / 2));
-    assert.ok(hp - combat.getCombatDamage(caster, target) >= 1);
-  }
-  assert.equal(combat.isInWeaponRange(caster, target, 2), false);
-  assert.equal(combat.isInWeaponRange(caster, target, 3), true);
-  assert.equal(combat.isInWeaponRange(caster, target, 5), true);
-  assert.equal(combat.isInWeaponRange(caster, target, 6), false);
+  assert.equal(combat.getCombatDamage(caster, target), caster.magic + 12 - 11);
+  assert.equal(combat.getAttackCount(caster, target), 2);
+  assert.equal(caster.weapon.hit, 75);
+  caster.hp = 1;
+  assert.equal(combat.healDamageDealt(caster, 9), 4);
+  assert.equal(caster.hp, 5);
+  assert.equal(combat.healDamageDealt(caster, 0), 0);
+  caster.hp = caster.maxHp - 1;
+  assert.equal(combat.healDamageDealt(caster, 20), 1);
+  caster.hp = 0;
+  assert.equal(combat.healDamageDealt(caster, 20), 0);
+  assert.equal(combat.isInWeaponRange(caster, target, 1), true);
+  assert.equal(combat.isInWeaponRange(caster, target, 2), true);
+  assert.equal(combat.isInWeaponRange(caster, target, 3), false);
   inventory.setUnlockedSpells([]);
 });
 
@@ -143,13 +143,56 @@ test('dark tome spell progression uses the shared 6 then 12 Insight unlocks', ()
   assert.equal(insight.nextSpellId('dark-tome'), 'luna');
   assert.equal(insight.nextSpellCost('dark-tome'), 6);
   assert.equal(insight.unlockSpell('dark-tome'), true);
-  assert.equal(insight.nextSpellId('dark-tome'), 'eclipse');
+  assert.equal(insight.nextSpellId('dark-tome'), 'nosferatu');
   assert.equal(insight.nextSpellCost('dark-tome'), 12);
   assert.equal(insight.unlockSpell('dark-tome'), true);
   assert.equal(insight.getInsight(), 0);
   insight.restoreInsight(null);
 });
 
+test('Dark Sage doubles every dark spell and staff capacity without refilling spent uses', () => {
+  insight.restoreInsight({ spells: { 'dark-tome': 2, 'heal-staff': 2, 'freeze-staff': 2 } });
+  const unit = characters.createCorvisAlly();
+  unit.inventory.push(...inventory.createInventory(['heal-staff', 'freeze-staff']));
+  inventory.refreshMagicUses(unit.inventory, unit);
+  unit.inventory[0].uses -= 3;
+  unit.inventory[0].spells.nosferatu = 1;
+  const previous = classes.getUsesMultiplier(unit);
+  classes.promoteUnit(unit);
+  inventory.rescaleMagicUses(unit, previous);
+  assert.equal(classes.getUsesMultiplier(unit), 2);
+  for (const entry of unit.inventory) {
+    const item = inventory.INVENTORY_ITEMS.get(entry.id);
+    assert.equal(entry.uses, item.maxUses * 2 - (entry.id === 'dark-tome' ? 3 : 0));
+    for (const spell of inventory.unlockedSpellsOf(entry.id)) {
+      assert.equal(inventory.maxUsesFor(spell, unit), spell.maxUses * 2);
+    }
+  }
+  assert.equal(unit.inventory[0].spells.nosferatu, 5, 'promotion adds capacity without erasing spending');
+  inventory.refreshMagicUses(unit.inventory, unit);
+  assert.equal(unit.inventory[0].spells.nosferatu, 8);
+  insight.restoreInsight(null);
+});
+
+test('legacy Eclipse saves keep their unlock tier, equipped spell and remaining uses as Nosferatu', async () => {
+  const saves = await server.ssrLoadModule('/src/game/save.js');
+  const old = JSON.parse(await readFile(new URL('../saves/chapter16-level20.json', import.meta.url), 'utf8'));
+  const corvis = old.allies.find(({ id }) => id === 'corvis');
+  corvis.inventory[0].spells = { luna: 3, eclipse: 2 };
+  corvis.equippedWeaponId = 'eclipse';
+  old.insight.spells = { 'dark-tome': 2 };
+  old.chapterStart.allies.find(({ id }) => id === 'corvis').inventory[0].spells = { eclipse: 1 };
+  old.convoy.push({ id: 'dark-tome', uses: 5, spells: { eclipse: 0 } });
+  const restored = saves.parseSave(JSON.stringify(old));
+  const current = restored.allies.find(({ id }) => id === 'corvis');
+  assert.equal(current.equippedWeaponId, 'nosferatu');
+  assert.deepEqual(current.inventory[0].spells, { luna: 3, nosferatu: 2 });
+  assert.equal(restored.chapterStart.allies.find(({ id }) => id === 'corvis').inventory[0].spells.nosferatu, 1);
+  assert.equal(restored.convoy.at(-1).spells.nosferatu, 0);
+  insight.restoreInsight(restored.insight);
+  assert.ok(insight.unlockedSpellIds().includes('nosferatu'));
+  insight.restoreInsight(null);
+});
 test('Freeze priest chooses closest unfrozen unit, spends a use on misses and roots without consuming actions', () => {
   const priest = characters.createEnemyUnit('church-freezer', 5, 5);
   const far = { ...characters.createTroyAlly(), x: 5, z: 8 };

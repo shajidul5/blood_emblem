@@ -1,0 +1,8 @@
+{
+  "id": "last-testament", "name": "The Last Testament", "type": "Dark", "damageType": "magical",
+  "might": 18, "weight": 14, "hit": 100, "critical": 0, "minRange": 1, "maxRange": 3,
+  "requiredRank": "S", "maxUses": 40, "effect": [], "sound": "magic",
+  "sprite": "assets/weapons/Dark_Tome/last-testament.png",
+  "description": "Vael's unique dark tome. High might and accuracy; attacks and counters at range 1-3.",
+  "lore": "The last custodian has written every name but his own. The empty line is still wet."
+}

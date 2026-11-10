@@ -1,0 +1,8 @@
+{
+  "id": "shore-mage", "name": "Deep Sage", "classId": "sage", "type": "infantry",
+  "spriteSet": "genericSage", "sprite": "assets/character/Generic_Sage/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "inferno", "weaponExp": { "Anima": 180 }, "ai": "guard",
+  "baseStats": { "hp": 50, "strength": 2, "magic": 27, "dexterity": 40, "speed": 21, "luck": 10, "defense": 13, "resistance": 23, "movement": 6, "build": 11 },
+  "currentStats": { "hp": 50, "strength": 2, "magic": 27, "dexterity": 40, "speed": 21, "luck": 10, "defense": 13, "resistance": 23, "movement": 6, "build": 11 },
+  "growthRates": { "hp": 40, "strength": 0, "magic": 45, "dexterity": 40, "speed": 35, "luck": 20, "defense": 15, "resistance": 40, "movement": 0, "build": 0 }
+}

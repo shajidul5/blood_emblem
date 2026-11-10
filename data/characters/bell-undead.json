@@ -9,7 +9,7 @@
   "experience": 0,
   "weaponId": "undead-claws",
   "ai": "mobile",
-  "baseStats": { "hp": 50, "strength": 18, "magic": 0, "dexterity": 14, "speed": 8, "luck": 2, "defense": 10, "resistance": 5, "movement": 4, "build": 12 },
-  "currentStats": { "hp": 50, "strength": 18, "magic": 0, "dexterity": 14, "speed": 8, "luck": 2, "defense": 10, "resistance": 5, "movement": 4, "build": 12 },
+  "baseStats": { "hp": 49, "strength": 21, "magic": 0, "dexterity": 9, "speed": 5, "luck": 1, "defense": 8, "resistance": 3, "movement": 3, "build": 12 },
+  "currentStats": { "hp": 49, "strength": 21, "magic": 0, "dexterity": 9, "speed": 5, "luck": 1, "defense": 8, "resistance": 3, "movement": 3, "build": 12 },
   "growthRates": { "hp": 80, "strength": 50, "magic": 0, "dexterity": 35, "speed": 20, "luck": 10, "defense": 30, "resistance": 20, "movement": 0, "build": 0 }
 }

@@ -1,0 +1,6 @@
+These frames could not be downloaded and are NOT in this zip:
+
+Generic_Halberdier/animations/Attacking/south-west/frame_006.png
+Generic_Halberdier/animations/Attacking/north/frame_005.png
+
+The generation itself succeeded — the frames are listed by get_character/the API. Re-download to retry; if a frame is still missing, contact support with this file.

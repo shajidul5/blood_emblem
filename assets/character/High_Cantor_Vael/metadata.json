@@ -1,0 +1,206 @@
+{
+  "group_id": "10c10c2a-f60a-425a-9c40-c453c1553bd6",
+  "states": [
+    {
+      "character": {
+        "id": "37222a0e-769f-4999-8277-faa4244f088a",
+        "name": "Idle",
+        "prompt": "High Cantor Vael, unique Abyssal Hierophant boss for gothic ancient ocean tactical RPG. Tall gaunt elderly male with pale face, severe expression, long layered midnight indigo and weathered ivory ceremonial robes with tarnished gold edging. Broken circular celestial halo mounted behind his head, not a crown. Both legs grounded beneath split robe. Holds a large open crimson-black grimoire The Last Testament with gold clasps and glowing red pages in left hand, right hand poised to cast. Strong readable silhouette, no staff, no armor, no background. Crisp restrained pixel art, front facing south.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-11-10T22:55:50.686758+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "Casting": {
+            "south-west": [
+              "Idle/animations/Casting/south-west/frame_000.png",
+              "Idle/animations/Casting/south-west/frame_001.png",
+              "Idle/animations/Casting/south-west/frame_002.png",
+              "Idle/animations/Casting/south-west/frame_003.png",
+              "Idle/animations/Casting/south-west/frame_004.png",
+              "Idle/animations/Casting/south-west/frame_005.png",
+              "Idle/animations/Casting/south-west/frame_006.png"
+            ],
+            "west": [
+              "Idle/animations/Casting/west/frame_000.png",
+              "Idle/animations/Casting/west/frame_001.png",
+              "Idle/animations/Casting/west/frame_002.png",
+              "Idle/animations/Casting/west/frame_003.png",
+              "Idle/animations/Casting/west/frame_004.png",
+              "Idle/animations/Casting/west/frame_005.png",
+              "Idle/animations/Casting/west/frame_006.png"
+            ],
+            "south": [
+              "Idle/animations/Casting/south/frame_000.png",
+              "Idle/animations/Casting/south/frame_001.png",
+              "Idle/animations/Casting/south/frame_002.png",
+              "Idle/animations/Casting/south/frame_003.png",
+              "Idle/animations/Casting/south/frame_004.png",
+              "Idle/animations/Casting/south/frame_005.png",
+              "Idle/animations/Casting/south/frame_006.png"
+            ],
+            "south-east": [
+              "Idle/animations/Casting/south-east/frame_000.png",
+              "Idle/animations/Casting/south-east/frame_001.png",
+              "Idle/animations/Casting/south-east/frame_002.png",
+              "Idle/animations/Casting/south-east/frame_003.png",
+              "Idle/animations/Casting/south-east/frame_004.png",
+              "Idle/animations/Casting/south-east/frame_005.png",
+              "Idle/animations/Casting/south-east/frame_006.png"
+            ],
+            "east": [
+              "Idle/animations/Casting/east/frame_000.png",
+              "Idle/animations/Casting/east/frame_001.png",
+              "Idle/animations/Casting/east/frame_002.png",
+              "Idle/animations/Casting/east/frame_003.png",
+              "Idle/animations/Casting/east/frame_004.png",
+              "Idle/animations/Casting/east/frame_005.png",
+              "Idle/animations/Casting/east/frame_006.png"
+            ],
+            "north-east": [
+              "Idle/animations/Casting/north-east/frame_000.png",
+              "Idle/animations/Casting/north-east/frame_001.png",
+              "Idle/animations/Casting/north-east/frame_002.png",
+              "Idle/animations/Casting/north-east/frame_003.png",
+              "Idle/animations/Casting/north-east/frame_004.png",
+              "Idle/animations/Casting/north-east/frame_005.png",
+              "Idle/animations/Casting/north-east/frame_006.png"
+            ],
+            "north": [
+              "Idle/animations/Casting/north/frame_000.png",
+              "Idle/animations/Casting/north/frame_001.png",
+              "Idle/animations/Casting/north/frame_002.png",
+              "Idle/animations/Casting/north/frame_003.png",
+              "Idle/animations/Casting/north/frame_004.png",
+              "Idle/animations/Casting/north/frame_005.png",
+              "Idle/animations/Casting/north/frame_006.png"
+            ],
+            "north-west": [
+              "Idle/animations/Casting/north-west/frame_000.png",
+              "Idle/animations/Casting/north-west/frame_001.png",
+              "Idle/animations/Casting/north-west/frame_002.png",
+              "Idle/animations/Casting/north-west/frame_003.png",
+              "Idle/animations/Casting/north-west/frame_004.png",
+              "Idle/animations/Casting/north-west/frame_005.png",
+              "Idle/animations/Casting/north-west/frame_006.png"
+            ]
+          },
+          "Walking": {
+            "south-east": [
+              "Idle/animations/Walking/south-east/frame_000.png",
+              "Idle/animations/Walking/south-east/frame_001.png",
+              "Idle/animations/Walking/south-east/frame_002.png",
+              "Idle/animations/Walking/south-east/frame_003.png",
+              "Idle/animations/Walking/south-east/frame_004.png",
+              "Idle/animations/Walking/south-east/frame_005.png"
+            ],
+            "north-west": [
+              "Idle/animations/Walking/north-west/frame_000.png",
+              "Idle/animations/Walking/north-west/frame_001.png",
+              "Idle/animations/Walking/north-west/frame_002.png",
+              "Idle/animations/Walking/north-west/frame_003.png",
+              "Idle/animations/Walking/north-west/frame_004.png",
+              "Idle/animations/Walking/north-west/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/Walking/east/frame_000.png",
+              "Idle/animations/Walking/east/frame_001.png",
+              "Idle/animations/Walking/east/frame_002.png",
+              "Idle/animations/Walking/east/frame_003.png",
+              "Idle/animations/Walking/east/frame_004.png",
+              "Idle/animations/Walking/east/frame_005.png"
+            ],
+            "south-west": [
+              "Idle/animations/Walking/south-west/frame_000.png",
+              "Idle/animations/Walking/south-west/frame_001.png",
+              "Idle/animations/Walking/south-west/frame_002.png",
+              "Idle/animations/Walking/south-west/frame_003.png",
+              "Idle/animations/Walking/south-west/frame_004.png",
+              "Idle/animations/Walking/south-west/frame_005.png"
+            ],
+            "north-east": [
+              "Idle/animations/Walking/north-east/frame_000.png",
+              "Idle/animations/Walking/north-east/frame_001.png",
+              "Idle/animations/Walking/north-east/frame_002.png",
+              "Idle/animations/Walking/north-east/frame_003.png",
+              "Idle/animations/Walking/north-east/frame_004.png",
+              "Idle/animations/Walking/north-east/frame_005.png"
+            ],
+            "north": [
+              "Idle/animations/Walking/north/frame_000.png",
+              "Idle/animations/Walking/north/frame_001.png",
+              "Idle/animations/Walking/north/frame_002.png",
+              "Idle/animations/Walking/north/frame_003.png",
+              "Idle/animations/Walking/north/frame_004.png",
+              "Idle/animations/Walking/north/frame_005.png"
+            ],
+            "west": [
+              "Idle/animations/Walking/west/frame_000.png",
+              "Idle/animations/Walking/west/frame_001.png",
+              "Idle/animations/Walking/west/frame_002.png",
+              "Idle/animations/Walking/west/frame_003.png",
+              "Idle/animations/Walking/west/frame_004.png",
+              "Idle/animations/Walking/west/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/Walking/south/frame_000.png",
+              "Idle/animations/Walking/south/frame_001.png",
+              "Idle/animations/Walking/south/frame_002.png",
+              "Idle/animations/Walking/south/frame_003.png",
+              "Idle/animations/Walking/south/frame_004.png",
+              "Idle/animations/Walking/south/frame_005.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "73158486-0c7d-43ee-bff8-fb1c1f3b6b8c",
+        "name": "Seated",
+        "prompt": "High Cantor Vael, unique Abyssal Hierophant boss for gothic ancient ocean tactical RPG. Tall gaunt elderly male with pale face, severe expression, long layered midnight indigo and weathered ivory ceremonial robes with tarnished gold edging. Broken circular celestial halo mounted behind his head, not a crown. Both legs grounded beneath split robe. Holds a large open crimson-black grimoire The Last Testament with gold clasps and glowing red pages in left hand, right hand poised to cast. Strong readable silhouette, no staff, no armor, no background. Crisp restrained pixel art, front facing south.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-11-10T23:06:20.417017+00:00"
+      },
+      "folder": "Seated",
+      "frames": {
+        "rotations": {
+          "south": "Seated/rotations/south.png",
+          "south-east": "Seated/rotations/south-east.png",
+          "east": "Seated/rotations/east.png",
+          "north-east": "Seated/rotations/north-east.png",
+          "north": "Seated/rotations/north.png",
+          "north-west": "Seated/rotations/north-west.png",
+          "west": "Seated/rotations/west.png",
+          "south-west": "Seated/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-11-10T23:10:10.892850"
+}

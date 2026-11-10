@@ -1,5 +1,5 @@
 import data from '../../data/upgrades.json';
-import { INVENTORY_ITEMS, setUnlockedSpells } from '../characters/inventory.js';
+import { INVENTORY_ITEMS, maxUsesFor, setUnlockedSpells } from '../characters/inventory.js';
 
 export const BOSS_INSIGHT = data.bossInsight;
 export const MAX_LEADERSHIP = data.leadership.costs.length;
@@ -78,7 +78,8 @@ export function restoreInsight(snapshot) {
     for (const baseId of Object.keys(EVOLUTIONS)) {
       if (snapshot.evolved?.[baseId] !== true) continue;
       state.evolved[baseId] = true;
-      state.evolutionPaid[baseId] = clampInt(snapshot.evolutionPaid?.[baseId] ?? data.legacy.evolutionCost, 0, EVOLUTIONS[baseId].cost);
+      const defaultPaid = data.legacy.evolutionIds.includes(baseId) ? data.legacy.evolutionCost : EVOLUTIONS[baseId].cost;
+      state.evolutionPaid[baseId] = clampInt(snapshot.evolutionPaid?.[baseId] ?? defaultPaid, 0, EVOLUTIONS[baseId].cost);
     }
     // Old saves: refund the retired weapon tiers. An awakened Rapier is already the Bloodletter, so keep it evolved.
     state.insight += legacyRefund(snapshot);
@@ -153,7 +154,7 @@ export function refundSpell(bookId) {
   return true;
 }
 
-// Evolutions: a personal weapon is reforged into a new one (Rapier -> Bloodletter, Vigil Lance -> Longinus).
+// Evolutions reforge a carried weapon or a convoy copy into its upgraded form.
 export const EVOLUTIONS = data.evolutions;
 export const EVOLVING_WEAPON_IDS = Object.keys(EVOLUTIONS);
 export const isEvolved = (baseId) => state.evolved[baseId] === true;
@@ -171,9 +172,13 @@ function findHolder(itemId, units, convoyEntries) {
 function reforge(fromId, toId, units, convoyEntries) {
   const holder = findHolder(fromId, units, convoyEntries);
   if (!holder) return false;
+  const weapon = INVENTORY_ITEMS.get(toId);
+  const capacity = maxUsesFor(weapon, holder.unit);
+  // Reforging never refills ammo; reverting clamps it to the base weapon's capacity.
+  const uses = holder.entry.uses ?? maxUsesFor(INVENTORY_ITEMS.get(fromId), holder.unit);
   holder.entry.id = toId;
-  holder.entry.uses = null;
-  if (holder.unit?.weapon?.id === fromId) holder.unit.weapon = INVENTORY_ITEMS.get(toId);
+  holder.entry.uses = capacity ? Math.min(uses ?? capacity, capacity) : null;
+  if (holder.unit?.weapon?.id === fromId) holder.unit.weapon = weapon;
   return true;
 }
 

@@ -3,7 +3,7 @@
   "spriteSet": "genericPaladin", "sprite": "assets/character/Generic_Paladin/rotations/south.png",
   "scale": 1.2, "level": 23, "experience": 0, "weaponId": "silver-lance",
   "weaponExp": { "Spear": 180, "Sword": 120 }, "ai": "mobile",
-  "baseStats": { "hp": 56, "strength": 23, "magic": 1, "dexterity": 36, "speed": 20, "luck": 10, "defense": 16, "resistance": 14, "movement": 8, "build": 12 },
-  "currentStats": { "hp": 56, "strength": 23, "magic": 1, "dexterity": 36, "speed": 20, "luck": 10, "defense": 16, "resistance": 14, "movement": 8, "build": 12 },
+  "baseStats": { "hp": 45, "strength": 18, "magic": 1, "dexterity": 15, "speed": 15, "luck": 7, "defense": 13, "resistance": 11, "movement": 8, "build": 11 },
+  "currentStats": { "hp": 45, "strength": 18, "magic": 1, "dexterity": 15, "speed": 15, "luck": 7, "defense": 13, "resistance": 11, "movement": 8, "build": 11 },
   "growthRates": { "hp": 60, "strength": 45, "magic": 0, "dexterity": 45, "speed": 35, "luck": 25, "defense": 30, "resistance": 25, "movement": 0, "build": 0 }
 }

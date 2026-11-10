@@ -1,0 +1,59 @@
+{
+  "abyssalThrone": { "pages": [
+    { "kicker": "Part Four - Chapter 19", "title": "The Throne Beneath the Stars", "paragraphs": [
+      "The stair beneath the city ends at another shore. Terraces rise from the black ocean: tombs to the west, scripture halls to the east, a processional road between them. The stars hang so low that Maria sees them reflected in the custodian's empty throne.",
+      "A man sits beneath the sanctuary arch. His robes are dry. His shadow stretches toward the sea. \"High Cantor Vael,\" Corvis whispers. \"The Last Custodian. He was old when the first Church stones were laid.\"",
+      "\"The Church remembered the blood,\" Vael says. \"The Order remembered the bell. Neither remembered what they were keeping shut.\" His gaze settles on Maria. \"But the seal has found its bearer.\""
+    ] },
+    { "title": "The Last Custodian", "paragraphs": [
+      "Defeat Vael. There are no switches, mandatory side objectives or endless summons. Maria and Rictor must both survive. The three routes connect at each terrace; split your force or concentrate it. Two-wide, three-long stair runs are the infantry connections between heights. You cannot climb a platform's vertical edge; flying units can bypass those edges.",
+      "Drowned Citizens and Tide Stalkers hold the lower routes, while armored Ancient Guardians defend the stairs. A smaller circle of elite casters supports them: Testament Scholars wield Luna, which ignores half Resistance; Veiled Confessors drain half their damage with Nosferatu. Grave Cantors have S-rank staff training and six long-range Physic casts each. They spend an action healing instead of attacking. Crowned Ravens cross the water to threaten exposed units. Inspect enemy movement, weapons and ranges before committing.",
+      "Vael is an Abyssal Hierophant. The Last Testament has 18 Might, 100 Hit and range 1-3. He counters normally, has no invulnerability, and recovers only 5 HP per enemy phase while occupying his throne. He rises when an ally reaches the final stairs.",
+      "Once he rises, Foretold Ruin marks a small GOLD cross at the START of a player turn. Those fixed tiles take 22 damage in the following enemy phase; it can kill and ignores armor. Move out, spread out, and do not leave a unit on the warning.",
+      "Every third enemy phase after rising, Vael channels Profane Benediction INSTEAD of his normal attack. It heals one wounded cultist within six tiles for up to 30 HP. If none remain, he still spends the action channeling. The objective panel announces these turns; he can still counter your attacks. Clear his healers and exploit those openings."
+    ], "button": "Approach the Throne" }
+  ] },
+  "abyssalThrone-receding": { "pages": [
+    { "title": "The Water Remembers", "paragraphs": [
+      "The ocean pulls away from the terraces. Chains emerge below the paving, descending farther than the light can follow. Doors stand beneath the waterline, each sealed from the outside.",
+      "Nothing blocks the road. Nothing has to. The city has been making room for them."
+    ] }
+  ] },
+  "abyssalThrone-congregation": { "pages": [
+    { "title": "An Attentive Congregation", "paragraphs": [
+      "A scrape passes through the stone worshippers, one after another. Their heads turn toward the road.",
+      "\"Don't look at their faces,\" Rictor says. Maria already has. Beneath each hood, a mouth has been carefully filled with mortar."
+    ] }
+  ] },
+  "abyssalThrone-testament": { "pages": [
+    { "title": "The Revised Rite", "paragraphs": [
+      "The scripture halls carry the same procession in three ages. First, guardians hold a seal over a sleeping sea. Then priests carry blood toward it. In the newest cuts, the guardians kneel and the sea has a name.",
+      "\"They turned a prison into a promise,\" Corvis says.",
+      "Above the ocean, stars draw together. The space between them resembles something too large to have a face."
+    ] }
+  ] },
+  "abyssalThrone-emblem": { "pages": [
+    { "title": "The Missing Seal", "paragraphs": [
+      "The empty socket glows at Maria's approach. Beneath her coat, the Blood Emblem grows warm.",
+      "\"Not a crown,\" Vael says. \"Not a blessing. The last people who stood here made a lock of their own blood. Your emblem is what remains of it.\"",
+      "\"Then it closes the way,\" Maria says.",
+      "\"Or opens it. A key does not choose.\"",
+      "The emblem answers whether or not Maria has unlocked its Insight upgrade. No sacrifice or equipment change is required to continue."
+    ] }
+  ] },
+  "abyssalThrone-silence": { "pages": [
+    { "title": "The Last Name", "paragraphs": [
+      "The ocean falls silent. Most of the stars go dark.",
+      "Vael rises. \"I have kept every name they gave it. I have kept every offering. And still it dreams of the one name I cannot write.\" He opens The Last Testament. \"Yours.\"",
+      "The final terrace is open. Watch the GOLD warnings at the start of each player turn and the announced Benediction phases. He will still counter while channeling."
+    ] }
+  ] },
+  "abyssalThrone-ending": { "pages": [
+    { "title": "Below the Last Throne", "paragraphs": [
+      "Vael drops the book. Its pages continue turning after his hand is still. None of the written names remain.",
+      "The Blood Emblem answers the empty socket. Not with light, but with a heartbeat. Far below, something answers out of time.",
+      "\"We can close it,\" Maria says. Rictor looks toward the stair behind the broken throne. \"Then we finish what they would not.\"",
+      "Above the black ocean, the last star closes."
+    ] }
+  ] }
+}

@@ -3,7 +3,7 @@
   "spriteSet": "generalSeverin", "sprite": "assets/character/General_Severin/rotations/south.png",
   "scale": 1.2, "level": 23, "experience": 0, "weaponId": "silver-lance",
   "weaponExp": { "Spear": 180, "Axe": 120 }, "ai": "guard",
-  "baseStats": { "hp": 60, "strength": 24, "magic": 0, "dexterity": 40, "speed": 11, "luck": 8, "defense": 24, "resistance": 12, "movement": 4, "build": 16 },
-  "currentStats": { "hp": 60, "strength": 24, "magic": 0, "dexterity": 40, "speed": 11, "luck": 8, "defense": 24, "resistance": 12, "movement": 4, "build": 16 },
+  "baseStats": { "hp": 46, "strength": 19, "magic": 0, "dexterity": 14, "speed": 7, "luck": 5, "defense": 20, "resistance": 10, "movement": 4, "build": 15 },
+  "currentStats": { "hp": 46, "strength": 19, "magic": 0, "dexterity": 14, "speed": 7, "luck": 5, "defense": 20, "resistance": 10, "movement": 4, "build": 15 },
   "growthRates": { "hp": 65, "strength": 45, "magic": 0, "dexterity": 40, "speed": 15, "luck": 20, "defense": 40, "resistance": 25, "movement": 0, "build": 0 }
 }

@@ -1,0 +1,73 @@
+{
+  "name": "Chapter 19 - The Throne Beneath the Stars",
+  "stage": "map-art-draft",
+  "playable": false,
+  "pixellabMapId": "ed95bd8d-6e5b-4932-9643-4642d7fef8b0",
+  "tilesetId": "f34119ad-5cf4-4eb8-b98f-866c7f4ff3ca",
+  "width": 44,
+  "height": 36,
+  "tileSize": 32,
+  "orientation": "south-facing frontal elevations; north is negative z",
+  "placementAnchor": "bottom-center of sprite at ((x + 0.5) * tileSize, (z + 1) * tileSize)",
+  "terrainAtlas": "road-ocean.png",
+  "terrainMetadata": "road-ocean.json",
+  "roadRects": [
+    { "x": 14, "z": 29, "width": 16, "depth": 6 },
+    { "x": 6, "z": 19, "width": 10, "depth": 10 },
+    { "x": 28, "z": 19, "width": 10, "depth": 10 },
+    { "x": 18, "z": 12, "width": 8, "depth": 18 },
+    { "x": 9, "z": 11, "width": 7, "depth": 7 },
+    { "x": 28, "z": 11, "width": 7, "depth": 7 },
+    { "x": 9, "z": 2, "width": 26, "depth": 9 }
+  ],
+  "roadPaths": [
+    { "points": [[12, 29], [12, 32], [17, 32]], "width": 3 },
+    { "points": [[31, 29], [31, 32], [27, 32]], "width": 3 },
+    { "points": [[12, 20], [12, 16]], "width": 3 },
+    { "points": [[31, 20], [31, 16]], "width": 3 },
+    { "points": [[14, 24], [29, 24]], "width": 3 },
+    { "points": [[14, 14], [29, 14]], "width": 3 }
+  ],
+  "routes": [
+    { "name": "Funerary Terraces", "x": 13, "z": 27 },
+    { "name": "Processional Ascent", "x": 22, "z": 20 },
+    { "name": "Scripture Halls", "x": 29, "z": 20 }
+  ],
+  "spawn": { "x": 22, "z": 33 },
+  "throneApproach": { "x": 22, "z": 8 },
+  "assets": {
+    "throne-sanctuary": { "imageJobId": "6e39b3f1-07b3-4e64-86d2-9f46ab5c000e", "objectId": "a856f7f3-f573-46f6-94b8-fac9b05aa787" },
+    "scripture-hall": { "imageJobId": "3fbb8cd3-27f1-40fe-bf9f-9eba3333eeb3", "objectId": "4c602d2b-6656-4ab2-ad83-54ee9d0b0b9d" },
+    "mausoleum": { "imageJobId": "bc1791dd-16fe-4ddc-9842-78b5f154bf5c", "objectId": "f4cef54b-c9c2-47d6-8224-fb44e60ca33c" },
+    "worshipper": { "imageJobId": "2679d4a7-b11f-43fa-8caf-9c2859b5ee26", "objectId": "ab193912-6b75-45b4-a22b-a7a9c1840295" },
+    "worshipper-turned": { "imageJobId": "df3fd5b7-e0ab-46e4-9957-ce415af156b4" },
+    "stairs": { "imageJobId": "fbe471dc-1284-4e0b-aa5f-3dc1e7164fa8", "objectId": "b20d2f3f-3823-47cc-a9ab-c7c6604ccb07" },
+    "emblem-socket": { "imageJobId": "f7a9d046-e49e-450f-af30-a0e0b3166c9f", "objectId": "0e41951c-171c-4cf5-9619-b3691ff82255" },
+    "abyss-anchor": { "imageJobId": "ec03a4bb-8157-4984-9720-7cfa084e617f", "objectId": "393c931e-a5bd-45d1-9ac2-a6369fc2cde7" }
+  },
+  "placements": [
+    { "sprite": "throne-sanctuary", "x": 22, "z": 7 },
+    { "sprite": "scripture-hall", "x": 32, "z": 23 },
+    { "sprite": "scripture-hall", "x": 34, "z": 14 },
+    { "sprite": "mausoleum", "x": 9, "z": 23 },
+    { "sprite": "mausoleum", "x": 12, "z": 14 },
+    { "sprite": "mausoleum", "x": 13, "z": 7 },
+    { "sprite": "scripture-hall", "x": 31, "z": 7 },
+    { "sprite": "stairs", "x": 22, "z": 28, "walkable": true },
+    { "sprite": "stairs", "x": 22, "z": 18, "walkable": true },
+    { "sprite": "stairs", "x": 22, "z": 11, "walkable": true },
+    { "sprite": "emblem-socket", "x": 36, "z": 28 },
+    { "sprite": "worshipper", "x": 18, "z": 26 },
+    { "sprite": "worshipper", "x": 25, "z": 26 },
+    { "sprite": "worshipper", "x": 18, "z": 21 },
+    { "sprite": "worshipper", "x": 25, "z": 21 },
+    { "sprite": "worshipper", "x": 17, "z": 9 },
+    { "sprite": "worshipper", "x": 27, "z": 9 },
+    { "sprite": "mausoleum", "x": 8, "z": 28 },
+    { "sprite": "mausoleum", "x": 10, "z": 17 },
+    { "sprite": "scripture-hall", "x": 35, "z": 18 },
+    { "sprite": "mausoleum", "x": 11, "z": 10 },
+    { "sprite": "abyss-anchor", "x": 3, "z": 18 },
+    { "sprite": "abyss-anchor", "x": 40, "z": 18 }
+  ]
+}

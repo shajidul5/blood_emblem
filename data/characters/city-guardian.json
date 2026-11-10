@@ -1,0 +1,51 @@
+{
+  "id": "city-guardian",
+  "name": "Ancient Guardian",
+  "classId": "ancient-guardian",
+  "type": "armor",
+  "spriteSet": "ancientGuardian",
+  "sprite": "assets/character/Ancient_Guardian/rotations/south.png",
+  "level": 26,
+  "experience": 0,
+  "weaponId": "steel-lance",
+  "weaponExp": {
+    "Spear": 180
+  },
+  "ai": "guard",
+  "baseStats": {
+    "hp": 54,
+    "strength": 26,
+    "magic": 0,
+    "dexterity": 22,
+    "speed": 16,
+    "luck": 7,
+    "defense": 24,
+    "resistance": 11,
+    "movement": 5,
+    "build": 13
+  },
+  "currentStats": {
+    "hp": 54,
+    "strength": 26,
+    "magic": 0,
+    "dexterity": 22,
+    "speed": 16,
+    "luck": 7,
+    "defense": 24,
+    "resistance": 11,
+    "movement": 5,
+    "build": 13
+  },
+  "growthRates": {
+    "hp": 80,
+    "strength": 55,
+    "magic": 0,
+    "dexterity": 45,
+    "speed": 35,
+    "luck": 20,
+    "defense": 50,
+    "resistance": 40,
+    "movement": 0,
+    "build": 0
+  }
+}

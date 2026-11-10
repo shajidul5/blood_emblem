@@ -58,7 +58,7 @@ function reachable(level, start) {
 
 test('Chapter 16 deploys both parties, requires Maria and Rictor and registers its story', () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 16);
+  assert.equal(levels.CHAPTER_COUNT, 19);
   assert.equal(level.objective, 'bell-lift');
   assert.deepEqual(level.requiredUnits, ['maria', 'rictor']);
   assert.equal(level.players.length, 12);
@@ -88,21 +88,25 @@ test('Both parties can reach the lift, each other and every chest', () => {
   for (const unit of level.enemies) assert.ok(tiles.isLevelTileWalkable(level, unit.x, unit.z, { type: 'flying' }), `${unit.id} placement`);
 });
 
-test('Chapter 16 combatants match a level-20+ party and its undead have meaningful combat stats', async () => {
+test('Chapter 16 retains promoted combatants and slow, strong undead', async () => {
   const level = fresh();
+  const { getClass } = await server.ssrLoadModule('/src/characters/classes.js');
   const placements = [...level.enemies, ...level.reinforcements.flatMap((wave) => wave.units)];
   for (const placement of placements.filter((unit) => unit.id !== level.bellYard.wagonId)) {
     const enemy = characters.createEnemyUnit(placement.id, placement.x, placement.z, placement);
     assert.ok(enemy.level >= 22 && enemy.level <= 24, `${enemy.id}: level ${enemy.level}`);
+    const tier = getClass(enemy.classId).tier;
+    assert.ok(tier === 'advanced' || (tier === 'monster' && ['undead', 'flying'].includes(enemy.type)),
+      `${enemy.id} is promoted or a promoted-equivalent monster`);
   }
   const undead = characters.createEnemyUnit('bell-undead', 0, 0, { level: 22 });
-  assert.equal(undead.hp, 50);
-  assert.equal(undead.strength, 18);
-  assert.equal(undead.dexterity, 14);
-  assert.equal(undead.speed, 8);
-  assert.equal(undead.defense, 10);
-  assert.equal(undead.resistance, 5);
-  assert.equal(undead.movement, 4);
+  assert.equal(undead.hp, 49);
+  assert.equal(undead.strength, 21);
+  assert.equal(undead.dexterity, 9);
+  assert.equal(undead.speed, 5);
+  assert.equal(undead.defense, 8);
+  assert.equal(undead.resistance, 3);
+  assert.equal(undead.movement, 3);
   const old = characters.createEnemyUnit('street-undead', 0, 0);
   assert.equal(old.strength, 6, 'earlier chapters retain their original undead');
   assert.equal(old.speed, 2);
@@ -110,9 +114,108 @@ test('Chapter 16 combatants match a level-20+ party and its undead have meaningf
   const cypher = fixture.allies.find((unit) => unit.id === 'cypher');
   const defender = { ...characters.createCypherAlly(), ...cypher.stats };
   assert.ok(combat.getCombatDamage(undead, defender) >= 10, 'undead threaten a level-20 mage');
-  assert.ok(combat.getHitRate(undead, defender) >= 50, 'undead have a meaningful hit rate');
   assert.equal(level.bellYard.cargo.id, 'bell-undead');
   assert.equal(level.bellYard.cargo.level, 22);
+});
+
+test('Every nonboss yard stat follows its archetype seed, growth rates and promotion bonuses', async () => {
+  const { getClass } = await server.ssrLoadModule('/src/characters/classes.js');
+  const seeds = {
+    'bell-general': 'cathedral-general', 'bell-paladin': 'cathedral-paladin',
+    'bell-sage': 'church-sage', 'bell-bolting': 'church-sage',
+    'bell-halberdier': 'golden-soldier', 'bell-bishop': 'cathedral-bishop',
+    'bell-warden': 'church-freezer', 'bell-berserker': 'bartz',
+    'bell-undead': 'undead', 'bell-rotten': 'rotten', 'bell-raven': 'raven',
+    'bell-rotten-boss': 'rotten',
+  };
+  const level = fresh();
+  const placements = [...level.enemies, ...level.reinforcements.flatMap(({ units }) => units), level.bellYard.cargo];
+  for (const [id, seedId] of Object.entries(seeds)) {
+    const [profile, seed] = await Promise.all([id, seedId].map(async (name) =>
+      JSON.parse(await readFile(new URL(`../data/characters/${name}.json`, import.meta.url), 'utf8'))));
+    const seedClass = getClass(seed.classId);
+    const promotion = seedClass.promotesTo === profile.classId ? seedClass.promotionBonuses : {};
+    assert.deepEqual(profile.baseStats, profile.currentStats);
+    for (const placement of placements.filter((p) => p.id === id)) {
+      const enemy = characters.createEnemyUnit(id, 0, 0, placement);
+      for (const [stat, value] of Object.entries(seed.currentStats)) {
+        const base = profile.isBoss && stat === 'dexterity' ? 40
+          : value + Math.round(profile.growthRates[stat] * (profile.level - seed.level) / 100) + (promotion[stat] ?? 0);
+        const expected = base + Math.round(profile.growthRates[stat] * (enemy.level - profile.level) / 100);
+        assert.equal(enemy[stat], expected, `${id} Lv${enemy.level} ${stat}`);
+      }
+      if (!enemy.isBoss) assert.ok(enemy.dexterity <= 20, `${id} has no artificial accuracy boost`);
+    }
+  }
+  for (const placement of placements.filter((p) => p.id !== level.bellYard.wagonId && p.id !== 'lift-keeper')) {
+    assert.ok(seeds[placement.id], `${placement.id} has a tested growth baseline`);
+  }
+  const general = characters.createEnemyUnit('bell-general', 0, 0);
+  const sage = characters.createEnemyUnit('bell-sage', 0, 0);
+  const raven = characters.createEnemyUnit('bell-raven', 0, 0);
+  assert.ok(general.defense > sage.defense && general.speed < sage.speed);
+  assert.ok(sage.magic > general.magic && sage.resistance > general.resistance);
+  assert.ok(raven.speed > general.speed && raven.maxHp < general.maxHp);
+});
+
+test('Four promoted Halberdiers cover both routes without moving keys or adding enemies', async () => {
+  const level = fresh();
+  const seen = reachable(level, level.spawn);
+  const halberdiers = level.enemies.filter((unit) => unit.id === 'bell-halberdier');
+  assert.deepEqual(halberdiers.map(({ x, z }) => [x, z]), [[9, 20], [12, 13], [26, 28], [22, 13]]);
+  assert.equal(level.enemies.length, 33);
+  for (const placement of halberdiers) {
+    assert.ok(seen.has(`${placement.x},${placement.z}`));
+    const unit = characters.createEnemyUnit(placement.id, placement.x, placement.z, placement);
+    assert.equal(unit.classId, 'halberdier');
+    assert.equal(unit.spriteSet, 'genericHalberdier');
+    assert.equal(unit.weapon.id, 'silver-lance');
+    assert.equal(unit.movement, 6);
+  }
+  assert.equal(halberdiers.find(({ x, z }) => x === 12 && z === 13).drop, 'chest-key');
+  for (const direction of ['south', 'south-east', 'east', 'north-east', 'north', 'north-west', 'west', 'south-west']) {
+    const base = new URL('../assets/character/Generic_Halberdier/', import.meta.url);
+    assert.equal((await readFile(new URL(`rotations/${direction}.png`, base))).readUInt32BE(0), 0x89504e47);
+    for (const action of ['walking', 'Attacking']) {
+      const frames = await readdir(new URL(`animations/${action}/${direction}/`, base));
+      assert.ok(frames.filter((file) => /^frame_\d+\.png$/.test(file)).length >= 4, `${action}/${direction}`);
+    }
+  }
+});
+
+test('Promoted support roles, finite spells, monster counters and boss rewards are preserved', async () => {
+  const inventory = await server.ssrLoadModule('/src/characters/inventory.js');
+  const level = fresh();
+  const bishops = level.enemies.filter(({ id }) => id === 'bell-bishop');
+  assert.equal(bishops.length, 2);
+  assert.equal(bishops.find(({ z }) => z === 6).ai, 'stationary');
+  for (const placement of bishops) {
+    const bishop = characters.createEnemyUnit(placement.id, placement.x, placement.z, placement);
+    assert.equal(bishop.classId, 'bishop');
+    assert.equal(bishop.spriteSet, 'genericBishop');
+    assert.equal(bishop.weapon.id, 'heal-staff');
+    const book = inventory.findWeaponEntry(bishop);
+    assert.equal(book.uses, 4);
+    assert.equal(inventory.spellUses(book, inventory.INVENTORY_ITEMS.get('physic')), 5);
+  }
+  const warden = characters.createEnemyUnit('bell-warden', 0, 0);
+  assert.equal(warden.classId, 'bishop');
+  assert.equal(warden.weapon.id, 'freeze-staff');
+  assert.equal(inventory.findWeaponEntry(warden).uses, 5);
+  const ravenWaves = level.reinforcements.filter((wave) => wave.units.some(({ id }) => id === 'bell-raven'));
+  assert.deepEqual(ravenWaves.map(({ turn }) => turn), [3, 6, 9, 12]);
+  assert.ok(ravenWaves.every(({ units }) => units.length === 2));
+  const raven = characters.createEnemyUnit('bell-raven', 0, 0);
+  assert.equal(raven.type, 'flying');
+  for (const weaponId of ['hunter-bow', 'wind-tome']) {
+    assert.ok(combat.isWeaponEffective({ weapon: inventory.INVENTORY_ITEMS.get(weaponId) }, raven));
+  }
+  const initial = level.enemies.map((p) => characters.createEnemyUnit(p.id, p.x, p.z, p));
+  assert.deepEqual(initial.filter(({ isBoss }) => isBoss).map(({ id }) => id).sort(), ['bell-rotten-boss', 'lift-keeper']);
+  assert.equal(characters.createEnemyUnit('bell-rotten', 0, 0).isBoss, false);
+  assert.equal(characters.createEnemyUnit('raven', 0, 0).maxHp, 26, 'earlier ravens stay unchanged');
+  assert.equal(characters.createEnemyUnit('rotten', 0, 0).strength, 18, 'earlier Rotten stay unchanged');
+  assert.equal(characters.createEnemyUnit('church-freezer', 0, 0).classId, 'priest');
 });
 
 test('Maria can obtain three western Chest Keys and a wielded anima tome without a thief', async () => {
@@ -276,7 +379,7 @@ test('The Bell Yard renderer builds terrain before clearing depth for both armie
     reset.onBeforeRender({ clearDepth: () => { cleared = true; } });
     assert.equal(cleared, true);
     const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-    assert.match(main, /unit\.mesh\.renderOrder = activeLevel\.bellYard \|\| activeLevel\.cells\.length \? 2 : 0;/,
+    assert.match(main, /unit\.mesh\.renderOrder = activeLevel\.bellYard \|\| activeLevel\.shore \|\| activeLevel\.waitingCity \|\| activeLevel\.abyssalThrone \|\| activeLevel\.cells\.length \? 2 : 0;/,
       'allied idle and moving sprites render after the reset, without changing earlier chapters');
   }
 });
@@ -308,7 +411,7 @@ test('Campaign supplies twelve Orders Emblems by Chapter 16, with four reachable
   assert.equal(level.chests.find((chest) => chest.id === 'yard-seal').rewardId, 'killer-axe');
 });
 
-test('Promoted freight guards threaten promoted level-20 allies even with maximum Leadership and cover', async () => {
+test('Boss accuracy stays high while regular troops respect promoted allies and cover', async () => {
   const fixture = saves.parseSave(await readFile(new URL('../saves/chapter16-level20.json', import.meta.url), 'utf8'));
   const insight = await server.ssrLoadModule('/src/game/insight.js');
   const classes = await server.ssrLoadModule('/src/characters/classes.js');
@@ -327,24 +430,29 @@ test('Promoted freight guards threaten promoted level-20 allies even with maximu
   const prior = insight.snapshotInsight();
   insight.restoreInsight({ leadership: insight.MAX_LEADERSHIP });
   try {
-    const accuracy = [];
-    const ids = ['bell-general', 'bell-paladin', 'bell-sage', 'bell-bolting', 'lift-keeper', 'bell-berserker', 'bell-rotten'];
-    const placements = [...fresh().enemies.filter((unit) => ids.includes(unit.id)), { id: 'bell-rotten', level: 24 }];
+    const level = fresh();
+    const placements = [...level.enemies, ...level.reinforcements.flatMap(({ units }) => units), level.bellYard.cargo];
     for (const placement of placements) {
       const { id } = placement;
       const enemy = characters.createEnemyUnit(id, 0, 0, placement);
+      if (id === level.bellYard.wagonId || enemy.weapon.type === 'Staff') continue;
       assert.ok(combat.canAttack(enemy), `${id} can use its weapon`);
       for (const ally of party) {
         const hit = combat.getHitRate(enemy, ally, { avoid: 20, defense: 1 });
-        const minimum = ['bell-berserker', 'bell-rotten'].includes(id) || enemy.weapon.type === 'Axe' ? 30 :
-          id === 'bell-bolting' ? 40 : 50;
-        accuracy.push({ enemy: id, ally: ally.id, hit, minimum });
-        assert.ok(combat.getHitRate(enemy, ally) >= 50, `${id} has a meaningful hit rate against ${ally.id} in the open`);
+        const openHit = combat.getHitRate(enemy, ally);
+        assert.ok(hit <= openHit, 'cover still helps defenders');
+        if (enemy.isBoss) {
+          assert.ok(openHit >= 50, `${id} retains high hit against ${ally.id}`);
+          assert.ok(hit >= 30, `${id} remains threatening through cover`);
+        }
       }
-      const target = party.find((unit) => unit.id === (id === 'bell-bolting' ? 'arlan' : 'cypher'));
-      assert.ok(combat.getCombatDamage(enemy, target, { defense: 1 }) >= 12, `${id} threatens ${target.id}`);
     }
-    assert.ok(accuracy.every(({ hit, minimum }) => hit >= minimum), JSON.stringify(accuracy.filter(({ hit, minimum }) => hit < minimum)));
+    const cypher = party.find(({ id }) => id === 'cypher');
+    const undead = characters.createEnemyUnit('bell-undead', 0, 0);
+    const halberdier = characters.createEnemyUnit('bell-halberdier', 0, 0);
+    const boss = characters.createEnemyUnit('lift-keeper', 0, 0);
+    assert.ok(combat.getHitRate(undead, cypher) < combat.getHitRate(halberdier, cypher));
+    assert.ok(combat.getHitRate(halberdier, cypher) < combat.getHitRate(boss, cypher));
     const paladin = characters.createEnemyUnit('bell-paladin', 0, 0);
     assert.equal(paladin.movement, 8);
     const storm = characters.createEnemyUnit('bell-bolting', 0, 0);
@@ -382,7 +490,7 @@ test('Southern pressure is finite, uses nonboss Rotten and waits at blocked entr
     }
   }
   const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /activeLevel\.cathedral \|\| activeLevel\.bellYard\s*\? infirmarySpawnTile/);
+  assert.match(main, /activeLevel\.cathedral \|\| activeLevel\.bellYard \|\| activeLevel\.shore \|\| activeLevel\.waitingCity\s*\? infirmarySpawnTile/);
   assert.match(story.bellYard.pages[1].paragraphs.join(' '), /turns 4 and 7/);
 });
 

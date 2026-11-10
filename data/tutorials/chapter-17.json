@@ -1,0 +1,18 @@
+{
+  "shore": {
+    "pages": [
+      { "title": "The Shore Beneath the World", "paragraphs": ["The lift settles inside a harbor older than the city above. A black ocean stretches beyond the ruins. Stars hang where the cavern ceiling should be.", "Rictor: How far did we descend?", "Maria: Far enough that it stopped mattering."] },
+      { "title": "Keepers of the First Covenant", "paragraphs": ["Dark Sages tend three offering beacons. Ravens circle them as envoys, carrying the marks of victims chosen on the surface. The treatment bells were copied from this place.", "The Covenant fields promoted Halberdiers, Inferno-wielding Deep Sages and Dark Sages. The beasts are stronger, tougher and more accurate than the undead above. Bring a promoted party; use magic against the durable Drowned Beasts, physical attacks against the sages, and bows or wind against Gloam Ravens.", "Extinguish all three beacons with an adjacent unit, then bring Maria AND Rictor onto the northern sea-gate tiles. Extinguishing a beacon uses that unit's action and stops its remaining summons.", "Each active beacon summons one creature at the start of player turns 5 and 9. Occupied arrivals queue. Two optional ancient armories contain four relic weapons; four Drowned Beasts visibly carry Chest Keys."] }
+    ]
+  },
+  "shore-silhouette": {
+    "pages": [
+      { "title": "The Bell Beneath the Water", "paragraphs": ["Beyond the northern causeway, a vast outline rises against the impossible stars. A cracked bell hangs inside its chest. The sea withdraws around it without making a sound.", "Maria: That is not the thing they worship.", "Corvis: No. That is what answers the bell.", "The Bell-Drowned watches. It does not enter this battle. Beyond the sea gate, the drowned civilization waits."] }
+    ]
+  },
+  "shore-ending": {
+    "pages": [
+      { "title": "The Road Below the Stars", "paragraphs": ["The last offering flame dies. Maria and Rictor pass beneath the sea gate together. Behind them, the Bell-Drowned sinks into water that reflects a different sky.", "The armories were not built by the Church. Neither were the bells. Whatever covenant began here is older than the city, and its god is still beneath the sea.", "Ahead lies the ancient civilization. The Bell-Drowned will meet them again."] }
+    ]
+  }
+}

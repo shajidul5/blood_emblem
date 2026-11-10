@@ -1,0 +1,48 @@
+{
+  "id": "city-drowned",
+  "name": "Drowned Citizen",
+  "classId": "drowned-beast",
+  "type": "beast",
+  "spriteSet": "drownedBeast",
+  "sprite": "assets/character/Drowned_Beast/rotations/south.png",
+  "level": 26,
+  "experience": 0,
+  "weaponId": "wolf-claws",
+  "ai": "mobile",
+  "baseStats": {
+    "hp": 55,
+    "strength": 25,
+    "magic": 0,
+    "dexterity": 11,
+    "speed": 7,
+    "luck": 2,
+    "defense": 11,
+    "resistance": 5,
+    "movement": 5,
+    "build": 16
+  },
+  "currentStats": {
+    "hp": 55,
+    "strength": 25,
+    "magic": 0,
+    "dexterity": 11,
+    "speed": 7,
+    "luck": 2,
+    "defense": 11,
+    "resistance": 5,
+    "movement": 5,
+    "build": 16
+  },
+  "growthRates": {
+    "hp": 95,
+    "strength": 60,
+    "magic": 0,
+    "dexterity": 40,
+    "speed": 25,
+    "luck": 10,
+    "defense": 40,
+    "resistance": 30,
+    "movement": 0,
+    "build": 0
+  }
+}

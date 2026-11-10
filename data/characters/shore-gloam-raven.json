@@ -1,0 +1,8 @@
+{
+  "id": "shore-gloam-raven", "name": "Gloam Raven", "classId": "gloam-raven", "type": "flying",
+  "spriteSet": "gloamRaven", "sprite": "assets/character/Gloam_Raven/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "raven-beak", "ai": "guard",
+  "baseStats": { "hp": 46, "strength": 25, "magic": 0, "dexterity": 36, "speed": 28, "luck": 10, "defense": 13, "resistance": 20, "movement": 8, "build": 5 },
+  "currentStats": { "hp": 46, "strength": 25, "magic": 0, "dexterity": 36, "speed": 28, "luck": 10, "defense": 13, "resistance": 20, "movement": 8, "build": 5 },
+  "growthRates": { "hp": 40, "strength": 35, "magic": 0, "dexterity": 40, "speed": 40, "luck": 15, "defense": 15, "resistance": 30, "movement": 0, "build": 0 }
+}

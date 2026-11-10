@@ -1,0 +1,8 @@
+{
+  "id": "shore-halberdier", "name": "Covenant Halberdier", "classId": "halberdier", "type": "infantry",
+  "spriteSet": "genericHalberdier", "sprite": "assets/character/Generic_Halberdier/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "steel-lance", "weaponExp": { "Spear": 180 }, "ai": "guard",
+  "baseStats": { "hp": 56, "strength": 28, "magic": 0, "dexterity": 40, "speed": 23, "luck": 10, "defense": 21, "resistance": 17, "movement": 6, "build": 13 },
+  "currentStats": { "hp": 56, "strength": 28, "magic": 0, "dexterity": 40, "speed": 23, "luck": 10, "defense": 21, "resistance": 17, "movement": 6, "build": 13 },
+  "growthRates": { "hp": 55, "strength": 45, "magic": 0, "dexterity": 40, "speed": 30, "luck": 20, "defense": 35, "resistance": 25, "movement": 0, "build": 0 }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "bell-warden", "name": "Freight Yard Warden", "classId": "bishop", "type": "infantry",
+  "spriteSet": "genericBishop", "sprite": "assets/character/Generic_Bishop/rotations/south.png",
+  "level": 22, "experience": 0, "weaponId": "freeze-staff", "inventory": ["freeze-staff"],
+  "staffUses": { "freeze-staff": 5 }, "weaponExp": { "Staff": 180, "Light": 180 }, "ai": "guard",
+  "baseStats": { "hp": 35, "strength": 1, "magic": 10, "dexterity": 14, "speed": 10, "luck": 6, "defense": 6, "resistance": 20, "movement": 6, "build": 5 },
+  "currentStats": { "hp": 35, "strength": 1, "magic": 10, "dexterity": 14, "speed": 10, "luck": 6, "defense": 6, "resistance": 20, "movement": 6, "build": 5 },
+  "growthRates": { "hp": 45, "strength": 0, "magic": 35, "dexterity": 30, "speed": 25, "luck": 20, "defense": 20, "resistance": 40, "movement": 0, "build": 0 }
+}

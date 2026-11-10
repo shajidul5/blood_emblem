@@ -90,7 +90,7 @@ function attackCoverage(level, enemy) {
 
 test('Chapter 13 registers four watch-route allies and a separate boss-then-seize objective', () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 16);
+  assert.equal(levels.CHAPTER_COUNT, 19);
   assert.ok(levels.LEVEL_OBJECTIVES.has('seize-streets'));
   assert.deepEqual([level.width, level.height], [28, 28]);
   assert.equal(level.objective, 'seize-streets');

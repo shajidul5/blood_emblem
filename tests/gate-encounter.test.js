@@ -83,7 +83,7 @@ test('Chapter 10 story popup displays both pages even with tutorials disabled', 
 
 test('all thirteen chapters validate, including legacy lighting and objectives', async () => {
   const files = await readdir(new URL('../data/levels/', import.meta.url));
-  assert.equal(levels.CHAPTER_COUNT, 16);
+  assert.equal(levels.CHAPTER_COUNT, 19);
   for (const file of files.filter((name) => name.endsWith('.json'))) {
     const raw = JSON.parse(await readFile(new URL(`../data/levels/${file}`, import.meta.url), 'utf8'));
     const validated = levels.validateLevel(raw);

@@ -54,7 +54,36 @@ for (const [id, name, walkable, bonuses] of [
   ['bell_winch', 'Lift Winch', false, {}],
   ['bell_warehouse', 'Bonded Warehouse', false, {}],
   ['bell_tower', 'Clocktower', false, {}],
+  ['shore_stone', 'Ancient Quay', true, {}],
+  ['shore_bridge', 'Drowned Causeway', true, {}],
+  ['shore_lift', 'Lower Lift Landing', true, {}],
+  ['shore_gate', 'Sea Gate', true, {}],
+  ['shore_rubble', 'Salt-Worn Rubble', true, { avoid: 20, defense: 1, moveCost: 2 }],
+  ['shore_sea', 'Starless Sea', false, {}],
+  ['shore_ruin', 'Ancient Armory', false, {}],
+  ['shore_beacon', 'Offering Beacon', false, {}],
+  ['shore_mooring', 'Ancient Mooring', false, {}],
 ]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...bonuses }));
+for (const [id, label, walkable, extras] of [
+  ['city_paving', 'Ancient Processional Street', true, {}],
+  ['city_cover', 'Sunken Masonry', true, { avoid: 20, defense: 1, moveCost: 2 }],
+  ['city_plaza', 'Drowned Bell Plaza', true, {}],
+  ['city_ward', 'Ward Sigil', true, { defense: 2, avoid: 10 }],
+  ['city_seal', 'Ancient Approach Seal', true, {}],
+  ['city_mechanism', 'Celestial Mechanism', false, {}],
+  ['city_building', 'Ancient Building', false, {}],
+  ['city_statue', 'Ancient Astronomer Statue', false, {}],
+  ['city_rampart', 'Ancient Sea Wall', false, {}],
+]) TILE_DEFS.set(id, buildDefinition({ id, name: label, walkable, ...extras }));
+for (const [id, name, walkable, extras] of [
+  ['throne_road', 'Ancient Processional Road', true, {}],
+  ['throne_stairs', 'Terrace Stairs', true, {}],
+  ['throne_seat', 'Custodian Throne', true, { avoid: 15, defense: 2, healPerTurn: 5 }],
+  ['throne_building', 'Custodian Sanctuary', false, {}],
+  ['throne_statue', 'Petrified Congregation', false, {}],
+]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...extras }));
+export const SHORE_TILE_IDS = new Set([...TILE_DEFS.keys()].filter((id) => id.startsWith('shore_') || id.startsWith('throne_') ||
+  ['city_paving', 'city_cover', 'city_plaza', 'city_ward', 'city_seal', 'city_mechanism', 'city_building', 'city_statue', 'city_rampart'].includes(id)));
 export const BELL_YARD_TILE_IDS = new Set([...TILE_DEFS.keys()].filter((id) => id.startsWith('bell_')));
 export const VILLAGE_GRAVEL_TILE_IDS = new Set([
   'village_gravel_a',
@@ -128,8 +157,9 @@ export function isLevelTileWalkable(level, x, z, unit) {
   const tileId = level?.tileIds?.[z]?.[x];
   const flying = unit?.type === 'flying';
   return Boolean(tileId) && (flying
-    ? TILE_DEFS.has(tileId) && !['city_wall', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
+    ? TILE_DEFS.has(tileId) && !['throne_building', 'throne_statue', 'city_wall', 'city_building', 'city_statue', 'city_rampart', 'city_mechanism', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch', 'shore_ruin', 'shore_beacon', 'shore_mooring'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
     : isTileWalkable(tileId)) &&
+    !(level?.waitingCity && !level.waitingCity.opened && tileId === 'city_seal') &&
     !(level?.gateEncounter && !level.gateEncounter.spawned &&
       level.gateEncounter.x === x && level.gateEncounter.z === z) &&
     !(level?.cells ?? []).some((cell) => !cell.opened && cell.door.x === x && cell.door.z === z) &&

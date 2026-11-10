@@ -14,12 +14,15 @@ import chapterThirteen from '../../data/tutorials/chapter-13.json';
 import chapterFourteen from '../../data/tutorials/chapter-14.json';
 import chapterFifteen from '../../data/tutorials/chapter-15.json';
 import chapterSixteen from '../../data/tutorials/chapter-16.json';
+import chapterSeventeen from '../../data/tutorials/chapter-17.json';
+import chapterEighteen from '../../data/tutorials/chapter-18.json';
+import chapterNineteen from '../../data/tutorials/chapter-19.json';
 import triangle from '../../data/weapon-triangle.json';
 
 const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix, ...chapterSeven, ...chapterEight, ...chapterNine, ...chapterTen, ...chapterEleven, ...chapterTwelve, ...chapterThirteen, ...chapterFourteen };
-Object.assign(script, chapterFifteen, chapterSixteen);
+Object.assign(script, chapterFifteen, chapterSixteen, chapterSeventeen, chapterEighteen, chapterNineteen);
 export const CHAPTER_INTROS = ['intro', 'boarders', 'village', 'mansion', 'escape', 'forest', 'camp', 'heart', 'crossing', 'goldenBridge', 'ward', 'infirmary', 'streets', 'courtyard'];
-CHAPTER_INTROS.push('cathedral', 'bellYard');
+CHAPTER_INTROS.push('cathedral', 'bellYard', 'shore', 'waitingCity', 'abyssalThrone');
 
 const fill = (text, vars) => text.replace(/\{(\w+)\}/g, (match, key) => String(vars[key] ?? match));
 

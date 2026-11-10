@@ -1,0 +1,9 @@
+{
+  "id": "throne-cantor", "name": "Grave Cantor", "classId": "dark-sage", "type": "infantry",
+  "spriteSet": "genericDarkSage", "sprite": "assets/character/Generic_Dark_Sage/rotations/south.png",
+  "level": 30, "experience": 0, "weaponId": "dark-tome", "ai": "stationary",
+  "inventory": ["dark-tome", "heal-staff"], "spellUses": { "physic": 6 }, "weaponExp": { "Dark": 180, "Staff": 300 },
+  "baseStats": { "hp": 50, "strength": 2, "magic": 28, "dexterity": 21, "speed": 15, "luck": 12, "defense": 12, "resistance": 27, "movement": 5, "build": 9 },
+  "currentStats": { "hp": 50, "strength": 2, "magic": 28, "dexterity": 21, "speed": 15, "luck": 12, "defense": 12, "resistance": 27, "movement": 5, "build": 9 },
+  "growthRates": { "hp": 75, "strength": 0, "magic": 65, "dexterity": 40, "speed": 30, "luck": 25, "defense": 30, "resistance": 65, "movement": 0, "build": 0 }
+}

@@ -125,10 +125,11 @@
         "ai": "guard"
       },
       {
-        "id": "cathedral-bishop",
+        "id": "bell-bishop",
         "x": 21,
         "z": 6,
-        "level": 22
+        "level": 22,
+        "ai": "stationary"
       },
       {
         "id": "bell-bolting",
@@ -137,7 +138,7 @@
         "level": 23
       },
       {
-        "id": "church-freezer",
+        "id": "bell-warden",
         "x": 14,
         "z": 7,
         "level": 22
@@ -177,28 +178,28 @@
         "ai": "guard"
       },
       {
-        "id": "ward-soldier",
+        "id": "bell-halberdier",
         "x": 9,
         "z": 20,
         "level": 22
       },
       {
-        "id": "ward-soldier",
+        "id": "bell-halberdier",
         "x": 12,
         "z": 13,
         "level": 23,
         "drop": "chest-key"
       },
       {
-        "id": "golden-mage",
+        "id": "bell-sage",
         "x": 4,
         "z": 19,
-        "level": 22,
+        "level": 23,
         "drop": "wind-tome",
         "weaponId": "wind-tome"
       },
       {
-        "id": "church-healer",
+        "id": "bell-bishop",
         "x": 8,
         "z": 13,
         "level": 22
@@ -220,13 +221,13 @@
         "weaponId": "steel-sword"
       },
       {
-        "id": "ward-knight",
+        "id": "bell-halberdier",
         "x": 26,
         "z": 28,
         "level": 22
       },
       {
-        "id": "ward-knight",
+        "id": "bell-general",
         "x": 24,
         "z": 22,
         "level": 23
@@ -247,10 +248,11 @@
         "weaponId": "killer-axe"
       },
       {
-        "id": "golden-mage",
+        "id": "bell-sage",
         "x": 35,
         "z": 26,
-        "level": 22
+        "level": 23,
+        "ai": "mobile"
       },
       {
         "id": "bell-undead",
@@ -265,7 +267,7 @@
         "level": 23
       },
       {
-        "id": "rotten",
+        "id": "bell-rotten-boss",
         "x": 15,
         "z": 18,
         "level": 24,
@@ -278,7 +280,7 @@
         "level": 23
       },
       {
-        "id": "ward-knight",
+        "id": "bell-halberdier",
         "x": 22,
         "z": 13,
         "level": 23
@@ -432,13 +434,13 @@
         "turn": 3,
         "units": [
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 9,
             "z": 3,
             "level": 22
           },
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 28,
             "z": 3,
             "level": 22
@@ -451,13 +453,13 @@
         "turn": 6,
         "units": [
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 9,
             "z": 3,
             "level": 22
           },
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 28,
             "z": 3,
             "level": 22
@@ -470,13 +472,13 @@
         "turn": 9,
         "units": [
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 9,
             "z": 3,
             "level": 22
           },
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 28,
             "z": 3,
             "level": 22
@@ -489,13 +491,13 @@
         "turn": 12,
         "units": [
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 9,
             "z": 3,
             "level": 22
           },
           {
-            "id": "raven",
+            "id": "bell-raven",
             "x": 28,
             "z": 3,
             "level": 22
@@ -4461,8 +4463,8 @@
       "id": "lift-keeper",
       "x": 18,
       "z": 2,
-      "hp": 65,
-      "maxHp": 65,
+      "hp": 71,
+      "maxHp": 71,
       "level": 24,
       "ai": "stationary",
       "inventory": [
@@ -4483,8 +4485,8 @@
       "id": "bell-general",
       "x": 17,
       "z": 6,
-      "hp": 60,
-      "maxHp": 60,
+      "hp": 46,
+      "maxHp": 46,
       "level": 23,
       "ai": "guard",
       "weaponId": "silver-lance"
@@ -4493,8 +4495,8 @@
       "id": "bell-general",
       "x": 19,
       "z": 6,
-      "hp": 60,
-      "maxHp": 60,
+      "hp": 46,
+      "maxHp": 46,
       "level": 23,
       "ai": "guard",
       "weaponId": "silver-lance"
@@ -4503,8 +4505,8 @@
       "id": "bell-sage",
       "x": 13,
       "z": 3,
-      "hp": 48,
-      "maxHp": 48,
+      "hp": 38,
+      "maxHp": 38,
       "level": 23,
       "ai": "guard"
     },
@@ -4512,17 +4514,17 @@
       "id": "bell-sage",
       "x": 24,
       "z": 4,
-      "hp": 48,
-      "maxHp": 48,
+      "hp": 38,
+      "maxHp": 38,
       "level": 23,
       "ai": "guard"
     },
     {
-      "id": "cathedral-bishop",
+      "id": "bell-bishop",
       "x": 21,
       "z": 6,
-      "hp": 31,
-      "maxHp": 31,
+      "hp": 35,
+      "maxHp": 35,
       "level": 22,
       "ai": "stationary",
       "inventory": [
@@ -4539,8 +4541,8 @@
       "id": "bell-bolting",
       "x": 9,
       "z": 2,
-      "hp": 45,
-      "maxHp": 45,
+      "hp": 38,
+      "maxHp": 38,
       "level": 23,
       "ai": "stationary",
       "inventory": [
@@ -4554,11 +4556,11 @@
       ]
     },
     {
-      "id": "church-freezer",
+      "id": "bell-warden",
       "x": 14,
       "z": 7,
-      "hp": 30,
-      "maxHp": 30,
+      "hp": 35,
+      "maxHp": 35,
       "level": 22,
       "ai": "guard",
       "inventory": [
@@ -4572,8 +4574,8 @@
       "id": "bell-undead",
       "x": 10,
       "z": 29,
-      "hp": 50,
-      "maxHp": 50,
+      "hp": 49,
+      "maxHp": 49,
       "level": 22,
       "ai": "mobile",
       "drop": "chest-key"
@@ -4582,8 +4584,8 @@
       "id": "bell-undead",
       "x": 13,
       "z": 22,
-      "hp": 51,
-      "maxHp": 51,
+      "hp": 50,
+      "maxHp": 50,
       "level": 23,
       "ai": "mobile"
     },
@@ -4591,8 +4593,8 @@
       "id": "bell-undead",
       "x": 6,
       "z": 22,
-      "hp": 50,
-      "maxHp": 50,
+      "hp": 49,
+      "maxHp": 49,
       "level": 22,
       "ai": "mobile",
       "drop": "chest-key"
@@ -4601,8 +4603,8 @@
       "id": "bell-undead",
       "x": 15,
       "z": 31,
-      "hp": 50,
-      "maxHp": 50,
+      "hp": 49,
+      "maxHp": 49,
       "level": 22,
       "ai": "guard"
     },
@@ -4610,53 +4612,56 @@
       "id": "bell-undead",
       "x": 3,
       "z": 25,
-      "hp": 50,
-      "maxHp": 50,
+      "hp": 49,
+      "maxHp": 49,
       "level": 22,
       "ai": "guard"
     },
     {
-      "id": "ward-soldier",
+      "id": "bell-halberdier",
       "x": 9,
       "z": 20,
-      "hp": 33,
-      "maxHp": 33,
+      "hp": 42,
+      "maxHp": 42,
       "level": 22,
       "ai": "guard"
     },
     {
-      "id": "ward-soldier",
+      "id": "bell-halberdier",
       "x": 12,
       "z": 13,
-      "hp": 34,
-      "maxHp": 34,
+      "hp": 43,
+      "maxHp": 43,
       "level": 23,
       "ai": "guard",
       "drop": "chest-key"
     },
     {
-      "id": "golden-mage",
+      "id": "bell-sage",
       "x": 4,
       "z": 19,
-      "hp": 36,
-      "maxHp": 36,
-      "level": 22,
+      "hp": 38,
+      "maxHp": 38,
+      "level": 23,
       "ai": "guard",
       "drop": "wind-tome",
       "weaponId": "wind-tome"
     },
     {
-      "id": "church-healer",
+      "id": "bell-bishop",
       "x": 8,
       "z": 13,
-      "hp": 30,
-      "maxHp": 30,
+      "hp": 35,
+      "maxHp": 35,
       "level": 22,
       "ai": "guard",
       "inventory": [
         {
           "id": "heal-staff",
-          "uses": 10
+          "uses": 4,
+          "spells": {
+            "physic": 5
+          }
         }
       ]
     },
@@ -4664,8 +4669,8 @@
       "id": "bell-paladin",
       "x": 30,
       "z": 22,
-      "hp": 56,
-      "maxHp": 56,
+      "hp": 45,
+      "maxHp": 45,
       "level": 23,
       "ai": "mobile",
       "weaponId": "silver-lance"
@@ -4674,27 +4679,27 @@
       "id": "bell-paladin",
       "x": 34,
       "z": 19,
-      "hp": 56,
-      "maxHp": 56,
+      "hp": 45,
+      "maxHp": 45,
       "level": 23,
       "ai": "guard",
       "weaponId": "steel-sword"
     },
     {
-      "id": "ward-knight",
+      "id": "bell-halberdier",
       "x": 26,
       "z": 28,
-      "hp": 38,
-      "maxHp": 38,
+      "hp": 42,
+      "maxHp": 42,
       "level": 22,
       "ai": "guard"
     },
     {
-      "id": "ward-knight",
+      "id": "bell-general",
       "x": 24,
       "z": 22,
-      "hp": 38,
-      "maxHp": 38,
+      "hp": 46,
+      "maxHp": 46,
       "level": 23,
       "ai": "guard"
     },
@@ -4702,8 +4707,8 @@
       "id": "bell-sage",
       "x": 31,
       "z": 13,
-      "hp": 48,
-      "maxHp": 48,
+      "hp": 38,
+      "maxHp": 38,
       "level": 23,
       "ai": "guard"
     },
@@ -4711,27 +4716,27 @@
       "id": "bell-general",
       "x": 28,
       "z": 13,
-      "hp": 60,
-      "maxHp": 60,
+      "hp": 46,
+      "maxHp": 46,
       "level": 23,
       "ai": "guard",
       "weaponId": "killer-axe"
     },
     {
-      "id": "golden-mage",
+      "id": "bell-sage",
       "x": 35,
       "z": 26,
-      "hp": 36,
-      "maxHp": 36,
-      "level": 22,
-      "ai": "guard"
+      "hp": 38,
+      "maxHp": 38,
+      "level": 23,
+      "ai": "mobile"
     },
     {
       "id": "bell-undead",
       "x": 22,
       "z": 31,
-      "hp": 50,
-      "maxHp": 50,
+      "hp": 49,
+      "maxHp": 49,
       "level": 22,
       "ai": "mobile"
     },
@@ -4739,13 +4744,13 @@
       "id": "bell-undead",
       "x": 33,
       "z": 24,
-      "hp": 51,
-      "maxHp": 51,
+      "hp": 50,
+      "maxHp": 50,
       "level": 23,
       "ai": "mobile"
     },
     {
-      "id": "rotten",
+      "id": "bell-rotten-boss",
       "x": 15,
       "z": 18,
       "hp": 72,
@@ -4757,17 +4762,17 @@
       "id": "bell-undead",
       "x": 21,
       "z": 20,
-      "hp": 51,
-      "maxHp": 51,
+      "hp": 50,
+      "maxHp": 50,
       "level": 23,
       "ai": "mobile"
     },
     {
-      "id": "ward-knight",
+      "id": "bell-halberdier",
       "x": 22,
       "z": 13,
-      "hp": 38,
-      "maxHp": 38,
+      "hp": 43,
+      "maxHp": 43,
       "level": 23,
       "ai": "guard"
     },
@@ -4784,8 +4789,8 @@
       "id": "bell-berserker",
       "x": 14,
       "z": 25,
-      "hp": 58,
-      "maxHp": 58,
+      "hp": 59,
+      "maxHp": 59,
       "level": 23,
       "ai": "mobile"
     },
@@ -4793,8 +4798,8 @@
       "id": "bell-berserker",
       "x": 28,
       "z": 21,
-      "hp": 58,
-      "maxHp": 58,
+      "hp": 59,
+      "maxHp": 59,
       "level": 23,
       "ai": "mobile"
     },

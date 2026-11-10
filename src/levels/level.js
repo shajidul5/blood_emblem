@@ -14,6 +14,16 @@ import chapterThirteenMapUrl from '../../data/levels/map_13_procession.json?url&
 import chapterFourteenMapUrl from '../../data/levels/map_14_courtyard.json?url&no-inline';
 import chapterFifteenMapUrl from '../../data/levels/map_15_cathedral.json?url&no-inline';
 import chapterSixteenMapUrl from '../../data/levels/map_16_bell_yard.json?url&no-inline';
+import chapterSeventeenMapUrl from '../../data/levels/map_17_starless_shore.json?url&no-inline';
+import chapterEighteenMapUrl from '../../data/levels/map_18_waiting_city.json?url&no-inline';
+import chapterNineteenMapUrl from '../../data/levels/map_19_abyssal_throne.json?url&no-inline';
+import { validateAbyssalThrone } from '../game/abyssal-throne.js';
+import { addAbyssalThrone } from './abyssal-throne.js';
+import { validateWaitingCity } from '../game/waiting-city.js';
+import { addWaitingCity } from './waiting-city.js';
+import { validateShore } from '../game/starless-shore.js';
+import { addStarlessShore } from './starless-shore.js';
+import { SHORE_TILE_IDS } from './tiles.js';
 import { validateCathedral } from '../game/cathedral.js';
 import { addCathedralInterior } from './cathedral-interior.js';
 import { validateBellYard } from '../game/bell-yard.js';
@@ -69,7 +79,7 @@ import { enemyMovementType } from '../characters/characters.js';
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B', 'C', 'L', 'u', 'i', 'l', 't', 'x', 'y', 'z', 'P', 'A', 'H', 'W', 'F', 'D']);
 for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I', 'N']) LEVEL_TILES.add(id);
 for (const id of ['Y', '4', 'K', '2', 'J', 'Z', 'X', 'S', '0', '3', 'M', '1']) LEVEL_TILES.add(id);
-export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general', 'bell-lift']);
+export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general', 'bell-lift', 'silence-beacons', 'awaken-city']);
 
 const TILE_SIZE = shipTileset.tileSize;
 const WATER_TILE_IDS = new Set(['water_a', 'water_b', 'water_foam']);
@@ -127,14 +137,16 @@ function waterStripTexture(THREE) {
   return waterStripTextureCache;
 }
 
-function createWaterMaterial(THREE, texture) {
-  const material = new THREE.MeshStandardMaterial({
+export function createWaterMaterial(THREE, texture, { worldTiled = false, unlit = false } = {}) {
+  const options = {
     map: texture,
-    roughness: 0.9,
-    transparent: true,
+    transparent: !unlit,
     alphaTest: 0.08,
     side: THREE.DoubleSide,
-  });
+  };
+  const material = unlit
+    ? new THREE.MeshBasicMaterial({ ...options, color: 0x253c53 })
+    : new THREE.MeshStandardMaterial({ ...options, roughness: 0.9 });
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = waterTime;
     shader.vertexShader = shader.vertexShader
@@ -159,14 +171,16 @@ function createWaterMaterial(THREE, texture) {
         float phase = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453) * ${WATER_STEPS}.0;
         float loopStep = mod(floor(uTime * ${WATER_FPS}.0 + phase), ${WATER_STEPS}.0);
         float frame = loopStep < ${WATER_FRAMES}.0 ? loopStep : ${WATER_STEPS}.0 - loopStep;
-        vec2 frameUv = vec2((clamp(vTileUv.x, 0.001, 0.999) + frame) / ${WATER_FRAMES}.0, vTileUv.y);
+        vec2 rippleUv = ${worldTiled ? 'fract(wp)' : 'vTileUv'};
+        vec2 frameUv = vec2((clamp(rippleUv.x, 0.001, 0.999) + frame) / ${WATER_FRAMES}.0, rippleUv.y);
         vec4 sampledDiffuseColor = texture2D(map, frameUv);
         diffuseColor *= sampledDiffuseColor;`);
   };
+  material.customProgramCacheKey = () => `water-ripple-${worldTiled ? 'world' : 'tile'}`;
   return material;
 }
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
-const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS, ...STREET_TILE_IDS, ...COURTYARD_TILE_IDS, ...BELL_YARD_TILE_IDS]);
+const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS, ...STREET_TILE_IDS, ...COURTYARD_TILE_IDS, ...BELL_YARD_TILE_IDS, ...SHORE_TILE_IDS]);
 for (const id of ['floor', 'carpet', 'stairs', 'altar', 'throne', 'pew', 'pillar', 'wall', 'rail']) ATLAS_TILE_IDS.add(`cathedral_${id}`);
 const BLOCKING_OBJECTS = new Set(
   shipTileset.objects.list
@@ -919,6 +933,9 @@ export function validateLevel(value) {
   level.courtyard = validateCourtyard(value.courtyard, level);
   level.cathedral = validateCathedral(value.cathedral, level);
   level.bellYard = validateBellYard(value.bellYard, level);
+  level.shore = validateShore(value.shore, level);
+  level.waitingCity = validateWaitingCity(value.waitingCity, level);
+  level.abyssalThrone = validateAbyssalThrone(value.abyssalThrone, level);
   return level;
 }
 
@@ -1030,7 +1047,7 @@ function validateCells(value, level) {
 }
 
 const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl, chapterSixMapUrl, chapterSevenMapUrl, chapterEightMapUrl, chapterNineMapUrl, chapterTenMapUrl, chapterElevenMapUrl, chapterTwelveMapUrl, chapterThirteenMapUrl, chapterFourteenMapUrl];
-CHAPTER_URLS.push(chapterFifteenMapUrl, chapterSixteenMapUrl);
+CHAPTER_URLS.push(chapterFifteenMapUrl, chapterSixteenMapUrl, chapterSeventeenMapUrl, chapterEighteenMapUrl, chapterNineteenMapUrl);
 export const CHAPTER_COUNT = CHAPTER_URLS.length;
 
 export async function loadChapterLevel(index) {
@@ -1790,6 +1807,8 @@ export function buildLevel(THREE, levelGroup, value) {
   const level = validateLevel(value);
   for (const glow of glowLights) glow.sprite.material.dispose();
   glowLights.length = 0;
+  levelGroup.userData.waitingCity?.dispose();
+  levelGroup.userData.abyssalThrone?.dispose();
   levelGroup.traverse((object) => {
     if (!object.isMesh) return;
     object.geometry.dispose();
@@ -1805,6 +1824,9 @@ export function buildLevel(THREE, levelGroup, value) {
   delete levelGroup.userData.streetLamps;
   delete levelGroup.userData.streetCameraPadding;
   delete levelGroup.userData.infirmaryTown;
+  delete levelGroup.userData.shore;
+  delete levelGroup.userData.waitingCity;
+  delete levelGroup.userData.abyssalThrone;
 
   const tileGroups = new Map();
   const elevatedCells = [];
@@ -1883,8 +1905,13 @@ export function buildLevel(THREE, levelGroup, value) {
   if (level.courtyard) addCourtyardGround(THREE, levelGroup, level);
   if (level.cathedral) addCathedralInterior(THREE, levelGroup, level);
   if (level.bellYard) addBellYard(THREE, levelGroup, level);
+  if (level.shore) addStarlessShore(THREE, levelGroup, level);
+  if (level.waitingCity) addWaitingCity(THREE, levelGroup, level,
+    createWaterMaterial(THREE, waterStripTexture(THREE), { worldTiled: true, unlit: true }));
+  if (level.abyssalThrone) addAbyssalThrone(THREE, levelGroup, level,
+    createWaterMaterial(THREE, waterStripTexture(THREE), { worldTiled: true, unlit: true }));
   for (const [atlasId, cells] of tileGroups) {
-    if (level.courtyard || level.cathedral || level.bellYard) continue;
+    if (level.courtyard || level.cathedral || level.bellYard || level.shore || level.waitingCity || level.abyssalThrone) continue;
     const isWater = WATER_TILE_IDS.has(atlasId);
     const texture = STREET_TILE_IDS.has(atlasId)
       ? atlasTexture(THREE, shipTilesImage, shipTileset.tiles, 'ground_cobble_b')

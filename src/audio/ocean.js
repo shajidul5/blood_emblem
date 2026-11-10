@@ -5,6 +5,7 @@ const LOOP_TAIL_SECONDS = 0.25;
 
 let context = null;
 let master = null;
+let ambienceGain = 1;
 let enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
 const listeners = new Set();
 
@@ -74,7 +75,13 @@ function build() {
 function applyState() {
   if (!context) return;
   master.gain.cancelScheduledValues(context.currentTime);
-  master.gain.setTargetAtTime(enabled ? MASTER_VOLUME : 0, context.currentTime, FADE_SECONDS / 3);
+  master.gain.setTargetAtTime(enabled ? MASTER_VOLUME * ambienceGain : 0, context.currentTime, FADE_SECONDS / 3);
+}
+
+export function setOceanAmbienceGain(value) {
+  if (!Number.isFinite(value) || value < 0 || value > 1) throw new Error('Ocean ambience gain must be between zero and one.');
+  ambienceGain = value;
+  applyState();
 }
 
 async function start() {

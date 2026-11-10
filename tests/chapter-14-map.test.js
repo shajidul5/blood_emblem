@@ -90,7 +90,7 @@ function coverage(level, enemy) {
 
 test('Chapter 14 loads the courtyard with four core allies and only Severin as the objective', async () => {
   const level = fresh();
-  assert.equal(levels.CHAPTER_COUNT, 16);
+  assert.equal(levels.CHAPTER_COUNT, 19);
   assert.deepEqual([level.width, level.height], [26, 30]);
   assert.equal(level.objective, 'defeat-courtyard-general');
   assert.equal(level.courtyard.bossId, 'severin');
