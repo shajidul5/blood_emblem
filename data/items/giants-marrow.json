@@ -1,0 +1,11 @@
+{
+  "id": "giants-marrow",
+  "name": "Giant's Marrow",
+  "type": "consumable",
+  "effect": "strength-up",
+  "amount": 2,
+  "description": "Permanently raises Strength by 2.",
+  "lore": "Pale marrow scraped from the knuckle of something far larger than a man, sealed in a vial and tied off with red string. It tastes of iron and old earth, and the arms that drink it remember how to break things.",
+  "maxUses": 1,
+  "sprite": "assets/items/Giants_Marrow/giants_marrow.png"
+}

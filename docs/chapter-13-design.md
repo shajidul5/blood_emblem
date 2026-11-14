@@ -1,5 +1,7 @@
 # Chapter 13 - The Procession of Ash
 
+Narrative revision: the [story bible](story-bible.md) supersedes this document's dialogue and lore assumptions for future work. The implementation details below remain a record of the current demo, not the intended dialogue-free presentation.
+
 Implementation specification for the playable Chapter 13. Later Cathedral/clocktower story beats remain proposals.
 
 ## Story

@@ -2,163 +2,110 @@
   "name": "Chapter 3 - The Fishing Village",
   "tileset": "/tiles/ship_oblique/ship_oblique_tileset.json",
   "tileSize": 32,
-  "width": 20,
-  "height": 14,
-  "objective": "defeat-all-enemies",
-  "extendEdges": true,
+  "width": 24,
+  "height": 21,
+  "objective": "defend",
+  "extendEdges": false,
   "spawn": {
-    "x": 2,
-    "z": 1
+    "x": 15,
+    "z": 18
   },
   "exit": {
     "x": 4,
-    "z": 1
+    "z": 0
   },
   "players": [
     {
       "id": "maria",
-      "x": 2,
-      "z": 1
+      "x": 15,
+      "z": 18
     },
     {
       "id": "bartz",
-      "x": 3,
-      "z": 1
+      "x": 16,
+      "z": 18
     },
     {
       "id": "cypher",
-      "x": 2,
-      "z": 7
+      "x": 17,
+      "z": 18
     }
   ],
   "enemies": [
     {
       "id": "merfolk",
       "level": 6,
-      "x": 11,
-      "z": 5
+      "x": 7,
+      "z": 8
+    },
+    {
+      "id": "merfolk",
+      "level": 6,
+      "x": 10,
+      "z": 8
     },
     {
       "id": "merfolk",
       "level": 6,
       "x": 13,
-      "z": 4
-    },
-    {
-      "id": "merfolk",
-      "level": 6,
-      "x": 9,
       "z": 8
     },
     {
       "id": "merfolk",
       "level": 6,
-      "x": 12,
+      "x": 16,
       "z": 8
     },
     {
       "id": "merfolk",
       "level": 6,
-      "x": 14,
-      "z": 6
+      "x": 17,
+      "z": 8
     }
   ],
   "houses": [
     {
       "id": "fisher-cottage-1",
       "name": "Fisher's Cottage",
-      "x": 10,
-      "z": 1,
-      "width": 3,
-      "height": 2,
+      "x": 9,
+      "z": 4,
+      "width": 2,
+      "height": 3,
       "door": {
-        "x": 11,
-        "z": 3
+        "x": 10,
+        "z": 7
       },
       "rewardId": "potion"
     },
     {
       "id": "fisher-cottage-2",
       "name": "Harbor Mage's House",
-      "x": 5,
-      "z": 6,
+      "x": 18,
+      "z": 11,
       "width": 3,
-      "height": 2,
+      "height": 4,
       "door": {
-        "x": 6,
-        "z": 8
+        "x": 17,
+        "z": 14
       },
       "rewardId": "thunder-tome"
     },
     {
       "id": "fisher-cottage-3",
       "name": "Netmaker's House",
-      "x": 10,
-      "z": 10,
+      "x": 12,
+      "z": 3,
       "width": 3,
-      "height": 2,
+      "height": 4,
       "door": {
-        "x": 11,
-        "z": 12
+        "x": 13,
+        "z": 7
       },
       "rewardId": "zanbato"
     }
   ],
-  "decorativeHouses": [
-    {
-      "id": "no-entry-cottage-1",
-      "x": 4,
-      "z": 2,
-      "width": 3,
-      "height": 2
-    },
-    {
-      "id": "no-entry-cottage-2",
-      "x": 1,
-      "z": 4,
-      "width": 3,
-      "height": 2
-    },
-    {
-      "id": "no-entry-cottage-3",
-      "x": 3,
-      "z": 9,
-      "width": 3,
-      "height": 2
-    }
-  ],
-  "objects": [
-    {
-      "id": "crate",
-      "x": 5,
-      "z": 4
-    },
-    {
-      "id": "crates",
-      "x": 6,
-      "z": 9
-    },
-    {
-      "id": "barrel",
-      "x": 9,
-      "z": 10
-    },
-    {
-      "id": "crate",
-      "x": 4,
-      "z": 11
-    },
-    {
-      "id": "crates",
-      "x": 7,
-      "z": 3
-    },
-    {
-      "id": "barrel",
-      "x": 8,
-      "z": 12
-    }
-  ],
+  "decorativeHouses": [],
+  "objects": [],
   "reinforcements": [
     {
       "turn": 2,
@@ -166,14 +113,14 @@
         {
           "id": "merfolk",
           "level": 6,
-          "x": 14,
-          "z": 2
+          "x": 20,
+          "z": 10
         },
         {
           "id": "merfolk",
           "level": 6,
-          "x": 13,
-          "z": 3
+          "x": 20,
+          "z": 20
         }
       ]
     },
@@ -183,14 +130,14 @@
         {
           "id": "merfolk",
           "level": 6,
-          "x": 14,
-          "z": 9
+          "x": 20,
+          "z": 10
         },
         {
           "id": "merfolk",
           "level": 6,
-          "x": 13,
-          "z": 11
+          "x": 20,
+          "z": 20
         }
       ]
     },
@@ -200,19 +147,19 @@
         {
           "id": "merfolk",
           "level": 7,
-          "x": 13,
-          "z": 2
+          "x": 20,
+          "z": 10
         },
         {
           "id": "merfolk",
           "level": 7,
-          "x": 14,
-          "z": 4
+          "x": 20,
+          "z": 20
         },
         {
           "id": "merfolk-chieftain",
-          "x": 14,
-          "z": 7
+          "x": 19,
+          "z": 10
         }
       ]
     },
@@ -222,14 +169,14 @@
         {
           "id": "merfolk",
           "level": 7,
-          "x": 13,
-          "z": 8
+          "x": 20,
+          "z": 10
         },
         {
           "id": "merfolk",
           "level": 7,
-          "x": 14,
-          "z": 11
+          "x": 20,
+          "z": 20
         }
       ]
     },
@@ -239,327 +186,48 @@
         {
           "id": "merfolk",
           "level": 8,
-          "x": 13,
-          "z": 6
+          "x": 20,
+          "z": 10
         },
         {
           "id": "merfolk",
           "level": 8,
-          "x": 14,
-          "z": 12
+          "x": 20,
+          "z": 20
         }
       ]
     }
   ],
   "tiles": [
-    [
-      "ground_a",
-      "ground_b",
-      "ground_b",
-      "ground_b",
-      "ground_a",
-      "ground_b",
-      "ground_d",
-      "ground_b",
-      "ground_shell",
-      "ground_b",
-      "ground_d",
-      "ground_a",
-      "ground_b",
-      "ground_b",
-      "dock_v_c",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_c",
-      "ground_d",
-      "ground_b",
-      "ground_b",
-      "ground_a",
-      "ground_b",
-      "ground_b",
-      "ground_d",
-      "ground_b",
-      "ground_d",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "dock_v_c",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_b",
-      "ground_b",
-      "ground_b",
-      "ground_d",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "ground_b",
-      "ground_a",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "dock_v_b",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_a",
-      "ground_d",
-      "ground_a",
-      "ground_a",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "ground_c",
-      "ground_b",
-      "ground_b",
-      "ground_flag",
-      "ground_cobble_b",
-      "ground_cobble_a",
-      "dock_v_b",
-      "dock_h_a",
-      "dock_h_b",
-      "dock_h_a",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_b",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_b",
-      "ground_a",
-      "ground_d",
-      "ground_a",
-      "ground_b",
-      "ground_b",
-      "ground_b",
-      "ground_a",
-      "ground_b",
-      "ground_c",
-      "dock_v_c",
-      "dock_h_b",
-      "dock_h_a",
-      "dock_h_a",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_d",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "ground_d",
-      "ground_a",
-      "ground_b",
-      "ground_a",
-      "ground_a",
-      "ground_a",
-      "ground_c",
-      "ground_b",
-      "ground_c",
-      "dock_v_a",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_d",
-      "ground_b",
-      "ground_c",
-      "ground_c",
-      "ground_a",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_c",
-      "ground_a",
-      "ground_b",
-      "ground_a",
-      "ground_a",
-      "ground_a",
-      "dock_v_a",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_a",
-      "ground_b",
-      "ground_d",
-      "ground_a",
-      "ground_b",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_d",
-      "ground_c",
-      "ground_a",
-      "ground_c",
-      "ground_d",
-      "ground_a",
-      "dock_v_c",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_d",
-      "ground_a",
-      "ground_a",
-      "ground_b",
-      "ground_a",
-      "ground_d",
-      "ground_flag",
-      "ground_cobble_b",
-      "ground_cobble_a",
-      "ground_cobble_b",
-      "ground_cobble_a",
-      "ground_cobble_b",
-      "ground_cobble_a",
-      "ground_cobble_b",
-      "dock_v_b",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_d",
-      "ground_b",
-      "ground_b",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "ground_a",
-      "ground_b",
-      "ground_a",
-      "ground_a",
-      "ground_a",
-      "ground_a",
-      "ground_a",
-      "dock_v_a",
-      "dock_h_a",
-      "dock_h_c",
-      "dock_h_c",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_b",
-      "ground_a",
-      "ground_a",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "ground_b",
-      "ground_b",
-      "ground_a",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "dock_v_c",
-      "dock_h_b",
-      "dock_h_c",
-      "dock_h_a",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_a",
-      "ground_c",
-      "ground_c",
-      "ground_d",
-      "ground_b",
-      "ground_a",
-      "ground_c",
-      "ground_c",
-      "ground_b",
-      "ground_b",
-      "ground_building",
-      "ground_building",
-      "ground_building",
-      "ground_a",
-      "dock_v_b",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_d",
-      "ground_shell",
-      "ground_c",
-      "ground_a",
-      "ground_d",
-      "ground_b",
-      "ground_b",
-      "ground_d",
-      "ground_a",
-      "ground_a",
-      "ground_b",
-      "ground_flag",
-      "ground_cobble_a",
-      "ground_cobble_b",
-      "dock_v_a",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ],
-    [
-      "ground_b",
-      "ground_c",
-      "ground_b",
-      "ground_shell",
-      "ground_c",
-      "ground_b",
-      "ground_c",
-      "ground_a",
-      "ground_a",
-      "ground_d",
-      "ground_b",
-      "ground_a",
-      "ground_b",
-      "ground_d",
-      "dock_v_c",
-      "water_foam",
-      "water_b",
-      "water_b",
-      "water_b",
-      "water_b"
-    ]
+    ["village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block"]
   ],
-  "forestEdges": true
+  "forestEdges": false,
+  "villageScene": {
+    "version": 1,
+    "layout": "harbor",
+    "playableWidth": 21
+  },
+  "lighting": "night",
+  "noFence": true,
+  "defendTurns": 10
 }

@@ -1,9 +1,13 @@
-export const TACTICAL_FOV = 28;
+export const TACTICAL_FOV = 32;
 export const INTERIOR_CAMERA_PADDING = 4;
+// Night margin around the Chapter 4 manor keeps top-row vault chests clear of the HUD.
+export const MANOR_CAMERA_MARGIN = 1.5;
+// Open ocean either side of Chapter 2's narrow lone ship, so its camera isn't squeezed to the 9-tile deck.
+export const LONE_SHIP_OCEAN_MARGIN = 4;
 export const STREET_CAMERA_PADDING = 8;
 export const STREET_SKYLINE = Object.freeze({ x: 0, y: 0.2, z: -22, width: 96, height: 32 });
 
-export function constrainInteriorCamera(target, offset, aspect, width, height, padding = INTERIOR_CAMERA_PADDING) {
+export function constrainInteriorCamera(target, offset, aspect, width, height, padding = INTERIOR_CAMERA_PADDING, groundY = 0, nearEdgeX = false) {
   // A small border keeps edge tiles and upright spawn sprites inside the viewport.
   width += padding * 2;
   height += padding * 2;
@@ -15,14 +19,18 @@ export function constrainInteriorCamera(target, offset, aspect, width, height, p
     for (const vertical of [-tangent, tangent]) {
       const rayY = -ny + vertical * nz;
       const rayZ = -nz - vertical * ny;
-      const travel = -(target.y + offset.y) / rayY;
+      const travel = (groundY - target.y - offset.y) / rayY;
       for (const horizontal of [-tangent * aspect, tangent * aspect]) {
         corners.push({ x: horizontal * travel, z: offset.z + rayZ * travel });
       }
     }
+    const near = corners[0].z > corners[2].z ? corners.slice(0, 2) : corners.slice(2);
     return {
       minX: Math.min(...corners.map((point) => point.x)),
       maxX: Math.max(...corners.map((point) => point.x)),
+      // The bottom of a tilted view is narrower; clamping to it lets side walls reach the screen edge there.
+      nearMinX: Math.min(...near.map((point) => point.x)),
+      nearMaxX: Math.max(...near.map((point) => point.x)),
       minZ: Math.min(...corners.map((point) => point.z)),
       maxZ: Math.max(...corners.map((point) => point.z)),
     };
@@ -36,7 +44,9 @@ export function constrainInteriorCamera(target, offset, aspect, width, height, p
     else high = middle;
   }
   const view = footprint(low);
-  target.x = Math.max(-width / 2 - view.minX, Math.min(width / 2 - view.maxX, target.x));
+  const minX = nearEdgeX ? view.nearMinX : view.minX;
+  const maxX = nearEdgeX ? view.nearMaxX : view.maxX;
+  target.x = Math.max(-width / 2 - minX, Math.min(width / 2 - maxX, target.x));
   target.z = Math.max(-height / 2 - view.minZ, Math.min(height / 2 - view.maxZ, target.z));
   return Math.atan(low) * 360 / Math.PI;
 }

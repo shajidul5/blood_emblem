@@ -6,7 +6,7 @@
         "title": "The Mayor's Mansion",
         "paragraphs": [
           "The mayor's mansion stands at the top of the village, the only house with every window dark. Its door is not barred. For the first time on {island}, something has been left open for them.",
-          "Inside, the hall is warm and silent. Merfolk stand motionless along the walls, dripping onto the floorboards, and none of them turn to look. Cypher says nothing, but his hand goes to his tome.",
+          "Inside, the hall is warm and silent. Merfolk stand motionless along the walls, dripping onto the floorboards, and none of them turn to look. Cyrus says nothing, but his hand goes to his tome.",
           "At the far end, a tall figure sits in the mayor's chair, wrapped in the mayor's chain of office. Where a face should be there is a mass of pale tentacles, and it murmurs in a tongue that has no business being spoken by a throat. Maria has the sense that it was waiting for her."
         ],
         "button": "Continue"
@@ -24,7 +24,7 @@
         "kicker": "Exploration",
         "title": "Locked Chests",
         "paragraphs": [
-          "Treasure chests line the upper rooms. Stand on a chest and choose Open to claim what is inside, though locked chests need a Chest Key.",
+          "Stairs on both sides of the hall climb to the raised wings. The west stairs lead to a side room with a chest close to the entrance; the east wing reaches the upper gallery and the vault. Stand on a chest and choose Open to claim what is inside, though locked chests need a Chest Key.",
           "Whatever the mayor hoarded in this house, something in it may explain what the village is hiding."
         ],
         "button": "To Arms"

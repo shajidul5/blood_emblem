@@ -1,0 +1,16 @@
+{
+  "id": "forest-raven",
+  "name": "Carrion Raven",
+  "classId": "raven",
+  "type": "flying",
+  "spriteSet": "raven",
+  "sprite": "assets/character/Raven/rotations/south.png",
+  "scale": 0.9,
+  "level": 12,
+  "experience": 0,
+  "weaponId": "raven-beak",
+  "ai": "mobile",
+  "baseStats": { "hp": 20, "strength": 9, "magic": 0, "dexterity": 13, "speed": 17, "luck": 4, "defense": 3, "resistance": 4, "movement": 8, "build": 3 },
+  "currentStats": { "hp": 20, "strength": 9, "magic": 0, "dexterity": 13, "speed": 17, "luck": 4, "defense": 3, "resistance": 4, "movement": 8, "build": 3 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

@@ -19,6 +19,16 @@ import chapterEighteenMapUrl from '../../data/levels/map_18_waiting_city.json?ur
 import chapterNineteenMapUrl from '../../data/levels/map_19_abyssal_throne.json?url&no-inline';
 import { validateAbyssalThrone } from '../game/abyssal-throne.js';
 import { addAbyssalThrone } from './abyssal-throne.js';
+import { addShipScene, SHIP_TILE_IDS, validateShipScene } from './ship-scene.js';
+import twoShipsUrl from '../../assets/maps/ships/two-ships.png?url';
+import loneShipUrl from '../../assets/maps/ships/lone-ship.png?url';
+import shipFlagUrl from '../../assets/maps/ships/pennant.png?url';
+import { addVillageScene, VILLAGE_TILE_IDS, validateVillageScene, villageLayout } from './village-scene.js';
+import villageArtUrl from '../../assets/maps/village/village.png?url';
+import mansionArtUrl from '../../assets/maps/village/mansion.png?url';
+import manorArtUrl from '../../assets/maps/village/manor.png?url';
+import forestArtUrl from '../../assets/maps/village/forest.png?url';
+import campArtUrl from '../../assets/maps/village/camp.png?url';
 import { validateWaitingCity } from '../game/waiting-city.js';
 import { addWaitingCity } from './waiting-city.js';
 import { validateShore } from '../game/starless-shore.js';
@@ -79,7 +89,7 @@ import { enemyMovementType } from '../characters/characters.js';
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B', 'C', 'L', 'u', 'i', 'l', 't', 'x', 'y', 'z', 'P', 'A', 'H', 'W', 'F', 'D']);
 for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I', 'N']) LEVEL_TILES.add(id);
 for (const id of ['Y', '4', 'K', '2', 'J', 'Z', 'X', 'S', '0', '3', 'M', '1']) LEVEL_TILES.add(id);
-export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general', 'bell-lift', 'silence-beacons', 'awaken-city']);
+export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general', 'bell-lift', 'silence-beacons', 'awaken-city']);
 
 const TILE_SIZE = shipTileset.tileSize;
 const WATER_TILE_IDS = new Set(['water_a', 'water_b', 'water_foam']);
@@ -90,6 +100,7 @@ const RETIRED_OBJECT_IDS = new Set([
 const OBJECT_TILT = Math.atan2(14, 10);
 const OBJECT_SIZE = 0.82;
 const waterTime = { value: 0 };
+let animatedShipScene;
 const glowLights = [];
 let glowTexture;
 
@@ -112,6 +123,7 @@ function getGlowTexture(THREE) {
 
 export function updateLevelAnimation(elapsedSeconds) {
   waterTime.value = elapsedSeconds;
+  animatedShipScene?.update(elapsedSeconds);
   for (const glow of glowLights) {
     const flicker = 0.85 + Math.sin(elapsedSeconds * 9 + glow.phase) * 0.07 + Math.sin(elapsedSeconds * 23 + glow.phase * 2) * 0.05;
     glow.sprite.material.opacity = glow.intensity * flicker;
@@ -181,6 +193,8 @@ export function createWaterMaterial(THREE, texture, { worldTiled = false, unlit 
 }
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
 const ATLAS_TILE_IDS = new Set([...ATLAS_TILES.keys(), ...VILLAGE_GRAVEL_TILE_IDS, ...STREET_TILE_IDS, ...COURTYARD_TILE_IDS, ...BELL_YARD_TILE_IDS, ...SHORE_TILE_IDS]);
+for (const id of SHIP_TILE_IDS) ATLAS_TILE_IDS.add(id);
+for (const id of VILLAGE_TILE_IDS) ATLAS_TILE_IDS.add(id);
 for (const id of ['floor', 'carpet', 'stairs', 'altar', 'throne', 'pew', 'pillar', 'wall', 'rail']) ATLAS_TILE_IDS.add(`cathedral_${id}`);
 const BLOCKING_OBJECTS = new Set(
   shipTileset.objects.list
@@ -270,6 +284,16 @@ const [shipTilesImage, waterRippleImage, shipObjectsImage, mastImage, greyHouseI
   loadImage(chestUrl),
   loadImage(orderTentUrl),
 ]);
+const [twoShipsImage, loneShipImage, shipFlagImage] = await Promise.all([
+  loadImage(twoShipsUrl), loadImage(loneShipUrl), loadImage(shipFlagUrl),
+]);
+const villageImages = {
+  village: await loadImage(villageArtUrl),
+  mansion: await loadImage(mansionArtUrl),
+  manor: await loadImage(manorArtUrl),
+  forest: await loadImage(forestArtUrl),
+  camp: await loadImage(campArtUrl),
+};
 const infirmaryObjectImages = new Map(await Promise.all([
   ['infirmary_bed', infirmaryBedUrl],
   ['infirmary_barricade', infirmaryBarricadeUrl],
@@ -596,6 +620,9 @@ export function validateLevel(value) {
   if (!LEVEL_OBJECTIVES.has(objective)) {
     throw new Error(`Level objective must be one of: ${[...LEVEL_OBJECTIVES].join(', ')}.`);
   }
+  if (objective === 'defend' && (!Number.isInteger(value.defendTurns) || value.defendTurns < 1 || value.defendTurns > 99)) {
+    throw new Error('Defense duration must be an integer from 1 to 99 turns.');
+  }
   // Props removed from the tileset are dropped so older saves and levels still load.
   const objects = (value.objects ?? []).filter?.((object) => !RETIRED_OBJECT_IDS.has(object?.id)) ?? value.objects;
   if (!Array.isArray(objects) || !objects.every((object) => {
@@ -660,7 +687,10 @@ export function validateLevel(value) {
       typeof house.name !== 'string' ||
       !Number.isInteger(house.x) ||
       !Number.isInteger(house.z) ||
-      (value.streets ? house.width !== 4 || ![3, 4].includes(house.height) : house.width !== 3 || house.height !== 2) ||
+      (value.villageScene
+        ? !Number.isInteger(house.width) || house.width < 1 || house.width > 8 ||
+          !Number.isInteger(house.height) || house.height < 1 || house.height > 8
+        : value.streets ? house.width !== 4 || ![3, 4].includes(house.height) : house.width !== 3 || house.height !== 2) ||
       (house.rewardCount !== undefined && (!Number.isInteger(house.rewardCount) || house.rewardCount < 1 || house.rewardCount > 9)) ||
       (typeof house.rewardId !== 'string' && typeof house.recruitId !== 'string' && typeof house.villagerId !== 'string') ||
       (house.visited !== undefined && typeof house.visited !== 'boolean')
@@ -810,7 +840,10 @@ export function validateLevel(value) {
     wave &&
     Number.isInteger(wave.turn) && wave.turn > 1 &&
     (wave.entranceId === undefined || typeof wave.entranceId === 'string' && wave.entranceId.trim()) &&
-    Array.isArray(wave.units) && (wave.units.length > 0 || wave.allies?.length > 0) &&
+    Array.isArray(wave.units) && (wave.units.length > 0 || wave.allies?.length > 0 || wave.announce !== undefined) &&
+    (wave.announce === undefined || typeof wave.announce === 'string' && wave.announce.trim()) &&
+    (wave.message === undefined || typeof wave.message === 'string' && wave.message.trim()) &&
+    (wave.sound === undefined || wave.sound === 'crow-omen') &&
     (wave.allies === undefined || Array.isArray(wave.allies) && wave.allies.every((ally) =>
       ally && typeof ally.id === 'string' &&
       Number.isInteger(ally.x) && ally.x >= 0 && ally.x < width &&
@@ -850,6 +883,9 @@ export function validateLevel(value) {
     ...(wave.allies?.length ? { allies: wave.allies.map(({ id, x, z }) => ({ id, x, z })) } : {}),
     ...(wave.entranceId === undefined ? {} : { entranceId: wave.entranceId }),
     ...(wave.requiresHeartroots ? { requiresHeartroots: true } : {}),
+    ...(wave.announce === undefined ? {} : { announce: wave.announce }),
+    ...(wave.message === undefined ? {} : { message: wave.message }),
+    ...(wave.sound === undefined ? {} : { sound: wave.sound }),
     spawned: wave.spawned ?? false,
     spawnedCount: wave.spawnedCount ?? 0,
   }));
@@ -883,6 +919,7 @@ export function validateLevel(value) {
     name: name.trim(),
     objective,
     extendEdges: value.extendEdges === true,
+    ...(objective === 'defend' ? { defendTurns: value.defendTurns } : {}),
     forestEdges: value.forestEdges === true,
     noFence: value.noFence === true,
     lighting: value.lighting ?? 'night',
@@ -936,6 +973,8 @@ export function validateLevel(value) {
   level.shore = validateShore(value.shore, level);
   level.waitingCity = validateWaitingCity(value.waitingCity, level);
   level.abyssalThrone = validateAbyssalThrone(value.abyssalThrone, level);
+  level.shipScene = validateShipScene(value.shipScene, level);
+  level.villageScene = validateVillageScene(value.villageScene, level);
   return level;
 }
 
@@ -1805,10 +1844,12 @@ function addInfirmaryArchitecture(THREE, levelGroup, level) {
 
 export function buildLevel(THREE, levelGroup, value) {
   const level = validateLevel(value);
+  animatedShipScene = undefined;
   for (const glow of glowLights) glow.sprite.material.dispose();
   glowLights.length = 0;
   levelGroup.userData.waitingCity?.dispose();
   levelGroup.userData.abyssalThrone?.dispose();
+  levelGroup.userData.shipScene?.dispose();
   levelGroup.traverse((object) => {
     if (!object.isMesh) return;
     object.geometry.dispose();
@@ -1827,7 +1868,18 @@ export function buildLevel(THREE, levelGroup, value) {
   delete levelGroup.userData.shore;
   delete levelGroup.userData.waitingCity;
   delete levelGroup.userData.abyssalThrone;
+  delete levelGroup.userData.shipScene;
 
+  if (level.shipScene) {
+    animatedShipScene = addShipScene(THREE, levelGroup, level, {
+      two: twoShipsImage, lone: loneShipImage, flag: shipFlagImage,
+    });
+    return level;
+  }
+
+  if (level.villageScene) {
+    addVillageScene(THREE, levelGroup, level, villageImages[villageLayout(level).image]);
+  } else {
   const tileGroups = new Map();
   const elevatedCells = [];
   for (let z = 0; z < level.height; z++) {
@@ -2267,6 +2319,7 @@ export function buildLevel(THREE, levelGroup, value) {
     );
     houseSprite.renderOrder = 1;
     levelGroup.add(houseSprite);
+  }
   }
   const chestTexture = new THREE.Texture(chestImage);
   chestTexture.colorSpace = THREE.SRGBColorSpace;

@@ -50,6 +50,7 @@ export function serializeUnit(player) {
     acted: player.acted,
     moveOrigin: player.moveOrigin ?? null,
     ...(player.frozen ? { frozen: player.frozen } : {}),
+    ...(player.ravaging ? { ravaging: true } : {}),
     inventory: player.inventory.map(copyEntry),
     equippedWeaponId: player.weapon?.id ?? null,
     stats: Object.fromEntries(PLAYER_STATS.map((stat) => [stat, player[stat]])),
@@ -246,6 +247,7 @@ export function parseSave(rawSave) {
     typeof player.moved !== 'boolean' ||
     typeof player.acted !== 'boolean' ||
     (player.frozen !== undefined && (!isIntegerInRange(player.frozen, save.turn, save.turn + 1))) ||
+    (player.ravaging !== undefined && player.ravaging !== true) ||
     typeof player.stats !== 'object' ||
     player.stats === null ||
     !PLAYER_STATS.every((stat) => Number.isInteger(player.stats[stat])) ||
@@ -280,6 +282,7 @@ export function parseSave(rawSave) {
       typeof ally.moved !== 'boolean' ||
       typeof ally.acted !== 'boolean' ||
       (ally.frozen !== undefined && (!isIntegerInRange(ally.frozen, save.turn, save.turn + 1))) ||
+      (ally.ravaging !== undefined && ally.ravaging !== true) ||
       !ally.stats ||
       !PLAYER_STATS.every((stat) => Number.isInteger(ally.stats[stat])) ||
       !isIntegerInRange(ally.stats.hp, 0, ally.stats.maxHp) ||

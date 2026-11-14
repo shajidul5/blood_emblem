@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "generator": "PixelLab Pixen",
+  "pixelCellSize": 16,
+  "images": {
+    "village": {
+      "file": "village.png",
+      "jobId": "2d1f2ae1-8374-495b-9e27-e8462fb8b3cb",
+      "assetId": "4ae8e141-7fab-5bc4-a734-461d8345f9fe",
+      "width": 768,
+      "height": 336,
+      "approved": true
+    },
+    "mansion": {
+      "file": "mansion.png",
+      "jobId": "64915a72-8f36-4386-a5f8-ac736ae39f5e",
+      "assetId": "e2e98e98-f422-5b1c-8c2d-d4d9c637b136",
+      "width": 512,
+      "height": 512,
+      "seed": 4405,
+      "legacy": true
+    },
+    "manor": {
+      "file": "manor.png",
+      "generator": "PixelLab create_image_pro",
+      "jobId": "4393a36a-6531-4747-ae7a-cebf537aaaa1",
+      "assetId": "7a15bbce-dbf6-5b52-b090-7eecaee8859e",
+      "width": 384,
+      "height": 320
+    },
+    "forest": {
+      "file": "forest.png",
+      "generator": "PixelLab create_image_pro",
+      "jobId": "124d25ab-93fa-44a4-93f1-f027f091ee81",
+      "assetId": "a9094307-503c-5fb0-bb8c-37b4175fb76e",
+      "width": 768,
+      "height": 336
+    }
+  },
+  "layouts": {
+    "harbor": { "chapter": 3, "source": "village", "crop": [0, 0, 384, 336], "grid": [24, 21], "playableGrid": [21, 21] },
+    "mansion": { "chapter": 4, "source": "mansion", "crop": [0, 0, 512, 512], "grid": [32, 32], "legacy": true },
+    "manor": { "chapter": 4, "source": "manor", "crop": [0, 0, 384, 320], "grid": [24, 20], "tint": "#8c88a8" },
+    "village": { "chapter": 5, "source": "village", "crop": [0, 0, 768, 336],     "grid": [48, 21] },
+        "forest": { "chapter": 6, "source": "forest", "crop": [0, 0, 768, 336], "grid": [48, 21] }
+      },
+  "notes": [
+    "Source PNGs are installed losslessly without resampling.",
+    "Chapter 3 retains 24x21 artwork cells with a 21x21 playable/cursor area. The last three columns remain visible scenery, not traversable tiles. Cyrus starts at zero-based (17,18), next to Bartz; Thunder remains at (17,14).",
+    "Five Merfolk start across the northern lanes. Two arrive every even turn through turn 10 at displayed tiles (21,11) and (21,21); the Merfolk Chieftain boss joins turn 6 at (20,11); no upper-left waves.",
+    "The northern roofs, southern cottage roof, and equipment at (14..16,15..16) are blocked in both village collision grids. Potion and Zanbato use northern front approaches.",
+    "Chapter 4 uses the 24x20 manor: central hall (start zero-based 11,17), stairs at (6..7,15..16) and (16..17,10..11) up to the raised wings, gallery on row 6, vault and throne room above. The red dais is a dead end from the hall. Chests: Lancereaver (2,17) in the lower-left room, Hand Axe (18,2) and Orders Emblem (20,2) in the vault. The art is tinted for night. manor.png is the PixelLab output with its three painted vault chests replaced by flagstone and its five closed doors (wing, lower-room and vault) repainted as open doorways, so only the gameplay chests show. Stair cells use manor_stairs (+20 Avoid). The 32x32 mansion layout remains only for older embedded saves.",
+    "Chapter 5's turn-10 Deep Merfolk enter at zero-based (45,10) and (44,15), the east ends of the eastern lanes.",
+    "Chapter 5 exits through the visible northbound forest lane, with five exit cells for the surviving party.",
+    "Chapter 6 (Hollow Wood) uses the 48x21 forest: hunters' camp start at zero-based (7,10), a north-south channel at x15..16 crossed only by log bridges on rows 4..5 (two wide), 10 and 16, three lanes split by tree bands, and a ridge entered through the north (row 6) and south (row 13) gaps into the bone den, where the Great Wolf guards (38,10). The monolith lane (rows 8..11) continues east through a bramble thicket (forest_thicket: +30 Avoid, 2 move) at rows 9..11, x28..35 into the den; that patch was inpainted with PixelLab. North and south trail wolves are mobile; the rest guard. Wolf waves: turn 3 north (21,3),(28,3); turn 5 south (18,17),(21,17); turn 8 rear (6,16),(6,17) and north (24,3). All walkable cells sit inside the camera trapezoid.",
+    "Doors and chests are live gameplay overlays; buildings, furniture and water are already illustrated.",
+    "Old embedded saves retain their original tiles and presentation; villageScene is opt-in."
+  ]
+}

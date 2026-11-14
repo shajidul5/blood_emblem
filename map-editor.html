@@ -29,6 +29,7 @@
       .primary { background: #59392e; border-color: #8e6044; }
       .palette { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 12px; }
       .tool { display: flex; align-items: center; gap: 7px; }
+      .tool[hidden] { display: none; }
       .tool[aria-pressed="true"] { outline: 2px solid #d8bd8a; outline-offset: 1px; }
       .swatch { width: 18px; height: 18px; border: 1px solid #ffffff55; border-radius: 3px; }
       .editor-card { padding: 12px; }
@@ -56,9 +57,11 @@
             <option value="seize-gate">Seize gate (scripted encounter)</option>
             <option value="defeat-all-enemies">Kill all enemies</option>
             <option value="defeat-boss">Defeat the boss</option>
+            <option value="defend">Defend for N turns</option>
             <option value="escape">Escape</option>
           </select>
         </label>
+        <label id="defend-turns-setting" hidden>Defense turns <input id="defend-turns" type="number" min="1" max="99" value="10" /></label>
         <label>Width <input id="map-width" type="number" min="8" max="48" value="24" /></label>
         <label>Height <input id="map-height" type="number" min="8" max="36" value="16" /></label>
         <button id="resize">Resize</button>
@@ -74,7 +77,7 @@
         <canvas id="map" aria-label="Tile map. Click or drag to paint."></canvas>
         <div id="status" role="status" aria-live="polite"></div>
       </section>
-      <p class="help">Click or drag to paint tiles from the oblique ship atlas. <strong>Start</strong> sets the player spawn; <strong>Exit</strong> marks the level goal and is the escape point for Escape objectives. The two-ship template includes props, some of which block movement. Export a JSON level, then use “Import level” in-game to test it.</p>
+      <p class="help">Click or drag to paint collision tiles. Illustrated ships, villages and the mansion show their original artwork under the grid and keep fixed dimensions. Green cells are walkable; red cells block movement. <strong>V</strong> marks a visit door and <strong>C</strong> a chest; imported rewards and encounters are preserved. <strong>Start</strong> sets the player spawn; <strong>Exit</strong> marks the level goal and escape point. Export a JSON level, then use “Import level” in-game to test it.</p>
     </main>
     <script type="module" src="/src/map-editor.js"></script>
   </body>

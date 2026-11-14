@@ -1,0 +1,11 @@
+{
+  "id": "saints-ash",
+  "name": "Saint's Ash",
+  "type": "consumable",
+  "effect": "resistance-up",
+  "amount": 2,
+  "description": "Permanently raises Resistance by 2.",
+  "lore": "Grey ash in a porcelain reliquary, said to be all that remained of a saint who walked into the plague fires to pray for the sick. A pinch on the tongue, and whispers in the dark lose their hold.",
+  "maxUses": 1,
+  "sprite": "assets/items/Saints_Ash/saints_ash.png"
+}

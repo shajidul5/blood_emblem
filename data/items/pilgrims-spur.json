@@ -1,0 +1,11 @@
+{
+  "id": "pilgrims-spur",
+  "name": "Pilgrim's Spur",
+  "type": "consumable",
+  "effect": "movement-up",
+  "amount": 2,
+  "description": "Permanently raises Movement by 2.",
+  "lore": "A single iron spur worn by the pilgrims who walked the old road to the city before the gates were sealed. Its rowel still turns. Whoever carries it never seems to tire on the road.",
+  "maxUses": 1,
+  "sprite": "assets/items/Pilgrims_Spur/pilgrims_spur.png"
+}

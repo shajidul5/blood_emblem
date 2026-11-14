@@ -1,0 +1,11 @@
+{
+  "id": "witchs-eye",
+  "name": "Witch's Eye",
+  "type": "consumable",
+  "effect": "magic-up",
+  "amount": 2,
+  "description": "Permanently raises Magic by 2.",
+  "lore": "An eye that will not close, preserved in amber and set in a silver claw. The witch it belonged to was burned, but the eye kept watching. Hold it long enough and you begin to see what it sees.",
+  "maxUses": 1,
+  "sprite": "assets/items/Witchs_Eye/witchs_eye.png"
+}

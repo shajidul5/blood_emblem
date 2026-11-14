@@ -1,9 +1,12 @@
 import * as THREE from 'three';
+import { createBattleScreen } from './battle/battle-screen.js';
+import { readCombatAnimations, writeCombatAnimations } from './battle/battle-animation.js';
 import {
   getAttackCount,
   getAvailableStrikeCount,
   getCombatStrikeOrder,
   healDamageDealt,
+  lifeStealRate,
   getStrikesPerAttack,
   getAvoid,
   getCriticalRate,
@@ -14,6 +17,7 @@ import {
   getHitRate,
   getTriangleAdvantage,
   isInWeaponRange,
+  isWeaponEffective,
   rollCritical,
   rollHit,
   weaponRangeLabel,
@@ -34,6 +38,7 @@ import { createArlanAlly, createBartzAlly, createCorvisAlly, createCypherAlly, c
 import { createExperienceDisplay } from './characters/experience-display.js';
 import { applyClass, canEquipWeapon, equipBlockReason, canPromote, getClassAbilities, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
+import { applyBooster, boosterBlockReason, isBooster } from './characters/boosters.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
 import { createRankUpDialog } from './characters/rank-up-dialog.js';
 import { createPromotionDialog, snapshotForPromotion } from './characters/promotion-dialog.js';
@@ -42,17 +47,19 @@ import { CHAPTER_INTROS, createTutorialPopup, PART_ONE_ENDING, PART_TWO_ENDING, 
 import { awardExperience } from './characters/progression.js';
 import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
-import { playBloodBeastRoar, playDoorCreak, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
+import { playBloodBeastRoar, playCrowOmen, playDoorCreak, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
+import { isForestLayout } from './levels/village-scene.js';
 import {
   attackWeapons, equipAttackWeapon, bookOf, carriedWeapons, convoy, copyEntry, findWeaponEntry, grantItem, INVENTORY_ITEMS, isSpellUnlocked, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses,
   rescaleMagicUses, restoreMariaInventory, setConvoy, spellUses, spendWeaponUse, syncSpellbooks, unlockedSpellsOf, weaponUseBlockReason,
 } from './characters/inventory.js';
 import {
-  addInsight, bloodEmblemDescription, BOSS_INSIGHT, FIRST_PREP_CHAPTER, getInsight, healBloodEmblemKill,
-  isBloodEmblemEquipped, isBloodEmblemUpgraded, restoreInsight, snapshotInsight, toggleBloodEmblem,
+  activateRavage, addInsight, applyBloodAura, bloodEmblemDescription, BOSS_INSIGHT, canRavage, EMBLEM_TIERS, emblemTierDescription,
+  FIRST_PREP_CHAPTER, getInsight,
+  isBloodEmblemEquipped, isBloodEmblemUpgraded, ravageCost, restoreInsight, snapshotInsight, toggleBloodEmblem,
 } from './game/insight.js';
 import { createPrepMenu } from './game/prep-menu.js';
-import { constrainCityCamera, constrainInteriorCamera, constrainStreetCamera, TACTICAL_FOV } from './game/camera-bounds.js';
+import { constrainCityCamera, constrainInteriorCamera, constrainStreetCamera, LONE_SHIP_OCEAN_MARGIN, MANOR_CAMERA_MARGIN, TACTICAL_FOV } from './game/camera-bounds.js';
 import { renderInsightLabel } from './game/insight-display.js';
 import { gateVictoryReady, planGateRavens, shouldSpawnGateBeast } from './game/gate-encounter.js';
 import { claimInfirmaryCompletion, finishInfirmaryEnemyPhase, freshInfirmary, infirmaryActions, infirmaryApproachTarget, infirmaryBreached, infirmarySpawnTile, infirmaryVictoryReady, infirmaryWarning, infirmaryWaveSealed, performInfirmaryAction } from './game/infirmary.js';
@@ -90,9 +97,13 @@ import {
   onOceanSoundChange,
   setOceanSoundEnabled,
   setOceanAmbienceGain,
+  setForestAmbienceActive,
+  setShipAmbienceActive,
 } from './audio/ocean.js';
 
 initializeAnimatedMenu();
+const battleScreen = createBattleScreen();
+let combatAnimationsEnabled = readCombatAnimations(localStorage);
 
 // ---------------------------------------------------------------
 // Blood-Emblem: minimal HD-2D style prototype
@@ -347,6 +358,9 @@ torch.castShadow = true;
 scene.add(torch);
 
 function applyLevelLighting() {
+  setShipAmbienceActive(Boolean(activeLevel.shipScene) ||
+    ['Map 01 - Between Two Ships', 'Map 02 - Boarders from the Deep'].includes(activeLevel.name));
+  setForestAmbienceActive(isForestLayout(activeLevel.villageScene?.layout) || Boolean(activeLevel.forestEdges));
   const dusk = activeLevel.lighting === 'dusk';
   const sunset = dusk || activeLevel.lighting === 'sunset';
   ambient.color.setHex(dusk ? 0xc59da2 : sunset ? 0xffdfbb : 0x4a3a66);
@@ -530,7 +544,6 @@ async function openPrepMenu() {
     isRequired: (unit) => isRequiredUnit(unit),
     getConvoy: () => convoy,
     items: INVENTORY_ITEMS,
-    statItems: STAT_ITEM_EFFECTS,
     readInsight: readInsightItem,
     maxSize: MAX_INVENTORY_SIZE,
     maxDeployed: MAX_DEPLOYED,
@@ -538,7 +551,7 @@ async function openPrepMenu() {
     isDeployed,
     setDeployed,
     portrait: portraitUrl,
-    getInfo: () => ({ chapter: activeLevel.name, objective: objectiveDescription() }),
+    getInfo: () => ({ chapter: activeLevel.name, chapterIndex: currentChapter, objective: objectiveDescription() }),
     onProfile: (unit) => openUnitProfile(unit),
     onPromote: (unit, before) => {
       refreshUnitAppearance(unit);
@@ -1033,6 +1046,15 @@ function hasPendingReinforcements() {
   return activeLevel.reinforcements.some((wave) => !wave.spawned);
 }
 
+function checkDefenseVictory(completedTurns) {
+  if (activeLevel.objective !== 'defend' || gameState.defeated || partyDefeated() ||
+      completedTurns < activeLevel.defendTurns) return false;
+  completeVictory(activeLevel.villageScene?.layout === 'harbor'
+    ? `The village held for ${activeLevel.defendTurns} turns. The surviving raiders retreat; the way to the mansion is open.`
+    : `The defense held for ${activeLevel.defendTurns} turns. The objective is complete.`);
+  return true;
+}
+
 function checkDefeatAllVictory() {
   if (activeLevel.abyssalThrone) {
     if (enemies.some((enemy) => enemy.id === activeLevel.abyssalThrone.bossId && enemy.hp > 0)) return false;
@@ -1122,6 +1144,7 @@ function objectiveDescription(level = activeLevel) {
     const rules = level.infirmary;
     return `Defend the evacuation door: ${rules.survivedTurns}/${rules.defendTurns} enemy phases held · Patients ${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} · Ledger ${rules.ledger.collected ? 'secured' : 'missing'}`;
   }
+  if (level.objective === 'defend') return `Defend for ${level.defendTurns} turns · Turn ${Math.min(gameState.turn, level.defendTurns)}/${level.defendTurns}`;
   if (level.objective === 'seize-gate') {
     if (!level.gateEncounter.spawned) return 'Defeat the Golden Order captain; Maria must reach the gate';
     return enemies.some((enemy) => enemy.id === level.gateEncounter.beastId)
@@ -1772,6 +1795,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   }
   for (const unit of Object.values(roster)) {
     refreshMagicUses(unit.inventory, unit);
+    unit.ravaging = false;
     unit.mesh.material.color.set(0xffffff);
   }
   refreshMagicUses(convoy);
@@ -1822,7 +1846,21 @@ function newGame() {
   startLevel(initialLevel, { chapter: 0 });
 }
 
-function restartLevel() {
+async function restartLevel() {
+  // Illustrated village chapters reload authored data so revised layouts replace stale embedded saves.
+  if ((currentChapter === 2 && activeLevel.villageScene?.layout === 'harbor') ||
+      (currentChapter === 3 && activeLevel.villageScene?.layout === 'mansion') ||
+      (currentChapter === 4 && activeLevel.villageScene?.layout === 'village') ||
+      currentChapter === 5) {
+    try {
+      const level = await loadChapterLevel(currentChapter);
+      startLevel(level, { chapter: currentChapter, carry: chapterStart });
+    } catch (error) {
+      console.error('Unable to restart the illustrated chapter:', error);
+      setLevelStatus(`Could not restart Chapter ${currentChapter + 1}: ${error.message}`, true);
+    }
+    return;
+  }
   startLevel({
     ...activeLevel,
     gateEncounter: activeLevel.gateEncounter ? { ...activeLevel.gateEncounter, spawned: false, ravenStartTurn: null, ravenWavesSpawned: 0 } : null,
@@ -1866,6 +1904,10 @@ function hasNextChapter() {
 function continueGame() {
   const save = refreshContinueButton();
   if (!save) return;
+  if (save.chapter === 2 && save.level.villageScene?.layout === 'harbor' &&
+      save.level.objective === 'defeat-all-enemies') {
+    save.level = { ...save.level, objective: 'defend', defendTurns: 10 };
+  }
   activeLevel = buildLevel(THREE, levelGroup, save.level);
   applyLevelLighting();
   refreshPrisonerSilhouettes();
@@ -1880,12 +1922,13 @@ function continueGame() {
       acted: saved.acted,
       moveOrigin: saved.moveOrigin ?? null,
       frozen: saved.frozen ?? false,
+      ravaging: saved.ravaging === true,
     });
     if (saved.weaponExp) unit.weaponExp = { ...saved.weaponExp };
     if (saved.classId) applyClass(unit, saved.classId);
     refreshUnitAppearance(unit);
     restoreMariaInventory(unit, saved.inventory, saved.equippedWeaponId);
-    unit.mesh.material.color.set(unit.frozen ? 0x8fd4ff : 0xffffff);
+    refreshUnitTint(unit);
   };
   Object.assign(bartz, createBartzAlly());
   Object.assign(cypher, createCypherAlly());
@@ -1968,6 +2011,7 @@ function continueGame() {
     completeGameOver();
     return;
   }
+  if (gameState.phase === 'player' && checkDefenseVictory(gameState.turn - 1)) return;
   if (gameState.phase === 'player') showPhaseBanner('Player', gameState.turn);
   if (gameState.phase === 'player' && !gameState.defeated) spawnGateRavens();
   renderTacticalUi();
@@ -2454,6 +2498,12 @@ function spawnHitEffect(unit, critical) {
 }
 
 function showCombatResult(unit, text, type) {
+  if (battleScreen.active) {
+    if (!battleScreen.skipped) {
+      battleScreen.result(unit, text, type);
+    }
+    return;
+  }
   if (type === 'miss') {
     playMissWhiff();
   } else {
@@ -2491,14 +2541,61 @@ function showCombatResult(unit, text, type) {
 }
 
 function openUnitProfile(unit, opponent) {
-  document.querySelector('#profile-enemy-inventory').hidden = true;
   const terrain = getTerrain(activeLevel, unit.x, unit.z);
   profileDialogUi.show(
     unit,
     opponent,
     terrain,
     opponent ? getTerrain(activeLevel, opponent.x, opponent.z) : terrain,
+    profileInventory(unit),
   );
+}
+
+function profileItemRow(entry, tag, tone, owner) {
+  const row = document.createElement('li');
+  const badge = document.createElement('span');
+  badge.className = `profile-tag${tone ? ` ${tone}` : ''}`;
+  badge.textContent = tag;
+  row.append(itemInfoElement(entry, false, true, owner));
+  if (tag) row.append(badge);
+  return row;
+}
+
+// Read-only inventory for the profile's Inventory tab; enemies list what they drop or can lose to a thief.
+function profileInventory(unit) {
+  if (enemies.includes(unit)) {
+    const entries = [];
+    if (unit.weapon && !unit.inventory) entries.push({ entry: { id: unit.weapon.id, uses: null }, tag: 'Equipped', tone: 'active' });
+    for (const entry of unit.inventory ?? []) {
+      const staff = INVENTORY_ITEMS.get(entry.id)?.type === 'Staff';
+      entries.push({ entry, tag: staff ? 'Stealable' : 'Equipped', tone: staff ? 'warn' : 'active' });
+      for (const [spellId, uses] of Object.entries(entry.spells ?? {})) {
+        const spell = INVENTORY_ITEMS.get(spellId);
+        if (spell?.heal) entries.push({ entry: { id: spellId, uses }, tag: `Range ${healStaffRange(unit, spell)}` });
+      }
+    }
+    if (unit.drop) entries.push({ entry: { id: unit.drop, uses: INVENTORY_ITEMS.get(unit.drop)?.maxUses ?? null }, tag: 'Drops', tone: 'active' });
+    for (const id of unit.stealable ?? []) entries.push({ entry: { id, uses: INVENTORY_ITEMS.get(id).maxUses ?? null }, tag: 'Stealable', tone: 'warn' });
+    return {
+      heading: 'Carried Items',
+      rows: entries.map(({ entry, tag, tone }) => profileItemRow(entry, tag, tone, unit)),
+      note: unit.drop
+        ? 'Defeat this enemy to claim its drop.'
+        : stealableItems(unit).length ? 'Lena can steal a carried item when faster. Stolen staves keep their remaining uses and cannot be cast by the priest afterward.' : 'This enemy carries nothing of value.',
+    };
+  }
+  const equippedEntry = findWeaponEntry(unit);
+  const rows = (unit.inventory ?? []).map((entry) => {
+    const item = INVENTORY_ITEMS.get(entry.id);
+    if (entry === equippedEntry || (item.id === 'blood-emblem' && unit.id === 'maria' && isBloodEmblemEquipped())) {
+      return profileItemRow(entry, 'Equipped', 'active', unit);
+    }
+    if (item.itemType === 'weapon' && item.type !== 'Staff' && !canEquipWeapon(unit, item)) {
+      return profileItemRow(entry, equipBlockReason(unit, item).startsWith('Needs') ? `Rank ${item.requiredRank}` : 'Unusable', 'warn', unit);
+    }
+    return profileItemRow(entry, '', '', unit);
+  });
+  return { heading: 'Items', rows, note: unit.inventory ? `${unit.inventory.length}/${MAX_INVENTORY_SIZE} items carried` : '' };
 }
 
 function openCharacterProfile() {
@@ -2514,7 +2611,7 @@ function openInventory() {
   inventoryDialog.querySelector('button:not(:disabled)')?.focus();
 }
 
-function itemInfoElement(entry, showLore = true, showSpells = true) {
+function itemInfoElement(entry, showLore = true, showSpells = true, owner = player) {
   const item = INVENTORY_ITEMS.get(entry.id);
   const details = document.createElement('div');
   const name = document.createElement('strong');
@@ -2524,13 +2621,13 @@ function itemInfoElement(entry, showLore = true, showSpells = true) {
     description.textContent =
       `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}` +
       (item.maxRange > 1 ? ` · Range ${item.minRange}-${item.maxRange}` : '');
-    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${staffMaxRange(player, item)}`;
+    if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${staffMaxRange(owner, item)}`;
     if (item.freeze) {
       const turns = item.freezeTurns ?? 1;
       description.textContent = `${item.type} · Freezes a foe for ${turns === 1 ? 'a turn' : `${turns} turns`} · Range 1-Magic · Hit ${item.hit} + Magic vs Resistance`;
     }
     if (item.requiredRank) description.textContent += ` · Requires ${item.type} rank ${item.requiredRank}`;
-    if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${maxUsesFor(item, player)} uses`;
+    if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${maxUsesFor(item, owner)} uses`;
   } else if (item.id === 'blood-emblem') {
     description.textContent = bloodEmblemDescription();
   } else if (item.heal) {
@@ -2654,8 +2751,9 @@ function renderInventory() {
     } else if (item.effect === 'promote') {
       const ready = player.level >= 20 && canPromote(player);
       append(entry, itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 20' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
-    } else if (STAT_ITEM_EFFECTS[item.effect]) {
-      append(entry, itemRow(entry, 'Use', false, () => usePocketwatch(entry)));
+    } else if (isBooster(item)) {
+      const blocked = boosterBlockReason(player, item);
+      append(entry, itemRow(entry, blocked ?? 'Use', Boolean(blocked), () => useBoosterItem(entry)));
     } else {
       append(entry, itemRow(entry, 'Use', player.hp >= player.maxHp, () => useInventoryItem(entry)));
     }
@@ -2755,7 +2853,7 @@ function swapItems(ownerA, entryA, ownerB, entryB) {
   ownerB.inventory[indexB] = entryA;
   const note = settleTradedWeapons(ownerA, entryB) + settleTradedWeapons(ownerB, entryA);
   renderTrade();
-  tradeDialog.querySelector('button:not(:disabled)')?.focus();
+  focusTradeSlot(ownerA, indexA);
   setMessage(`${ownerA.name} swapped ${INVENTORY_ITEMS.get(entryA.id).name} for ${ownerB.name}'s ${INVENTORY_ITEMS.get(entryB.id).name}.${note}`);
   saveCurrentGame();
 }
@@ -2777,47 +2875,146 @@ function openTrade() {
   tradeDialog.querySelector('button:not(:disabled)')?.focus();
 }
 
+function tradeSlotDescription(item) {
+  if (item.itemType === 'weapon') {
+    const stats = item.type === 'Staff' ? [] : [`Mt ${item.might ?? 0}`, `Hit ${item.hit ?? 0}`];
+    return [item.type, ...stats].join(' \u00b7 ');
+  }
+  if (item.heal) return `Heals ${item.heal} HP`;
+  return (item.description ?? '').split(/(?<=\.)\s/)[0];
+}
+
+function tradeSlotSide(owner) {
+  return owner === player ? 'left' : 'right';
+}
+
+function focusTradeSlot(owner, index) {
+  const slots = [...tradeDialog.querySelectorAll(`#trade-${tradeSlotSide(owner)}-items .trade-slot`)];
+  const target = [slots[index], ...slots.slice(0, index).reverse(), ...slots.slice(index + 1)]
+    .find((slot) => slot && !slot.disabled) ?? tradeDialog.querySelector('#trade-close');
+  target.focus({ preventScroll: true });
+}
+
+function holdTradeItem(owner, entry) {
+  pendingSwap = { owner, entry };
+  renderTrade();
+  const other = owner === player ? tradePartner : player;
+  tradeDialog.querySelector(`#trade-${tradeSlotSide(other)}-items .trade-slot:not(:disabled)`)?.focus({ preventScroll: true });
+}
+
+// Returns true when a held item was dropped, so Escape/back cancels the pick before closing the menu.
+function cancelTradeHold() {
+  if (!pendingSwap) return false;
+  const { owner, entry } = pendingSwap;
+  pendingSwap = null;
+  renderTrade();
+  focusTradeSlot(owner, owner.inventory.indexOf(entry));
+  return true;
+}
+
 function renderTradeColumn(side, owner, other) {
-  tradeDialog.querySelector(`#trade-${side}-name`).textContent = `${owner.name}`;
+  const portrait = tradeDialog.querySelector(`#trade-${side}-portrait`);
+  const url = portraitUrl(owner);
+  if (url) portrait.src = url;
+  else portrait.removeAttribute('src');
+  tradeDialog.querySelector(`#trade-${side}-name`).textContent = owner.name;
+  tradeDialog.querySelector(`#trade-${side}-capacity`).textContent = `${owner.inventory.length}/${MAX_INVENTORY_SIZE}`;
   const list = tradeDialog.querySelector(`#trade-${side}-items`);
   list.replaceChildren();
-  const equippedIndex = owner.inventory.indexOf(findWeaponEntry(owner));
-  const otherFull = other.inventory.length >= MAX_INVENTORY_SIZE;
-  for (const [slot, entry] of owner.inventory.entries()) {
-    const equipped = slot === equippedIndex;
-    const bound = INVENTORY_ITEMS.get(entry.id).bound;
-    let row;
-    if (pendingSwap) {
-      if (pendingSwap.entry === entry) {
-        row = itemRow(entry, 'Cancel swap', false, () => { pendingSwap = null; renderTrade(); }, false);
-      } else if (pendingSwap.owner !== owner) {
-        row = itemRow(entry, 'Swap for this', bound, () => swapItems(pendingSwap.owner, pendingSwap.entry, owner, entry), false);
+  const equippedEntry = findWeaponEntry(owner);
+  const holding = pendingSwap;
+  const isTargetSide = holding && holding.owner !== owner;
+  for (let slot = 0; slot < MAX_INVENTORY_SIZE; slot += 1) {
+    const entry = owner.inventory[slot];
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'trade-slot';
+    if (!entry) {
+      button.classList.add('empty');
+      button.textContent = '\u2014 empty \u2014';
+      // Only one empty slot needs to be a drop target; items are appended to the end of the inventory.
+      if (isTargetSide && slot === owner.inventory.length) {
+        button.classList.add('target');
+        button.setAttribute('aria-label', `Give ${INVENTORY_ITEMS.get(holding.entry.id).name} to ${owner.name}`);
+        button.addEventListener('click', () => tradeItem(holding.owner, owner, holding.entry));
       } else {
-        row = itemRow(entry, 'Pick from other side', true, undefined, false);
+        button.setAttribute('aria-label', 'Empty slot');
+        button.disabled = true;
       }
-    } else {
-      const label = bound ? 'Cannot be traded' : otherFull ? `${other.name} is full` : `Give to ${other.name}${equipped ? ' (equipped)' : ''}`;
-      row = itemRow(entry, label, bound || otherFull, () => tradeItem(owner, other, entry), false);
-      if (!bound) {
-        const swap = document.createElement('button');
-        swap.textContent = 'Swap';
-        swap.disabled = other.inventory.length === 0;
-        swap.addEventListener('click', () => { pendingSwap = { owner, entry }; renderTrade(); });
-        row.append(swap);
-      }
+      li.append(button);
+      list.append(li);
+      continue;
     }
-    list.append(row);
+    const item = INVENTORY_ITEMS.get(entry.id);
+    const icon = document.createElement('span');
+    icon.className = 'trade-slot-icon';
+    if (item.spriteUrl) {
+      const img = document.createElement('img');
+      img.src = item.spriteUrl;
+      img.alt = '';
+      icon.append(img);
+    }
+    const text = document.createElement('span');
+    text.className = 'trade-slot-text';
+    const name = document.createElement('strong');
+    name.textContent = item.name;
+    if (entry === equippedEntry) {
+      const badge = document.createElement('span');
+      badge.className = 'trade-equipped';
+      badge.textContent = 'E';
+      badge.title = 'Equipped';
+      name.append(badge);
+    }
+    const description = document.createElement('small');
+    description.textContent = item.bound ? 'Cannot be traded' : tradeSlotDescription(item);
+    text.append(name, description);
+    const uses = document.createElement('span');
+    uses.className = 'trade-slot-uses';
+    const max = maxUsesFor(item, owner);
+    uses.textContent = Number.isFinite(max) ? `${entry.uses ?? max}/${max}` : '';
+    button.append(icon, text, uses);
+    button.title = item.description ?? item.name;
+    if (item.bound) {
+      button.classList.add('locked');
+      button.disabled = true;
+    } else if (holding?.entry === entry) {
+      button.classList.add('held');
+      button.setAttribute('aria-pressed', 'true');
+      button.addEventListener('click', () => cancelTradeHold());
+    } else if (isTargetSide) {
+      button.classList.add('target');
+      button.addEventListener('click', () => swapItems(holding.owner, holding.entry, owner, entry));
+    } else {
+      button.addEventListener('click', () => holdTradeItem(owner, entry));
+    }
+    li.append(button);
+    list.append(li);
   }
-  tradeDialog.querySelector(`#trade-${side}-capacity`).textContent =
-    `${owner.inventory.length}/${MAX_INVENTORY_SIZE} items`;
+}
+
+function renderTradeNote() {
+  const note = tradeDialog.querySelector('#trade-note');
+  note.replaceChildren();
+  if (!pendingSwap) {
+    note.textContent = 'Choose an item to trade.';
+    return;
+  }
+  const other = pendingSwap.owner === player ? tradePartner : player;
+  const held = document.createElement('strong');
+  held.textContent = INVENTORY_ITEMS.get(pendingSwap.entry.id).name;
+  const target = other.inventory.length >= MAX_INVENTORY_SIZE
+    ? `swap with one of ${other.name}'s items`
+    : `give it to ${other.name} or pick one of their items to swap`;
+  note.append('Holding ', held, ` \u2014 ${target}. Esc to cancel.`);
 }
 
 function renderTrade() {
   const partners = adjacentAllies(player);
   const choosing = !tradePartner;
   tradeDialog.querySelector('#trade-heading').textContent = choosing
-    ? `Trade: choose who ${player.name} trades with`
-    : `Trade: ${player.name} ↔ ${tradePartner.name}`;
+    ? `Trade with whom?`
+    : 'Trade';
   tradeDialog.querySelector('.trade-columns').hidden = choosing;
   tradeDialog.querySelector('#trade-note').hidden = choosing;
   let switcher = tradeDialog.querySelector('#trade-partners');
@@ -2836,7 +3033,7 @@ function renderTrade() {
         tradePartner = partner;
         pendingSwap = null;
         renderTrade();
-        tradeDialog.querySelector('.trade-columns button:not(:disabled)')?.focus();
+        tradeDialog.querySelector('.trade-columns .trade-slot:not(:disabled)')?.focus();
       });
       switcher.append(button);
     }
@@ -2844,17 +3041,22 @@ function renderTrade() {
   if (choosing) return;
   renderTradeColumn('left', player, tradePartner);
   renderTradeColumn('right', tradePartner, player);
+  renderTradeNote();
 }
 
 function tradeItem(from, to, entry) {
   const index = from.inventory.indexOf(entry);
-  if (index < 0 || to.inventory.length >= MAX_INVENTORY_SIZE || INVENTORY_ITEMS.get(entry.id).bound) return;
+  pendingSwap = null;
+  if (index < 0 || to.inventory.length >= MAX_INVENTORY_SIZE || INVENTORY_ITEMS.get(entry.id).bound) {
+    renderTrade();
+    return;
+  }
   from.inventory.splice(index, 1);
   to.inventory.push(entry);
   const item = INVENTORY_ITEMS.get(entry.id);
   const note = settleTradedWeapons(from, null) + settleTradedWeapons(to, entry);
   renderTrade();
-  tradeDialog.querySelector('button:not(:disabled)')?.focus();
+  focusTradeSlot(from, index);
   setMessage(`${from.name} gave ${item.name} to ${to.name}.${note}`);
   saveCurrentGame();
 }
@@ -2957,6 +3159,32 @@ function closeHeal() {
   }
 }
 
+// Plays the staff in the battle scene when both units have art, otherwise on the map.
+async function castStaff(caster, target, staff, hit, applyEffect) {
+  let scene = false;
+  try {
+    scene = await battleScreen.begin(caster, target, { enabled: combatAnimationsEnabled, chapter: currentChapter, staff });
+  } catch (error) {
+    battleScreen.close();
+    console.error('Could not open the staff animation:', error);
+    setMessage('Staff artwork could not load. Continuing with map casting.');
+  }
+  if (scene) {
+    try {
+      await battleScreen.strike(caster, { hit, critical: false }, applyEffect);
+    } finally {
+      await battleScreen.end();
+    }
+    renderTacticalUi();
+    return;
+  }
+  const casting = playAttackAnimation(caster, caster.facing, false, true);
+  await wait(450);
+  applyEffect();
+  await casting;
+  await wait(1100);
+}
+
 async function useHealStaff(target, staff) {
   if (!castableStaffSpells(player, 'heal').includes(staff) || !healTargets(player, staff).includes(target)) return;
   if (healDialog.open) healDialog.close();
@@ -2965,17 +3193,15 @@ async function useHealStaff(target, staff) {
   combatants.add(target);
   renderTacticalUi();
   player.facing = getFacing(target.x - player.x, target.z - player.z);
-  const casting = playAttackAnimation(player, player.facing, false, true);
-  await wait(450);
   const healed = Math.min(staff.heal + player.magic, target.maxHp - target.hp);
-  target.hp += healed;
-  showCombatResult(target, `+${healed}`, 'heal');
+  await castStaff(player, target, staff, true, () => {
+    target.hp += healed;
+    showCombatResult(target, `+${healed}`, 'heal');
+  });
   spendWeaponUse(player, staff);
   const rankUps = [];
   recordRankUp(player, staff, rankUps);
   setMessage(withRankUps(`${player.name} cast ${staff.name} and healed ${target.name} for ${healed} HP.`, rankUps));
-  await casting;
-  await wait(1100);
   const experienceGained = staff.healExperience ?? 20;
   const progression = awardExperience(player, experienceGained);
   await showExperienceProgression(progression, experienceGained);
@@ -2997,6 +3223,21 @@ function setEnemyFrozen(enemy, turns) {
   enemy.mesh.material.color.set(enemy.frozen ? 0x8fd4ff : 0xffffff);
 }
 
+// Frost blue wins over Ravage's blood red; otherwise the sprite is untinted.
+function refreshUnitTint(unit) {
+  unit.mesh.material.color.set(unit.frozen ? 0x8fd4ff : unit.ravaging ? 0xff8f8f : 0xffffff);
+}
+
+function useRavage() {
+  if (gameState.phase !== 'player' || !canRavage(player)) return;
+  const cost = activateRavage(player);
+  refreshUnitTint(player);
+  showCombatResult(player, `-${cost}`, 'hit');
+  setMessage(`${player.name} invokes Ravage, paying ${cost} HP. Her blows strike harder until your next turn.`);
+  renderTacticalUi();
+  focusActionMenu();
+}
+
 function showFreezeTargets(staff) {
   showStaffDialog(`${staff.name}: freeze who?`, freezeTargets(player, staff).map((target) => ({
     label: `${target.name} · ${target.hp}/${target.maxHp} HP · ${freezeHitRate(player, target, staff)}% Hit`,
@@ -3012,20 +3253,18 @@ async function useFreezeStaff(target, staff) {
   combatants.add(target);
   renderTacticalUi();
   player.facing = getFacing(target.x - player.x, target.z - player.z);
-  const casting = playAttackAnimation(player, player.facing, false, true);
-  await wait(450);
   const turns = staff.freezeTurns ?? 1;
   const frozen = rollHit(freezeHitRate(player, target, staff));
-  if (frozen) setEnemyFrozen(target, turns);
-  showCombatResult(target, frozen ? 'FROZEN' : 'Miss', frozen ? 'freeze' : 'miss');
+  await castStaff(player, target, staff, frozen, () => {
+    if (frozen) setEnemyFrozen(target, turns);
+    showCombatResult(target, frozen ? 'FROZEN' : 'Miss', frozen ? 'freeze' : 'miss');
+  });
   spendWeaponUse(player, staff);
   const rankUps = [];
   recordRankUp(player, staff, rankUps);
   setMessage(withRankUps(frozen
     ? `${player.name}'s ${staff.name} freezes ${target.name}. It cannot move for ${turns === 1 ? 'the next enemy phase' : `the next ${turns} enemy phases`}.`
     : `${target.name} resists ${player.name}'s ${staff.name}.`, rankUps));
-  await casting;
-  await wait(1100);
   const experienceGained = staff.freezeExperience ?? 20;
   const progression = awardExperience(player, experienceGained);
   await showExperienceProgression(progression, experienceGained);
@@ -3078,28 +3317,9 @@ async function useInventoryItem(entry) {
   finishUnit();
 }
 
-// One combined view: the stat profile plus what the enemy carries.
+// Enemy profiles show hit odds against the active unit; carried items live in the Inventory tab.
 function openEnemyProfile(enemy) {
   openUnitProfile(enemy, player);
-  const list = document.querySelector('#profile-enemy-items');
-  list.replaceChildren();
-  const entries = [];
-  if (enemy.weapon && !enemy.inventory) entries.push({ entry: { id: enemy.weapon.id, uses: null }, label: 'Equipped' });
-  for (const entry of enemy.inventory ?? []) {
-    entries.push({ entry, label: INVENTORY_ITEMS.get(entry.id)?.type === 'Staff'
-      ? 'Active staff · can be stolen · does not drop' : 'Equipped tome' });
-    for (const [spellId, uses] of Object.entries(entry.spells ?? {})) {
-      const spell = INVENTORY_ITEMS.get(spellId);
-      if (spell?.heal) entries.push({ entry: { id: spellId, uses }, label: `Cast from ${INVENTORY_ITEMS.get(entry.id).name} · range ${healStaffRange(enemy, spell)}` });
-    }
-  }
-  if (enemy.drop) entries.push({ entry: { id: enemy.drop, uses: INVENTORY_ITEMS.get(enemy.drop)?.maxUses ?? null }, label: 'Drops on defeat' });
-  for (const id of enemy.stealable ?? []) entries.push({ entry: { id, uses: INVENTORY_ITEMS.get(id).maxUses ?? null }, label: 'Can be stolen · does not drop' });
-  for (const { entry, label } of entries) list.append(itemRow(entry, label, true, undefined, false));
-  document.querySelector('#profile-enemy-note').textContent = enemy.drop
-    ? 'Defeat this enemy to claim its drop.'
-    : stealableItems(enemy).length ? 'Lena can steal a carried item when faster. Stolen staves retain remaining uses and cannot be cast by the priest afterward.' : 'This enemy carries nothing of value.';
-  document.querySelector('#profile-enemy-inventory').hidden = false;
 }
 
 function toggleEnemyRange(enemy) {
@@ -3455,25 +3675,17 @@ async function useMasterEmblem(entry) {
   finishUnit();
 }
 
-const STAT_ITEM_EFFECTS = {
-  'strength-up': { stat: 'strength', verb: 'winds the pocketwatch' },
-  'speed-up': { stat: 'speed', verb: 'takes the fang' },
-  'hp-up': { stat: 'maxHp', verb: 'drinks the tonic' },
-};
-
-async function usePocketwatch(entry) {
+async function useBoosterItem(entry) {
   const item = INVENTORY_ITEMS.get(entry.id);
-  const { stat, verb } = STAT_ITEM_EFFECTS[item.effect];
-  const amount = item.amount ?? 2;
+  if (boosterBlockReason(player, item)) return;
   closeInventory();
   gameState.mode = 'combat';
   combatants.add(player);
   renderTacticalUi();
-  player[stat] += amount;
-  if (stat === 'maxHp') player.hp += amount;
+  const gain = applyBooster(player, item);
   player.inventory.splice(player.inventory.indexOf(entry), 1);
   saveCurrentGame();
-  setMessage(`${player.name} ${verb}. ${stat === 'maxHp' ? 'Max HP' : capitalize(stat)} +${amount}!`);
+  setMessage(`${player.name} used ${item.name}. ${gain}!`);
   renderTacticalUi();
   await wait(1400);
   gameState.mode = 'unit';
@@ -3780,6 +3992,10 @@ function renderTacticalUi() {
   document.querySelector('#convoy-action').hidden = !gameState.selected || player.acted || !canAccessConvoy(player);
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
   document.querySelector('#freeze-action').hidden = !gameState.selected || freezeTargets(player).length === 0;
+  const ravageButton = document.querySelector('#ravage-action');
+  ravageButton.hidden = !gameState.selected || !canRavage(player);
+  ravageButton.textContent = `Ravage (−${ravageCost(player)} HP)`;
+  ravageButton.title = emblemTierDescription(EMBLEM_TIERS[1]);
   actionHelp.textContent = gameState.mode === 'move'
     ? `Choose a tile within ${player.movement} ${movementUnit}; the blue line previews the route.`
     : gameState.mode === 'attack'
@@ -3882,8 +4098,10 @@ const AI_LABELS = {
 };
 
 function setCursor(x, z) {
-  cursor.x = Math.max(0, Math.min(activeLevel.width - 1, x));
-  cursor.z = Math.max(0, Math.min(activeLevel.height - 1, z));
+  const width = activeLevel.villageScene?.playableWidth ?? activeLevel.width;
+  const [minX, minZ, maxX, maxZ] = activeLevel.villageScene?.cursorBounds ?? [0, 0, width - 1, activeLevel.height - 1];
+  cursor.x = Math.max(minX, Math.min(maxX, x));
+  cursor.z = Math.max(minZ, Math.min(maxZ, z));
   cursorOutline.visible = true;
   showTileInspection(cursor.x, cursor.z);
   updateUnitHoverCard();
@@ -4103,47 +4321,110 @@ function showCombatForecast(target) {
   const [playerPanel, enemyPanel] = combatForecastDialog.querySelectorAll('.forecast-side');
   const fillPanel = (panel, unit, opponent, terrain) => {
     panel.replaceChildren();
+    const header = document.createElement('header');
+    header.className = 'forecast-unit';
+    const portrait = portraitUrl(unit);
+    if (portrait) {
+      const image = document.createElement('img');
+      image.className = 'forecast-portrait';
+      image.src = portrait;
+      image.alt = '';
+      header.append(image);
+    }
+    const identity = document.createElement('div');
+    const allegiance = document.createElement('div');
+    allegiance.className = 'forecast-allegiance';
+    allegiance.textContent = unit === player ? 'Initiating' : 'Defending';
     const heading = document.createElement('h3');
     heading.textContent = `${unit.name}${unit.isBoss ? ' (Boss)' : ''}`;
     const unitClass = document.createElement('div');
     unitClass.className = 'forecast-class';
-    unitClass.textContent = capitalize(unit.class);
-    panel.append(heading, unitClass);
+    unitClass.textContent = `${capitalize(unit.class)} · LV ${unit.level}`;
+    identity.append(allegiance, heading, unitClass);
+    header.append(identity);
+    panel.append(header);
+    const health = document.createElement('div');
+    health.className = 'forecast-health';
+    const healthValue = document.createElement('div');
+    healthValue.className = 'forecast-hp-value';
+    healthValue.textContent = `HP ${unit.hp} / ${unit.maxHp}`;
+    const healthTrack = document.createElement('div');
+    healthTrack.className = 'forecast-hp-track';
+    healthTrack.setAttribute('aria-hidden', 'true');
+    const healthFill = document.createElement('span');
+    healthFill.style.width = `${Math.max(0, Math.min(100, unit.hp / unit.maxHp * 100))}%`;
+    healthTrack.append(healthFill);
+    health.append(healthValue, healthTrack);
+    panel.append(health);
+    const weapon = document.createElement('div');
+    weapon.className = 'forecast-weapon';
+    if (unit.weapon?.spriteUrl) {
+      const icon = document.createElement('img');
+      icon.src = unit.weapon.spriteUrl;
+      icon.alt = '';
+      weapon.append(icon);
+    }
+    const weaponName = document.createElement('span');
+    weaponName.textContent = unit.weapon?.name ?? 'Unarmed';
+    weapon.append(weaponName);
+    if (opponent) {
+      const advantage = getTriangleAdvantage(unit.weapon, opponent.weapon);
+      if (advantage) {
+        const arrow = document.createElement('span');
+        arrow.className = `triangle-arrow ${advantage > 0 ? 'advantage' : 'disadvantage'}`;
+        arrow.textContent = advantage > 0 ? ' ▲' : ' ▼';
+        arrow.title = advantage > 0 ? 'Weapon triangle advantage' : 'Weapon triangle disadvantage';
+        weapon.append(arrow);
+      }
+    }
+    panel.append(weapon);
     if (!opponent) {
       const note = document.createElement('p');
       note.className = 'forecast-note';
-      note.textContent = 'Cannot counter at this range.';
+      note.textContent = canAttack(unit) ? 'Out of counter range' : 'Cannot counter · no usable weapon';
       panel.append(note);
     }
     const list = document.createElement('dl');
     const attacks = opponent ? getAvailableStrikeCount(unit, getAttackCount(unit, opponent) * getStrikesPerAttack(unit)) : 0;
     const damage = opponent ? getCombatDamage(unit, opponent, terrain) : 0;
     const rows = [
-      ['HP', `${unit.hp}/${unit.maxHp}`],
-      ['Weapon', unit.weapon?.name ?? 'None'],
-      ['Damage', opponent ? `${damage} × ${attacks} (${damage * attacks} max)` : '—'],
+      ['Damage', opponent ? `${damage} × ${attacks}` : '—'],
       ['Hit', opponent ? `${getHitRate(unit, opponent, terrain)}%` : '—'],
       ['Crit', opponent ? `${getCriticalRate(unit, opponent)}%` : '—'],
     ];
-    if (unit.weapon?.lifeSteal) rows.push(['Drain', 'Heals half actual damage on each hit']);
     for (const [label, value] of rows) {
       const term = document.createElement('dt');
       term.textContent = label;
       const detail = document.createElement('dd');
       detail.textContent = value;
-      if (label === 'Weapon' && opponent) {
-        const advantage = getTriangleAdvantage(unit.weapon, opponent.weapon);
-        if (advantage) {
-          const arrow = document.createElement('span');
-          arrow.className = `triangle-arrow ${advantage > 0 ? 'advantage' : 'disadvantage'}`;
-          arrow.textContent = advantage > 0 ? ' ▲' : ' ▼';
-          arrow.title = advantage > 0 ? 'Weapon triangle advantage' : 'Weapon triangle disadvantage';
-          detail.append(arrow);
-        }
-      }
+      if (label === 'Damage') detail.className = 'forecast-damage';
       list.append(term, detail);
     }
     panel.append(list);
+    if (opponent) {
+      const summary = document.createElement('p');
+      summary.className = 'forecast-total';
+      summary.textContent = `Up to ${damage * attacks} damage if all strikes hit`;
+      panel.append(summary);
+      if (isWeaponEffective(unit, opponent)) {
+        const effective = document.createElement('div');
+        effective.className = 'forecast-effective';
+        effective.textContent = 'Effective weapon';
+        panel.append(effective);
+      }
+    }
+    if (unit.ravaging && opponent) {
+      const ravage = document.createElement('div');
+      ravage.className = 'forecast-drain';
+      ravage.textContent = 'Ravage · damage raised by the Blood Emblem';
+      panel.append(ravage);
+    }
+    if (lifeStealRate(unit)) {
+      const drain = document.createElement('div');
+      drain.className = 'forecast-drain';
+      drain.textContent = `Drain · heals ${lifeStealRate(unit) === 0.5 ? 'half' : `${lifeStealRate(unit) * 100}% of`} actual damage per hit`;
+      panel.append(drain);
+    }
   };
   fillPanel(playerPanel, player, target, getTerrain(activeLevel, target.x, target.z));
   const counterDistance = distanceBetween(target.x, target.z, player.x, player.z);
@@ -4155,7 +4436,8 @@ function showCombatForecast(target) {
     getTerrain(activeLevel, player.x, player.z),
   );
   document.querySelector('#combat-forecast-matchup').textContent =
-    `${player.name} vs. ${target.name} · ${canCounter ? `${target.name} can counter if they survive.` : `${target.name} cannot counter at this range.`}`;
+    canCounter ? `${target.name} can counter if they survive.`
+      : canAttack(target) ? `${target.name} is out of counter range.` : `${target.name} has no usable counterattack.`;
   pendingCombatTarget = target;
   gameState.mode = 'forecast';
   cursorOutline.visible = false;
@@ -4191,6 +4473,8 @@ async function playAttackAnimation(unit, direction, followUp = false, staff = fa
 
 async function showExperienceProgression(progression, amount, unit = player) {
   await experienceDisplay.showGain({
+    name: unit.name,
+    portraitUrl: portraitUrl(unit),
     level: progression.previousLevel,
     experience: progression.previousExperience,
     amount,
@@ -4204,12 +4488,24 @@ async function showExperienceProgression(progression, amount, unit = player) {
   while (pendingRankUps.length) await rankUpDialogUi.show(pendingRankUps.shift());
 }
 
-async function attack(direction, followUp = false) {
-  await playAttackAnimation(player, direction, followUp);
+async function beginCombatScene(ally, enemy) {
+  try {
+    await battleScreen.begin(ally, enemy, { enabled: combatAnimationsEnabled, chapter: currentChapter });
+  } catch (error) {
+    battleScreen.close();
+    console.error('Could not open the combat animation:', error);
+    setMessage('Battle artwork could not load. Continuing with map combat.');
+  }
 }
 
-async function attackEnemy(enemy, followUp = false) {
-  await playAttackAnimation(enemy, enemy.facing, followUp);
+async function playCombatStrike(unit, result, followUp, applyImpact, mapDelay = 400) {
+  if (battleScreen.active) {
+    await battleScreen.strike(unit, result, applyImpact);
+  } else {
+    await playAttackAnimation(unit, unit.facing, followUp);
+    applyImpact();
+    await wait(mapDelay);
+  }
 }
 
 async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
@@ -4271,58 +4567,61 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   const strikeOrder = getCombatStrikeOrder(player, target, playerVolleys, counterVolleys);
   let playerStrike = 0;
   let counterStrike = 0;
-  for (const side of strikeOrder) {
-    if (target.hp <= 0 || player.hp <= 0) break;
-    if (side === 'attacker') {
-      if (player.weapon.type === 'Gun') {
-        if (!canAttack(player)) continue;
-        spendWeaponUse(player);
-      }
-      const round = playerStrike++;
-      setMessage(`${player.name} attacks ${target.name} (${round + 1}/${playerAttackCount}).`);
-      await attack(player.facing, round > 0);
-      const result = playerStrikeResults[round];
-      if (result.hit) {
-        playerHits++;
-        recordWeaponHit(player, rankUps);
-        if (result.critical) playerCriticalHits++;
-        const strikeDamage = Math.min(target.hp, result.critical ? criticalDamage : damage);
-        target.hp -= strikeDamage;
-        const drained = healDamageDealt(player, strikeDamage);
-        if (drained > 0) showCombatResult(player, `+${drained}`, 'heal');
-        playerTotalDamage += strikeDamage;
-        showCombatResult(target, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+  await beginCombatScene(player, target);
+  try {
+    for (const side of strikeOrder) {
+      if (target.hp <= 0 || player.hp <= 0) break;
+      if (side === 'attacker') {
+        if (player.weapon.type === 'Gun') {
+          if (!canAttack(player)) continue;
+          spendWeaponUse(player);
+        }
+        const round = playerStrike++;
+        setMessage(`${player.name} attacks ${target.name} (${round + 1}/${playerAttackCount}).`);
+        const result = playerStrikeResults[round];
+        await playCombatStrike(player, result, round > 0, () => {
+          if (result.hit) {
+            playerHits++;
+            recordWeaponHit(player, rankUps);
+            if (result.critical) playerCriticalHits++;
+            const strikeDamage = Math.min(target.hp, result.critical ? criticalDamage : damage);
+            target.hp -= strikeDamage;
+            const drained = healDamageDealt(player, strikeDamage);
+            if (drained > 0) showCombatResult(player, `+${drained}`, 'heal');
+            playerTotalDamage += strikeDamage;
+            showCombatResult(target, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+          } else {
+            showCombatResult(target, 'MISS', 'miss');
+          }
+        });
+        if (target.hp === 0) break;
       } else {
-        showCombatResult(target, 'MISS', 'miss');
+        if (target.weapon.type === 'Gun') {
+          if (!canAttack(target)) continue;
+          spendWeaponUse(target);
+        }
+        const round = counterStrike++;
+        setMessage(`${target.name} retaliates against ${player.name} (${round + 1}/${counterAttackCount}).`);
+        const result = counterResults[round];
+        await playCombatStrike(target, result, round > 0, () => {
+          if (result.hit) {
+            const strikeDamage = Math.min(player.hp, result.critical ? counterCriticalDamage : counterDamage);
+            player.hp -= strikeDamage;
+            const drained = healDamageDealt(target, strikeDamage);
+            if (drained > 0) showCombatResult(target, `+${drained}`, 'heal');
+            showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+          } else {
+            showCombatResult(player, 'MISS', 'miss');
+          }
+        });
+        renderTacticalUi();
       }
-      await wait(400);
-      if (target.hp === 0) break;
-    } else {
-      if (target.weapon.type === 'Gun') {
-        if (!canAttack(target)) continue;
-        spendWeaponUse(target);
-      }
-      const round = counterStrike++;
-      setMessage(`${target.name} retaliates against ${player.name} (${round + 1}/${counterAttackCount}).`);
-      await attackEnemy(target, round > 0);
-      const result = counterResults[round];
-      if (result.hit) {
-        const strikeDamage = Math.min(player.hp, result.critical ? counterCriticalDamage : counterDamage);
-        player.hp -= strikeDamage;
-        const drained = healDamageDealt(target, strikeDamage);
-        if (drained > 0) showCombatResult(target, `+${drained}`, 'heal');
-        showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
-      } else {
-        showCombatResult(player, 'MISS', 'miss');
-      }
-      await wait(400);
-      renderTacticalUi();
     }
+  } finally {
+    await battleScreen.end();
   }
 
   if (target.hp === 0) {
-    const healed = healBloodEmblemKill(player);
-    if (healed > 0) showCombatResult(player, `+${healed}`, 'heal');
     scene.remove(target.mesh);
     enemies = enemies.filter((enemy) => enemy !== target);
     const experienceGained = getCombatExperience(target, true, player);
@@ -4418,6 +4717,9 @@ function chooseEnemyTarget(enemy, livingTeam) {
   const reach = [...getEnemyReach(enemy).keys()].map((key) => key.split(',').map(Number));
   const attackable = livingTeam.filter((unit) =>
     reach.some(([x, z]) => isInWeaponRange(enemy, unit, distanceBetween(x, z, unit.x, unit.z))));
+  // Hunters (the Crowman) ignore everyone else whenever their quarry is alive.
+  const quarry = enemy.hunts ? livingTeam.find((unit) => unit.id === enemy.hunts) : null;
+  if (quarry && (attackable.includes(quarry) || enemy.ai === 'mobile' && !enemy.frozen)) return quarry;
   if (attackable.length) {
     const damageTo = (unit) => getCombatDamage(enemy, unit, getTerrain(activeLevel, unit.x, unit.z));
     return attackable.reduce((best, unit) => {
@@ -4447,6 +4749,15 @@ async function healOnRestorativeTiles(units) {
     healedAny = true;
   }
   if (!healedAny) return;
+  renderTacticalUi();
+  await wait(700);
+}
+
+async function healWithBloodAura() {
+  const healed = applyBloodAura(playerTeam);
+  if (!healed.length) return;
+  for (const { unit, healed: amount } of healed) showCombatResult(unit, `+${amount}`, 'heal');
+  setMessage(`The Blood Emblem's aura restores ${healed.map(({ unit, healed: amount }) => `${unit.name} +${amount}`).join(', ')} HP.`);
   renderTacticalUi();
   await wait(700);
 }
@@ -4664,55 +4975,60 @@ async function enemyPhase() {
       const strikeOrder = getCombatStrikeOrder(enemy, foe, enemyVolleys, counterVolleys);
       let enemyStrike = 0;
       let foeStrike = 0;
-      for (const side of strikeOrder) {
-        if (foe.hp <= 0 || enemy.hp <= 0) break;
-        if (side === 'attacker') {
-          if (enemy.weapon.type === 'Gun') {
-            if (!canAttack(enemy)) continue;
-            spendWeaponUse(enemy);
-          }
-          const round = enemyStrike++;
-          await playAttackAnimation(enemy, enemy.facing, round > 0);
-          const result = strikeResults[round];
-          if (result.hit) {
-            hits++;
-            if (result.critical) criticalHits++;
-            const strikeDamage = Math.min(foe.hp, result.critical ? criticalDamage : damage);
-            foe.hp -= strikeDamage;
-            const drained = healDamageDealt(enemy, strikeDamage);
-            if (drained > 0) showCombatResult(enemy, `+${drained}`, 'heal');
-            totalDamage += strikeDamage;
-            showCombatResult(foe, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+      await beginCombatScene(foe, enemy);
+      try {
+        for (const side of strikeOrder) {
+          if (foe.hp <= 0 || enemy.hp <= 0) break;
+          if (side === 'attacker') {
+            if (enemy.weapon.type === 'Gun') {
+              if (!canAttack(enemy)) continue;
+              spendWeaponUse(enemy);
+            }
+            const round = enemyStrike++;
+            const result = strikeResults[round];
+            await playCombatStrike(enemy, result, round > 0, () => {
+              if (result.hit) {
+                hits++;
+                if (result.critical) criticalHits++;
+                const strikeDamage = Math.min(foe.hp, result.critical ? criticalDamage : damage);
+                foe.hp -= strikeDamage;
+                const drained = healDamageDealt(enemy, strikeDamage);
+                if (drained > 0) showCombatResult(enemy, `+${drained}`, 'heal');
+                totalDamage += strikeDamage;
+                showCombatResult(foe, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+              } else {
+                showCombatResult(foe, 'MISS', 'miss');
+              }
+            });
+            renderTacticalUi();
+            if (foe.hp <= 0) break;
           } else {
-            showCombatResult(foe, 'MISS', 'miss');
+            if (foe.weapon.type === 'Gun') {
+              if (!canAttack(foe)) continue;
+              spendWeaponUse(foe);
+            }
+            const round = foeStrike++;
+            setMessage(`${foe.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
+            const result = counterResults[round];
+            await playCombatStrike(foe, result, round > 0, () => {
+              if (result.hit) {
+                counterHitCount++;
+                if (playerTeam.includes(foe)) recordWeaponHit(foe, rankUps);
+                if (result.critical) counterCriticalCount++;
+                const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
+                enemy.hp -= strikeDamage;
+                const drained = healDamageDealt(foe, strikeDamage);
+                if (drained > 0) showCombatResult(foe, `+${drained}`, 'heal');
+                counterTotalDamage += strikeDamage;
+                showCombatResult(enemy, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+              } else {
+                showCombatResult(enemy, 'MISS', 'miss');
+              }
+            }, 350);
           }
-          await wait(400);
-          renderTacticalUi();
-          if (foe.hp <= 0) break;
-        } else {
-          if (foe.weapon.type === 'Gun') {
-            if (!canAttack(foe)) continue;
-            spendWeaponUse(foe);
-          }
-          const round = foeStrike++;
-          setMessage(`${foe.name} counters ${enemy.name} (${round + 1}/${counterAttacks}).`);
-          await playAttackAnimation(foe, foe.facing, round > 0);
-          const result = counterResults[round];
-          if (result.hit) {
-            counterHitCount++;
-            if (playerTeam.includes(foe)) recordWeaponHit(foe, rankUps);
-            if (result.critical) counterCriticalCount++;
-            const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
-            enemy.hp -= strikeDamage;
-            const drained = healDamageDealt(foe, strikeDamage);
-            if (drained > 0) showCombatResult(foe, `+${drained}`, 'heal');
-            counterTotalDamage += strikeDamage;
-            showCombatResult(enemy, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
-          } else {
-            showCombatResult(enemy, 'MISS', 'miss');
-          }
-          await wait(350);
         }
+      } finally {
+        await battleScreen.end();
       }
       setMessage(hits === 0
         ? `${enemy.name} misses ${foe.name} (${hitRate}% Hit).`
@@ -4740,8 +5056,6 @@ async function enemyPhase() {
 
       if (canCounter && foe.hp > 0) {
         if (enemy.hp === 0) {
-          const healed = healBloodEmblemKill(foe);
-          if (healed > 0) showCombatResult(foe, `+${healed}`, 'heal');
           scene.remove(enemy.mesh);
           enemies = enemies.filter((unit) => unit !== enemy);
           if (!playerTeam.includes(foe)) {
@@ -4778,6 +5092,7 @@ async function enemyPhase() {
   if (activeLevel.infirmary && finishInfirmaryEnemyPhase(activeLevel)) {
     if (await completeInfirmaryDefense()) return;
   }
+  if (checkDefenseVictory(gameState.turn)) return;
   if (checkDefeatAllVictory()) return;
   gameState.turn++;
   gameState.phase = 'player';
@@ -4786,6 +5101,10 @@ async function enemyPhase() {
   const throneWarning = prepareForetoldRuin(activeLevel, gameState.turn, playerTeam, enemies);
   levelGroup.userData.abyssalThrone?.sync();
   for (const unit of playerTeam) {
+    if (unit.ravaging) {
+      unit.ravaging = false;
+      refreshUnitTint(unit);
+    }
     unit.moved = Boolean(unit.frozen);
     unit.acted = false;
     unit.moveOrigin = null;
@@ -4814,14 +5133,20 @@ async function enemyPhase() {
         : `${reinforcementResult.units.length} reinforcements have arrived!`);
   }
   if (departedWagons.length) setMessage('Treatment wagons leave the depots! Block the rails or break them before they reach the lift.');
+  for (const wave of reinforcementResult.announcements ?? []) if (wave.message) setMessage(wave.message);
   if (cityWarning) setMessage('The Bell-Drowned draws back its chains. GOLD lanes will erupt for 18 damage next enemy phase. Move off them!');
   if (throneWarning) setMessage('Vael writes a name in The Last Testament. GOLD tiles take 22 damage next enemy phase. Move away!');
   if (isBenedictionTurn(activeLevel, gameState.turn)) setMessage('Vael begins Profane Benediction. This enemy phase he heals a nearby cultist instead of attacking. Press the opening!');
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
   await healOnRestorativeTiles(playerTeam);
+  await healWithBloodAura();
   if (activeLevel.infirmary && reinforcementResult.units.some((unit) => unit.id === 'rotten')) {
     await tutorialPopup.show('rottenArrival', {}, { force: true });
+  }
+  for (const wave of reinforcementResult.announcements ?? []) {
+    if (wave.sound === 'crow-omen') playCrowOmen();
+    if (wave.announce) await tutorialPopup.show(wave.announce, {}, { force: true });
   }
   for (const ally of reinforcementResult.allies ?? []) await tutorialPopup.show(ally.id);
   window.setTimeout(() => void runTutorials(), 1300);
@@ -4830,6 +5155,7 @@ async function enemyPhase() {
 function spawnTurnReinforcements() {
   const createdUnits = [];
   const joinedAllies = [];
+  const announcements = [];
   const occupied = new Set(
     [...defendingUnits(), ...enemies]
       .filter((unit) => unit.hp > 0)
@@ -4865,10 +5191,13 @@ function spawnTurnReinforcements() {
       candidates.sort((first, second) =>
         distanceBetween(first.x, first.z, placement.x, placement.z) -
         distanceBetween(second.x, second.z, placement.x, placement.z));
-      const spawnTile = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity
+      const fixedEntrance = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard ||
+        activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity ||
+        activeLevel.villageScene?.layout === 'harbor';
+      const spawnTile = fixedEntrance
         ? infirmarySpawnTile(activeLevel, placement, [...defendingUnits(), ...enemies])
         : candidates[0];
-      if (!spawnTile && (activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard || activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity)) break;
+      if (!spawnTile && fixedEntrance) break;
       if (!spawnTile) {
         return {
           units: createdUnits,
@@ -4883,6 +5212,7 @@ function spawnTurnReinforcements() {
     }
     wave.spawned = wave.spawnedCount === wave.units.length;
     if (!wave.spawned) continue;
+    if (wave.announce || wave.message) announcements.push(wave);
     for (const placement of wave.allies ?? []) {
       const ally = roster[placement.id];
       if (!ally || fullTeam.includes(ally)) continue;
@@ -4906,7 +5236,7 @@ function spawnTurnReinforcements() {
     }
   }
   levelGroup.userData.waitingCity?.sync();
-  return { units: createdUnits, allies: joinedAllies, error: null };
+  return { units: createdUnits, allies: joinedAllies, announcements, error: null };
 }
 
 async function endPlayerPhase() {
@@ -4914,7 +5244,7 @@ async function endPlayerPhase() {
   for (const unit of playerTeam) {
     if (unit.frozen && unit.frozen <= gameState.turn) {
       delete unit.frozen;
-      unit.mesh.material.color.set(0xffffff);
+      refreshUnitTint(unit);
     }
     unit.moved = true;
     unit.acted = true;
@@ -5042,6 +5372,7 @@ document.querySelector('#trade-action').addEventListener('click', openTrade);
 document.querySelector('#trade-close').addEventListener('click', closeTrade);
 document.querySelector('#heal-action').addEventListener('click', openHeal);
 document.querySelector('#freeze-action').addEventListener('click', openFreeze);
+document.querySelector('#ravage-action').addEventListener('click', useRavage);
 document.querySelector('#heal-close').addEventListener('click', closeHeal);
 healDialog.addEventListener('cancel', (event) => {
   event.preventDefault();
@@ -5049,7 +5380,7 @@ healDialog.addEventListener('cancel', (event) => {
 });
 tradeDialog.addEventListener('cancel', (event) => {
   event.preventDefault();
-  closeTrade();
+  if (!cancelTradeHold()) closeTrade();
 });
 document.querySelector('#confirm-combat').addEventListener('click', confirmCombatForecast);
 document.querySelector('#cancel-combat').addEventListener('click', cancelCombatForecast);
@@ -5108,11 +5439,24 @@ document.querySelector('#next-chapter').addEventListener('click', () => {
 document.querySelector('#terminal-main-menu').addEventListener('click', returnToMainMenu);
 const oceanToggle = document.querySelector('#toggle-ocean-sound');
 onOceanSoundChange((on) => {
-  oceanToggle.textContent = `Ocean Sound: ${on ? 'On' : 'Off'}`;
+  oceanToggle.textContent = `Environmental Sounds: ${on ? 'On' : 'Off'}`;
   oceanToggle.setAttribute('aria-pressed', String(on));
 });
 oceanToggle.addEventListener('click', () => setOceanSoundEnabled(!isOceanSoundEnabled()));
 initializeOceanSound();
+const combatAnimationToggle = document.querySelector('#toggle-combat-animations');
+function renderCombatAnimationToggle() {
+  combatAnimationToggle.textContent = `Combat Animations: ${combatAnimationsEnabled ? 'On' : 'Off'}`;
+  combatAnimationToggle.setAttribute('aria-pressed', String(combatAnimationsEnabled));
+}
+renderCombatAnimationToggle();
+combatAnimationToggle.addEventListener('click', () => {
+  combatAnimationsEnabled = !combatAnimationsEnabled;
+  if (!writeCombatAnimations(localStorage, combatAnimationsEnabled)) {
+    setMessage('Combat animation preference changed for this session, but could not be saved.');
+  }
+  renderCombatAnimationToggle();
+});
 const tutorialToggle = document.querySelector('#toggle-tutorials');
 function renderTutorialToggle() {
   tutorialToggle.textContent = `Tutorial Popups: ${tutorialsEnabled() ? 'On' : 'Off'}`;
@@ -5201,7 +5545,7 @@ function goBack() {
     return true;
   }
   if (tradeDialog.open) {
-    closeTrade();
+    if (!cancelTradeHold()) closeTrade();
     return true;
   }
   if (healDialog.open) {
@@ -5585,9 +5929,16 @@ function update(dt, t) {
   const offset = CAM_OFFSET.clone().multiplyScalar(cameraScale);
   const cityBackdrop = levelGroup.userData.cityBackdrop;
   const northLimit = worldZ(activeLevel.exit.z);
+  const illustratedMap = Boolean(activeLevel.villageScene || activeLevel.shipScene);
+  const boundedInterior = activeLevel.infirmary || illustratedMap;
+  const manorMap = activeLevel.villageScene?.layout === 'manor';
+  const cameraWidth = activeLevel.width + (activeLevel.shipScene?.layout === 'lone-ship' ? LONE_SHIP_OCEAN_MARGIN * 2 : 0);
+  const constrainMapCamera = illustratedMap
+    ? (point) => constrainInteriorCamera(point, offset, camera.aspect, cameraWidth, activeLevel.height, manorMap ? MANOR_CAMERA_MARGIN : 0, 0.01, manorMap)
+    : (point) => constrainInteriorCamera(point, offset, camera.aspect, activeLevel.width, activeLevel.height);
   if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
   else if (cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
-  if (activeLevel.infirmary) constrainInteriorCamera(target, offset, camera.aspect, activeLevel.width, activeLevel.height);
+  if (boundedInterior) constrainMapCamera(target);
   const desired = target.clone().add(offset);
   camera.position.sub(cameraShakeOffset);
   camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
@@ -5602,9 +5953,9 @@ function update(dt, t) {
     fov = constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
     camera.position.copy(target).add(offset);
   }
-  if (activeLevel.infirmary) {
+  if (boundedInterior) {
     target.copy(camera.position).sub(offset);
-    fov = constrainInteriorCamera(target, offset, camera.aspect, activeLevel.width, activeLevel.height);
+    fov = constrainMapCamera(target);
     camera.position.copy(target).add(offset);
   }
   if (camera.fov !== fov) {
@@ -5622,6 +5973,16 @@ function update(dt, t) {
     cameraShakeOffset.set(0, 0, 0);
   }
   camera.position.add(cameraShakeOffset);
+  if (illustratedMap) {
+    // Clamp the final shaken/eased pose too, not only the requested follow target.
+    target.copy(camera.position).sub(offset);
+    const shakenFov = constrainMapCamera(target);
+    if (camera.fov !== shakenFov) {
+      camera.fov = shakenFov;
+      camera.updateProjectionMatrix();
+    }
+    camera.position.copy(target).add(offset);
+  }
   camera.lookAt(target);
   const backdropDistance = 90;
   const backdropDirection = camera.getWorldDirection(new THREE.Vector3());
@@ -5642,6 +6003,8 @@ function frame() {
   levelGroup.userData.waitingCity?.occlusion.update(
     [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
   levelGroup.userData.abyssalThrone?.occlusion.update(
+    [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
+  levelGroup.userData.shipScene?.occlusion.update(
     [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
   updateLevelAnimation(clock.elapsedTime);
   renderer.render(scene, camera);

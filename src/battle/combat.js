@@ -1,7 +1,7 @@
 import triangle from '../../data/weapon-triangle.json';
 import { CLASSES, getClassAbilities } from '../characters/classes.js';
 import { getWeaponRank } from '../characters/weapon-levels.js';
-import { leadershipBonus } from '../game/insight.js';
+import { emblemDamageBonus, emblemLifeSteal, leadershipBonus } from '../game/insight.js';
 import { bookOf, findWeaponEntry, spellUses, weaponUseBlockReason } from '../characters/inventory.js';
 
 function getClassCritBonus(unit) {
@@ -17,9 +17,15 @@ export function canAttack(unit) {
   return !(Number.isInteger(uses) && uses <= 0);
 }
 
+// Drain from the weapon (Nosferatu) and from Blood Feast never stack; the stronger one applies.
+export function lifeStealRate(unit) {
+  return Math.max(unit?.weapon?.lifeSteal ?? 0, emblemLifeSteal(unit));
+}
+
 export function healDamageDealt(unit, damage) {
-  if (unit.hp <= 0 || !unit.weapon?.lifeSteal) return 0;
-  const healed = Math.max(0, Math.min(unit.maxHp - unit.hp, Math.floor(damage * unit.weapon.lifeSteal)));
+  const rate = lifeStealRate(unit);
+  if (unit.hp <= 0 || !rate) return 0;
+  const healed = Math.max(0, Math.min(unit.maxHp - unit.hp, Math.floor(damage * rate)));
   unit.hp += healed;
   return healed;
 }
@@ -90,7 +96,7 @@ export function getCombatDamage(attacker, defender, defenderTerrain = {}) {
     ? resistance
     : defender.defense + (defenderTerrain.defense ?? 0);
   const triangleDamage = getTriangleAdvantage(attacker.weapon, defender.weapon) * triangle.damage;
-  return Math.max(0, attackStat + getEffectiveMight(attacker, defender) + triangleDamage - defenseStat);
+  return Math.max(0, attackStat + getEffectiveMight(attacker, defender) + emblemDamageBonus(attacker) + triangleDamage - defenseStat);
 }
 
 export const EFFECTIVE_MIGHT_MULTIPLIER = 3;

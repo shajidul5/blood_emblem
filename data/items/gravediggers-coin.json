@@ -1,0 +1,11 @@
+{
+  "id": "gravediggers-coin",
+  "name": "Gravedigger's Coin",
+  "type": "consumable",
+  "effect": "luck-up",
+  "amount": 2,
+  "description": "Permanently raises Luck by 2.",
+  "lore": "A coin pried from a dead man's eye, stamped with a skull and a spade. Gravediggers pass it hand to hand for luck. None of them can say why the ones who kept it never needed a grave of their own.",
+  "maxUses": 1,
+  "sprite": "assets/items/Gravediggers_Coin/gravediggers_coin.png"
+}

@@ -24,6 +24,10 @@ export function ensureContext() {
   return true;
 }
 
+export function getSoundOutput() {
+  return ensureContext() ? { context, destination: master } : null;
+}
+
 export function tone({ type = 'sine', from, to = from, start = 0, attack = 0.004, decay, volume }) {
   const t = context.currentTime + start;
   const oscillator = context.createOscillator();
@@ -98,6 +102,24 @@ export function playStatUp(index = 0) {
   tone({ type: 'triangle', from: note * 2, start: 0.05, decay: 0.16, volume: 0.12 });
   tone({ type: 'sine', from: note * 3, start: 0.05, decay: 0.1, volume: 0.03 });
   noise({ decay: 0.02, volume: 0.06, frequency: 5000 });
+}
+
+export function playExperienceTick(experience, count = 1) {
+  if (!ensureContext()) return;
+  const note = 660 * 2 ** (Math.min(100, experience) / 150);
+  for (let index = 0; index < Math.min(count, 3); index++) {
+    const start = index * .008;
+    tone({ type: 'square', from: note, to: note * 1.12, start, attack: .001, decay: .025, volume: .045 });
+    tone({ type: 'triangle', from: note * 1.5, to: note * 1.68, start, attack: .001, decay: .04, volume: .04 });
+  }
+}
+
+export function playExperienceLevelUp() {
+  if (!ensureContext()) return;
+  [784, 988, 1175, 1568].forEach((note, index) => {
+    tone({ type: 'triangle', from: note, start: index * .055, decay: .24, volume: .12 });
+    tone({ type: 'sine', from: note * 2, start: index * .055, decay: .18, volume: .035 });
+  });
 }
 
 // Item discovery: a low tolling note, a rising pentatonic arpeggio and a glassy shimmer.

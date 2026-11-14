@@ -112,7 +112,8 @@ test('the Quarantine Ward is a guarded Rictor and Lena escape with locked cells 
   assert.ok(ward.cells.some((cell) => cell.prisoners.length));
   const jailerReward = inventory.INVENTORY_ITEMS.get(ward.chests.find((chest) => chest.id === 'chest-ward-key').rewardId);
   assert.equal(jailerReward.id, 'pocketwatch');
-  assert.equal(jailerReward.effect, 'strength-up');
+  assert.equal(jailerReward.effect, 'insight');
+  assert.equal(jailerReward.insight, 10);
   assert.equal(jailerReward.maxUses, 1);
   assert.ok(!ward.chests.some((chest) => chest.rewardId === 'chest-key'));
   const tiles = await server.ssrLoadModule('/src/levels/tiles.js');

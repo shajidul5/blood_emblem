@@ -1,0 +1,11 @@
+{
+  "id": "pallbearers-burden",
+  "name": "Pallbearer's Burden",
+  "type": "consumable",
+  "effect": "build-up",
+  "amount": 2,
+  "description": "Permanently raises Build by 2.",
+  "lore": "A child's casket of black oak bound in iron, empty, that the city's pallbearers passed between them as a rite. Every one of them carried it alone for a night. Bear its weight once, and every burden after it feels lighter.",
+  "maxUses": 1,
+  "sprite": "assets/items/Pallbearers_Burden/pallbearers_burden.png"
+}

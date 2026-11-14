@@ -8,7 +8,7 @@ export const LEADERSHIP_AVOID = data.leadership.avoid;
 export const FIRST_PREP_CHAPTER = data.firstPrepChapter;
 export const BLOOD_EMBLEM = data.bloodEmblem;
 
-const freshState = () => ({ insight: 0, leadership: 0, leadershipPaid: [], spells: {}, evolved: {}, evolutionPaid: {}, bloodEmblem: false, bloodEmblemEquipped: false });
+const freshState = () => ({ insight: 0, leadership: 0, leadershipPaid: [], spells: {}, evolved: {}, evolutionPaid: {}, bloodEmblem: 0, bloodEmblemEquipped: false });
 // Star prices before the leadership rebalance; saves that predate leadershipPaid were charged these.
 const LEGACY_LEADERSHIP_COSTS = [2, 3, 4, 5, 6];
 let state = freshState();
@@ -17,24 +17,33 @@ const clampInt = (value, min, max) => (Number.isInteger(value) ? Math.max(min, M
 
 export const getInsight = () => state.insight;
 export const getLeadership = () => state.leadership;
-export const isBloodEmblemUpgraded = () => state.bloodEmblem;
+// The Blood Emblem deepens in tiers: Blood Aura, then Ravage, then Blood Feast.
+export const EMBLEM_TIERS = BLOOD_EMBLEM.tiers;
+const [AURA, RAVAGE, FEAST] = EMBLEM_TIERS;
+export const bloodEmblemTier = () => state.bloodEmblem;
+export const isBloodEmblemUpgraded = () => state.bloodEmblem > 0;
 export const isBloodEmblemEquipped = () => state.bloodEmblemEquipped;
+export const nextEmblemTier = () => EMBLEM_TIERS[state.bloodEmblem];
+// Chapters are zero-based: a tier opens in the preparations of chapter index `unlockChapter`.
+export const emblemTierOpen = (tier, chapterIndex) => (chapterIndex ?? 0) >= tier.unlockChapter;
 
 const carriesBloodEmblem = (unit) =>
   unit?.id === 'maria' && unit.inventory?.some((entry) => entry.id === 'blood-emblem');
+const emblemActive = (unit, tierNumber) =>
+  state.bloodEmblem >= tierNumber && state.bloodEmblemEquipped && carriesBloodEmblem(unit) && unit.hp > 0;
 
-export function buyBloodEmblem() {
-  if (state.bloodEmblem || state.insight < BLOOD_EMBLEM.cost) return false;
-  state.insight -= BLOOD_EMBLEM.cost;
-  state.bloodEmblem = true;
+export function buyBloodEmblem(chapterIndex) {
+  const tier = nextEmblemTier();
+  if (!tier || !emblemTierOpen(tier, chapterIndex) || state.insight < tier.cost) return false;
+  state.insight -= tier.cost;
+  state.bloodEmblem++;
   return true;
 }
 
 export function refundBloodEmblem() {
   if (!state.bloodEmblem) return false;
-  state.insight += BLOOD_EMBLEM.cost;
-  state.bloodEmblem = false;
-  state.bloodEmblemEquipped = false;
+  state.insight += EMBLEM_TIERS[--state.bloodEmblem].cost;
+  if (!state.bloodEmblem) state.bloodEmblemEquipped = false;
   return true;
 }
 
@@ -44,19 +53,49 @@ export function toggleBloodEmblem(unit) {
   return true;
 }
 
-export function bloodEmblemDescription() {
-  return state.bloodEmblem
-    ? `${state.bloodEmblemEquipped ? 'Equipped' : 'Unequipped'} · Restores ${BLOOD_EMBLEM.healOnKill} HP when Maria defeats a foe.`
-    : `Unlock for ${BLOOD_EMBLEM.cost} Insight, then equip to restore ${BLOOD_EMBLEM.healOnKill} HP when Maria defeats a foe.`;
+export function emblemTierDescription(tier) {
+  if (tier === AURA) return `At the start of each player phase, Maria and allies next to her recover ${AURA.heal} HP.`;
+  if (tier === RAVAGE) return `New command: Maria pays ${RAVAGE.hpCostPercent}% of her max HP for +${RAVAGE.damageBonus} Might until your next turn, counters included. Does not use her action.`;
+  return `While Ravage is active, Maria's hits heal her for ${FEAST.lifeSteal === 0.5 ? 'half' : `${FEAST.lifeSteal * 100}% of`} the damage dealt.`;
 }
 
-// Called only after a confirmed combat kill, for both attacks and counterattacks.
-export function healBloodEmblemKill(unit) {
-  if (!state.bloodEmblem || !state.bloodEmblemEquipped || !carriesBloodEmblem(unit) || unit.hp <= 0) return 0;
-  const healed = Math.max(0, Math.min(BLOOD_EMBLEM.healOnKill, unit.maxHp - unit.hp));
-  unit.hp += healed;
-  return healed;
+export function bloodEmblemDescription() {
+  if (!state.bloodEmblem) return `Dormant · Awaken it with Insight. ${emblemTierDescription(AURA)}`;
+  const powers = EMBLEM_TIERS.slice(0, state.bloodEmblem).map((tier) => tier.name).join(', ');
+  return `${state.bloodEmblemEquipped ? 'Equipped' : 'Unequipped'} · ${powers}.`;
 }
+
+// Blood Aura: heals Maria and every living ally orthogonally adjacent to her. Returns who recovered and by how much.
+export function applyBloodAura(team) {
+  const bearer = team.find((unit) => emblemActive(unit, 1));
+  if (!bearer) return [];
+  return team
+    .filter((unit) => unit.hp > 0 && Math.abs(unit.x - bearer.x) + Math.abs(unit.z - bearer.z) <= 1)
+    .map((unit) => {
+      const healed = Math.max(0, Math.min(AURA.heal, unit.maxHp - unit.hp));
+      unit.hp += healed;
+      return { unit, healed };
+    })
+    .filter(({ healed }) => healed > 0);
+}
+
+export const ravageCost = (unit) => Math.max(1, Math.floor(unit.maxHp * RAVAGE.hpCostPercent / 100));
+
+// Ravage never kills: Maria must have more HP than the price.
+export function canRavage(unit) {
+  return emblemActive(unit, 2) && !unit.ravaging && !unit.acted && unit.hp > ravageCost(unit);
+}
+
+export function activateRavage(unit) {
+  if (!canRavage(unit)) return 0;
+  const cost = ravageCost(unit);
+  unit.hp -= cost;
+  unit.ravaging = true;
+  return cost;
+}
+
+export const emblemDamageBonus = (unit) => (unit?.ravaging && emblemActive(unit, 2) ? RAVAGE.damageBonus : 0);
+export const emblemLifeSteal = (unit) => (unit?.ravaging && emblemActive(unit, 3) ? FEAST.lifeSteal : 0);
 
 export function snapshotInsight() {
   return { ...state, leadershipPaid: [...state.leadershipPaid], spells: { ...state.spells }, evolved: { ...state.evolved }, evolutionPaid: { ...state.evolutionPaid } };
@@ -88,8 +127,14 @@ export function restoreInsight(snapshot) {
       state.evolutionPaid.rapier = Math.min(state.insight, data.legacy.evolutionCost);
       state.insight -= state.evolutionPaid.rapier;
     }
-    state.bloodEmblem = snapshot.bloodEmblem === true;
-    state.bloodEmblemEquipped = state.bloodEmblem && snapshot.bloodEmblemEquipped === true;
+    // Saves from the single-unlock emblem become Blood Aura, refunding the price difference.
+    if (snapshot.bloodEmblem === true) {
+      state.bloodEmblem = 1;
+      state.insight += BLOOD_EMBLEM.legacyCost - AURA.cost;
+    } else {
+      state.bloodEmblem = clampInt(snapshot.bloodEmblem, 0, EMBLEM_TIERS.length);
+    }
+    state.bloodEmblemEquipped = state.bloodEmblem > 0 && snapshot.bloodEmblemEquipped === true;
   }
   publishSpells();
 }

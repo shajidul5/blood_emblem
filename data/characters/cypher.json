@@ -1,10 +1,10 @@
 {
   "id": "cypher",
-  "name": "Cypher",
+  "name": "Cyrus",
   "classId": "mage",
   "type": "infantry",
   "spriteSet": "cypher",
-  "sprite": "assets/character/Cypher/Idle/rotations/south.png",
+  "sprite": "assets/character/Cyrus/Idle/rotations/south.png",
   "level": 2,
   "experience": 0,
   "weaponId": "fire-tome",

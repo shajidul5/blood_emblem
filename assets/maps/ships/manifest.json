@@ -1,0 +1,21 @@
+{
+  "generator": "PixelLab",
+  "sourceJob": "5a076013-b601-4fde-8973-22e66b558966",
+  "sourceAsset": "a16124de-50bf-5212-b74f-c777dfa0f701",
+  "source": "source.png",
+  "sourceSize": [512, 512],
+  "styleReference": "Existing ship_objects.png nautical props",
+  "production": {
+    "two-ships.png": { "size": [512, 512], "grid": [19, 21] },
+    "lone-ship.png": { "size": [244, 512], "grid": [9, 21] },
+    "processing": "scripts/prepare-ship-art.ps1: silhouette extraction, cool moonlight palette, lower gangway moved six pixels south for grid alignment, lone-ship gangways removed.",
+    "collision": "scripts/configure-ship-maps.mjs: authored safe deck spans and blocked cargo/mast cells; gangways at rows 9 and 11. Terrain stays at elevation zero: quarterdeck depth and steps are illustrated, not physical raised geometry."
+  },
+  "pennant": {
+    "file": "pennant.png",
+    "job": "c523b289-f6cc-4a35-97de-2b2b894157fd",
+    "asset": "c795c625-9cb9-5c94-9334-43d8942397af",
+    "size": [64, 32],
+    "animation": "Anchored subdivided cloth driven by shared eastward wind, no source resampling."
+  }
+}

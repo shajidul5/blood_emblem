@@ -23,5 +23,12 @@
     "awaken": { "weaponId": "rapier", "into": "raikiri", "cost": 1 }
   },
   "leadership": { "costs": [4, 6, 8, 10, 12], "hit": 3, "avoid": 3 },
-  "bloodEmblem": { "cost": 30, "healOnKill": 10 }
+  "bloodEmblem": {
+    "legacyCost": 30,
+    "tiers": [
+      { "id": "aura", "name": "Blood Aura", "cost": 20, "unlockChapter": 0, "heal": 10 },
+      { "id": "ravage", "name": "Ravage", "cost": 40, "unlockChapter": 6, "hpCostPercent": 20, "damageBonus": 5 },
+      { "id": "feast", "name": "Blood Feast", "cost": 60, "unlockChapter": 10, "lifeSteal": 0.5 }
+    ]
+  }
 }

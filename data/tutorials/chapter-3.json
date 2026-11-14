@@ -6,16 +6,17 @@
         "title": "The Fishing Village",
         "paragraphs": [
           "Maria and Bartz step onto the dock of {island}. Lanterns burn in every window, yet the streets are empty, and the few locals they pass will not meet their eyes. A strange chill follows them from the harbor.",
-          "In the tavern they find a lone mage with a tome at his elbow: Cypher, who is here for reasons of his own. Maria asks after her husband, but the townsfolk are on edge. Shutters slam and doors are barred against the outsiders.",
-          "Then the bells ring, and the water boils with more Merfolk. Cypher rises and offers his fire. The village is under raid."
+          "In the tavern they find a lone mage with a tome at his elbow: Cyrus, who is here for reasons of his own. Maria asks after her husband, but the townsfolk are on edge. Shutters slam and doors are barred against the outsiders.",
+          "Then the bells ring, and the water boils with more Merfolk. Hold the village for ten turns; you do not need to defeat every attacker. Five Merfolk begin across the northern lanes. Two more arrive on turns 2, 4, 6, 8 and 10, at the right-edge road (21,11) and bottom-right corner (21,21). On turn 6 the Merfolk Chieftain leads the wave from the right-edge road. The narrow upper and lower lanes are your choke points."
         ],
         "button": "Continue"
       },
       {
         "kicker": "New Ally",
-        "title": "Cypher Joins the Party",
+        "title": "Cyrus Joins the Party",
         "paragraphs": [
-          "Cypher is a Mage who wields anima magic tomes. His Fire Tome is accurate and effective against beasts, while a Thunder Tome crits more often and is effective against aqua foes like the Merfolk.",
+          "Cyrus is a Mage who wields anima magic tomes. His Fire Tome is accurate and effective against beasts, while a Thunder Tome crits more often and is effective against aqua foes like the Merfolk.",
+          "Cyrus begins beside Bartz. Move him north along the lane to the green side-door tile of the Harbor Mage's House, the cottage on the right, and choose Visit to receive a Thunder Tome. Visiting uses his action; equip Thunder for the approaching Merfolk on a later turn.",
           "Magic ignores a target's Defense and strikes against Resistance instead, but mages are frail. Keep him behind Bartz."
         ],
         "button": "To Arms"
@@ -29,7 +30,7 @@
         "title": "Visiting Houses",
         "paragraphs": [
           "The bright green tile marks a door you can visit. Move a unit onto it, choose Visit from the action menu, and the household will reward you with an item.",
-          "Each house can only be visited once, and a unit must be standing on its door tile. Reach them before the raiders do."
+          "Each house can only be visited once, and a unit must be standing on its door tile. Cyrus starts beside Bartz, four tiles south of the Harbor Mage's House's side entrance. Move him onto its green tile and choose Visit. Thunder is effective against the Merfolk."
         ],
         "dock": true,
         "button": "Back to Battle"

@@ -25,7 +25,7 @@
         "title": "Leave No One Behind",
         "paragraphs": [
           "Stand adjacent to a ward objective and choose Ward Objective. Seal the west and east isolation gates to stop their future waves. Lena needs no key; other allies consume a Chest Key. Clear the blocked gate tiles before sealing. Each seal grants 45 EXP.",
-          "Elise and Mara are stranded in the distant west and east wards, with undead guarding the approaches. Reach them for healing consumables and 30 EXP each. Recover the Treatment Ledger for 5 Insight and 60 EXP. The roaming undead in the west isolation wing carries a Chest Key and drops it on defeat. These are optional, one-time actions, so divide the work among the party.",
+          "Elise and Mara are stranded in the distant west and east wards, with undead guarding the approaches. Reach them for healing consumables and 30 EXP each. Recover the Treatment Ledger for 10 Insight and 60 EXP. The roaming undead in the west isolation wing carries a Chest Key and drops it on defeat. These are optional, one-time actions, so divide the work among the party.",
           "On turn six the Rotten emerges. Defeating him earns boss Insight and a valuable drop, but is not required to survive. All living deployed allies gain 100 EXP after the eighth enemy phase. Combat and objectives together aim for about two to three levels this chapter; promotion still requires level 20.",
           "The Church is preparing to burn the infirmary. Hold until the service passage is clear, then take whatever proof you can carry."
         ],
@@ -36,7 +36,7 @@
   "infirmaryRecords": {
     "pages": [
       {
-        "kicker": "Treatment Records - 5 Insight",
+        "kicker": "Treatment Records - 10 Insight",
         "title": "A Cure Without Consent",
         "paragraphs": [
           "The public ledger lists fever remedies. Beneath it, Lena finds a second register: civilian names replaced by numbers, with doses of a crimson extract increased until the patients stopped answering.",

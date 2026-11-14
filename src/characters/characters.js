@@ -29,6 +29,8 @@ import goldenSoldierProfile from '../../data/characters/golden-soldier.json';
 import goldenArcherProfile from '../../data/characters/golden-archer.json';
 import bloodBeastProfile from '../../data/characters/blood-beast.json';
 import ravenProfile from '../../data/characters/raven.json';
+import forestRavenProfile from '../../data/characters/forest-raven.json';
+import crowmanProfile from '../../data/characters/crowman.json';
 import rictorProfile from '../../data/characters/rictor.json';
 import lenaProfile from '../../data/characters/lena.json';
 import wardSoldierProfile from '../../data/characters/ward-soldier.json';
@@ -196,6 +198,8 @@ const ENEMY_PROFILES = new Map([
   [wardWardenProfile.id, wardWardenProfile],
   [undeadProfile.id, undeadProfile],
   [ravenProfile.id, ravenProfile],
+  [forestRavenProfile.id, forestRavenProfile],
+  [crowmanProfile.id, crowmanProfile],
   [goldenCaptainProfile.id, goldenCaptainProfile],
   [goldenCavalierProfile.id, goldenCavalierProfile],
   [goldenKnightProfile.id, goldenKnightProfile],
@@ -271,6 +275,7 @@ export function createEnemyUnit(id, x, z, { level, ai, drop, weaponId, stealable
     }
   }
   if (drop) enemy.drop = drop;
+  if (profile.hunts) enemy.hunts = profile.hunts;
   if (stealable !== undefined) {
     if (!Array.isArray(stealable) || !stealable.every((item) => INVENTORY_ITEMS.has(item))) {
       throw new Error(`Enemy ${id} has invalid stealable items.`);

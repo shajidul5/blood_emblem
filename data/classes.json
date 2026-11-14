@@ -9,6 +9,7 @@
       ]
     },
     { "id": "crowned-raven", "name": "Crowned Raven", "tier": "monster", "type": "flying", "weaponTypes": ["Claw"] },
+    { "id": "crowman", "name": "Omen", "tier": "monster", "type": "flying", "weaponTypes": ["Sword"] },
     { "id": "ancient-guardian", "name": "Ancient Guardian", "tier": "advanced", "type": "armor", "weaponTypes": ["Spear"] },
     { "id": "bell-drowned", "name": "Bell-Drowned", "tier": "monster", "type": "beast", "weaponTypes": ["Claw"] },
     { "id": "drowned-beast", "name": "Drowned Beast", "tier": "monster", "weaponTypes": ["Claw"] },
@@ -141,7 +142,7 @@
       "id": "sage",
       "name": "Sage",
       "tier": "advanced",
-      "weaponTypes": ["Anima", "Staff"], "sprites": { "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Sage_Cypher/rotations/south.png" } },
+      "weaponTypes": ["Anima", "Staff"], "sprites": { "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Cyrus/Idle/rotations/south.png" } },
       "abilities": [
         {
           "id": "arcane-mastery",

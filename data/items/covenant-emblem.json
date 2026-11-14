@@ -1,0 +1,10 @@
+{
+  "id": "covenant-emblem",
+  "name": "Covenant Emblem",
+  "type": "consumable",
+  "effect": "promote",
+  "description": "Promotes a level 20+ unit to their advanced class.",
+  "lore": "A raven seal pried from the Omen's breast. Survey hands sworn to the Sanguine Covenant wore it on the descent that found the Blood Emblem. Ansel Wren kept his oath long after he stopped being a man.",
+  "maxUses": 1,
+  "sprite": "assets/items/Covenant_Emblem/covenant_emblem.png"
+}

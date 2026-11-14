@@ -5,8 +5,8 @@
         "kicker": "Part Two · Chapter 6",
         "title": "The Hollow Wood",
         "paragraphs": [
-          "The village gate closes behind them and the forest takes its place. The trees stand too close together and the birds have gone quiet. Maria's wedding ring is warm against her finger, and the Blood Emblem at her belt has begun to hum like a held breath.",
-          "Cypher stops first. \"They're watching. Not us. You.\" Out in the dark, eyes catch the lantern light and do not look away. Seymour whispers that these woods were the island's hunting ground long before the city was built.",
+          "The village gate closes behind them and the hunting grounds take its place. Torn tents still stand in the first clearing, their racks hung with rusted traps no one came back for. A drainage channel cuts the wood in two, its water stained the colour of old rust.",
+          "Cyrus kneels by a set of prints too large for any wolf he knows. Seymour says these woods fed the island long before the city was built, and that nothing here used to walk like this.",
           "Aldermere lies at the far side of this wood. The road there is the one thing the curse has not yet closed."
         ],
         "button": "Continue"
@@ -15,9 +15,9 @@
         "kicker": "Objective",
         "title": "Defeat the Boss",
         "paragraphs": [
-          "Fell the Great Wolf at the heart of the clearing and the chapter is won. The wolves guarding him are not required kills, but they will not let you walk past. He is quick, and he carries something that will make anyone who takes it faster.",
-          "Feral wolves are fast, accurate and hit hard for their size. Fresh packs will race in from the edges of the wood on turns 5 and 10, so a long siege will not go well.",
-          "Wolves are beasts. Cypher's Fire tome and Maria's Beast Slayer both bite deeper against them. Bartz cannot carry this fight alone."
+          "Fell the Great Wolf in the bone-strewn den to the east and the chapter is won. A thorn ridge walls off the den. Northern and southern gaps lead in, and the monolith trail pushes through a bramble thicket that hides you well but slows your step. The packs on the northern and southern trails will come hunting you; the wolves by the monolith hold their ground until you draw near.",
+          "The channel can only be crossed on its three log bridges. Fresh packs break from the northern tree line on turn 3, the southern tree line on turn 5, and the trail behind the camp on turn 8. After that, the wood falls quiet.",
+          "Wolves are beasts. Cyrus's Fire tome and Maria's Beast Slayer both bite deeper against them. Bartz cannot carry this fight alone."
         ],
         "button": "Continue"
       },
@@ -25,8 +25,8 @@
         "kicker": "Terrain",
         "title": "Dense Undergrowth",
         "paragraphs": [
-          "Patches of thick undergrowth glow green. They give +20 Avoid and +2 Defense, but cost an extra point of movement to enter. Hold them yourself and the wolves will struggle to land a hit, but wolves standing in them are harder to hit as well.",
-          "Select a tile to inspect it. Whatever waits in the clearing carries something that may be worth the fight."
+          "Thick ferns and undergrowth give +20 Avoid and +2 Defense, but cost an extra point of movement to enter. Hold them yourself and the wolves will struggle to land a hit, but wolves standing in them are harder to hit as well.",
+          "Select a tile to inspect it. The old marked stone in the central clearing is worth a closer look, and whatever waits in the den carries something that may be worth the fight."
         ],
         "button": "Enter the Wood"
       }

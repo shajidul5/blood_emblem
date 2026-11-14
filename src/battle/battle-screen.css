@@ -1,0 +1,35 @@
+#battle-screen {
+  padding: 0;
+  border: 2px solid #927549;
+  background: #100e18;
+  color: #ead9b5;
+  width: min(960px, calc(100vw - 20px), calc((100dvh - 82px) * 16 / 9));
+  max-width: none;
+  max-height: calc(100dvh - 16px);
+  box-shadow: 0 12px 70px #000;
+}
+#battle-screen::backdrop { background: #080a10f2; }
+#battle-screen canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+#battle-screen footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  font: 14px Georgia, serif;
+  border-top: 1px solid #927549;
+}
+#battle-screen button {
+  padding: 6px 12px;
+  background: #271b24;
+  color: #ead9b5;
+  border: 1px solid #927549;
+  font: inherit;
+  cursor: pointer;
+}
+#battle-screen button:focus-visible { outline: 2px solid #ead9b5; outline-offset: 2px; }

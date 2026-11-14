@@ -1,0 +1,10 @@
+{
+  "id": "hunters-codex",
+  "name": "Hunter's Codex",
+  "type": "consumable",
+  "effect": "weapon-rank-up",
+  "description": "Raises the rank of the equipped weapon type by one.",
+  "lore": "A hunter's manual of arms, its margins crowded with three generations of notes on blade, axe, lance and bow. Studied for a single night, it teaches what would otherwise take a season of killing to learn.",
+  "maxUses": 1,
+  "sprite": "assets/items/Hunters_Codex/hunters_codex.png"
+}

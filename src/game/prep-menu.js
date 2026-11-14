@@ -2,12 +2,13 @@ import {
   EVOLUTIONS, EVOLVING_WEAPON_IDS, LEADERSHIP_AVOID, LEADERSHIP_HIT, MAX_LEADERSHIP, SPELLBOOK_IDS, buyLeadership, canEvolve,
   evolveWeapon, getInsight, getLeadership, isEvolved, leadershipCost, nextSpellCost, nextSpellId, refundLeadership, refundSpell,
   revertEvolution, spellTier, unlockSpell,
-  BLOOD_EMBLEM, bloodEmblemDescription, buyBloodEmblem, isBloodEmblemEquipped, isBloodEmblemUpgraded,
-  refundBloodEmblem, toggleBloodEmblem,
+  EMBLEM_TIERS, bloodEmblemDescription, bloodEmblemTier, buyBloodEmblem, emblemTierDescription, emblemTierOpen,
+  isBloodEmblemEquipped, isBloodEmblemUpgraded, refundBloodEmblem, toggleBloodEmblem,
 } from './insight.js';
 import { renderInsightLabel } from './insight-display.js';
 import { rescaleMagicUses, spellsOf } from '../characters/inventory.js';
 import { canPromote, getUsesMultiplier, promoteUnit } from '../characters/classes.js';
+import { applyBooster, boosterBlockReason, isBooster } from '../characters/boosters.js';
 import { snapshotForPromotion } from '../characters/promotion-dialog.js';
 
 const el = (tag, className, text) => {
@@ -44,7 +45,7 @@ const PARENT = {
 
 // Pre-battle hub in the Fire Emblem style: every option opens a sub-screen, Start Battle closes it.
 export function createPrepMenu({
-  dialog, getTeam, getConvoy, items, statItems, readInsight, settle, maxSize, maxDeployed,
+  dialog, getTeam, getConvoy, items, readInsight, settle, maxSize, maxDeployed,
   isDeployed, setDeployed, getInfo, portrait, onProfile, onSave, onOptions, onViewMap, onChange,
   isRequired = (unit) => unit.id === 'maria',
   onPromote = () => {},
@@ -114,12 +115,8 @@ export function createPrepMenu({
       onChange();
       return;
     }
-    if (statItems[item.effect]) {
-      const { stat } = statItems[item.effect];
-      const amount = item.amount ?? 2;
-      user[stat] += amount;
-      if (stat === 'maxHp') user.hp += amount;
-      flash = `${user.name} used ${item.name}.`;
+    if (isBooster(item)) {
+      flash = `${user.name} used ${item.name}. ${applyBooster(user, item)}.`;
     } else {
       const healed = Math.min(item.heal, user.maxHp - user.hp);
       user.hp += healed;
@@ -132,7 +129,8 @@ export function createPrepMenu({
 
   const canUse = (unit, item) =>
     item?.itemType === 'consumable' &&
-    (item.insight || statItems[item.effect] || (item.effect === 'promote' && unit.level >= 20 && canPromote(unit)) ||
+    (item.insight || (isBooster(item) && !boosterBlockReason(unit, item)) ||
+      (item.effect === 'promote' && unit.level >= 20 && canPromote(unit)) ||
       (item.heal && unit.hp < unit.maxHp));
 
   const promotionAction = (holder, entry, unit) => {
@@ -439,13 +437,30 @@ export function createPrepMenu({
     ));
 
     const emblem = maria()?.inventory.some((entry) => entry.id === 'blood-emblem');
-    if (maria()) list.append(upgradeRow('Blood Emblem', bloodEmblemDescription(), isBloodEmblemUpgraded() ? 'Awakened' : 'Dormant', [
-      button(`Upgrade (${BLOOD_EMBLEM.cost} Insight)`, () => { buyBloodEmblem(); onChange(); },
-        !emblem || isBloodEmblemUpgraded() || insight < BLOOD_EMBLEM.cost),
-      button(isBloodEmblemEquipped() ? 'Unequip' : 'Equip', () => { toggleBloodEmblem(maria()); onChange(); },
-        !emblem || !isBloodEmblemUpgraded()),
-      button('Refund', () => { refundBloodEmblem(); onChange(); }, !isBloodEmblemUpgraded()),
-    ], items.get('blood-emblem')));
+    if (maria()) {
+      const emblemItem = items.get('blood-emblem');
+      const awakened = bloodEmblemTier();
+      const chapterIndex = getInfo().chapterIndex;
+      list.append(upgradeRow('Blood Emblem', bloodEmblemDescription(),
+        EMBLEM_TIERS.map((tier, index) => `${index < awakened ? '◆' : '◇'} ${tier.name}`).join('   '), [
+          button(isBloodEmblemEquipped() ? 'Unequip' : 'Equip', () => { toggleBloodEmblem(maria()); onChange(); },
+            !emblem || !isBloodEmblemUpgraded()),
+        ], emblemItem));
+      EMBLEM_TIERS.forEach((tier, index) => {
+        const open = emblemTierOpen(tier, chapterIndex);
+        const status = index < awakened ? 'Awakened'
+          : !open ? `Sealed until Chapter ${tier.unlockChapter + 1}`
+            : index === awakened ? `${tier.cost} Insight` : `Awaken ${EMBLEM_TIERS[index - 1].name} first`;
+        const actions = index === awakened
+          ? [button(`Awaken (${tier.cost} Insight)`, () => { buyBloodEmblem(chapterIndex); onChange(); },
+            !emblem || !open || insight < tier.cost)]
+          : index === awakened - 1 ? [button('Refund', () => { refundBloodEmblem(); onChange(); })] : [];
+        const row = upgradeRow(`${['I', 'II', 'III'][index]} · ${tier.name}`, emblemTierDescription(tier), status, actions, emblemItem);
+        row.classList.add('prep-emblem-tier');
+        if (index >= awakened) row.classList.add('locked');
+        list.append(row);
+      });
+    }
 
     const owned = new Set([...team().flatMap((unit) => unit.inventory), ...getConvoy()].map((entry) => entry.id));
 

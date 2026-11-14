@@ -8,22 +8,22 @@
   "extendSides": true,
   "spawn": {
     "x": 3,
-    "z": 4
+    "z": 3
   },
   "exit": {
     "x": 5,
-    "z": 4
+    "z": 3
   },
   "players": [
     {
       "id": "maria",
       "x": 3,
-      "z": 4
+      "z": 3
     },
     {
       "id": "bartz",
       "x": 5,
-      "z": 4
+      "z": 3
     }
   ],
   "enemies": [
@@ -44,12 +44,12 @@
     },
     {
       "id": "merfolk",
-      "x": 2,
+      "x": 3,
       "z": 14
     },
     {
       "id": "merfolk",
-      "x": 6,
+      "x": 5,
       "z": 14
     }
   ],
@@ -57,278 +57,32 @@
     "potion"
   ],
   "tiles": [
-    [
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "qrail_c_se",
-      "qrail_h",
-      "qrail_h",
-      "qrail_h",
-      "qrail_h",
-      "qrail_h",
-      "qrail_c_sw",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "qrail_v",
-      "quarterdeck_b",
-      "quarterdeck_a",
-      "quarterdeck_b",
-      "quarterdeck_a",
-      "quarterdeck_b",
-      "qrail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "qrail_v",
-      "quarterdeck_a",
-      "quarterdeck_b",
-      "quarterdeck_a",
-      "quarterdeck_b",
-      "quarterdeck_a",
-      "qrail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "qrail_v",
-      "quarterdeck_b",
-      "quarterdeck_a",
-      "quarterdeck_b",
-      "quarterdeck_a",
-      "quarterdeck_b",
-      "qrail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "qrail_v",
-      "qrail_h",
-      "stairs_n",
-      "qrail_h",
-      "stairs_n",
-      "qrail_h",
-      "qrail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_b",
-      "deck_a",
-      "mast_base",
-      "deck_a",
-      "deck_b",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_v",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "rail_v",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "rail_c_ne",
-      "rail_c_sw",
-      "deck_a",
-      "deck_b",
-      "deck_a",
-      "rail_c_se",
-      "rail_c_nw",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "water_a",
-      "rail_v",
-      "deck_b",
-      "deck_a",
-      "deck_b",
-      "rail_v",
-      "water_a",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "water_a",
-      "rail_c_ne",
-      "rail_c_sw",
-      "deck_b",
-      "rail_c_se",
-      "rail_c_nw",
-      "water_a",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "water_a",
-      "water_a",
-      "rail_c_ne",
-      "rail_h",
-      "rail_c_nw",
-      "water_a",
-      "water_a",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a"
-    ],
-    [
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a",
-      "water_a"
-    ]
+    ["water_a", "water_a", "water_a", "ship_rail", "ship_rail", "ship_rail", "ship_rail", "water_a", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_obstacle", "ship_obstacle", "ship_deck", "ship_obstacle", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_obstacle", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_steps", "ship_rail", "ship_rail", "ship_rail", "water_a", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_steps", "ship_deck", "ship_deck", "ship_obstacle", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_steps", "ship_deck", "ship_deck", "ship_obstacle", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_obstacle", "ship_deck", "ship_obstacle", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_obstacle", "ship_rail", "water_a"],
+    ["water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_deck", "ship_deck", "ship_rail", "water_a"],
+    ["water_a", "water_a", "water_a", "ship_rail", "ship_deck", "ship_deck", "ship_rail", "water_a", "water_a"],
+    ["water_a", "water_a", "water_a", "ship_rail", "ship_deck", "ship_obstacle", "ship_rail", "water_a", "water_a"],
+    ["water_a", "water_a", "water_a", "water_a", "ship_rail", "ship_rail", "water_a", "water_a", "water_a"],
+    ["water_a", "water_a", "water_a", "water_a", "water_a", "water_a", "water_a", "water_a", "water_a"],
+    ["water_a", "water_a", "water_a", "water_a", "water_a", "water_a", "water_a", "water_a", "water_a"]
   ],
-  "objects": [
-    {
-      "x": 4,
-      "y": 3,
-      "id": "ship_wheel"
-    },
-    {
-      "x": 2,
-      "y": 5,
-      "id": "lantern"
-    },
-    {
-      "x": 6,
-      "y": 5,
-      "id": "lantern"
-    },
-    {
-      "x": 2,
-      "y": 8,
-      "id": "barrel"
-    },
-    {
-      "x": 2,
-      "y": 9,
-      "id": "barrel"
-    },
-    {
-      "x": 3,
-      "y": 8,
-      "id": "barrel"
-    },
-    {
-      "x": 6,
-      "y": 8,
-      "id": "crates"
-    },
-    {
-      "x": 6,
-      "y": 9,
-      "id": "crate"
-    }
-  ]
+  "objects": [],
+  "shipScene": {
+    "version": 1,
+    "layout": "lone-ship"
+  },
+  "lighting": "night"
 }

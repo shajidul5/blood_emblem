@@ -2,9 +2,10 @@
   "id": "pocketwatch",
   "name": "Liam's Pocketwatch",
   "type": "consumable",
-  "effect": "strength-up",
-  "description": "Permanently raises Strength by 2.",
-  "lore": "A brass hunter's watch, stopped at the hour an oath was sworn. Scratched inside the lid: \"Tell Ellen I kept watch. I kept watch.\" Whoever winds it feels the old strength of a man who never stopped hunting.",
+  "effect": "insight",
+  "description": "A stopped brass watch. Reading the oath inside its lid grants 10 Insight.",
+  "lore": "A brass hunter's watch, stopped at the hour an oath was sworn. Scratched inside the lid: \"Tell Ellen I kept watch. I kept watch.\" Whoever reads it understands, for a moment, what a man sees after a lifetime of watching the dark.",
   "maxUses": 1,
+  "insight": 10,
   "sprite": "assets/items/Pocketwatch/pocketwatch.png"
 }

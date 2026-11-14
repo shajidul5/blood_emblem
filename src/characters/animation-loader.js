@@ -126,9 +126,9 @@ const bartzIdleSprites = import.meta.glob('../../assets/character/Bartz/Idle/rot
 const bartzWalkingFrames = import.meta.glob('../../assets/character/Bartz/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const bartzAttackFrames = import.meta.glob('../../assets/character/Bartz/Idle/animations/Bartz_lunges_forward_and_swings_overhead_with_his/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
-const cypherIdleSprites = import.meta.glob('../../assets/character/Cypher/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
-const cypherWalkingFrames = import.meta.glob('../../assets/character/Cypher/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const cypherAttackFrames = import.meta.glob('../../assets/character/Cypher/Idle/animations/Raises_hand_and_summons_fireball._The_fire_ball_la/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const cypherIdleSprites = import.meta.glob('../../assets/character/Cyrus/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const cypherWalkingFrames = import.meta.glob('../../assets/character/Cyrus/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const cypherAttackFrames = import.meta.glob('../../assets/character/Cyrus/Idle/animations/Casting/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
 const seymourIdleSprites = import.meta.glob('../../assets/character/Seymour/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const seymourWalkingFrames = import.meta.glob('../../assets/character/Seymour/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -152,6 +152,9 @@ const bloodBeastIdleSprites = import.meta.glob('../../assets/character/Blood_Bea
 const ravenIdleSprites = import.meta.glob('../../assets/character/Raven/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const ravenWalkingFrames = import.meta.glob('../../assets/character/Raven/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const ravenAttackFrames = import.meta.glob('../../assets/character/Raven/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const crowmanIdleSprites = import.meta.glob('../../assets/character/Crowman/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const crowmanWalkingFrames = import.meta.glob('../../assets/character/Crowman/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const crowmanAttackFrames = import.meta.glob('../../assets/character/Crowman/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const bloodBeastWalkingFrames = import.meta.glob('../../assets/character/Blood_Beast/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const bloodBeastAttackFrames = import.meta.glob('../../assets/character/Blood_Beast/animations/The_beast_pulls_both_giant_arms_back_to_its_flanks/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericKnightIdleSprites = import.meta.glob('../../assets/character/Generic_Knight/rotations/*.png', { eager: true, query: '?url', import: 'default' });
@@ -304,10 +307,6 @@ const berserkerBartzIdleSprites = import.meta.glob('../../assets/character/Berse
 const berserkerBartzWalkingFrames = import.meta.glob('../../assets/character/Berserker_Bartz/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const berserkerBartzAttackFrames = import.meta.glob('../../assets/character/Berserker_Bartz/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
-const sageCypherIdleSprites = import.meta.glob('../../assets/character/Sage_Cypher/rotations/*.png', { eager: true, query: '?url', import: 'default' });
-const sageCypherWalkingFrames = import.meta.glob('../../assets/character/Sage_Cypher/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const sageCypherAttackFrames = import.meta.glob('../../assets/character/Sage_Cypher/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const sageCypherStaffFrames = import.meta.glob('../../assets/character/Sage_Cypher/animations/Staff/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
 const killianIdleSprites = import.meta.glob('../../assets/character/Killian/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const killianWalkingFrames = import.meta.glob('../../assets/character/Killian/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -500,7 +499,7 @@ export async function loadCharacterSprites() {
   result.bartzWalkingFrames = bartzData.walking;
   result.bartzAttackFrames = bartzData.attacking;
 
-  const cypherData = await loadCharacterWithAllAnimations('Cypher', cypherIdleSprites, cypherWalkingFrames, cypherAttackFrames);
+  const cypherData = await loadCharacterWithAllAnimations('Cyrus', cypherIdleSprites, cypherWalkingFrames, cypherAttackFrames);
   result.cypher = cypherData.idle;
   result.cypherWalkingFrames = cypherData.walking;
   result.cypherAttackFrames = cypherData.attacking;
@@ -531,6 +530,7 @@ export async function loadCharacterSprites() {
     ['darkSageCorvis', 'Dark_Sage_Corvis', darkSageCorvisIdleSprites, darkSageCorvisWalkingFrames, darkSageCorvisAttackFrames],
     ['bloodBeast', 'Blood_Beast', bloodBeastIdleSprites, bloodBeastWalkingFrames, bloodBeastAttackFrames],
     ['raven', 'Raven', ravenIdleSprites, ravenWalkingFrames, ravenAttackFrames],
+    ['crowman', 'Crowman', crowmanIdleSprites, crowmanWalkingFrames, crowmanAttackFrames],
     ['genericKnight', 'Generic_Knight', genericKnightIdleSprites, genericKnightWalkingFrames, genericKnightAttackFrames],
     ['genericCavalier', 'Generic_cavalier', genericCavalierIdleSprites, genericCavalierWalkingFrames, genericCavalierAttackFrames],
     ['linus', 'Linus', linusIdleSprites, linusWalkingFrames, linusAttackFrames],
@@ -628,13 +628,11 @@ export async function loadCharacterSprites() {
   result.berserkerBartzWalkingFrames = berserkerBartzData.walking;
   result.berserkerBartzAttackFrames = berserkerBartzData.attacking;
 
-  const sageCypherData = await loadCharacterWithAllAnimations('Sage_Cypher', sageCypherIdleSprites, sageCypherWalkingFrames, sageCypherAttackFrames);
-  result.sageCypher = sageCypherData.idle;
-  result.sageCypherWalkingFrames = sageCypherData.walking;
-  result.sageCypherAttackFrames = sageCypherData.attacking;
-  // Staff casting animation, for use once staff weapons exist.
-  const sageCypherStaffData = await loadCharacterWithAllAnimations('Sage_Cypher_Staff', sageCypherIdleSprites, sageCypherWalkingFrames, sageCypherStaffFrames);
-  result.sageCypherStaffFrames = sageCypherStaffData.attacking;
+  // Promotion retains Cyrus's Survey field clothes and the same projectile-free casting gesture.
+  result.sageCypher = cypherData.idle;
+  result.sageCypherWalkingFrames = cypherData.walking;
+  result.sageCypherAttackFrames = cypherData.attacking;
+  result.sageCypherStaffFrames = cypherData.attacking;
 
   return result;
 }

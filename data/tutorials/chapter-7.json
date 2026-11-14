@@ -25,7 +25,9 @@
         "kicker": "Warning",
         "title": "Something Hunts Behind You",
         "paragraphs": [
-          "The wood is not empty. If you linger, wolves will pour out of the northern trees on turns 3 and 5.",
+          "The wood is not empty. If you linger, wolves will close in from the trails behind you on turns 3 and 5, and carrion ravens will circle in over the canopy after them.",
+          "Ravens fly over walls and brush alike. Bows and Wind magic strike flying units for heavy damage, and a Hunter Bow bites deeper still into beasts.",
+          "Listen to the crows. They have followed Maria since the Hollow Wood, and something follows them. Do not let this camp hold you for long.",
           "A stranger watches the camp from the trees. If he lives long enough, he may have a reason to walk with you."
         ],
         "button": "Enter the Camp"
@@ -52,6 +54,33 @@
           "Archers are highly accurate. At level 20 with an Orders Emblem, Stark promotes to Sniper."
         ],
         "button": "Continue"
+      }
+    ]
+  },
+  "crowOmen": {
+    "pages": [
+      {
+        "kicker": "Turn 9",
+        "title": "The Crows Fall Silent",
+        "paragraphs": [
+          "Every crow in the wood stops at once. The quiet that follows is worse than the calling.",
+          "Somewhere to the west, branches part for something heavy that is not a wolf. It is following Maria's scent the way the ravens did, and it is close.",
+          "If Orsen still stands in two turns, it will reach the camp. Finish this, or prepare to run."
+        ],
+        "button": "Keep Moving"
+      }
+    ]
+  },
+  "crowmanArrival": {
+    "pages": [
+      {
+        "kicker": "Warning",
+        "title": "The Omen",
+        "paragraphs": [
+          "Maria, something ominous is following you. It ignores the others. Every step brings it closer.",
+          "Do not turn back. Finish the battle and leave this place."
+        ],
+        "button": "Keep Moving"
       }
     ]
   }

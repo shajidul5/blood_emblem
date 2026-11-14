@@ -32,7 +32,7 @@ export function infirmaryActions(level, unit, units) {
     });
   }
   if (!rules.ledger.collected && adjacent(unit, rules.ledger)) {
-    actions.push({ id: rules.ledger.id, kind: 'ledger', target: rules.ledger, name: 'Recover Treatment Ledger', exp: rules.interactionExp, insight: 5 });
+    actions.push({ id: rules.ledger.id, kind: 'ledger', target: rules.ledger, name: 'Recover Treatment Ledger', exp: rules.interactionExp, insight: 10 });
   }
   for (const patient of rules.patients) {
     if (!patient.rescued && adjacent(unit, patient)) {

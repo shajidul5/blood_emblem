@@ -32,6 +32,23 @@ function buildDefinition(entry) {
 }
 
 export const TILE_DEFS = new Map(shipTileset.tiles.list.map((entry) => [entry.id, buildDefinition(entry)]));
+for (const [id, name, walkable, extras] of [
+  ['ship_deck', 'Weathered Deck', true, {}],
+  ['ship_steps', 'Quarterdeck Steps', true, { avoid: 20 }],
+  ['ship_gangway', 'Boarding Gangway', true, {}],
+  ['ship_obstacle', 'Ship Fittings / Cargo', false, {}],
+  ['ship_rail', 'Hull / Railing', false, {}],
+  ['village_path', 'Village Lane', true, {}],
+  ['village_block', 'Building / Shore / Fittings', false, {}],
+  ['manor_floor', 'Manor Floor', true, {}],
+  ['manor_block', 'Manor Wall / Furnishings', false, {}],
+  ['manor_stairs', 'Manor Stairs', true, { avoid: 20 }],
+  ['forest_trail', 'Hunting Trail', true, {}],
+  ['forest_undergrowth', 'Dense Undergrowth', true, { avoid: 20, defense: 2, moveCost: 2 }],
+  ['forest_thicket', 'Bramble Thicket', true, { avoid: 30, moveCost: 2 }],
+  ['forest_bridge', 'Log Footbridge', true, {}],
+  ['forest_block', 'Dense Forest / Channel', false, {}],
+]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...extras }));
 for (const [id, name, walkable, bonuses] of [
   ['cathedral_floor', 'Cathedral Marble', true, {}],
   ['cathedral_carpet', 'Processional Carpet', true, {}],

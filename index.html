@@ -149,6 +149,32 @@
         opacity: 0; transition: opacity 180ms ease;
       }
       #exp-panel.gaining #exp-gain { margin-top: 3px; opacity: 1; }
+      #exp-title, #exp-unit, #exp-portrait { display: none; }
+      #exp-panel.gaining {
+        position: fixed; z-index: 20; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        width: min(460px, calc(100vw - 32px)); padding: 18px 22px;
+        border: 24px solid transparent; border-image: url('./assets/ui/gothic_panel.png') 44 fill / 24px stretch;
+        border-radius: 0; background: transparent; text-align: center;
+        box-shadow: 0 0 0 100vmax #05080db3; font-family: Georgia, serif;
+      }
+      #exp-panel.gaining #exp-title {
+        display: block; color: #b7ac92; font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+      }
+      #exp-panel.gaining #exp-unit { display: block; color: #f0dfb8; font-size: 26px; margin: 4px 0 10px; }
+      #exp-panel.gaining #exp-portrait:not([hidden]) {
+        display: block; width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated; margin: 0 auto 6px;
+      }
+      #exp-panel.gaining #exp-label { font: bold 16px/1.5 ui-monospace, Consolas, monospace; color: #fff1cf; }
+      #exp-panel.gaining #exp-track {
+        height: 18px; margin-top: 12px; border: 2px solid #8e815e; border-radius: 0; background: #10191c;
+        box-shadow: inset 0 2px 6px #000;
+      }
+      #exp-panel.gaining #exp-fill {
+        background: repeating-linear-gradient(90deg, transparent 0, transparent calc(10% - 1px), #10191c 10%),
+          linear-gradient(#e9f4b4, #9bce83 45%, #52866d 50%, #7bab7c);
+        box-shadow: inset 0 1px #fff9;
+      }
+      #exp-panel.gaining #exp-gain { margin-top: 12px; font-size: 18px; font-weight: bold; color: #dcedb0; }
       #action-panel {
         left: 28px; bottom: 28px; display: grid; gap: 10px; width: 250px; box-sizing: border-box;
         padding: 18px 16px 16px; border: 1px solid #5c4a3a; border-radius: 2px;
@@ -188,76 +214,181 @@
       #action-panel button:disabled:hover { padding-left: 12px; background: transparent; border-color: transparent; box-shadow: none; }
       #action-panel #action-help { color: #8f8470; font: italic 12px/1.4 Georgia, serif; }
       #profile-dialog {
-        width: min(600px, calc(100% - 48px)); max-height: min(88vh, 780px); overflow: auto; box-sizing: border-box;
-        padding: 22px 24px; border: 1px solid #5c4a3a; border-radius: 2px;
-        background:
-          linear-gradient(180deg, rgba(60, 14, 20, .45), rgba(10, 6, 8, 0) 30%),
-          radial-gradient(120% 90% at 50% 0%, #1d1214 0%, #0a0708 70%);
-        color: #cdbfa6; font: 14px/1.4 Georgia, "Times New Roman", serif;
-        box-shadow: 0 0 0 1px #000, 0 0 0 3px #1a1210, 0 0 0 4px #4a3a2c, 0 24px 70px #000e, inset 0 0 40px #000a;
+        width: min(640px, calc(100% - 32px)); height: min(88vh, 700px); box-sizing: border-box; overflow: hidden;
+        flex-direction: column; color: #d9d3c7; font: 14px/1.4 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
       }
-      #profile-dialog[open] { animation: level-up-in 260ms cubic-bezier(.2, .8, .2, 1); }
-      #profile-dialog::backdrop { background: rgba(2, 1, 3, .82); }
-      #profile-dialog .profile-header {
-        display: flex; align-items: center; gap: 18px;
-        margin-bottom: 18px; padding-bottom: 16px;
-        background: linear-gradient(90deg, #8a2430, transparent 85%) bottom / 100% 1px no-repeat;
-      }
-      #profile-dialog .profile-portrait-frame {
-        flex: none; width: 96px; height: 112px; display: grid; place-items: end center;
-        border: 1px solid #5c4a3a; outline: 1px solid #000; outline-offset: -2px;
-        background: radial-gradient(90% 70% at 50% 85%, rgba(139, 26, 38, .45), rgba(10, 6, 8, .95) 75%);
-        box-shadow: inset 0 0 18px #000, 0 0 0 2px #1a1210;
-      }
-      #profile-portrait { width: 88px; height: 104px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 4px 6px #000); }
-      #profile-dialog .profile-title { flex: 1; min-width: 0; }
+      #profile-dialog[open] { display: flex; animation: level-up-in 260ms cubic-bezier(.2, .8, .2, 1); }
       #profile-dialog h2, #profile-dialog h3 { margin: 0; }
+      #profile-dialog .profile-header { display: flex; align-items: center; gap: 16px; padding: 4px 4px 14px; }
+      #profile-dialog .profile-portrait-frame {
+        flex: none; width: 92px; height: 104px; display: grid; place-items: end center; position: relative;
+        border: 1px solid #4a3f38; outline: 1px solid #000; outline-offset: -3px;
+        background: radial-gradient(90% 70% at 50% 85%, rgba(139, 26, 38, .55), rgba(10, 6, 8, .96) 75%);
+        box-shadow: inset 0 0 18px #000, 0 0 0 2px #121012, 0 0 14px rgba(139, 26, 38, .35);
+      }
+      #profile-portrait { width: 84px; height: 98px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 4px 6px #000); }
+      #profile-dialog .profile-title { flex: 1; min-width: 0; display: grid; gap: 4px; }
+      #profile-dialog .profile-name-row { display: flex; align-items: baseline; gap: 12px; }
       #profile-dialog h2 {
-        color: #c9a45c; font-size: 24px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase;
-        text-shadow: 0 0 12px #7a1c24;
+        overflow: hidden; color: #e6d3a3; font-size: 24px; font-weight: normal; letter-spacing: 5px; text-transform: uppercase;
+        text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 0 10px rgba(158, 34, 34, .8), 2px 2px 0 #000;
       }
+      #profile-level { flex: none; color: #c9a45c; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+      #profile-class { color: #c43a3a; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+      #profile-vitals { display: grid; gap: 5px; margin-top: 4px; }
+      .profile-vital { display: grid; grid-template-columns: 34px 1fr 64px; align-items: center; gap: 8px; }
+      .profile-vital-label { color: #8d887f; font-size: 11px; letter-spacing: 2px; }
+      .profile-vital-value { color: #d9d3c7; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+      .profile-bar {
+        position: relative; height: 8px; overflow: hidden; border: 1px solid #000;
+        background: linear-gradient(#0b0a0c, #1a181b); box-shadow: 0 0 0 1px #3b3438, inset 0 1px 2px #000;
+      }
+      .profile-bar-fill {
+        height: 100%; background: linear-gradient(#e0c78c, #a07c3a 55%, #6d5022);
+        box-shadow: inset 0 1px 0 #ffffff40; transition: width .35s cubic-bezier(.2, .8, .2, 1);
+      }
+      .profile-bar.hp .profile-bar-fill { background: linear-gradient(#e46a5a, #a51f24 55%, #5e0f13); }
+      .profile-bar.exp .profile-bar-fill { background: linear-gradient(#8fb0e0, #3d5f9c 55%, #22355e); }
+      .profile-bar.mastered .profile-bar-fill { background: linear-gradient(#f3dc94, #c9a45c 55%, #7d5d22); box-shadow: 0 0 8px #c9a45c; }
+      #profile-dialog #close-profile {
+        flex: none; align-self: flex-start; width: 34px; height: 34px; padding: 0; font-size: 16px; line-height: 1;
+      }
+      #profile-dialog .profile-tabs {
+        display: flex; gap: 2px; padding: 0 4px; border-bottom: 1px solid #5a2a2c;
+        box-shadow: 0 1px 0 #000;
+      }
+      #profile-dialog .profile-tabs button[role="tab"] {
+        flex: 1; padding: 9px 6px 8px; border: 1px solid #2c2a2e; border-bottom: 0; clip-path: none;
+        background: linear-gradient(#1d1b1f, #111012); color: #8d887f; font-size: 12px; letter-spacing: 3px;
+        box-shadow: none; transition: color .15s, background .15s;
+      }
+      #profile-dialog .profile-tabs button[role="tab"]:hover:not([aria-selected="true"]),
+      #profile-dialog .profile-tabs button[role="tab"]:focus-visible:not([aria-selected="true"]) {
+        border-color: #3d2a2c; color: #d9d3c7; background: linear-gradient(#2a1a1c, #141113);
+      }
+      #profile-dialog .profile-tabs button[role="tab"][aria-selected="true"] {
+        position: relative; border-color: #6e2a2e; color: #f1dfb2;
+        background: linear-gradient(rgba(158, 34, 34, .55), rgba(60, 12, 16, .7) 70%, #160d0f);
+        text-shadow: 0 0 8px rgba(196, 58, 58, .9);
+      }
+      #profile-dialog .profile-tabs button[role="tab"][aria-selected="true"]::after {
+        content: ''; position: absolute; left: 12%; right: 12%; bottom: -1px; height: 2px;
+        background: linear-gradient(90deg, transparent, #c9a45c, transparent);
+      }
+      #profile-dialog .profile-tabs .profile-key {
+        flex: none; align-self: center; width: 24px; height: 22px; margin: 0 4px 4px; padding: 0; clip-path: none;
+        border: 1px solid #45454a; border-bottom-width: 3px; background: linear-gradient(#2c2c30, #151517);
+        color: #8d887f; font-size: 11px; letter-spacing: 0;
+      }
+      #profile-dialog .profile-panel {
+        flex: 1; min-height: 0; overflow-y: auto; margin-bottom: 26px; padding: 14px 6px 6px;
+        scrollbar-color: #4a4a50 #17171a; scrollbar-width: thin;
+      }
+      #profile-dialog .profile-panel[hidden] { display: none; }
       #profile-dialog h3 {
-        margin: 18px 0 8px; padding-bottom: 6px; color: #c9a45c; font-size: 13px; font-weight: 400;
+        margin: 16px 0 8px; padding-bottom: 5px; color: #c9a45c; font-size: 12px; font-weight: normal;
         letter-spacing: 4px; text-transform: uppercase;
-        background: linear-gradient(90deg, #5c4a3a, transparent) bottom / 100% 1px no-repeat;
+        background: linear-gradient(90deg, #6e2a2e, transparent) bottom / 100% 1px no-repeat;
       }
-      #profile-class { margin-top: 4px; color: #b8323f; letter-spacing: 3px; text-transform: uppercase; font-size: 12px; }
-      #profile-level { margin-top: 2px; color: #8f8470; letter-spacing: 2px; font-size: 12px; }
-      #profile-dialog button {
-        border: 1px solid #4a3a2c; border-radius: 0; background: transparent; align-self: flex-start;
-        color: #cdbfa6; padding: 6px 12px; font: 12px Georgia, serif; letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
-        transition: background .15s, color .15s;
+      #profile-dialog .profile-panel > h3:first-child { margin-top: 0; }
+      .profile-stat-legend, .profile-stat {
+        display: grid; grid-template-columns: 112px 40px 1fr 48px; align-items: center; gap: 12px;
       }
-      #profile-dialog button:hover, #profile-dialog button:focus-visible {
-        outline: none; color: #f3e3bd; border-color: #b8323f;
-        background: linear-gradient(90deg, rgba(139, 26, 38, .15), rgba(139, 26, 38, .6), rgba(139, 26, 38, .15));
+      .profile-stat-legend { padding: 0 8px 6px; color: #6e6a63; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+      .profile-stat-legend span:nth-child(2), .profile-stat-legend span:last-child { text-align: right; }
+      #profile-stats { display: grid; gap: 2px; }
+      .profile-stat { padding: 3px 8px; background: linear-gradient(90deg, rgba(0, 0, 0, .35), transparent); border-left: 2px solid #3a1d20; }
+      .profile-stat:nth-child(odd) { background: linear-gradient(90deg, rgba(90, 20, 26, .2), transparent); }
+      .profile-stat-name { color: #b9b2a5; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+      .profile-stat-value { color: #f1e6cc; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+      .profile-stat-value[title] { color: #e6d3a3; }
+      .profile-stat-growth { color: #8d887f; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+      #profile-combat, .profile-weapon-stats { display: grid; gap: 6px; margin: 0; }
+      #profile-combat { grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); }
+      .profile-weapon-stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      #profile-combat > div, .profile-weapon-stats > div {
+        padding: 6px 10px; border: 1px solid #2c2a2e; border-left: 2px solid #8a2430;
+        background: linear-gradient(90deg, rgba(139, 26, 38, .14), transparent);
       }
-      #profile-dialog table { width: 100%; border-collapse: collapse; text-align: right; }
-      #profile-dialog th, #profile-dialog td {
-        padding: 6px 8px; border-bottom: 1px solid rgba(92, 74, 58, .45); white-space: nowrap;
+      #profile-combat dt, .profile-weapon-stats dt { color: #8d887f; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+      #profile-combat dd, .profile-weapon-stats dd { margin: 2px 0 0; color: #f1e6cc; font-variant-numeric: tabular-nums; }
+      .profile-formulas { margin-top: 12px; padding-left: 14px; color: #8d887f; font-size: 12px; }
+      .profile-formulas summary { cursor: pointer; letter-spacing: 2px; text-transform: uppercase; font-size: 11px; }
+      .profile-formulas summary:hover { color: #d9d3c7; }
+      .profile-formulas p { margin: 6px 0 0; font-style: italic; line-height: 1.5; }
+      .profile-icon {
+        flex: none; display: grid; place-items: center; width: 40px; height: 40px;
+        border: 1px solid #3b3b40; background: radial-gradient(circle, #2a1c1f, #0d0c0e 75%); box-shadow: inset 0 0 8px #000;
       }
-      #profile-dialog thead { color: #8f8470; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
-      #profile-dialog thead th { font-weight: 400; }
-      #profile-dialog tbody th { text-align: left; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; font-size: 13px; }
-      #profile-dialog tbody td { font-variant-numeric: tabular-nums; }
-      #profile-dialog tbody td:nth-child(3) { color: #e8dcc2; font-weight: 700; }
+      .profile-icon img { width: 32px; height: 32px; image-rendering: pixelated; }
       #profile-weapon {
-        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0;
+        display: grid; gap: 10px; padding: 12px; border: 1px solid #3b2a2c;
+        background: linear-gradient(135deg, rgba(139, 26, 38, .22), rgba(0, 0, 0, .4) 60%);
+        box-shadow: inset 0 0 20px #000a;
       }
-      #profile-weapon > div {
-        padding: 8px 10px; border: 1px solid #3a2d26; border-left: 2px solid #8a2430;
-        background: linear-gradient(90deg, rgba(139, 26, 38, .12), transparent);
+      .profile-weapon-title { display: flex; align-items: center; gap: 12px; }
+      .profile-weapon-title .profile-icon { width: 52px; height: 52px; }
+      .profile-weapon-title .profile-icon img { width: 44px; height: 44px; }
+      .profile-weapon-name { display: grid; gap: 2px; }
+      .profile-weapon-name strong { color: #f1dfb2; font-size: 18px; font-weight: normal; letter-spacing: 2px; }
+      .profile-weapon-name span { color: #8d887f; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+      .profile-weapon-effect { margin: 0; color: #e2c582; font-size: 12px; }
+      #profile-dialog .item-list li {
+        border: 0; border-radius: 0; border-bottom: 1px solid #2c2a2e; padding: 8px 6px;
+        background: linear-gradient(90deg, rgba(0, 0, 0, .35), transparent);
       }
-      #profile-weapon dt { color: #8f8470; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
-      #profile-weapon dd { margin: 2px 0 0; color: #e8dcc2; }
-      #profile-weapon .weapon-name { display: flex; align-items: center; gap: 6px; }
-      #profile-weapon .weapon-name img { width: 24px; height: 24px; image-rendering: pixelated; }
-      #profile-combat-note { margin: 12px 0 0; color: #8f8470; font-style: italic; font-size: 12px; }
-      #profile-enemy-inventory[hidden] { display: none; }
-      #profile-enemy-inventory h3 { margin: 14px 0 8px; }
-      #profile-enemy-items li { color: #e8dcc2; }
-      #profile-enemy-items li > span { color: #c9a35a; }
-      #profile-enemy-note { margin: 8px 0 0; color: #8f8470; font-size: 12px; }
+      #profile-dialog .item-list li .item-icon { border-color: #3b3b40; border-radius: 0; background: #121214; }
+      #profile-dialog .item-list li .item-info span { color: #a9a296; font-size: 12px; }
+      #profile-dialog .item-list li strong { color: #f1e6cc; font-weight: normal; letter-spacing: 1px; }
+      #profile-dialog .item-list li .item-info .item-effect { color: #c9a66b; }
+      #profile-dialog .item-list li > .profile-tag { flex: none; }
+      #profile-dialog .profile-tag {
+        padding: 2px 8px; border: 1px solid #45454a; color: #8d887f; font-size: 10px; font-style: normal;
+        letter-spacing: 2px; text-transform: uppercase; white-space: nowrap;
+      }
+      #profile-dialog .profile-tag.active { border-color: #8a2430; color: #f1dfb2; background: rgba(139, 26, 38, .35); }
+      #profile-dialog .profile-tag.warn { border-color: #5c4a2a; color: #c9a45c; }
+      #profile-items-empty, #profile-weapon-levels-empty, #profile-inventory-note, #profile-weapon-note {
+        color: #8d887f; font-size: 12px; font-style: italic;
+      }
+      #profile-items-empty, #profile-weapon-levels-empty { margin: 4px 0; }
+      #profile-inventory-note, #profile-weapon-note { margin: 12px 0 0; }
+      #profile-weapon-levels { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+      .profile-weapon-level {
+        display: grid; grid-template-columns: 40px minmax(0, 1fr) 44px; grid-template-areas: 'icon name rank' 'icon progress rank';
+        align-items: center; column-gap: 12px; row-gap: 6px; padding: 10px 12px;
+        border: 1px solid #2c2a2e; border-left: 2px solid #3a1d20;
+        background: linear-gradient(90deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .1));
+      }
+      .profile-weapon-level.equipped {
+        border-color: #4a2a2c; border-left-color: #c43a3a;
+        background: linear-gradient(90deg, rgba(139, 26, 38, .3), rgba(0, 0, 0, .15));
+      }
+      .profile-weapon-level.unusable { opacity: .55; }
+      .profile-weapon-level > .profile-icon { grid-area: icon; }
+      .profile-weapon-level-name { grid-area: name; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .profile-weapon-level-name strong {
+        display: flex; align-items: center; gap: 8px; color: #f1e6cc; font-weight: normal; letter-spacing: 3px; text-transform: uppercase;
+      }
+      .profile-weapon-level-name > span { color: #8d887f; font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
+      .profile-weapon-level-progress { grid-area: progress; display: grid; gap: 5px; }
+      .profile-rank-pips { display: flex; gap: 3px; }
+      .profile-rank-pips span {
+        flex: 1; padding: 1px 0; border: 1px solid #2c2a2e; color: #4d4a46; font-size: 9px; text-align: center; letter-spacing: 1px;
+        background: #0e0d0f;
+      }
+      .profile-rank-pips span.reached { border-color: #5a2a2c; color: #c9a45c; background: linear-gradient(#2a1416, #160c0e); }
+      .profile-rank-pips span.current { border-color: #c43a3a; color: #fff; background: linear-gradient(#8a2430, #4a1218); }
+      .profile-weapon-level-meter { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; }
+      .profile-weapon-level-exp { min-width: 74px; color: #b9b2a5; font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+      .profile-rank {
+        grid-area: rank; display: grid; place-items: center; width: 44px; height: 44px;
+        border: 1px solid #45454a; color: #d9d3c7; font-size: 24px; text-shadow: 2px 2px 0 #000;
+        background: radial-gradient(circle, #2a2a2e, #0e0e10 75%); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      }
+      .profile-rank.rank-C, .profile-rank.rank-B { color: #e6d3a3; background: radial-gradient(circle, #4a2a20, #120c0c 75%); }
+      .profile-rank.rank-A { color: #ffd0c0; background: radial-gradient(circle, #8a2430, #1a0a0c 75%); }
+      .profile-rank.rank-S { color: #fff3c8; background: radial-gradient(circle, #c9a45c, #4a1218 70%); text-shadow: 0 0 8px #c43a3a, 2px 2px 0 #000; }
       #inventory-dialog {
         width: min(540px, calc(100% - 48px)); padding: 20px;
         border: 1px solid #76647a; border-radius: 9px; background: #100c14;
@@ -298,12 +429,6 @@
       }
       #trade-dialog::backdrop, #heal-dialog::backdrop { background: rgba(4, 2, 8, .78); }
       #trade-dialog h2, #heal-dialog h2 { margin: 0; color: #e2c582; font-size: 19px; }
-      .trade-columns[hidden] { display: none; }
-      .trade-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      .trade-columns .item-list li { flex-direction: column; align-items: stretch; }
-      #trade-partners { display: flex; gap: 8px; margin: 12px 0; }
-      #trade-note { margin: 12px 0 0; font-size: 12px; }
-      #trade-close { margin-top: 12px; }
       #inventory-dialog button, #trade-dialog button, #heal-dialog button {
         border: 1px solid #655467; border-radius: 5px; background: #211a27;
         color: #f1e9e3; padding: 7px 10px; font: inherit; cursor: pointer;
@@ -362,8 +487,9 @@
       #combat-forecast button:hover, #combat-forecast button:focus-visible { border-color: #e2c582; }
       @media (max-width: 520px) {
         #profile-dialog { padding: 14px; }
-        #profile-dialog th, #profile-dialog td { padding: 5px 3px; font-size: 11px; }
-        #profile-weapon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .profile-stat-legend, .profile-stat { grid-template-columns: 84px 32px 1fr 40px; gap: 8px; }
+        .profile-weapon-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .profile-weapon-level-name { flex-direction: column; gap: 2px; }
         #combat-forecast { padding: 14px; }
         #combat-forecast-panels { grid-template-columns: 1fr; }
       }
@@ -448,6 +574,10 @@
       .prep-body { max-height: 52vh; overflow-y: auto; padding-right: 4px; scrollbar-color: #4a4a50 transparent; }
       .prep-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
       .prep-pips { color: var(--blood); letter-spacing: 3px; }
+      #prep-dialog .prep-emblem-tier { margin-left: 26px; border-left: 2px solid #7a1b2366; padding-left: 10px; }
+      #prep-dialog .prep-emblem-tier .item-icon { transform: scale(.75); }
+      #prep-dialog .prep-emblem-tier.locked .item-icon { filter: grayscale(1) brightness(.6); }
+      #prep-dialog .prep-emblem-tier.locked strong { opacity: .7; }
       #prep-dialog .prep-star { color: #c9a66b; font-size: 30px; line-height: 32px; text-align: center; text-shadow: 0 0 8px #c9a66b66; }
       .prep-note { margin: 10px 0; color: var(--ash); font-size: 13px; font-style: italic; min-height: 1.4em; }
       .prep-flash { color: #c9a66b; }
@@ -854,6 +984,63 @@
         border: 0; border-radius: 0; border-bottom: 1px solid #333338; background: linear-gradient(90deg, #0000004d, transparent);
       }
       :is(#inventory-dialog, #trade-dialog, #heal-dialog) .item-list li .item-icon { border-color: #3b3b40; border-radius: 0; background: #121214; }
+      /* Fire Emblem style trade: fixed slots per unit, pick an item then a destination slot. */
+      #trade-dialog { width: min(600px, calc(100% - 24px)); padding: 10px 10px 8px; font: 13px/1.3 var(--g-font); }
+      #trade-dialog h2 { margin: 0 0 8px; font-size: 15px; text-align: center; }
+      #trade-partners { display: flex; justify-content: center; gap: 6px; margin: 0 0 8px; }
+      #trade-partners button { padding: 4px 12px; font-size: 11px; }
+      #trade-partners button:disabled { opacity: 1; border-color: var(--g-blood); color: #fff; background: linear-gradient(#5a1a1e, #2a0c0e); }
+      #trade-dialog .trade-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      #trade-dialog .trade-columns[hidden] { display: none; }
+      #trade-dialog .trade-owner {
+        display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 0 4px 4px;
+        border-bottom: 1px solid #5a2a2c;
+      }
+      #trade-dialog .trade-owner img { width: 28px; height: 32px; object-fit: contain; image-rendering: pixelated; }
+      #trade-dialog .trade-owner img:not([src]) { visibility: hidden; }
+      #trade-dialog .trade-owner h3 {
+        flex: 1; margin: 0; color: #e6d3a3; font-size: 13px; letter-spacing: 3px;
+        text-shadow: 0 0 6px rgba(158, 34, 34, .8), 1px 1px 0 #000;
+      }
+      #trade-left-capacity, #trade-right-capacity { margin: 0; color: var(--g-ash); font-size: 11px; font-variant-numeric: tabular-nums; }
+      #trade-dialog .trade-slots { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+      #trade-dialog .trade-slot {
+        display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; column-gap: 8px;
+        width: 100%; min-height: 40px; padding: 3px 8px 3px 4px; clip-path: none; text-align: left; text-transform: none;
+        letter-spacing: 0; border: 1px solid transparent; background: linear-gradient(90deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .15));
+        box-shadow: none; transition: background .12s, border-color .12s;
+      }
+      #trade-dialog .trade-slot img { width: 28px; height: 28px; image-rendering: pixelated; }
+      #trade-dialog .trade-slot .trade-slot-icon { width: 28px; height: 28px; background: #121214; box-shadow: inset 0 0 0 1px #2c2c30; }
+      #trade-dialog .trade-slot .trade-slot-text { display: grid; min-width: 0; }
+      #trade-dialog .trade-slot strong {
+        overflow: hidden; color: var(--g-bone); font-weight: normal; letter-spacing: 1px; text-overflow: ellipsis; white-space: nowrap;
+      }
+      #trade-dialog .trade-slot small {
+        overflow: hidden; color: var(--g-ash); font-size: 11px; text-overflow: ellipsis; white-space: nowrap;
+      }
+      #trade-dialog .trade-slot .trade-slot-uses { color: #c9bd9c; font-size: 12px; font-variant-numeric: tabular-nums; }
+      #trade-dialog .trade-slot .trade-equipped {
+        display: inline-block; margin-left: 6px; padding: 0 4px; border: 1px solid #8a2430; color: #f1dfb2;
+        font-size: 9px; letter-spacing: 1px; vertical-align: 2px; background: rgba(139, 26, 38, .4);
+      }
+      #trade-dialog .trade-slot.empty { grid-template-columns: 1fr; justify-items: center; color: #4d4a46; font-size: 11px; letter-spacing: 3px; }
+      #trade-dialog .trade-slot.held {
+        border-color: #c9a45c; background: linear-gradient(90deg, rgba(201, 164, 92, .28), rgba(139, 26, 38, .2));
+        box-shadow: inset 3px 0 0 #c9a45c;
+      }
+      #trade-dialog .trade-slot.target { border-color: #45454a; border-style: dashed; }
+      #trade-dialog .trade-slot.empty.target { color: #c9a45c; }
+      #trade-dialog .trade-slot:is(:hover, :focus-visible):not(:disabled) {
+        border-color: var(--g-blood); border-style: solid; background: linear-gradient(90deg, rgba(158, 34, 34, .45), rgba(0, 0, 0, .2));
+      }
+      #trade-dialog .trade-slot:disabled { opacity: 1; cursor: default; }
+      #trade-dialog .trade-slot.locked:disabled { opacity: .45; }
+      #trade-dialog .trade-footer { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+      #trade-note { flex: 1; min-height: 2.6em; margin: 0; color: var(--g-ash); font-size: 12px; font-style: italic; line-height: 1.3; }
+      #trade-note strong { color: #e6d3a3; font-style: normal; font-weight: normal; }
+      #trade-close { flex: none; padding: 6px 16px; }
+      @media (max-width: 520px) { #trade-dialog .trade-columns { grid-template-columns: 1fr; } }
       #unit-list-dialog th { background: #1a1a1d; color: var(--g-ash); }
       #unit-list-dialog th, #unit-list-dialog td { border-color: #333338; }
       .forecast-side { border-radius: 0; }
@@ -861,6 +1048,50 @@
       .forecast-side.enemy { border-color: #8a3030; background: linear-gradient(180deg, #2e1a1a, #1a1010); }
       .forecast-side.player h3 { color: #9fb6cc; }
       .forecast-side.enemy h3 { color: #d98a86; }
+      #combat-forecast { box-sizing: border-box; width: min(720px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; }
+      #combat-forecast h2 { text-align: center; font-size: 20px; letter-spacing: 3px; }
+      #combat-forecast #combat-forecast-matchup { text-align: center; color: #c9bd9c; font-size: 13px; font-style: normal; margin: 10px 0 18px; }
+      #combat-forecast-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+      .forecast-side { min-width: 0; padding: 16px; border: 1px solid #596167; box-shadow: inset 0 1px #ffffff12; }
+      .forecast-side.player { background: linear-gradient(150deg, #293238, #141b20); border-top: 3px solid #91b3c2; }
+      .forecast-side.enemy { background: linear-gradient(150deg, #3b2b2b, #201517); border-top: 3px solid #c17d71; }
+      .forecast-unit { display: flex; align-items: center; gap: 10px; min-height: 66px; }
+      .forecast-unit > div { min-width: 0; overflow-wrap: anywhere; }
+      .forecast-portrait { width: 60px; height: 64px; object-fit: contain; image-rendering: pixelated; flex: none; }
+      .forecast-allegiance { color: #b4a893; font: 10px/1.5 var(--g-font); text-transform: uppercase; letter-spacing: 2px; }
+      .forecast-side h3 { font: bold 21px/1.15 var(--g-font); margin: 4px 0; }
+      .forecast-side .forecast-class { font-size: 12px; color: #c8c0af; }
+      .forecast-health { margin: 14px 0 12px; }
+      .forecast-hp-value { font: bold 14px ui-monospace, Consolas, monospace; color: #f0eadc; }
+      .forecast-hp-track { height: 7px; background: #080e10; border: 1px solid #666451; margin-top: 6px; }
+      .forecast-hp-track span { display: block; height: 100%; background: linear-gradient(#cae6a1, #649176); }
+      .forecast-side.enemy .forecast-hp-track span { background: linear-gradient(#e7ae94, #a35957); }
+      .forecast-weapon { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 8px 0; border-top: 1px solid #ffffff1c; border-bottom: 1px solid #ffffff1c; color: #e8d7b6; }
+      .forecast-weapon img { width: 28px; height: 28px; object-fit: contain; image-rendering: pixelated; }
+      .forecast-weapon span { overflow-wrap: anywhere; }
+      .forecast-side dl { margin: 12px 0 0; align-items: baseline; gap: 8px 12px; font-size: 14px; }
+      .forecast-side dt { color: #c9c0af; }
+      .forecast-side dd { color: #f5efdf; font: bold 18px ui-monospace, Consolas, monospace; }
+      .forecast-side dd.forecast-damage { color: #f1d49a; font-size: 25px; }
+      #combat-forecast .forecast-side p { font-style: normal; }
+      #combat-forecast .forecast-side .forecast-total { color: #bcb3a1; font-size: 11px; margin: 12px 0 0; }
+      #combat-forecast .forecast-side .forecast-note { color: #e1b5a3; font-size: 12px; margin: 10px 0 0; }
+      .forecast-effective, .forecast-drain { margin-top: 10px; font-size: 12px; color: #d5e6a8; }
+      #combat-forecast .forecast-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      #combat-forecast .forecast-actions button { min-height: 44px; }
+      #combat-forecast #confirm-combat { border-color: #b8945e; color: #f4dfb1; background: linear-gradient(#493b2c, #29211c); }
+      @media (max-width: 520px) {
+        #combat-forecast { border-width: 18px; border-image-width: 18px; padding: 10px 6px; }
+        #combat-forecast-panels { gap: 8px; }
+        .forecast-side { padding: 9px; }
+        .forecast-unit { flex-direction: column; align-items: flex-start; gap: 2px; }
+        .forecast-side h3 { font-size: 18px; }
+        .forecast-portrait { width: 44px; height: 48px; }
+        .forecast-side dl { gap: 8px 4px; font-size: 12px; }
+        .forecast-side dd { font-size: 15px; }
+        .forecast-side dd.forecast-damage { font-size: 19px; }
+        .forecast-weapon { font-size: 12px; }
+      }
 
       /* Vertical menu lists use the stone plate. */
       :is(#options-dialog, #enemy-menu-dialog) .menu-actions { gap: 2px; }
@@ -950,6 +1181,9 @@
       <div id="level-status" role="status" aria-live="polite"></div>
       <aside id="unit-hover-card" aria-live="polite" hidden></aside>
       <aside id="exp-panel" aria-label="Experience" hidden>
+        <div id="exp-title">Experience gained</div>
+        <img id="exp-portrait" alt="" hidden />
+        <div id="exp-unit"></div>
         <div id="exp-label">LV 1 · EXP 0/100</div>
         <div id="exp-track" role="progressbar" aria-label="Experience to next level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div id="exp-fill"></div>
@@ -979,6 +1213,7 @@
         <button id="attack-action" type="button">Attack</button>
         <button id="heal-action" type="button" hidden>Heal</button>
         <button id="freeze-action" type="button" hidden>Freeze</button>
+        <button id="ravage-action" type="button" hidden>Ravage</button>
         <button id="trade-action" type="button" hidden>Trade</button>
         <button id="convoy-action" type="button" hidden>Convoy</button>
         <button id="inventory-action" type="button">Inventory</button>
@@ -1018,7 +1253,8 @@
         </aside>
         <button id="open-unit-list" type="button">Unit List</button>
         <button id="open-save-game" type="button">Save Game</button>
-        <button id="toggle-ocean-sound" type="button" aria-pressed="true">Ocean Sound: On</button>
+        <button id="toggle-ocean-sound" type="button" aria-pressed="true">Environmental Sounds: On</button>
+        <button id="toggle-combat-animations" type="button" aria-pressed="true">Combat Animations: On</button>
         <button id="toggle-tutorials" type="button" aria-pressed="true">Tutorial Popups: On</button>
         <button id="options-restart" type="button">Restart Chapter</button>
         <button id="resume-game" type="button">Close</button>
@@ -1117,25 +1353,44 @@
       <div class="profile-header">
         <div class="profile-portrait-frame"><img id="profile-portrait" alt="" /></div>
         <div class="profile-title">
-          <h2 id="profile-heading"></h2>
+          <div class="profile-name-row">
+            <h2 id="profile-heading"></h2>
+            <span id="profile-level"></span>
+          </div>
           <div id="profile-class"></div>
-          <div id="profile-level"></div>
+          <div id="profile-vitals"></div>
         </div>
-        <button id="close-profile" type="button" aria-label="Close character profile">Close</button>
+        <button id="close-profile" type="button" aria-label="Close character profile">✕</button>
       </div>
-      <table>
-        <thead>
-          <tr><th scope="col">Stat</th><th scope="col">Base</th><th scope="col">Current</th><th scope="col">Growth</th></tr>
-        </thead>
-        <tbody id="profile-stats"></tbody>
-      </table>
-      <h3>Inventory · Equipped weapon</h3>
-      <dl id="profile-weapon"></dl>
-      <p id="profile-combat-note"></p>
-      <section id="profile-enemy-inventory" hidden>
-        <h3>Carried items</h3>
-        <ul id="profile-enemy-items" class="item-list"></ul>
-        <p id="profile-enemy-note"></p>
+      <div class="profile-tabs" role="tablist" aria-label="Profile sections">
+        <button class="profile-key" type="button" data-tab-step="-1" tabindex="-1" aria-label="Previous tab">Q</button>
+        <button id="profile-tab-stats" role="tab" type="button" aria-controls="profile-panel-stats" aria-selected="true">Stats</button>
+        <button id="profile-tab-inventory" role="tab" type="button" aria-controls="profile-panel-inventory" aria-selected="false" tabindex="-1">Inventory</button>
+        <button id="profile-tab-weapons" role="tab" type="button" aria-controls="profile-panel-weapons" aria-selected="false" tabindex="-1">Weapon Levels</button>
+        <button class="profile-key" type="button" data-tab-step="1" tabindex="-1" aria-label="Next tab">E</button>
+      </div>
+      <section id="profile-panel-stats" class="profile-panel" role="tabpanel" aria-labelledby="profile-tab-stats">
+        <div class="profile-stat-legend"><span>Stat</span><span>Value</span><span></span><span>Growth</span></div>
+        <div id="profile-stats"></div>
+        <h3>Combat</h3>
+        <dl id="profile-combat"></dl>
+        <details class="profile-formulas">
+          <summary>Formulas</summary>
+          <p>Hit = weapon Hit + 2×Dexterity + ⌊Luck/2⌋ + weapon rank Hit − enemy Avoid. Avoid = 2×Attack Speed + Luck + terrain Avoid + weapon rank Avoid. Attack Speed = Speed − max(0, Weight − Build). Units double at a 4+ Attack Speed advantage.</p>
+        </details>
+      </section>
+      <section id="profile-panel-inventory" class="profile-panel" role="tabpanel" aria-labelledby="profile-tab-inventory" hidden>
+        <h3>Equipped</h3>
+        <div id="profile-weapon"></div>
+        <h3 id="profile-items-heading">Items</h3>
+        <ul id="profile-items" class="item-list"></ul>
+        <p id="profile-items-empty" hidden>Carries nothing.</p>
+        <p id="profile-inventory-note"></p>
+      </section>
+      <section id="profile-panel-weapons" class="profile-panel" role="tabpanel" aria-labelledby="profile-tab-weapons" hidden>
+        <ul id="profile-weapon-levels"></ul>
+        <p id="profile-weapon-levels-empty" hidden>Fights unarmed.</p>
+        <p id="profile-weapon-note"></p>
       </section>
     </dialog>
     <dialog id="inventory-dialog" aria-labelledby="inventory-heading">
@@ -1156,18 +1411,18 @@
       <h2 id="trade-heading">Trade</h2>
       <div class="trade-columns">
         <section aria-labelledby="trade-left-name">
-          <h3 id="trade-left-name"></h3>
-          <ul id="trade-left-items" class="item-list"></ul>
-          <p id="trade-left-capacity"></p>
+          <header class="trade-owner"><img id="trade-left-portrait" alt="" /><h3 id="trade-left-name"></h3><span id="trade-left-capacity"></span></header>
+          <ul id="trade-left-items" class="trade-slots"></ul>
         </section>
         <section aria-labelledby="trade-right-name">
-          <h3 id="trade-right-name"></h3>
-          <ul id="trade-right-items" class="item-list"></ul>
-          <p id="trade-right-capacity"></p>
+          <header class="trade-owner"><img id="trade-right-portrait" alt="" /><h3 id="trade-right-name"></h3><span id="trade-right-capacity"></span></header>
+          <ul id="trade-right-items" class="trade-slots"></ul>
         </section>
       </div>
-      <p id="trade-note">Give items or use Swap to exchange one item for another, even when both inventories are full. A unit without an equipped weapon cannot attack or counter.</p>
-      <button id="trade-close" type="button">Done</button>
+      <div class="trade-footer">
+        <p id="trade-note" aria-live="polite"></p>
+        <button id="trade-close" type="button">Done</button>
+      </div>
     </dialog>
     <dialog id="heal-dialog" aria-labelledby="heal-heading">
       <h2 id="heal-heading">Heal who?</h2>

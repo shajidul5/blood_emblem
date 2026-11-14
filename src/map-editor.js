@@ -6,13 +6,27 @@ import fenceHorizontalUrl from '../assets/tiles/Village_Fence/fence_horizontal.p
 import fenceVerticalUrl from '../assets/tiles/Village_Fence/fence_vertical.png?url';
 import sandbagsUrl from '../assets/tiles/Golden_Bridge/sandbags.png?url';
 import shipTileset from '../assets/tiles/ship_oblique/ship_oblique_tileset.json';
+import { getTileDef } from './levels/tiles.js';
+import { SHIP_TILE_IDS, validateShipScene } from './levels/ship-scene.js';
+import twoShipsUrl from '../assets/maps/ships/two-ships.png?url';
+import loneShipUrl from '../assets/maps/ships/lone-ship.png?url';
+import { villageLayout, VILLAGE_TILE_IDS, validateVillageScene, layoutTileIds, layoutDefaultTile } from './levels/village-scene.js';
+import villageArtUrl from '../assets/maps/village/village.png?url';
+import mansionArtUrl from '../assets/maps/village/mansion.png?url';
+import manorArtUrl from '../assets/maps/village/manor.png?url';
+import forestArtUrl from '../assets/maps/village/forest.png?url';
+import campArtUrl from '../assets/maps/village/camp.png?url';
 
 const TILE_TYPES = [
   ...shipTileset.tiles.list.map((tile) => ({ key: tile.id, name: tile.id, walkable: tile.walkable })),
+  ...SHIP_TILE_IDS.map((id) => ({ key: id, name: getTileDef(id).name, walkable: getTileDef(id).walkable })),
+  ...VILLAGE_TILE_IDS.map((id) => ({ key: id, name: getTileDef(id).name, walkable: getTileDef(id).walkable })),
   { key: '@spawn', name: 'Start', walkable: true },
   { key: '@exit', name: 'Exit', walkable: true },
 ];
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
+for (const id of SHIP_TILE_IDS) ATLAS_TILES.set(id, getTileDef(id));
+for (const id of VILLAGE_TILE_IDS) ATLAS_TILES.set(id, getTileDef(id));
 const fenceImages = new Map(await Promise.all([
   ['village_fence_h', fenceHorizontalUrl], ['village_fence_v', fenceVerticalUrl],
   ['bridge_sandbags', sandbagsUrl],
@@ -38,6 +52,7 @@ const nameInput = document.querySelector('#map-name');
 const widthInput = document.querySelector('#map-width');
 const heightInput = document.querySelector('#map-height');
 const objectiveSelect = document.querySelector('#map-objective');
+const defendTurnsInput = document.querySelector('#defend-turns');
 const fileInput = document.querySelector('#file-input');
 const BLOCKING_OBJECTS = new Set(
   shipTileset.objects.list.filter((object) => object.blocksMovement).map((object) => object.id),
@@ -63,7 +78,13 @@ if (!initialMapResponse.ok) {
   throw new Error(`Could not load the first level (${initialMapResponse.status}).`);
 }
 const initialMapTemplate = await initialMapResponse.json();
+const shipImages = new Map(await Promise.all([
+  ['two-ships', twoShipsUrl], ['lone-ship', loneShipUrl],
+].map(async ([layout, url]) => [layout, await loadImage(url, 'illustrated ship map')])));
 let map;
+const villageImages = new Map(await Promise.all([
+  ['village', villageArtUrl], ['mansion', mansionArtUrl], ['manor', manorArtUrl], ['forest', forestArtUrl], ['camp', campArtUrl],
+].map(async ([layout, url]) => [layout, await loadImage(url, 'illustrated village map')])));
 let selectedTile = 'deck_a';
 let drawing = false;
 
@@ -121,8 +142,11 @@ function validateMap(value) {
   if (typeof name !== 'string' || !name.trim()) {
     throw new Error('Give the level a name.');
   }
-  if (!['defeat-all-enemies', 'defeat-boss', 'escape', 'seize-gate'].includes(objective)) {
+  if (!['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'seize-gate'].includes(objective)) {
     throw new Error('Choose a valid level objective.');
+  }
+  if (objective === 'defend' && (!Number.isInteger(value.defendTurns) || value.defendTurns < 1 || value.defendTurns > 99)) {
+    throw new Error('Defense duration must be an integer from 1 to 99 turns.');
   }
   const objects = value.objects ?? [];
   if (!Array.isArray(objects) || !objects.every((object) => {
@@ -139,6 +163,18 @@ function validateMap(value) {
       ((object.x === spawn.x && z === spawn.z) || (object.x === exit.x && z === exit.z));
   })) {
     throw new Error('Blocking objects cannot be placed on the Start or Exit tile.');
+  }
+  const shipScene = validateShipScene(value.shipScene, {
+    width, height, lighting: value.lighting ?? 'night', tileIds: tiles, objects,
+  });
+  const villageScene = validateVillageScene(value.villageScene, {
+    width, height, lighting: value.lighting ?? 'night', tileIds: tiles, objects,
+  });
+  if (shipScene || villageScene) {
+    for (const unit of [...(value.players ?? []), ...(value.enemies ?? [])]) {
+      const { x, z } = readCoordinate(unit, width, height, 'unit');
+      if (!ATLAS_TILES.get(tiles[z][x]).walkable) throw new Error('Illustrated-map units must stand on walkable collision cells.');
+    }
   }
   return {
     ...value,
@@ -157,6 +193,8 @@ function validateMap(value) {
       id: object.id,
       blocksMovement: BLOCKING_OBJECTS.has(object.id),
     })),
+    shipScene,
+    villageScene,
   };
 }
 
@@ -167,10 +205,15 @@ function setStatus(message, isError = false) {
 
 function setMap(value) {
   map = validateMap(value);
+  if (map.shipScene && !SHIP_TILE_IDS.includes(selectedTile) && selectedTile !== 'water_a' && !selectedTile.startsWith('@')) {
+    selectedTile = 'ship_deck';
+  }
   nameInput.value = map.name;
   widthInput.value = String(map.width);
   heightInput.value = String(map.height);
   objectiveSelect.value = map.objective;
+  defendTurnsInput.value = String(map.defendTurns ?? 10);
+  document.querySelector('#defend-turns-setting').hidden = map.objective !== 'defend';
   render();
   setStatus(`${map.name} — ${map.width} × ${map.height} tiles`);
 }
@@ -199,17 +242,33 @@ function render() {
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, bounds.width, bounds.height);
   if (!map) return;
+  if (!map.shipScene && SHIP_TILE_IDS.includes(selectedTile)) selectedTile = 'deck_a';
+  if (map.villageScene && !layoutTileIds(map.villageScene.layout).includes(selectedTile) && !selectedTile.startsWith('@'))
+    selectedTile = layoutDefaultTile(map.villageScene.layout);
+  if (!map.villageScene && VILLAGE_TILE_IDS.includes(selectedTile)) selectedTile = 'deck_a';
 
   const cell = Math.min(bounds.width / map.width, bounds.height / map.height);
   const offsetX = (bounds.width - cell * map.width) / 2;
   const offsetY = (bounds.height - cell * map.height) / 2;
   const tileSize = shipTileset.tileSize;
+  if (map.shipScene) {
+    context.fillStyle = '#081825';
+    context.fillRect(offsetX, offsetY, cell * map.width, cell * map.height);
+    context.drawImage(shipImages.get(map.shipScene.layout), offsetX, offsetY, cell * map.width, cell * map.height);
+  }
+  if (map.villageScene) {
+    const { image, crop } = villageLayout(map);
+    context.drawImage(villageImages.get(image), ...crop, offsetX, offsetY, cell * map.width, cell * map.height);
+  }
   for (let z = 0; z < map.height; z++) {
     for (let x = 0; x < map.width; x++) {
       const tile = ATLAS_TILES.get(map.tiles[z][x]);
       const px = offsetX + x * cell;
       const py = offsetY + z * cell;
-      context.drawImage(
+      if (map.shipScene || map.villageScene) {
+        context.fillStyle = tile.walkable ? 'rgba(80,210,150,0.12)' : 'rgba(125,40,50,0.12)';
+        context.fillRect(px, py, cell, cell);
+      } else context.drawImage(
         tileAtlas,
         tile.col * tileSize,
         tile.row * tileSize,
@@ -270,9 +329,20 @@ function render() {
   }
   renderMarker(map.spawn.x, map.spawn.z, 'S', '#688847', offsetX, offsetY, cell);
   renderMarker(map.exit.x, map.exit.z, 'E', '#407d83', offsetX, offsetY, cell);
+  for (const house of map.houses ?? [])
+    renderMarker(house.door.x, house.door.z, 'V', '#279e53', offsetX, offsetY, cell);
+  for (const chest of map.chests ?? [])
+    renderMarker(chest.x, chest.z, 'C', '#a57827', offsetX, offsetY, cell);
 
   for (const tool of document.querySelectorAll('.tool')) {
     tool.setAttribute('aria-pressed', String(tool.dataset.tile === selectedTile));
+    const id = tool.dataset.tile;
+    tool.disabled = map.villageScene
+      ? !id.startsWith('@') && !layoutTileIds(map.villageScene.layout).includes(id)
+      : map.shipScene
+      ? !SHIP_TILE_IDS.includes(id) && id !== 'water_a' && !id.startsWith('@')
+      : SHIP_TILE_IDS.includes(id) || VILLAGE_TILE_IDS.includes(id);
+    tool.hidden = tool.disabled;
   }
 }
 
@@ -311,6 +381,12 @@ function paintAt(event) {
 function resizeMap() {
   const width = Number(widthInput.value);
   const height = Number(heightInput.value);
+  if ((map.shipScene || map.villageScene) && (width !== map.width || height !== map.height)) {
+    widthInput.value = String(map.width);
+    heightInput.value = String(map.height);
+    setStatus('Illustrated maps use a fixed artwork grid. Clear the map to create a differently sized tile map.', true);
+    return;
+  }
   if (!Number.isInteger(width) || !Number.isInteger(height) ||
       width < 8 || width > 48 || height < 8 || height > 36) {
     setStatus('Map dimensions must be 8–48 wide and 8–36 high.', true);
@@ -341,6 +417,7 @@ function downloadMap() {
   try {
     map.name = nameInput.value.trim();
     map.objective = objectiveSelect.value;
+    map.defendTurns = Number(defendTurnsInput.value);
     const validated = validateMap(map);
     const content = `${JSON.stringify(validated, null, 2)}\n`;
     const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
@@ -383,6 +460,9 @@ canvas.addEventListener('pointercancel', () => { drawing = false; });
 window.addEventListener('resize', render);
 
 document.querySelector('#resize').addEventListener('click', resizeMap);
+objectiveSelect.addEventListener('change', () => {
+  document.querySelector('#defend-turns-setting').hidden = objectiveSelect.value !== 'defend';
+});
 document.querySelector('#boat-template').addEventListener('click', () => {
   try {
     setMap({
@@ -399,6 +479,7 @@ document.querySelector('#clear').addEventListener('click', () => {
   map = {
     name: nameInput.value || 'New Level',
     objective: objectiveSelect.value,
+    defendTurns: Number(defendTurnsInput.value),
     width,
     height,
     spawn: { x: -1, z: -1 },
@@ -426,6 +507,7 @@ document.querySelector('#play').addEventListener('click', () => {
   try {
     map.name = nameInput.value.trim();
     map.objective = objectiveSelect.value;
+    map.defendTurns = Number(defendTurnsInput.value);
     localStorage.setItem('blood-emblem-playtest-level', JSON.stringify(validateMap(map)));
     window.location.href = '/?playtest=1';
   } catch (error) {

@@ -1,6 +1,7 @@
 import ironKatana from '../../data/weapons/iron-katana.json';
 import rapier from '../../data/weapons/rapier.json';
 import zanbato from '../../data/weapons/zanbato.json';
+import crowGreatsword from '../../data/weapons/crow-greatsword.json';
 import ironAxe from '../../data/weapons/iron-axe.json';
 import ironSpear from '../../data/weapons/iron-spear.json';
 import steelSpear from '../../data/weapons/steel-spear.json';
@@ -36,6 +37,7 @@ import healStaff from '../../data/weapons/heal-staff.json';
 import potion from '../../data/items/potion.json';
 import chestKey from '../../data/items/chest-key.json';
 import masterEmblem from '../../data/items/master-emblem.json';
+import covenantEmblem from '../../data/items/covenant-emblem.json';
 import bloodEmblem from '../../data/items/blood-emblem.json';
 import ironBow from '../../data/weapons/iron-bow.json';
 import hunterBow from '../../data/weapons/hunter-bow.json';
@@ -44,6 +46,15 @@ import bloodrootTonic from '../../data/items/bloodroot-tonic.json';
 import alphaFang from '../../data/items/alpha-fang.json';
 import orsenJournal from '../../data/items/orsen-journal.json';
 import crossingKeepsake from '../../data/items/crossing-keepsake.json';
+import giantsMarrow from '../../data/items/giants-marrow.json';
+import witchsEye from '../../data/items/witchs-eye.json';
+import surgeonsThread from '../../data/items/surgeons-thread.json';
+import gravediggersCoin from '../../data/items/gravediggers-coin.json';
+import gargoyleStone from '../../data/items/gargoyle-stone.json';
+import saintsAsh from '../../data/items/saints-ash.json';
+import pilgrimsSpur from '../../data/items/pilgrims-spur.json';
+import pallbearersBurden from '../../data/items/pallbearers-burden.json';
+import huntersCodex from '../../data/items/hunters-codex.json';
 import vigilLance from '../../data/weapons/vigil-lance.json';
 import undeadClaws from '../../data/weapons/undead-claws.json';
 import ridersbane from '../../data/weapons/ridersbane.json';
@@ -95,6 +106,7 @@ export const INVENTORY_ITEMS = new Map([
   [ironKatana.id, createWeaponItem(ironKatana)],
   [rapier.id, createWeaponItem(rapier)],
   [zanbato.id, createWeaponItem(zanbato)],
+  [crowGreatsword.id, createWeaponItem(crowGreatsword)],
   [ironAxe.id, createWeaponItem(ironAxe)],
   [ironSpear.id, createWeaponItem(ironSpear)],
   [steelSpear.id, createWeaponItem(steelSpear)],
@@ -127,6 +139,7 @@ export const INVENTORY_ITEMS = new Map([
   [potion.id, createConsumableItem(potion)],
   [chestKey.id, createConsumableItem(chestKey)],
   [masterEmblem.id, createConsumableItem(masterEmblem)],
+  [covenantEmblem.id, createConsumableItem(covenantEmblem)],
   [bloodEmblem.id, createConsumableItem(bloodEmblem)],
   [ironBow.id, createWeaponItem(ironBow)],
   [hunterBow.id, createWeaponItem(hunterBow)],
@@ -135,6 +148,8 @@ export const INVENTORY_ITEMS = new Map([
   [alphaFang.id, createConsumableItem(alphaFang)],
   [orsenJournal.id, createConsumableItem(orsenJournal)],
   [crossingKeepsake.id, createConsumableItem(crossingKeepsake)],
+  ...[giantsMarrow, witchsEye, surgeonsThread, gravediggersCoin, gargoyleStone, saintsAsh, pilgrimsSpur, pallbearersBurden, huntersCodex]
+    .map((booster) => [booster.id, createConsumableItem(booster)]),
   [vigilLance.id, createWeaponItem(vigilLance)],
   [undeadClaws.id, createWeaponItem(undeadClaws)],
   [ridersbane.id, createWeaponItem(ridersbane)],

@@ -1,0 +1,11 @@
+{
+  "id": "surgeons-thread",
+  "name": "Surgeon's Thread",
+  "type": "consumable",
+  "effect": "dexterity-up",
+  "amount": 2,
+  "description": "Permanently raises Dexterity by 2.",
+  "lore": "Black gut thread on a bone spool, a curved needle still threaded through it. The Order's field surgeons swore by it. Those who learn its patient stitches keep a steady hand when everything else is shaking.",
+  "maxUses": 1,
+  "sprite": "assets/items/Surgeons_Thread/surgeons_thread.png"
+}

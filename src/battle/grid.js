@@ -1,6 +1,11 @@
 import { isInWeaponRange } from './combat.js';
 import { getTileDef, isLevelTileWalkable } from '../levels/tiles.js';
 import { canTraverseThroneEdge } from '../levels/throne-terraces.js';
+import { canTraverseShipEdge } from '../levels/ship-navigation.js';
+
+export function canTraverseEdge(level, from, to, unit) {
+  return canTraverseThroneEdge(level, from, to, unit) && canTraverseShipEdge(level, from, to, unit);
+}
 
 export const DIRECTIONS = [
   { x: 0, z: -1 },
@@ -14,7 +19,7 @@ export function tileKey(x, z) {
 }
 
 export function isWalkable(level, x, z, unit) {
-  return x >= 0 && x < level.width && z >= 0 && z < level.height &&
+  return x >= 0 && x < (level.villageScene?.playableWidth ?? level.width) && z >= 0 && z < level.height &&
     isLevelTileWalkable(level, x, z, unit) &&
     (unit?.type === 'flying' || !level.objects?.some((object) =>
       object.x === x && object.z === z && object.blocksMovement));
@@ -42,7 +47,7 @@ export function getMovementRange(unit, level, enemies, allies = []) {
       const x = current.x + direction.x;
       const z = current.z + direction.z;
       const key = tileKey(x, z);
-      if (!isWalkable(level, x, z, unit) || !canTraverseThroneEdge(level, current, { x, z }, unit) ||
+      if (!isWalkable(level, x, z, unit) || !canTraverseEdge(level, current, { x, z }, unit) ||
           findEnemyAt(enemies, x, z)) continue;
       const cost = current.cost + terrainMoveCost(level, x, z, unit);
       if (cost > unit.movement || cost >= (distances.get(key) ?? Infinity)) continue;
@@ -87,7 +92,7 @@ export function findPath(start, goals, blocked, level, unit = start) {
       const z = current.z + direction.z;
       const nextKey = tileKey(x, z);
       if (blocked.has(nextKey) || !isWalkable(level, x, z, unit) ||
-          !canTraverseThroneEdge(level, current, { x, z }, unit)) continue;
+          !canTraverseEdge(level, current, { x, z }, unit)) continue;
       const cost = current.cost + terrainMoveCost(level, x, z, unit);
       if (cost >= (best.get(nextKey) ?? Infinity)) continue;
       best.set(nextKey, cost);

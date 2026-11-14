@@ -270,7 +270,7 @@ test('Evelynn brave volleys precede replies on initiation and counterattack, cap
   assert.equal(combat.getAvailableStrikeCount(tome, 2), 2);
 });
 
-async function runMainCombat(phase, attacker, counter, hit = true) {
+async function runMainCombat(phase, attacker, counter, hit = true, animated = false, critical = false, distance = 1) {
   const source = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
   const start = phase === 'player'
     ? source.indexOf('  const terrain = getTerrain(activeLevel, target.x, target.z);', source.indexOf('async function attackRaider('))
@@ -279,21 +279,135 @@ async function runMainCombat(phase, attacker, counter, hit = true) {
   assert.ok(start > 0 && end > start, `${phase} combat body`);
   const shots = [];
   const noop = () => {};
+  const battleScreen = {
+    active: false,
+    begin() { this.active = animated; },
+    end() { this.active = false; },
+    strike(unit, result, impact) {
+      shots.push(unit === attacker ? 'attacker' : 'counter');
+      impact();
+    },
+  };
   const context = {
     ...combat, player: attacker, target: counter, enemy: attacker, foe: counter,
     playerTeam: [counter], activeLevel: {},
-    getTerrain: () => ({}), distanceBetween: () => 1, getFacing: () => 'south',
-    rollHit: () => hit, rollCritical: () => false,
+    getTerrain: () => ({}), distanceBetween: () => distance, getFacing: () => 'south',
+    rollHit: () => hit, rollCritical: () => critical,
     spendWeaponUse: inventory.spendWeaponUse,
     setIdleSprite: noop, setMessage: noop, showCombatResult: noop,
     renderTacticalUi: noop, recordWeaponHit: noop, wait: noop,
-    attack: () => shots.push('attacker'),
-    attackEnemy: () => shots.push('counter'),
+    battleScreen, combatAnimationsEnabled: animated, currentChapter: 1,
     playAttackAnimation: (unit) => shots.push(unit === attacker ? 'attacker' : 'counter'),
   };
-  await runInNewContext(`(async () => { ${source.slice(start, end)} })()`, context);
+  const helpers = source.slice(source.indexOf('async function beginCombatScene('), source.indexOf('async function attackRaider('));
+  await runInNewContext(`${helpers}\n(async () => { ${source.slice(start, end)} })()`, context);
+  assert.equal(battleScreen.active, false, 'combat screen closes before post-combat rewards');
   return shots;
 }
+
+test('battle-screen impact callbacks preserve both combat loops, critical damage and misses', async () => {
+  for (const phase of ['player', 'enemy']) {
+    for (const critical of [false, true]) {
+      for (const hit of [false, true]) {
+        const make = () => {
+          const unit = characters.createBartzAlly();
+          Object.assign(unit, { hp: 100, maxHp: 100, strength: 10, defense: 5, speed: 10, build: 20 });
+          return unit;
+        };
+        const attacker = make(), defender = make();
+        const expectedAttacker = make(), expectedDefender = make();
+        const mapShots = await runMainCombat(phase, expectedAttacker, expectedDefender, hit, false, critical);
+        const screenShots = await runMainCombat(phase, attacker, defender, hit, true, critical);
+        assert.deepEqual(screenShots, mapShots);
+        assert.equal(attacker.hp, expectedAttacker.hp);
+        assert.equal(defender.hp, expectedDefender.hp);
+      }
+    }
+    const attacker = characters.createBartzAlly(), defender = characters.createRaider(1, 0);
+    defender.hp = 1;
+    assert.deepEqual(await runMainCombat(phase, attacker, defender, true, true, true), ['attacker']);
+    assert.equal(defender.hp, 0, 'lethal contact prevents a dead unit countering');
+  }
+});
+
+test('Cyrus spells preserve damage, effectiveness, counters and last-use spending at both ranges', async () => {
+  for (const phase of ['player', 'enemy']) {
+    for (const id of ['fire-tome', 'thunder-tome', 'wind-tome']) {
+      for (const distance of [1, 2]) {
+        for (const hit of [false, true]) {
+          for (const critical of [false, true]) {
+            const makePair = () => {
+              const caster = characters.createCypherAlly();
+              caster.weapon = item(id);
+              caster.inventory = inventory.createInventory([id]);
+              caster.inventory[0].uses = 1;
+              const target = characters.createEnemyUnit('merfolk-boss', distance, 0);
+              Object.assign(caster, { hp: 100, maxHp: 100, speed: 10, build: 20 });
+              Object.assign(target, { hp: 100, maxHp: 100, speed: 10, build: 20 });
+              return [caster, target];
+            };
+            const actual = makePair(), expected = makePair();
+            const map = await runMainCombat(phase, ...expected, hit, false, critical, distance);
+            const screen = await runMainCombat(phase, ...actual, hit, true, critical, distance);
+            assert.deepEqual(screen, map);
+            assert.ok(screen.includes('attacker'));
+            assert.equal(screen.includes('counter'), distance === 1);
+            assert.equal(actual[0].hp, expected[0].hp);
+            assert.equal(actual[1].hp, expected[1].hp);
+            assert.equal(actual[0].inventory[0].uses, 0);
+            assert.equal(actual[0].weapon.id, id, 'the final-use spell retains its effect identity');
+          }
+        }
+      }
+    }
+  }
+});
+
+test('Deep Merfolk battle presentation preserves tentacle damage and legal counter ranges in both loops', async () => {
+  for (const phase of ['player', 'enemy']) {
+    for (const distance of [1, 2]) {
+      for (const critical of [false, true]) {
+        for (const hit of [false, true]) {
+          for (const initiates of [false, true]) {
+            const makePair = () => {
+              const deep = characters.createEnemyUnit('deep-merfolk', distance, 0);
+              const ally = initiates ? characters.createMaria() : characters.createCypherAlly();
+              for (const unit of [deep, ally]) Object.assign(unit, { hp: 100, maxHp: 100, speed: 10, build: 20 });
+              return initiates ? [deep, ally] : [ally, deep];
+            };
+            const actual = makePair(), expected = makePair();
+            const map = await runMainCombat(phase, ...expected, hit, false, critical, distance);
+            const screen = await runMainCombat(phase, ...actual, hit, true, critical, distance);
+            assert.deepEqual(screen, map);
+            assert.equal(screen.includes('counter'), !initiates || distance === 1);
+            assert.equal(actual[0].hp, expected[0].hp);
+            assert.equal(actual[1].hp, expected[1].hp);
+            assert.deepEqual(actual[0].inventory, expected[0].inventory);
+            assert.deepEqual(actual[1].inventory, expected[1].inventory);
+          }
+        }
+      }
+    }
+  }
+});
+
+test('Cyrus keeps the saved ally ID and reconstructs his new identity before and after promotion', async () => {
+  const saves = await server.ssrLoadModule('/src/game/save.js');
+  for (const classId of ['mage', 'sage']) {
+    const unit = characters.createCypherAlly();
+    classes.applyClass(unit, classId);
+    const saved = JSON.parse(JSON.stringify(saves.serializeUnit(unit)));
+    assert.equal(saved.id, 'cypher');
+    assert.equal(saved.classId, classId);
+    assert.equal(saved.name, undefined);
+    assert.equal(saved.sprite, undefined);
+    const restored = characters.createCypherAlly();
+    classes.applyClass(restored, saved.classId);
+    assert.equal(restored.id, saved.id);
+    assert.equal(restored.name, 'Cyrus');
+    assert.equal(restored.sprite, 'assets/character/Cyrus/Idle/rotations/south.png');
+  }
+});
 
 test('Nosferatu drains on all four actual attack/counter paths, caps overkill and never heals on misses', async () => {
   inventory.setUnlockedSpells(['nosferatu']);
@@ -385,9 +499,10 @@ test('the actual main forecast caps both sides to loaded rounds and hides an emp
   const start = source.indexOf('function showCombatForecast(target) {');
   const end = source.indexOf('\nfunction wait(', start);
   class Element {
-    constructor() { this.children = []; this.textContent = ''; }
+    constructor() { this.children = []; this.textContent = ''; this.style = {}; }
     append(...children) { this.children.push(...children); }
     replaceChildren() { this.children = []; }
+    setAttribute() {}
     all() { return [this, ...this.children.flatMap((child) => child.all())]; }
   }
   for (const [ammo, expectedCounter] of [[1, true], [0, false]]) {
@@ -401,6 +516,7 @@ test('the actual main forecast caps both sides to loaded rounds and hides an emp
       gameState: {}, cursorOutline: {},
       getTerrain: () => ({}), distanceBetween: () => 1, capitalize: (value) => value,
       setMessage() {}, renderTacticalUi() {},
+      portraitUrl: () => 'unit.png',
       document: { createElement: () => new Element(), querySelector: () => new Element() },
       combatForecastDialog: { querySelectorAll: () => panels, showModal() {} },
     };
@@ -410,11 +526,11 @@ test('the actual main forecast caps both sides to loaded rounds and hides an emp
       const nodes = panel.all();
       return nodes[nodes.findIndex((node) => node.textContent === 'Damage') + 1].textContent;
     };
-    assert.match(damageText(panels[0]), /× 3 /);
-    if (expectedCounter) assert.match(damageText(panels[1]), /× 1 /);
+    assert.match(damageText(panels[0]), /× 3$/);
+    if (expectedCounter) assert.match(damageText(panels[1]), /× 1$/);
     else {
       assert.equal(damageText(panels[1]), '—');
-      assert.ok(panels[1].all().some((node) => node.textContent === 'Cannot counter at this range.'));
+      assert.ok(panels[1].all().some((node) => node.textContent === 'Cannot counter · no usable weapon'));
     }
   }
 });

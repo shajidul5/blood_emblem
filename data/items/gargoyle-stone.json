@@ -1,0 +1,11 @@
+{
+  "id": "gargoyle-stone",
+  "name": "Gargoyle Stone",
+  "type": "consumable",
+  "effect": "defense-up",
+  "amount": 2,
+  "description": "Permanently raises Defense by 2.",
+  "lore": "A chunk of a cathedral gargoyle, its snarl still sharp after centuries of storm. Kept against the skin, it lends the bearer some of the patience of stone that has watched over the dead and never once flinched.",
+  "maxUses": 1,
+  "sprite": "assets/items/Gargoyle_Stone/gargoyle_stone.png"
+}

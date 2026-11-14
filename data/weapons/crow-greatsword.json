@@ -1,0 +1,15 @@
+{
+  "id": "crow-greatsword",
+  "name": "Crow Greatsword",
+  "lore": "A Survey pathfinder's blade, notched from cutting a road into the dark. Black feathers are knotted to the guard, one for every soul its bearer has followed into the trees.",
+  "type": "Sword",
+  "damageType": "physical",
+  "might": 16,
+  "weight": 14,
+  "hit": 75,
+  "critical": 10,
+  "minRange": 1,
+  "maxRange": 1,
+  "sound": "slash",
+  "sprite": "assets/weapons/Crow_Greatsword/rotations/Crow_Greatsword.png"
+}

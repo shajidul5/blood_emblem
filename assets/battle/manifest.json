@@ -1,0 +1,1147 @@
+{
+  "generator": "PixelLab",
+  "facing": "east",
+  "backgrounds": {
+    "ship": "ship.png",
+    "coast": "coast.png",
+    "forest": "forest.png"
+  },
+  "backgroundJobs": {
+    "ship": "d7391642-7a6d-4449-afaf-20106315d1d1",
+    "coast": "6e14d53c-6866-4252-abef-5995df2b462b",
+    "forest": "2a301c9e-196e-420f-9967-72e044eb71a1"
+  },
+  "spells": {
+    "fire": {
+      "file": "spell-fire.png",
+      "width": 64,
+      "height": 64,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "ff6f9f7e-55a2-49d5-87e2-66e1e55d3bd5",
+      "job": "22d8124c-d897-4b51-9883-9b914a3e9107"
+    },
+    "thunder": {
+      "file": "spell-thunder.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "34d845a2-47e2-4f31-a889-a612077430d3",
+      "job": "bf9984a7-067a-4566-a6ba-d454e7a8423d"
+    },
+    "wind": {
+      "file": "spell-wind.png",
+      "width": 64,
+      "height": 64,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "59190bfa-8113-4f77-b4a0-30f83527e112",
+      "job": "28914722-ad14-499b-82de-565dd9e9f1e7"
+    },
+    "blaze": {
+      "file": "spell-blaze.png",
+      "width": 64,
+      "height": 64,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "4a1ddc0e-f4b1-4d22-a138-f8d88429b6cd",
+      "job": "d3bf6efe-a75e-43cd-8ee6-db75e4f915d7"
+    },
+    "inferno": {
+      "file": "spell-inferno.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "032508b5-8a75-4acf-aa92-fcf7a63e4637",
+      "job": "90f5c698-05af-4304-98ba-cf5bd0e03af4"
+    },
+    "gale": {
+      "file": "spell-gale.png",
+      "width": 64,
+      "height": 64,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "808b2a44-7eeb-458e-94e1-bc42d8416fcd",
+      "job": "4e036c6c-2a03-4e2e-a354-966257a89e29"
+    },
+    "tempest": {
+      "file": "spell-tempest.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "306b47ca-4418-45c0-9990-d6ddce5512de",
+      "job": "06968021-59c4-424c-a8c2-6c5209742755"
+    },
+    "elthunder": {
+      "file": "spell-elthunder.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "0b4ca27d-ac13-4bf7-9784-73f227d1063e",
+      "job": "571a531e-9a51-49ca-97c7-5b9da0eca1b1"
+    },
+    "bolting": {
+      "file": "spell-bolting.png",
+      "width": 96,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "6f4dc872-ad7c-4da0-affc-21f6184bd08a",
+      "job": "2a55a074-267c-4cc4-9111-94e78a5225d7"
+    },
+    "heal": {
+      "file": "spell-heal.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 60,
+      "sourceJob": "e1880287-939e-45e3-8132-ce9703fed99a",
+      "job": "8c62aeaf-1ad6-4cfe-9089-82e9e695b307"
+    },
+    "freeze": {
+      "file": "spell-freeze.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 60,
+      "sourceJob": "30cd988c-8d2e-4d9c-b694-ef1caa38ece9",
+      "job": "49cf2967-6110-45e8-a8d8-0455f7209598"
+    }
+  },
+  "fighters": {
+    "deep-merfolk": {
+      "size": 128,
+      "anchorX": 36,
+      "baseline": 112,
+      "idle": "deep-merfolk-idle.png",
+      "idleJob": "ea9638de-5784-4193-a5d5-a0b165fc30af",
+      "attack": {
+        "file": "deep-merfolk-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 65,
+        "advance": 32,
+        "contact": {
+          "x": 124,
+          "y": 62
+        },
+        "job": "143dc307-cce8-4bd0-a87a-15fd2f104b63"
+      },
+      "critical": {
+        "file": "deep-merfolk-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 20,
+        "holdMs": 110,
+        "advance": 32,
+        "contact": {
+          "x": 124,
+          "y": 62
+        },
+        "job": "57b4cd2d-98a5-4a2c-a5da-b603e0294389"
+      }
+    },
+    "cyrus-mage": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 100,
+      "casting": true,
+      "idle": "cyrus-mage-idle.png",
+      "idleJob": "a2c54dd8-d183-4de3-8428-36ffb03567a3",
+      "attack": {
+        "file": "cyrus-mage-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 51,
+          "y": 55
+        },
+        "job": "0799a28f-fd68-410b-89b8-08fb4a3a0b78"
+      },
+      "critical": {
+        "file": "cyrus-mage-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 60,
+          "y": 58
+        },
+        "job": "741cc0b0-fa69-418b-afd7-bfcbdc03dcfc",
+        "grounding": {
+          "description": "Lossless horizontal translations keep the generated foot midpoint at x29; no scaling, recoloring or added effects.",
+          "frameOffsetsX": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            -9,
+            -51,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -56,
+            -54,
+            -39,
+            -12,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "merfolk": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 102,
+      "idle": "merfolk-idle.png",
+      "idleJob": "566b8691-c167-4387-9e92-834130e969d5",
+      "attack": {
+        "file": "merfolk-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 22,
+        "contact": {
+          "x": 125,
+          "y": 54
+        },
+        "job": "9428ed9c-70ff-47a9-a72a-84c014ed01a5"
+      },
+      "critical": {
+        "file": "merfolk-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 20,
+        "holdMs": 100,
+        "advance": 22,
+        "contact": {
+          "x": 125,
+          "y": 54
+        },
+        "job": "ce53e58b-9e3a-4047-bcbd-adc4cdab7278"
+      }
+    },
+    "maria-hunter": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 100,
+      "idle": "maria-hunter-idle.png",
+      "idleJob": "e1f5c17f-332c-4e4b-8859-3abfc6ddc8bd",
+      "hairCorrection": {
+        "description": "White/silver hair palette correction on all 59 idle, normal and critical frames; original alpha, poses, hat and timings preserved.",
+        "palette": [
+          "#747c91",
+          "#bac5d2",
+          "#f0f3e5"
+        ]
+      },
+      "attack": {
+        "file": "maria-hunter-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 55,
+        "advance": 36,
+        "contact": {
+          "x": 118,
+          "y": 61
+        },
+        "job": "95a43e66-f8db-49a3-a94c-f4ee9c9562dd"
+      },
+      "critical": {
+        "file": "maria-hunter-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 95,
+        "advance": 36,
+        "contact": {
+          "x": 118,
+          "y": 61
+        },
+        "job": "5e042cd8-aff2-445f-8b15-b87a49ce2493"
+      }
+    },
+    "bartz-pirate": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 100,
+      "idle": "bartz-pirate-idle.png",
+      "idleJob": "66a3cf43-1dd5-4286-97ea-bf43cca50079",
+      "attack": {
+        "file": "bartz-pirate-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 6,
+        "holdMs": 60,
+        "advance": 86,
+        "contact": {
+          "x": 111,
+          "y": 95
+        },
+        "job": "fea0a2c9-fe5c-4c33-8812-9e2f7d408398"
+      },
+      "critical": {
+        "file": "bartz-pirate-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 86,
+        "contact": {
+          "x": 111,
+          "y": 95
+        },
+        "job": "1e4a3e75-bf4e-41d4-80b6-e9ad8371ef6c"
+      },
+      "thrown": {
+        "attack": {
+          "file": "bartz-pirate-thrown-attack.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 8,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 89,
+            "y": 60
+          },
+          "catchFrame": 18,
+          "catchPoint": {
+            "x": 92,
+            "y": 48
+          },
+          "job": "8d2fd0a2-e616-4a88-909e-aee61cd35ca3"
+        },
+        "critical": {
+          "file": "bartz-pirate-thrown-critical.png",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 16,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 86,
+            "y": 61
+          },
+          "catchFrame": 25,
+          "catchPoint": {
+            "x": 96,
+            "y": 86
+          },
+          "job": "b403be10-3c3b-49d7-ab3c-25a3ce20bff8"
+        }
+      }
+    },
+    "raider": {
+      "size": 128,
+      "anchorX": 55,
+      "baseline": 91,
+      "idle": "raider-idle.png",
+      "idleJob": "49f1fd34-1a38-4a7d-8b90-6b3ffcc6786f",
+      "attack": {
+        "file": "raider-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 94,
+        "contact": {
+          "x": 112,
+          "y": 89
+        },
+        "job": "365af27d-14be-4128-8147-8a1d6b2ec4f4"
+      },
+      "critical": {
+        "file": "raider-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 94,
+        "contact": {
+          "x": 112,
+          "y": 89
+        },
+        "job": "3974749d-b2de-4327-b185-2292b801216d"
+      }
+    },
+    "stark-archer": {
+      "size": 128,
+      "anchorX": 34,
+      "baseline": 104,
+      "casting": true,
+      "idle": "stark-archer-idle.png",
+      "idleJob": "cc5fb6bc-a34b-4c5a-b1c0-3d301110325c",
+      "attack": {
+        "file": "stark-archer-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 20,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 72,
+          "y": 48
+        },
+        "job": "6b8c9159-615d-4e30-b534-143b4e2d4576"
+      },
+      "critical": {
+        "file": "stark-archer-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 24,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 90,
+          "y": 52
+        },
+        "job": "c2b9e381-3253-4f81-ac06-2c6a314f86de"
+      }
+    },
+    "stark-sniper": {
+      "size": 128,
+      "anchorX": 40,
+      "baseline": 105,
+      "casting": true,
+      "idle": "stark-sniper-idle.png",
+      "idleJob": "fdbbd509-aaf3-4a69-bbc2-2be968f15319",
+      "attack": {
+        "file": "stark-sniper-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 20,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 80,
+          "y": 50
+        },
+        "job": "a99b039b-ce79-4c98-924d-da74c4a294d0"
+      },
+      "critical": {
+        "file": "stark-sniper-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 24,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 90,
+          "y": 61
+        },
+        "job": "ef991b58-40ec-4016-9f54-c2997cbd32dc"
+      }
+    },
+    "feral-wolf": {
+      "size": 128,
+      "anchorX": 60,
+      "baseline": 99,
+      "idle": "feral-wolf-idle.png",
+      "idleJob": "da634ff9-21a1-4b67-9f0e-b8232c574ebc",
+      "attack": {
+        "file": "feral-wolf-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 74,
+        "contact": {
+          "x": 127,
+          "y": 61
+        },
+        "job": "7d59bbce-5e3b-4545-b5d0-00a663d2f667"
+      },
+      "critical": {
+        "file": "feral-wolf-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 14,
+        "holdMs": 100,
+        "advance": 76,
+        "contact": {
+          "x": 126,
+          "y": 70
+        },
+        "job": "8e7e8f54-a2cd-4fe7-89e8-db63276ee099"
+      }
+    },
+    "great-wolf": {
+      "size": 128,
+      "anchorX": 60,
+      "baseline": 110,
+      "idle": "great-wolf-idle.png",
+      "idleJob": "4e351e8c-d907-43d6-9ae8-28a86595378a",
+      "attack": {
+        "file": "great-wolf-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 60,
+        "advance": 76,
+        "contact": {
+          "x": 126,
+          "y": 104
+        },
+        "job": "3ddc3c09-3fdd-41a0-96cf-f933da55a9dd"
+      },
+      "critical": {
+        "file": "great-wolf-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 100,
+        "advance": 74,
+        "contact": {
+          "x": 127,
+          "y": 82
+        },
+        "job": "df1a2d22-ba22-4763-8b84-d4296132318e"
+      }
+    },
+    "liam": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 111,
+      "idle": "liam-idle.png",
+      "idleJob": "c8009999-2b2b-4345-96c1-1a5ea09293bb",
+      "attack": {
+        "file": "liam-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 20,
+        "contact": {
+          "x": 126,
+          "y": 95
+        },
+        "job": "1699da24-52aa-4c11-ad2e-60927dc8b448"
+      },
+      "critical": {
+        "file": "liam-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 26,
+        "contact": {
+          "x": 123,
+          "y": 70
+        },
+        "job": "470ca21a-235c-46eb-a8b8-7237626bed1c"
+      }
+    },
+    "crowman": {
+      "size": 128,
+      "anchorX": 44,
+      "baseline": 118,
+      "idle": "crowman-idle.png",
+      "idleJob": "783aa73e-6f54-4f74-a7bb-848878e597cd",
+      "attack": {
+        "file": "crowman-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 60,
+        "advance": 56,
+        "contact": {
+          "x": 120,
+          "y": 90
+        },
+        "job": "706e2d29-f0e7-4ec0-a682-db93e36bbe58"
+      },
+      "critical": {
+        "file": "crowman-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 21,
+        "holdMs": 100,
+        "advance": 56,
+        "contact": {
+          "x": 120,
+          "y": 88
+        },
+        "job": "b095d745-412f-4bf9-90de-6d304a789106"
+      }
+    },
+    "raven": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 105,
+      "idle": "raven-idle.png",
+      "idleJob": "3a510ce7-677d-41e1-b460-1ca571ff1f2d",
+      "attack": {
+        "file": "raven-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 60,
+        "advance": 78,
+        "contact": {
+          "x": 115,
+          "y": 100
+        },
+        "job": "dd04adb0-d948-4ed3-8a68-a517afa7326f"
+      },
+      "critical": {
+        "file": "raven-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 14,
+        "holdMs": 100,
+        "advance": 84,
+        "contact": {
+          "x": 112,
+          "y": 100
+        },
+        "job": "91e85323-b5e8-4172-9745-3798a6d83181"
+      }
+    },
+    "maria-ravager": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 99,
+      "idle": "maria-ravager-idle.png",
+      "idleJob": "3e0e6f55-574c-4df8-af85-237f87cbed21",
+      "afterimages": true,
+      "attack": {
+        "file": "maria-ravager-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 60,
+        "advance": 64,
+        "contact": {
+          "x": 104,
+          "y": 52
+        },
+        "job": "cd381157-a1cc-47cb-9950-b1b8a8533981"
+      },
+      "critical": {
+        "file": "maria-ravager-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 80,
+        "advance": 52,
+        "contact": {
+          "x": 110,
+          "y": 64
+        },
+        "job": "9e5b6ccd-e9a6-4301-a874-f8bd9ba3728e"
+      },
+      "flurry": {
+        "description": "Critical: front slash, blink behind for a spinning backhand, blink above for a plunging cleave, streak home.",
+        "frontEnd": 10,
+        "blinkMs": 160,
+        "behind": 68,
+        "lift": 120,
+        "returnMs": 260,
+        "back": {
+          "file": "maria-ravager-flurry-back.png",
+          "frames": 13,
+          "frameMs": 40,
+          "impactFrame": 6,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 118,
+            "y": 46
+          },
+          "job": "975fd1c0-f921-46ac-abab-698bf589e94c",
+          "end": 8
+        },
+        "plunge": {
+          "file": "maria-ravager-flurry-plunge.png",
+          "frames": 17,
+          "frameMs": 40,
+          "impactFrame": 5,
+          "holdMs": 140,
+          "advance": 0,
+          "contact": {
+            "x": 92,
+            "y": 84
+          },
+          "job": "cc9c166e-f407-4082-83da-22235ffbb16b",
+          "start": 2,
+          "descentMs": 150
+        }
+      }
+    },
+    "bartz-berserker": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 100,
+      "idle": "bartz-berserker-idle.png",
+      "idleJob": "45663ed9-7ca4-42a9-a2af-a3bc5b8332e3",
+      "attack": {
+        "file": "bartz-berserker-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 80,
+        "advance": 108,
+        "contact": {
+          "x": 100,
+          "y": 95
+        },
+        "job": "dd573054-d21b-4fea-9295-877c6c2aa18e"
+      },
+      "critical": {
+        "file": "bartz-berserker-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 14,
+        "holdMs": 140,
+        "advance": 120,
+        "contact": {
+          "x": 94,
+          "y": 96
+        },
+        "leap": {
+          "from": 9,
+          "to": 13,
+          "height": 64
+        },
+        "job": "e34acc49-73be-444f-b506-0399b6941dae"
+      },
+      "thrown": {
+        "attack": {
+          "file": "bartz-berserker-thrown-attack.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 8,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 118,
+            "y": 52
+          },
+          "catchFrame": 18,
+          "catchPoint": {
+            "x": 103,
+            "y": 62
+          },
+          "job": "5d9d0544-590e-4855-80f4-3a402d916c03"
+        },
+        "critical": {
+          "file": "bartz-berserker-thrown-critical.png",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 13,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 118,
+            "y": 62
+          },
+          "catchFrame": 22,
+          "catchPoint": {
+            "x": 110,
+            "y": 52
+          },
+          "job": "b948984a-9175-4c13-90f7-d2874e184cc8"
+        }
+      }
+    },
+    "cyrus-sage": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 100,
+      "casting": true,
+      "idle": "cyrus-sage-idle.png",
+      "idleJob": "de3168c4-6289-4070-8b80-20bf2a7b19ab",
+      "attack": {
+        "file": "cyrus-sage-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 17,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 90,
+          "y": 52
+        },
+        "job": "e1de5605-f31b-4670-a05f-d0afc7c6ce40"
+      },
+      "critical": {
+        "file": "cyrus-sage-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 21,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 90,
+          "y": 50
+        },
+        "job": "c304f7a0-a1b9-40d9-8bb9-7966a51a3bcf"
+      },
+      "staff": {
+        "idle": "cyrus-sage-staff-idle.png",
+        "idleJob": "827fe21c-9d99-4f70-b563-b913c07ab69d",
+        "cast": {
+          "file": "cyrus-sage-staff-cast.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 15,
+          "holdMs": 80,
+          "advance": 0,
+          "contact": {
+            "x": 100,
+            "y": 58
+          },
+          "job": "66d00620-13d3-494a-a8a5-d8732779f1b2"
+        }
+      }
+    },
+    "maria-ravager-gun": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 99,
+      "casting": true,
+      "idle": "maria-ravager-gun-idle.png",
+      "idleJob": "94069199-fa1e-4f03-8ae0-12a34ee4333f",
+      "attack": {
+        "file": "maria-ravager-gun-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 16,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 95,
+          "y": 52
+        },
+        "job": "08d9a476-3e27-4a6b-96e2-d0b200d63f60"
+      },
+      "critical": {
+        "file": "maria-ravager-gun-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 18,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 98,
+          "y": 51
+        },
+        "job": "dafc16a6-5bb7-4a0d-a0b3-2a1cf64b69f4"
+      }
+    },
+    "generic-archer": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 99,
+      "casting": true,
+      "idle": "generic-archer-idle.png",
+      "idleJob": "37b892c1-f66b-43a8-80b2-db5c452bc64e",
+      "attack": {
+        "file": "generic-archer-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 61,
+          "y": 51
+        },
+        "job": "0f3352bb-0ed6-4b94-9a42-341b2c6a21cf"
+      },
+      "critical": {
+        "file": "generic-archer-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 20,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 61,
+          "y": 52
+        },
+        "job": "1b0c6181-8b27-4e4b-8cbb-9f762d48788a"
+      }
+    },
+    "generic-knight": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 99,
+      "idle": "generic-knight-idle.png",
+      "idleJob": "5b7ce1ce-4d9f-46d2-8073-d8122437f3d0",
+      "attack": {
+        "file": "generic-knight-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 60,
+        "advance": 20,
+        "contact": {
+          "x": 126,
+          "y": 60
+        },
+        "job": "7a18aa5b-7ed6-47de-be6b-c12e9d25558d"
+      },
+      "critical": {
+        "file": "generic-knight-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 100,
+        "advance": 20,
+        "contact": {
+          "x": 126,
+          "y": 60
+        },
+        "job": "a3695371-d12e-4307-a102-f1df5fbafcb2"
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-knight-thrown-attack.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 61,
+            "y": 51
+          },
+          "job": "0aec58df-7839-480b-9841-f9bccff2f12f",
+          "catchFrame": 22,
+          "catchPoint": {
+            "x": 51,
+            "y": 57
+          }
+        },
+        "critical": {
+          "file": "generic-knight-thrown-critical.png",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 10,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 80,
+            "y": 49
+          },
+          "job": "9d9b05c1-e51f-4047-815e-67317c2240e1",
+          "catchFrame": 30,
+          "catchPoint": {
+            "x": 50,
+            "y": 58
+          }
+        }
+      }
+    },
+    "generic-cavalier": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 108,
+      "scale": 0.875,
+      "idle": "generic-cavalier-idle.png",
+      "idleJob": "be3f7b0f-d7cd-4387-b840-5bbebb172c1f",
+      "attack": {
+        "file": "generic-cavalier-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 58,
+        "contact": {
+          "x": 125,
+          "y": 48
+        },
+        "job": "b4e0ce55-a2db-464c-b128-2aa79363562e"
+      },
+      "critical": {
+        "file": "generic-cavalier-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 16,
+        "holdMs": 100,
+        "advance": 56,
+        "contact": {
+          "x": 126,
+          "y": 47
+        },
+        "job": "fad7c607-0f1b-4ac3-a5b8-d47250fb8f15"
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-cavalier-thrown-attack.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 71,
+            "y": 46
+          },
+          "job": "a98f46e3-5d58-4852-8514-f6d6f50227f2",
+          "catchFrame": 20,
+          "catchPoint": {
+            "x": 67,
+            "y": 48
+          }
+        },
+        "critical": {
+          "file": "generic-cavalier-thrown-critical.png",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 16,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 73,
+            "y": 46
+          },
+          "job": "90c5ee38-6be8-4451-8e72-91d2efdbd3e4",
+          "catchFrame": 30,
+          "catchPoint": {
+            "x": 69,
+            "y": 47
+          }
+        }
+      }
+    },
+    "generic-soldier": {
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 99,
+      "idle": "generic-soldier-idle.png",
+      "idleJob": "28b8ffb2-c22f-4f2d-a844-78af1e11e049",
+      "attack": {
+        "file": "generic-soldier-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 6,
+        "holdMs": 60,
+        "advance": 22,
+        "contact": {
+          "x": 125,
+          "y": 60
+        },
+        "job": "60000bbe-f4e4-4a4f-8bdd-a48b1720ef8a"
+      },
+      "critical": {
+        "file": "generic-soldier-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 17,
+        "holdMs": 100,
+        "advance": 18,
+        "contact": {
+          "x": 127,
+          "y": 59
+        },
+        "job": "f8e934eb-bd65-4a4b-9e7a-6e3118556256"
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-soldier-thrown-attack.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 64,
+            "y": 51
+          },
+          "job": "d0b4a6c9-68ab-40c2-96fd-ad4a5cce3fb5",
+          "catchFrame": 20,
+          "catchPoint": {
+            "x": 52,
+            "y": 59
+          }
+        },
+        "critical": {
+          "file": "generic-soldier-thrown-critical.png",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 12,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 58,
+            "y": 58
+          },
+          "job": "3e4c654c-1d9a-45ae-a6a7-6cee9100ce75",
+          "catchFrame": 30,
+          "catchPoint": {
+            "x": 46,
+            "y": 60
+          }
+        }
+      }
+    },
+    "generic-cavalier-sword": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 108,
+      "scale": 0.875,
+      "idle": "generic-cavalier-sword-idle.png",
+      "idleJob": "1905fe65-0d85-4391-b064-37d6cf076a29",
+      "attack": {
+        "file": "generic-cavalier-sword-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 6,
+        "holdMs": 60,
+        "advance": 56,
+        "contact": {
+          "x": 126,
+          "y": 64
+        },
+        "job": "0123d9a4-6899-4be6-aaf3-b5c0f59c20f6"
+      },
+      "critical": {
+        "file": "generic-cavalier-sword-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 58,
+        "contact": {
+          "x": 125,
+          "y": 64
+        },
+        "job": "a0251ef5-dcde-44aa-b452-f80d25cbe5de"
+      }
+    }
+  }
+}

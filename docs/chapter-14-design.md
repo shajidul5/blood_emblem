@@ -1,5 +1,7 @@
 # Chapter 14 — The Silent Courtyard
 
+Narrative revision: the [story bible](story-bible.md) governs future environmental storytelling and silent recruitment. Dialogue and lore assumptions below describe the older presentation, not the revised narrative direction.
+
 An intact, dreadful Cathedral forecourt, 26 × 30 tiles. South is the deployment edge; the Cathedral doors are north. This is a single battle, not a rescue or city-exploration chapter. **Defeat General Severin** is the sole victory condition.
 
 ## Layout

@@ -116,7 +116,7 @@ test('ledger and patient objectives are one-time, adjacent, action-consuming rew
     approach(unit, target);
     const action = defense.performInfirmaryAction(level, unit, target.id, [unit]);
     assert.equal(action.exp, action.kind === 'ledger' ? 60 : 30);
-    assert.equal(action.insight, action.kind === 'ledger' ? 5 : undefined);
+    assert.equal(action.insight, action.kind === 'ledger' ? 10 : undefined);
     assert.equal(unit.acted, true);
     unit.acted = false;
     assert.throws(() => defense.performInfirmaryAction(level, unit, target.id, [unit]), /no longer available/);
