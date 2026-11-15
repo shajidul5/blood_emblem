@@ -26,9 +26,36 @@
         "title": "The Roots Bear Fruit",
         "paragraphs": [
           "Beasts grow out of the roots as the turns pass. Expect waves near the Heartroots on turns 3, 5 and 7. If the roots are destroyed first, the waves never come.",
-          "Decide whether to fight your way to Liam quickly, or to cut the heart out of the forest first."
+          "Decide whether to fight your way to Liam quickly, or to cut the heart out of the forest first.",
+          "Ravens approach from the northern trail on turn 6 and the southern trail on turn 9. They are not born of the Heartroots; destroying the roots will not stop them."
         ],
         "button": "Enter the Lodge"
+      }
+    ]
+  },
+  "crowOmen": {
+    "pages": [
+      {
+        "kicker": "Turn 11",
+        "title": "The Crows Fall Silent",
+        "paragraphs": [
+          "The calling stops. Something heavy moves through the trees behind Maria.",
+          "It will reach the lodge in two turns. Finish the battle and leave this place."
+        ],
+        "button": "Keep Moving"
+      }
+    ]
+  },
+  "crowmanArrival": {
+    "pages": [
+      {
+        "kicker": "Warning",
+        "title": "The Omen",
+        "paragraphs": [
+          "Maria, something ominous is still following you. It has reached the lodge.",
+          "Do not turn back. Defeat Liam and leave this place."
+        ],
+        "button": "Keep Moving"
       }
     ]
   }

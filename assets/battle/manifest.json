@@ -1142,6 +1142,252 @@
         },
         "job": "a0251ef5-dcde-44aa-b452-f80d25cbe5de"
       }
+    },
+    "linus-cavalier-lance": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 108,
+      "scale": 0.8,
+      "idle": "linus-cavalier-lance-idle.png",
+      "idleJob": "89f4e014-6ebe-4cf2-9e95-3c37ad5f0748",
+      "attack": {
+        "file": "linus-cavalier-lance-attack.png",
+        "job": "48cdd9bb-0bb6-4162-8ab1-aa416aaf5bf5",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 60,
+        "advance": 54,
+        "contact": {
+          "x": 127,
+          "y": 43
+        }
+      },
+      "critical": {
+        "file": "linus-cavalier-lance-critical.png",
+        "job": "a974de24-405a-4cc9-96f2-24be1be2189f",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 17,
+        "holdMs": 100,
+        "advance": 62,
+        "contact": {
+          "x": 123,
+          "y": 43
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "linus-cavalier-lance-thrown-attack.png",
+          "job": "c329fe94-22ea-4473-8a77-9169f1c44660",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 75,
+            "y": 43
+          },
+          "catchFrame": 21,
+          "catchPoint": {
+            "x": 64,
+            "y": 48
+          }
+        },
+        "critical": {
+          "file": "linus-cavalier-lance-thrown-critical.png",
+          "job": "2ec1f048-d7f7-4e49-b2e1-af275f07cab9",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 16,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 83,
+            "y": 43
+          },
+          "catchFrame": 31,
+          "catchPoint": {
+            "x": 65,
+            "y": 48
+          }
+        }
+      }
+    },
+    "linus-paladin-lance": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 108,
+      "scale": 0.8,
+      "idle": "linus-paladin-lance-idle.png",
+      "idleJob": "cd16546b-d20a-4de7-af05-b36ef435af92",
+      "attack": {
+        "file": "linus-paladin-lance-attack.png",
+        "job": "433f54cc-4747-4b53-9a6a-f7d216cb149e",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 6,
+        "holdMs": 60,
+        "advance": 58,
+        "contact": {
+          "x": 125,
+          "y": 44
+        }
+      },
+      "critical": {
+        "file": "linus-paladin-lance-critical.png",
+        "job": "2c5af3b5-8ad9-47bb-86df-153cef7e7e3c",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 17,
+        "holdMs": 100,
+        "advance": 62,
+        "contact": {
+          "x": 123,
+          "y": 41
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "linus-paladin-lance-thrown-attack.png",
+          "job": "52975d52-3a0f-44d9-922c-9ee7bd132280",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 7,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 77,
+            "y": 43
+          },
+          "catchFrame": 19,
+          "catchPoint": {
+            "x": 62,
+            "y": 49
+          }
+        },
+        "critical": {
+          "file": "linus-paladin-lance-thrown-critical.png",
+          "job": "c8f15948-d95d-4a1d-a10e-ac677f14261e",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 12,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 88,
+            "y": 46
+          },
+          "catchFrame": 29,
+          "catchPoint": {
+            "x": 68,
+            "y": 51
+          }
+        }
+      }
+    },
+    "linus-cavalier-sword": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 108,
+      "scale": 0.8,
+      "idle": "linus-cavalier-sword-idle.png",
+      "idleJob": "6e896e37-9bdc-4782-b13e-86483f161139",
+      "attack": {
+        "file": "linus-cavalier-sword-attack.png",
+        "job": "669f0919-fe59-4dca-ad8d-4c941706648f",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 60,
+        "contact": {
+          "x": 124,
+          "y": 64
+        }
+      },
+      "critical": {
+        "file": "linus-cavalier-sword-critical.png",
+        "job": "4504140a-97bf-4e6a-a875-f2098f9b0a5c",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 100,
+        "advance": 54,
+        "contact": {
+          "x": 127,
+          "y": 64
+        }
+      }
+    },
+    "linus-paladin-sword": {
+      "size": 128,
+      "anchorX": 50,
+      "baseline": 108,
+      "scale": 0.8,
+      "idle": "linus-paladin-sword-idle.png",
+      "idleJob": "3b41ad8f-869e-4a96-8199-ab87f392f361",
+      "attack": {
+        "file": "linus-paladin-sword-attack.png",
+        "job": "4acbb46b-f4cc-43bb-9d6b-bd91b92c818c",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 3,
+        "holdMs": 60,
+        "advance": 60,
+        "contact": {
+          "x": 124,
+          "y": 76
+        }
+      },
+      "critical": {
+        "file": "linus-paladin-sword-critical.png",
+        "job": "5a61bf6a-0521-4b2c-967a-93dabbe611ed",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 19,
+        "holdMs": 100,
+        "advance": 68,
+        "contact": {
+          "x": 120,
+          "y": 76
+        }
+      }
+    },
+    "generic-wolfman": {
+      "size": 128,
+      "anchorX": 60,
+      "baseline": 120,
+      "scale": 0.7,
+      "idle": "generic-wolfman-idle.png",
+      "idleJob": "7c35cd49-3c30-477b-b39d-9b6b4232723d",
+      "attack": {
+        "file": "generic-wolfman-attack.png",
+        "job": "085911da-a2f3-424f-8b2b-984b3c54a41d",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 80,
+        "contact": {
+          "x": 124,
+          "y": 80
+        }
+      },
+      "critical": {
+        "file": "generic-wolfman-critical.png",
+        "job": "b54bf245-65b3-4408-8e7f-05631b2a10f6",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 100,
+        "advance": 94,
+        "contact": {
+          "x": 117,
+          "y": 85
+        }
+      }
     }
   }
 }

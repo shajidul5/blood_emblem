@@ -1,7 +1,7 @@
 import { validateLevel, CHAPTER_COUNT } from '../levels/level.js';
 import { isLevelTileWalkable } from '../levels/tiles.js';
 import { bookOf, copyEntry, currentItemId, INVENTORY_ITEMS, MAX_INVENTORY_SIZE } from '../characters/inventory.js';
-import { ENEMY_IDS, enemyMovementType } from '../characters/characters.js';
+import { ENEMY_IDS, enemyMovementType, validEnemyDrop } from '../characters/characters.js';
 import { validWeaponExp } from '../characters/weapon-levels.js';
 import { CLASSES, MAX_USES_MULTIPLIER } from '../characters/classes.js';
 import { validateRescueState } from './rescue.js';
@@ -337,7 +337,7 @@ export function parseSave(rawSave) {
       !isIntegerInRange(enemy.maxHp, enemy.hp, 999) ||
       (enemy.level !== undefined && !isIntegerInRange(enemy.level, 1, 99)) ||
       (enemy.ai !== undefined && !['mobile', 'guard', 'stationary'].includes(enemy.ai)) ||
-      (enemy.drop !== undefined && !INVENTORY_ITEMS.has(enemy.drop)) ||
+      !validEnemyDrop(enemy.drop) ||
       (enemy.stealable !== undefined && (!Array.isArray(enemy.stealable) ||
         !enemy.stealable.every((id) => INVENTORY_ITEMS.has(id)))) ||
       (enemy.inventory !== undefined && !validInventory(enemy.inventory, null)) ||

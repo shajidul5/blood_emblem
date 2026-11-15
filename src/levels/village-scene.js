@@ -8,10 +8,11 @@ export const VILLAGE_LAYOUTS = Object.freeze({
   // Legacy single-floor art, kept so older embedded Chapter 4 saves still render.
   mansion: { width: 32, height: 32, image: 'mansion', crop: [0, 0, 512, 512] },
   manor: { width: 24, height: 20, image: 'manor', crop: [0, 0, 384, 320], tint: 0x8c88a8 },
-  forest: { width: 48, height: 21, image: 'forest', crop: [0, 0, 768, 336] },
-  camp: { width: 48, height: 21, image: 'camp', crop: [0, 0, 768, 336] },
+  forest: { width: 48, height: 21, image: 'forest', crop: [0, 0, 1536, 672] },
+  camp: { width: 48, height: 21, image: 'camp', crop: [0, 0, 1536, 672] },
+  heart: { width: 48, height: 32, image: 'heart', crop: [0, 0, 1536, 1024] },
 });
-export const isForestLayout = (layout) => layout === 'forest' || layout === 'camp';
+export const isForestLayout = (layout) => ['forest', 'camp', 'heart'].includes(layout);
 
 const MANOR_LAYOUTS = ['mansion', 'manor'];
 export const isManorLayout = (layout) => MANOR_LAYOUTS.includes(layout);

@@ -58,7 +58,7 @@ try {
     ...saves.serializeUnit(maria), allies: allies.map(saves.serializeUnit),
     convoy, insight, prepared: true, deployed: units.map((unit) => unit.id),
   };
-  const enemies = level.enemies.map((entry) => characters.createEnemyUnit(entry.id, entry.x, entry.z, entry));
+  const enemies = level.enemies.map((entry) => characters.createEnemyUnit(entry.id, entry.x, entry.z, { ...entry, chapter: 15 }));
   const save = saves.createSaveData(level, maria, enemies, { turn: 1, phase: 'player', defeated: false },
     { chapter: 15, allies, convoy, insight, chapterStart });
   const text = JSON.stringify(saves.parseSave(JSON.stringify(save)), null, 2) + '\n';

@@ -28,13 +28,36 @@
       "width": 384,
       "height": 320
     },
+    "heart": {
+      "file": "heart.png",
+      "generator": "AI image generation",
+      "sourceImage": "sha256:6a8cb3be5b7697d58b1ab7da5aff396bb4e4f6bea333c58a7a9ea4f6bc8ec1e4",
+      "width": 1536,
+      "height": 1024,
+      "pixelCellSize": 32,
+      "references": ["forest.png", "../../character/Maria/Idle/rotations/south.png", "../../character/Ferral_Wolf/Idle/rotations/south.png"]
+    },
     "forest": {
       "file": "forest.png",
-      "generator": "PixelLab create_image_pro",
-      "jobId": "124d25ab-93fa-44a4-93f1-f027f091ee81",
-      "assetId": "a9094307-503c-5fb0-bb8c-37b4175fb76e",
-      "width": 768,
-      "height": 336
+      "generator": "AI image generation, layout-preserving detail enhancement",
+      "sourceImage": "sha256:90e32688a0fefdf06d17634ee9a0b8399f5f20353c2c6bd8c46f69321f510654",
+      "originalJobId": "124d25ab-93fa-44a4-93f1-f027f091ee81",
+      "originalAssetId": "a9094307-503c-5fb0-bb8c-37b4175fb76e",
+      "width": 1536,
+      "height": 672,
+      "pixelCellSize": 32,
+      "sourceCrop": [0, 176, 1536, 672],
+      "styleReference": "heart.png"
+    },
+    "camp": {
+      "file": "camp.png",
+      "generator": "AI image generation, layout-preserving detail enhancement",
+      "sourceImage": "sha256:ff2a1cf8634fc549ec69cba6b0d1380e9e21e22b5112da7bb4a2bce7d1760027",
+      "width": 1536,
+      "height": 672,
+      "pixelCellSize": 32,
+      "sourceCrop": [0, 176, 1536, 672],
+      "styleReference": "heart.png"
     }
   },
   "layouts": {
@@ -42,7 +65,9 @@
     "mansion": { "chapter": 4, "source": "mansion", "crop": [0, 0, 512, 512], "grid": [32, 32], "legacy": true },
     "manor": { "chapter": 4, "source": "manor", "crop": [0, 0, 384, 320], "grid": [24, 20], "tint": "#8c88a8" },
     "village": { "chapter": 5, "source": "village", "crop": [0, 0, 768, 336],     "grid": [48, 21] },
-        "forest": { "chapter": 6, "source": "forest", "crop": [0, 0, 768, 336], "grid": [48, 21] }
+        "forest": { "chapter": 6, "source": "forest", "crop": [0, 0, 1536, 672], "grid": [48, 21], "pixelCellSize": 32 },
+        "camp": { "chapter": 7, "source": "camp", "crop": [0, 0, 1536, 672], "grid": [48, 21], "pixelCellSize": 32 },
+        "heart": { "chapter": 8, "source": "heart", "crop": [0, 0, 1536, 1024], "grid": [48, 32], "pixelCellSize": 32 }
       },
   "notes": [
     "Source PNGs are installed losslessly without resampling.",
@@ -54,6 +79,8 @@
     "Chapter 5 exits through the visible northbound forest lane, with five exit cells for the surviving party.",
     "Chapter 6 (Hollow Wood) uses the 48x21 forest: hunters' camp start at zero-based (7,10), a north-south channel at x15..16 crossed only by log bridges on rows 4..5 (two wide), 10 and 16, three lanes split by tree bands, and a ridge entered through the north (row 6) and south (row 13) gaps into the bone den, where the Great Wolf guards (38,10). The monolith lane (rows 8..11) continues east through a bramble thicket (forest_thicket: +30 Avoid, 2 move) at rows 9..11, x28..35 into the den; that patch was inpainted with PixelLab. North and south trail wolves are mobile; the rest guard. Wolf waves: turn 3 north (21,3),(28,3); turn 5 south (18,17),(21,17); turn 8 rear (6,16),(6,17) and north (24,3). All walkable cells sit inside the camera trapezoid.",
     "Doors and chests are live gameplay overlays; buildings, furniture and water are already illustrated.",
+    "Chapters 6 and 7 use enhanced 1536x672 artwork at 32 pixels per tactical cell, matching Chapter 8's finer detail. The original 48x21 design, collision, bridges, thicket, tent interactions, units and waves are unchanged. Generation used exact-layout guides and heart.png as the detail reference. Only black canvas padding was cropped; the generated map pixels were installed without resampling. Existing illustrated saves receive the enhanced art automatically.",
+    "Chapter 8 uses native 1536x1024 artwork at 32 pixels per tactical cell. Maria and wolf field sprites were supplied as style references. The lodge is part of the complete illustration, not duplicate geometry. Collision follows the painted lanes; unused edge trails are scenery outside the cursor bounds. Art is installed without resampling.",
     "Old embedded saves retain their original tiles and presentation; villageScene is opt-in."
   ]
 }

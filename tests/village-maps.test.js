@@ -22,9 +22,10 @@ before(async () => {
   globalThis.Image = class {
     set src(url) {
       const manor = url.includes('manor.png');
-      const wide = url.includes('village.png') || url.includes('forest.png');
-      this.width = wide ? 768 : manor ? 384 : 512;
-      this.height = wide ? 336 : manor ? 320 : 512;
+      const wide = url.includes('village.png');
+      const forest = url.includes('forest.png') || url.includes('camp.png');
+      this.width = forest ? 1536 : wide ? 768 : manor ? 384 : 512;
+      this.height = forest ? 672 : wide ? 336 : manor ? 320 : 512;
       queueMicrotask(() => this.onload());
     }
   };

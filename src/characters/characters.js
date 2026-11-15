@@ -249,17 +249,44 @@ function scaleProfileToLevel(profile, level) {
   return { ...profile, level, currentStats };
 }
 
+const LATE_ENEMY_GROWTH_STATS = ['hp', 'strength', 'magic', 'dexterity', 'speed', 'luck', 'defense', 'resistance'];
+
+function applyLateEnemyGrowths(profile, chapter) {
+  if (!(chapter >= 5) || ['merfolk', 'deep-merfolk'].includes(profile.classId)) return profile;
+  const currentStats = { ...profile.currentStats };
+  const growthRates = { ...profile.growthRates };
+  // Apply the extra growth over all prior levels, including levels baked into the authored sheet.
+  const bonus = Math.round((profile.level - 1) * 0.1);
+  for (const stat of LATE_ENEMY_GROWTH_STATS) {
+    growthRates[stat] += 10;
+    currentStats[stat] += bonus;
+  }
+  return { ...profile, currentStats, growthRates };
+}
+
 export const ENEMY_AI_MODES = ['mobile', 'guard', 'stationary'];
+
+export function enemyDropIds({ drop }) {
+  return drop === undefined ? [] : Array.isArray(drop) ? [...drop] : [drop];
+}
+
+export function validEnemyDrop(drop) {
+  const ids = enemyDropIds({ drop });
+  return drop === undefined || ids.length > 0 &&
+    ids.every((id) => typeof id === 'string' && INVENTORY_ITEMS.has(id)) &&
+    new Set(ids).size === ids.length;
+}
 
 // ai: mobile always advances, guard only moves once a player is within move + attack reach,
 // stationary never moves. A placement's ai overrides the character sheet's default, and weaponId its weapon
 // (late-game mages casting higher-tier spells).
-export function createEnemyUnit(id, x, z, { level, ai, drop, weaponId, stealable } = {}) {
+export function createEnemyUnit(id, x, z, { level, ai, drop, weaponId, stealable, chapter } = {}) {
   const profile = ENEMY_PROFILES.get(id);
   if (!profile) throw new Error(`Unknown enemy "${id}".`);
   const mode = ai ?? profile.ai ?? 'mobile';
   if (!ENEMY_AI_MODES.includes(mode)) throw new Error(`Enemy ${id} has unknown ai "${mode}".`);
-  const enemy = { ...createCharacter(scaleProfileToLevel(profile, level)), ai: mode, x, z };
+  const scaled = applyLateEnemyGrowths(scaleProfileToLevel(profile, level), chapter);
+  const enemy = { ...createCharacter(scaled), ai: mode, x, z };
   if (profile.inventory) enemy.inventory = createInventory(profile.inventory);
   if (profile.spellUses) {
     enemy.authoredSpells = Object.keys(profile.spellUses);
@@ -274,7 +301,8 @@ export function createEnemyUnit(id, x, z, { level, ai, drop, weaponId, stealable
       if (profile.staffUses[entry.id] !== undefined) entry.uses = profile.staffUses[entry.id];
     }
   }
-  if (drop) enemy.drop = drop;
+  if (!validEnemyDrop(drop)) throw new Error(`Enemy ${id} has invalid drops.`);
+  if (drop !== undefined) enemy.drop = Array.isArray(drop) ? [...drop] : drop;
   if (profile.hunts) enemy.hunts = profile.hunts;
   if (stealable !== undefined) {
     if (!Array.isArray(stealable) || !stealable.every((item) => INVENTORY_ITEMS.has(item))) {

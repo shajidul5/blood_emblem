@@ -16,9 +16,9 @@ before(async () => {
   globalThis.document = { createElement: () => ({ getContext: () => context }) };
   globalThis.Image = class {
     set src(url) {
-      const wide = ['village.png', 'forest.png', 'camp.png'].some((name) => url.includes(name));
-      this.width = wide ? 768 : 512;
-      this.height = wide ? 336 : 512;
+      const forest = url.includes('forest.png') || url.includes('camp.png');
+      this.width = forest ? 1536 : url.includes('village.png') ? 768 : 512;
+      this.height = forest ? 672 : url.includes('village.png') ? 336 : 512;
       queueMicrotask(() => this.onload());
     }
   };
@@ -50,12 +50,23 @@ function reachableFrom(level, start) {
   return seen;
 }
 
-test('Chapter 7 renders the Order camp art as a single illustrated forest layer', () => {
+test('Chapter 7 renders enhanced Order camp art at 32 native pixels per unchanged tactical cell', async () => {
+  const png = await readFile(new URL('../assets/maps/village/camp.png', import.meta.url));
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1536, 672]);
+  assert.equal(png.readUInt32BE(16) / raw.width, 32);
+  assert.equal(png.readUInt32BE(20) / raw.height, 32);
   const group = new THREE.Group();
   const level = levels.buildLevel(THREE, group, raw);
   assert.equal(raw.villageScene.layout, 'camp');
   assert.deepEqual([level.width, level.height], [48, 21]);
-  assert.ok(group.getObjectByName('illustrated-camp'));
+  const artwork = group.getObjectByName('illustrated-camp');
+  assert.ok(artwork);
+  assert.equal(artwork.material.map.magFilter, THREE.NearestFilter);
+  assert.equal(artwork.material.map.minFilter, THREE.NearestFilter);
+  assert.equal(artwork.material.map.generateMipmaps, false);
+  assert.deepEqual(artwork.material.map.repeat.toArray(), [1, 1]);
+  assert.deepEqual(artwork.material.map.offset.toArray(), [0, 0]);
+  assert.deepEqual(levels.validateLevel(JSON.parse(JSON.stringify(level))).villageScene, raw.villageScene);
   const extras = group.children.filter((mesh) => mesh.isMesh && mesh.name !== 'illustrated-camp');
   assert.equal(extras.length, level.houses.length, 'only the tent door markers sit over the art');
   assert.ok(extras.every((mesh) => mesh.userData.houseId));

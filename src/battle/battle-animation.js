@@ -5,6 +5,7 @@ export const COMBAT_ANIMATIONS_KEY = 'blood-emblem-combat-animations';
 // Fighters whose manifest entry has `thrown` clips for range-2 axe or spear attacks.
 export const THROWING_FIGHTERS = new Set([
   'bartz-pirate', 'bartz-berserker', 'generic-knight', 'generic-cavalier', 'generic-soldier',
+  'linus-cavalier-lance', 'linus-paladin-lance',
 ]);
 
 export function battleThrow(unit, distance) {
@@ -25,6 +26,11 @@ export function battleSpriteKey(unit) {
   if (unit.id === 'maria' && unit.classId === 'ravager' && unit.weapon?.type === 'Gun') return 'maria-ravager-gun';
   if (unit.id === 'bartz' && unit.classId === 'pirate' && unit.weapon?.type === 'Axe') return 'bartz-pirate';
   if (unit.id === 'bartz' && unit.classId === 'berserker' && unit.weapon?.type === 'Axe') return 'bartz-berserker';
+  if (unit.id === 'linus' && ['Spear', 'Sword'].includes(unit.weapon?.type)) {
+    const weapon = unit.weapon.type === 'Spear' ? 'lance' : 'sword';
+    if (unit.classId === 'cavalier') return `linus-cavalier-${weapon}`;
+    if (unit.classId === 'paladin') return `linus-paladin-${weapon}`;
+  }
   if (unit.spriteSet === 'raider' && unit.classId === 'raider' && unit.weapon?.type === 'Axe') return 'raider';
   if (unit.spriteSet === 'genericArcher' && unit.classId === 'archer' && unit.weapon?.type === 'Bow') return 'generic-archer';
   if (unit.spriteSet === 'genericCavalier' && unit.classId === 'cavalier' && unit.weapon?.type === 'Sword') return 'generic-cavalier-sword';
@@ -46,6 +52,7 @@ export function battleSpriteKey(unit) {
   if (['feral-wolf', 'great-wolf'].includes(unit.id) && unit.classId === 'wolf' &&
       unit.spriteSet === 'feralWolf' && unit.weapon?.type === 'Claw') return unit.id;
   if (unit.id === 'liam' && unit.classId === 'wolfman' && unit.weapon?.type === 'Axe') return 'liam';
+  if (unit.spriteSet === 'genericWolfman' && unit.classId === 'wolfman' && unit.weapon?.type === 'Claw') return 'generic-wolfman';
   if (unit.id === 'crowman' && unit.classId === 'crowman' && unit.weapon?.type === 'Sword') return 'crowman';
   if (unit.spriteSet === 'raven' && unit.classId === 'raven' && unit.weapon?.type === 'Claw') return 'raven';
   return null;

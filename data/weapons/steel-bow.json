@@ -1,0 +1,18 @@
+{
+  "id": "steel-bow",
+  "name": "Steel Bow",
+  "type": "Bow",
+  "damageType": "physical",
+  "might": 9,
+  "weight": 8,
+  "hit": 85,
+  "critical": 0,
+  "minRange": 2,
+  "maxRange": 2,
+  "requiredRank": "D",
+  "effect": ["flying"],
+  "sound": "bow",
+  "maxUses": 35,
+  "sprite": "assets/weapons/Bows/steel_bow.svg",
+  "lore": "Steel-reinforced limbs lend this hunting bow a heavier draw. The fallen Order's archers still keep their strings taut."
+}

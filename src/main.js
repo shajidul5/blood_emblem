@@ -35,6 +35,7 @@ import {
   tileKey,
 } from './battle/grid.js';
 import { createArlanAlly, createBartzAlly, createCorvisAlly, createCypherAlly, createEnemyUnit, createEvelineAlly, createLenaAlly, createLinusAlly, createMaria, createRictorAlly, createSeymourAlly, createStarkAlly, createTroyAlly, createVillager, isBossEnemy } from './characters/characters.js';
+import { enemyDropIds } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
 import { applyClass, canEquipWeapon, equipBlockReason, canPromote, getClassAbilities, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
@@ -905,7 +906,7 @@ function getAttackRangeTiles(unit) {
 }
 
 function createEnemy(tileX, tileZ, id = 'raider', options = {}) {
-  const enemy = { ...createEnemyUnit(id, tileX, tileZ, options), facing: 'south' };
+  const enemy = { ...createEnemyUnit(id, tileX, tileZ, { ...options, chapter: currentChapter }), facing: 'south' };
   createUnitMesh(enemy);
   if (enemy.drop) addDropMarker(enemy);
   return enemy;
@@ -2574,13 +2575,13 @@ function profileInventory(unit) {
         if (spell?.heal) entries.push({ entry: { id: spellId, uses }, tag: `Range ${healStaffRange(unit, spell)}` });
       }
     }
-    if (unit.drop) entries.push({ entry: { id: unit.drop, uses: INVENTORY_ITEMS.get(unit.drop)?.maxUses ?? null }, tag: 'Drops', tone: 'active' });
+    for (const id of enemyDropIds(unit)) entries.push({ entry: { id, uses: INVENTORY_ITEMS.get(id)?.maxUses ?? null }, tag: 'Drops', tone: 'active' });
     for (const id of unit.stealable ?? []) entries.push({ entry: { id, uses: INVENTORY_ITEMS.get(id).maxUses ?? null }, tag: 'Stealable', tone: 'warn' });
     return {
       heading: 'Carried Items',
       rows: entries.map(({ entry, tag, tone }) => profileItemRow(entry, tag, tone, unit)),
       note: unit.drop
-        ? 'Defeat this enemy to claim its drop.'
+        ? 'Defeat this enemy to claim its carried rewards.'
         : stealableItems(unit).length ? 'Lena can steal a carried item when faster. Stolen staves keep their remaining uses and cannot be cast by the priest afterward.' : 'This enemy carries nothing of value.',
     };
   }
@@ -3709,12 +3710,12 @@ async function collectEnemyDrop(enemy, recipient) {
     gateBeast.mesh.visible = false;
     enemies.push(gateBeast);
   }
-  const receipt = enemy.drop ? { unit: recipient, ...grantItem(recipient, enemy.drop) } : null;
+  const receipts = enemyDropIds(enemy).map((id) => ({ unit: recipient, ...grantItem(recipient, id) }));
   if (enemy.isBoss) gainInsight(BOSS_INSIGHT, `${enemy.name} defeated`);
   // Persist both rewards before waiting so reloading the notification cannot lose the drop.
-  if (enemy.isBoss || receipt) saveCurrentGame();
+  if (enemy.isBoss || receipts.length) saveCurrentGame();
   if (enemy.isBoss) await itemPopup.showInsight(enemy.name, BOSS_INSIGHT, getInsight());
-  if (receipt) await itemPopup.show([receipt]);
+  if (receipts.length) await itemPopup.show(receipts);
   if (gateBeast) await revealGateBeast(gateBeast);
 }
 
@@ -3834,7 +3835,7 @@ function updateUnitHoverCard() {
   }
   if (unit.drop) {
     const carries = document.createElement('small');
-    carries.textContent = `Drops ${INVENTORY_ITEMS.get(unit.drop)?.name ?? unit.drop}`;
+    carries.textContent = `Drops ${enemyDropIds(unit).map((id) => INVENTORY_ITEMS.get(id).name).join(', ')}`;
     weapon.append(carries);
   }
   for (const id of unit.stealable ?? []) {

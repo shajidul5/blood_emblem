@@ -386,6 +386,8 @@ test('Bartz and generic lancers throw at range 2, catch the weapon, and keep mel
     ['general', 'generic-knight', 'orsen', 'genericKnight', 'Spear'],
     ['cavalier', 'generic-cavalier', 'bridge-captain', 'genericCavalier', 'Spear'],
     ['soldier', 'generic-soldier', 'ward-soldier', 'genericSoldier', 'Spear'],
+    ['cavalier', 'linus-cavalier-lance', 'linus', 'linus', 'Spear'],
+    ['paladin', 'linus-paladin-lance', 'linus', 'paladinLinus', 'Spear'],
   ]) {
   const axe = thrownEffectFor({ type, maxRange: 2 });
   for (const kind of ['attack', 'critical']) {
@@ -462,14 +464,19 @@ test('Bartz and generic lancers throw at range 2, catch the weapon, and keep mel
   }
 });
 
-test('generic mounted swords slash with dedicated art, mirrored, and resolve hits, misses and skips once', async () => {
+test('generic cavalry and both Linus forms slash with sword art, mirrored, resolving hits, misses and skips once', async () => {
+  for (const [id, classId, spriteSet, key] of [
+    ['order-cavalier', 'cavalier', 'genericCavalier', 'generic-cavalier-sword'],
+    ['linus', 'cavalier', 'linus', 'linus-cavalier-sword'],
+    ['linus', 'paladin', 'paladinLinus', 'linus-paladin-sword'],
+  ]) {
   for (const side of [0, 1]) {
     for (const critical of [false, true]) {
       for (const hit of [false, true]) {
         for (const skipAt of [null, 0, 900]) {
           const harness = await presenterHarness();
-          const rider = { id: 'order-cavalier', name: 'Order Cavalier', classId: 'cavalier',
-            spriteSet: 'genericCavalier', x: 0, z: 0, hp: 32, maxHp: 32,
+          const rider = { id, name: id, classId,
+            spriteSet, x: 0, z: 0, hp: 32, maxHp: 32,
             weapon: { id: 'steel-sword', name: 'Steel Sword', type: 'Sword', minRange: 1, maxRange: 1 } };
           const target = merfolk();
           assert.equal(await harness.screen.begin(...(side === 0 ? [rider, target] : [target, rider]),
@@ -480,7 +487,7 @@ test('generic mounted swords slash with dedicated art, mirrored, and resolve hit
             if (hit) target.hp -= 8;
             harness.screen.result(target, hit ? '8' : 'MISS', hit ? 'damage' : 'miss');
           });
-          const fighter = art.fighters['generic-cavalier-sword'];
+          const fighter = art.fighters[key];
           const clip = fighter[critical ? 'critical' : 'attack'];
           if (skipAt === null) {
             const impactTime = timing.battleImpactTime(clip, null);
@@ -504,6 +511,47 @@ test('generic mounted swords slash with dedicated art, mirrored, and resolve hit
           await harness.screen.end();
         }
       }
+    }
+  }
+  }
+});
+
+test('wolfman claw attacks and criticals mirror, miss and skip with exactly one physical impact', async () => {
+  for (const side of [0, 1]) for (const critical of [false, true]) {
+    for (const hit of [false, true]) for (const skipAt of [null, 0, 900]) {
+      const harness = await presenterHarness();
+      const warden = { id: 'root-warden', name: 'Root Warden', classId: 'wolfman',
+        spriteSet: 'genericWolfman', x: 0, z: 0, hp: 68, maxHp: 68,
+        weapon: { id: 'wolfman-claws', name: 'Claws', type: 'Claw', minRange: 1, maxRange: 1 } };
+      const target = { ...merfolk(), x: 1 };
+      assert.equal(await harness.screen.begin(...(side === 0 ? [warden, target] : [target, warden]),
+        { enabled: true, chapter: 7 }), true);
+      let impacts = 0;
+      const pending = harness.screen.strike(warden, { hit, critical }, () => {
+        impacts++;
+        if (hit) target.hp -= 8;
+        harness.screen.result(target, hit ? '8' : 'MISS', hit ? 'damage' : 'miss');
+      });
+      const clip = art.fighters['generic-wolfman'][critical ? 'critical' : 'attack'];
+      if (skipAt === null) {
+        const contact = timing.battleImpactTime(clip, null);
+        harness.step(contact - 1);
+        assert.equal(impacts, 0);
+        assert.equal(target.hp, 30);
+        harness.step(contact);
+        assert.equal(impacts, 1);
+        assert.ok(harness.calls.some(([name, file]) => name === 'image' && file === clip.file));
+      } else {
+        harness.step(skipAt);
+        harness.skip();
+      }
+      harness.step(5000);
+      await pending;
+      assert.equal(impacts, 1);
+      assert.equal(target.hp, hit ? 22 : 30);
+      assert.equal(harness.calls.some(([name]) => name === 'release' || name === 'spell-hit'), false);
+      await harness.screen.end();
+      assert.equal(harness.screen.active, false);
     }
   }
 });

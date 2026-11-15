@@ -23,6 +23,7 @@ test('generic combat art covers every matching roster profile without leaking to
     genericKnight: ['knight', 'Spear', 'generic-knight'],
     genericCavalier: ['cavalier', 'Spear', 'generic-cavalier'],
     genericSoldier: ['soldier', 'Spear', 'generic-soldier'],
+    genericWolfman: ['wolfman', 'Claw', 'generic-wolfman'],
   };
   const covered = new Set();
   const directory = new URL('../data/characters/', import.meta.url);
@@ -42,7 +43,7 @@ test('generic combat art covers every matching roster profile without leaking to
     assert.equal(battleSpriteKey({ ...unit, spriteSet: 'genericUndead' }), null, file);
     covered.add(profile.spriteSet);
   }
-  assert.equal(covered.size, 4);
+  assert.equal(covered.size, 5);
   assert.equal(art.fighters['generic-archer'].casting, true);
 });
 
@@ -61,6 +62,38 @@ test('generic lance users thrust adjacent and throw javelins at range 2', () => 
     assert.equal(battleThrow({ ...unit, weapon: { type: 'Spear', maxRange: 1 } }, 2), null);
     assert.equal(supportsBattleScene(unit, { ...maria(), x: 3 }), false);
   }
+});
+
+test('Linus and Paladin Linus have distinct sword, lance and range-2 lance animation sets', () => {
+  for (const classId of ['cavalier', 'paladin']) {
+    for (const type of ['Sword', 'Spear']) {
+      const unit = { id: 'linus', classId, x: 0, z: 0, weapon: { type, minRange: 1, maxRange: 1 } };
+      const key = `linus-${classId}-${type === 'Sword' ? 'sword' : 'lance'}`;
+      assert.equal(battleSpriteKey(unit), key);
+      assert.ok(art.fighters[key]);
+      assert.ok(supportsBattleScene(unit, { ...maria(), x: 1 }));
+      assert.ok(supportsBattleScene({ ...maria(), x: 1 }, unit));
+      assert.equal(battleThrow(unit, 1), null);
+      assert.equal(battleThrow(unit, 2), null);
+      const ranged = { ...unit, weapon: { type, minRange: 1, maxRange: 2 } };
+      if (type === 'Spear') {
+        assert.equal(battleThrow(ranged, 2)?.key, 'thrown-spear');
+        assert.ok(art.fighters[key].thrown);
+        assert.ok(supportsBattleScene(ranged, { ...maria(), x: 2 }));
+        assert.ok(supportsBattleScene({ ...maria(), x: 2 }, ranged));
+      } else {
+        assert.equal(battleThrow(ranged, 2), null);
+        assert.equal(art.fighters[key].thrown, undefined);
+        assert.equal(supportsBattleScene(ranged, { ...maria(), x: 2 }), false);
+      }
+      assert.equal(supportsBattleScene(unit, { ...maria(), x: 3 }), false);
+      assert.equal(battleSpriteKey({ ...unit, id: 'troy', spriteSet: 'troy' }), null);
+      assert.equal(battleSpriteKey({ ...unit, classId: 'knight' }), null);
+    }
+    assert.equal(battleSpriteKey({ id: 'linus', classId, weapon: { type: 'Axe' } }), null);
+  }
+  assert.notEqual(art.fighters['linus-cavalier-lance'].idle, art.fighters['linus-paladin-lance'].idle);
+  assert.notEqual(art.fighters['linus-cavalier-sword'].idle, art.fighters['linus-paladin-sword'].idle);
 });
 
 test('generic cavalry select sword art independently of lance art and never throw swords', () => {
@@ -105,6 +138,25 @@ test('battle art is explicitly scoped to base Maria, Bartz and axe Raiders', () 
   assert.equal(supportsBattleScene(maria(), { ...raider(), x: 2 }), false);
   assert.equal(supportsBattleScene(maria(), { ...raider(), z: 1 }), false);
   assert.equal(supportsBattleScene(maria(), { ...raider(), classId: 'mage' }), false);
+});
+
+test('Root Wardens use claw wolfman art without replacing Liam or enabling ranged claws', () => {
+  const warden = { id: 'root-warden', spriteSet: 'genericWolfman', classId: 'wolfman', x: 1, z: 0,
+    weapon: { id: 'wolfman-claws', type: 'Claw', minRange: 1, maxRange: 1 } };
+  assert.equal(battleSpriteKey(warden), 'generic-wolfman');
+  assert.ok(art.fighters['generic-wolfman']);
+  assert.ok(supportsBattleScene(warden, maria()));
+  assert.ok(supportsBattleScene(maria(), warden));
+  assert.equal(supportsBattleScene({ ...warden, x: 2 }, maria()), false);
+  assert.equal(battleThrow(warden, 2), null);
+  const archer = { id: 'stark', classId: 'archer', x: 3, z: 0,
+    weapon: { type: 'Bow', minRange: 2, maxRange: 2 } };
+  assert.ok(supportsBattleScene(archer, warden), 'ranged attackers can target the melee-only wolfman');
+  assert.equal(battleSpriteKey({ ...warden, spriteSet: 'liam' }), null);
+  assert.equal(battleSpriteKey({ ...warden, classId: 'wolf' }), null);
+  assert.equal(battleSpriteKey({ ...warden, weapon: { type: 'Axe' } }), null);
+  assert.equal(battleSpriteKey({ id: 'liam', classId: 'wolfman', weapon: { type: 'Axe' } }), 'liam');
+  assert.notEqual(art.fighters['generic-wolfman'].idle, art.fighters.liam.idle);
 });
 
 test('Deep Merfolk use their own tentacle battle art at both authored ranges', () => {

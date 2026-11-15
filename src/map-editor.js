@@ -16,6 +16,7 @@ import mansionArtUrl from '../assets/maps/village/mansion.png?url';
 import manorArtUrl from '../assets/maps/village/manor.png?url';
 import forestArtUrl from '../assets/maps/village/forest.png?url';
 import campArtUrl from '../assets/maps/village/camp.png?url';
+import heartArtUrl from '../assets/maps/village/heart.png?url';
 
 const TILE_TYPES = [
   ...shipTileset.tiles.list.map((tile) => ({ key: tile.id, name: tile.id, walkable: tile.walkable })),
@@ -84,6 +85,7 @@ const shipImages = new Map(await Promise.all([
 let map;
 const villageImages = new Map(await Promise.all([
   ['village', villageArtUrl], ['mansion', mansionArtUrl], ['manor', manorArtUrl], ['forest', forestArtUrl], ['camp', campArtUrl],
+  ['heart', heartArtUrl],
 ].map(async ([layout, url]) => [layout, await loadImage(url, 'illustrated village map')])));
 let selectedTile = 'deck_a';
 let drawing = false;

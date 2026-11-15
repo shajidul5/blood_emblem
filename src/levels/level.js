@@ -29,6 +29,7 @@ import mansionArtUrl from '../../assets/maps/village/mansion.png?url';
 import manorArtUrl from '../../assets/maps/village/manor.png?url';
 import forestArtUrl from '../../assets/maps/village/forest.png?url';
 import campArtUrl from '../../assets/maps/village/camp.png?url';
+import heartArtUrl from '../../assets/maps/village/heart.png?url';
 import { validateWaitingCity } from '../game/waiting-city.js';
 import { addWaitingCity } from './waiting-city.js';
 import { validateShore } from '../game/starless-shore.js';
@@ -84,7 +85,7 @@ const courtyardDetailUrls = import.meta.glob('../../assets/tiles/Cathedral_Court
 const creepTreeUrls = import.meta.glob('../../assets/tiles/Creep_Trees/*.png', { eager: true, query: '?url', import: 'default' });
 import shipTileset from '../../assets/tiles/ship_oblique/ship_oblique_tileset.json';
 import { BELL_YARD_TILE_IDS, COURTYARD_TILE_IDS, getTileDef, infirmaryDoorOrientation, isInfirmaryRecoveryWard, isLevelTileWalkable, isTileWalkable, STREET_TILE_IDS, VILLAGE_GRAVEL_TILE_IDS } from './tiles.js';
-import { enemyMovementType } from '../characters/characters.js';
+import { enemyMovementType, validEnemyDrop } from '../characters/characters.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B', 'C', 'L', 'u', 'i', 'l', 't', 'x', 'y', 'z', 'P', 'A', 'H', 'W', 'F', 'D']);
 for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I', 'N']) LEVEL_TILES.add(id);
@@ -293,6 +294,7 @@ const villageImages = {
   manor: await loadImage(manorArtUrl),
   forest: await loadImage(forestArtUrl),
   camp: await loadImage(campArtUrl),
+  heart: await loadImage(heartArtUrl),
 };
 const infirmaryObjectImages = new Map(await Promise.all([
   ['infirmary_bed', infirmaryBedUrl],
@@ -651,7 +653,7 @@ export function validateLevel(value) {
         isLevelTileWalkable({ tileIds }, entry.x, entryZ, { type: label === 'enemies' ? enemyMovementType(entry.id) : undefined }) &&
         isValidUnitLevel(entry.level) &&
         isValidUnitAi(entry.ai) &&
-        (entry.drop === undefined || typeof entry.drop === 'string') &&
+        validEnemyDrop(entry.drop) &&
         (entry.stealable === undefined || Array.isArray(entry.stealable) &&
           entry.stealable.every((id) => typeof id === 'string' && id.trim()) &&
           new Set(entry.stealable).size === entry.stealable.length) &&
@@ -665,7 +667,7 @@ export function validateLevel(value) {
       z: entry.z ?? entry.y,
       ...(entry.level === undefined ? {} : { level: entry.level }),
       ...(entry.ai === undefined ? {} : { ai: entry.ai }),
-      ...(entry.drop === undefined ? {} : { drop: entry.drop }),
+      ...(entry.drop === undefined ? {} : { drop: Array.isArray(entry.drop) ? [...entry.drop] : entry.drop }),
       ...(entry.stealable === undefined ? {} : { stealable: [...entry.stealable] }),
       ...(entry.weaponId === undefined ? {} : { weaponId: entry.weaponId }),
     }));
@@ -858,6 +860,7 @@ export function validateLevel(value) {
         isLevelTileWalkable({ tileIds }, unit.x, z, { type: enemyMovementType(unit.id) }) &&
         isValidUnitLevel(unit.level) &&
         isValidUnitAi(unit.ai) &&
+        validEnemyDrop(unit.drop) &&
         (unit.stealable === undefined || Array.isArray(unit.stealable) &&
           unit.stealable.every((id) => typeof id === 'string' && id.trim()) &&
           new Set(unit.stealable).size === unit.stealable.length) &&
@@ -876,7 +879,7 @@ export function validateLevel(value) {
       z: unit.z ?? unit.y,
       ...(unit.level === undefined ? {} : { level: unit.level }),
       ...(unit.ai === undefined ? {} : { ai: unit.ai }),
-      ...(unit.drop === undefined ? {} : { drop: unit.drop }),
+      ...(unit.drop === undefined ? {} : { drop: Array.isArray(unit.drop) ? [...unit.drop] : unit.drop }),
       ...(unit.stealable === undefined ? {} : { stealable: [...unit.stealable] }),
       ...(unit.weaponId === undefined ? {} : { weaponId: unit.weaponId }),
     })),

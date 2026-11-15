@@ -16,9 +16,9 @@ before(async () => {
   globalThis.document = { createElement: () => ({ getContext: () => context }) };
   globalThis.Image = class {
     set src(url) {
-      const wide = url.includes('village.png') || url.includes('forest.png');
-      this.width = wide ? 768 : 512;
-      this.height = wide ? 336 : 512;
+      const forest = url.includes('forest.png') || url.includes('camp.png');
+      this.width = forest ? 1536 : url.includes('village.png') ? 768 : 512;
+      this.height = forest ? 672 : url.includes('village.png') ? 336 : 512;
       queueMicrotask(() => this.onload());
     }
   };
@@ -80,7 +80,11 @@ function visibleCells(width, height) {
   return visible;
 }
 
-test('Chapter 6 renders the approved Hollow Wood art as a single illustrated forest layer', () => {
+test('Chapter 6 renders enhanced Hollow Wood art at 32 native pixels per unchanged tactical cell', async () => {
+  const png = await readFile(new URL('../assets/maps/village/forest.png', import.meta.url));
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1536, 672]);
+  assert.equal(png.readUInt32BE(16) / raw.width, 32);
+  assert.equal(png.readUInt32BE(20) / raw.height, 32);
   const group = new THREE.Group();
   const level = levels.buildLevel(THREE, group, raw);
   assert.equal(raw.villageScene.layout, 'forest');
@@ -89,6 +93,10 @@ test('Chapter 6 renders the approved Hollow Wood art as a single illustrated for
   const artwork = group.getObjectByName('illustrated-forest');
   assert.ok(artwork);
   assert.equal(artwork.material.map.magFilter, THREE.NearestFilter);
+  assert.equal(artwork.material.map.minFilter, THREE.NearestFilter);
+  assert.equal(artwork.material.map.generateMipmaps, false);
+  assert.deepEqual(artwork.material.map.repeat.toArray(), [1, 1], 'the complete enhanced map is shown, not its upper-left quarter');
+  assert.deepEqual(artwork.material.map.offset.toArray(), [0, 0]);
   assert.equal(group.children.filter((mesh) => mesh.isMesh).length, 1, 'no tile, tree or prop geometry over the art');
   assert.deepEqual(levels.validateLevel(JSON.parse(JSON.stringify(level))).villageScene, raw.villageScene);
 });

@@ -40,6 +40,7 @@ import masterEmblem from '../../data/items/master-emblem.json';
 import covenantEmblem from '../../data/items/covenant-emblem.json';
 import bloodEmblem from '../../data/items/blood-emblem.json';
 import ironBow from '../../data/weapons/iron-bow.json';
+import steelBow from '../../data/weapons/steel-bow.json';
 import hunterBow from '../../data/weapons/hunter-bow.json';
 import freezeStaff from '../../data/weapons/freeze-staff.json';
 import bloodrootTonic from '../../data/items/bloodroot-tonic.json';
@@ -142,6 +143,7 @@ export const INVENTORY_ITEMS = new Map([
   [covenantEmblem.id, createConsumableItem(covenantEmblem)],
   [bloodEmblem.id, createConsumableItem(bloodEmblem)],
   [ironBow.id, createWeaponItem(ironBow)],
+  [steelBow.id, createWeaponItem(steelBow)],
   [hunterBow.id, createWeaponItem(hunterBow)],
   [freezeStaff.id, createWeaponItem(freezeStaff)],
   [bloodrootTonic.id, createConsumableItem(bloodrootTonic)],
