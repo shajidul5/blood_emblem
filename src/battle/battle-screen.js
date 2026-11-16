@@ -1,6 +1,6 @@
 import art from '../../assets/battle/manifest.json';
 import { afterimageTrail, battleBackdrop, battleHpSegments, battleImpactShake, battleSpriteKey, battleThrow,
-  createImpactGate, displayedBattleHp, animationFrameAt, battleImpactTime, battleStrikePose, flurryPose,
+  createImpactGate, displayedBattleHp, animationFrameAt, idleFrameAt, battleImpactTime, battleStrikePose, flurryPose,
   flurryTimeline, staffBattleKey, strikePose, supportsBattleScene, supportsStaffScene,
   thrownReturnMs } from './battle-animation.js';
 import { STAFF_EFFECTS, rangedEffectFor, spellEffectFor, spellEffectPose, staffEffectFor,
@@ -10,7 +10,7 @@ import { playHitImpact, playHpDrainTick, playMissWhiff, playSpellImpact, playSpe
   playWeaponSwing } from '../audio/combat-sounds.js';
 import './battle-screen.css';
 
-const urls = import.meta.glob('../../assets/battle/**/*.png', { eager: true, query: '?url', import: 'default' });
+const urls = import.meta.glob('../../assets/{battle,covenant}/**/*.png', { eager: true, query: '?url', import: 'default' });
 const images = new Map();
 const WIDTH = 480;
 const HEIGHT = 270;
@@ -18,7 +18,8 @@ const BASELINE = 233;
 const SCALE = 2;
 
 function loadImage(path) {
-  const url = urls[`../../assets/battle/${path}`];
+  const relative = path.startsWith('../covenant/') ? path.slice(3) : `battle/${path}`;
+  const url = urls[`../../assets/${relative}`];
   if (!url) return Promise.reject(new Error(`Missing battle artwork: ${path}`));
   if (!images.has(path)) {
     const loading = new Promise((resolve, reject) => {
@@ -82,7 +83,8 @@ export function createBattleScreen() {
   function fighter(index, frame, offset = 0, recoil = 0, alpha = 1, lift = 0) {
     const actor = state.actors[index];
     const direction = index === 0 ? 1 : -1;
-    sprite(actor, frame?.image ?? actor.idle, frame?.clip ? frame.index : 0,
+    const idleIndex = idleFrameAt(actor.art.idleLoop, performance.now() - state.started, state.reducedMotion);
+    sprite(actor, frame?.image ?? actor.idleLoop ?? actor.idle, frame?.clip ? frame.index : idleIndex,
       actor.x + direction * offset - direction * recoil, lift * actor.scale, direction, alpha);
   }
 
@@ -480,14 +482,16 @@ export function createBattleScreen() {
           critical: base.staff.cast } : base;
         const [idle, attack, critical] = await Promise.all(
           [spec.idle, spec.attack.file, spec.critical.file].map(loadImage));
+        const idleLoop = spec.idleLoop ? await loadImage(spec.idleLoop.file) : null;
         const thrown = !staff && battleThrow(unit, distance) && spec.thrown ? Object.fromEntries(await Promise.all(
           ['attack', 'critical'].map(async (kind) => [kind, await loadImage(spec.thrown[kind].file)]))) : null;
         const flurry = !staff && spec.flurry ? Object.fromEntries(await Promise.all(
           ['back', 'plunge'].map(async (kind) => [kind, await loadImage(spec.flurry[kind].file)]))) : null;
-        return { unit, art: spec, idle, attack, critical, thrown, flurry, x: index === 0 ? 130 : 350,
+        return { unit, art: spec, idle, idleLoop, attack, critical, thrown, flurry, x: index === 0 ? 130 : 350,
           scale: (spec.scale ?? 1) *
             (['merfolk', 'deep-merfolk', 'generic-knight'].includes(battleSpriteKey(unit)) && unit.isBoss ? 1.12 : 1),
-          friendly: index === 0 || staffEffect === STAFF_EFFECTS.heal, weaponName: casting ? staff.name : null,
+          friendly: index === 0 || staffEffect === STAFF_EFFECTS.heal || staffEffect === STAFF_EFFECTS.bloodOath,
+          weaponName: casting ? staff.name : null,
           segments: battleHpSegments(unit.maxHp),
           health: { from: unit.hp, to: unit.hp, last: unit.hp, changed: performance.now() } };
       }));
@@ -497,7 +501,7 @@ export function createBattleScreen() {
         [key, await loadImage(art.spells[key].file)])));
       const background = await loadImage(art.backgrounds[battleBackdrop(chapter)]);
       previousFocus = document.activeElement;
-      state = { actors, background, effects, staffEffect,
+      state = { actors, background, effects, staffEffect, started: performance.now(),
         reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches };
       skipped = false;
       labels = [];
@@ -530,7 +534,7 @@ export function createBattleScreen() {
       }
       const kind = result.critical ? 'critical' : 'attack';
       const source = thrown ? entry.art.thrown[kind] : entry.art[kind];
-      const clip = entry.scale === 1 || thrown ? source : { ...source,
+      const clip = entry.scale === 1 || projectile ? source : { ...source,
         advance: source.advance - (source.contact.x - entry.art.anchorX) * SCALE * (entry.scale - 1) };
       const flurry = result.critical && result.hit && entry.flurry && !projectile ? flurryTimeline(entry.art, {
         home: entry.x, target: state.actors[1 - actor].x, direction: actor === 0 ? 1 : -1, scale: SCALE }) : null;

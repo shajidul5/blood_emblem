@@ -247,6 +247,7 @@
       "tier": "base",
       "weaponTypes": ["Spear", "Sword"],
       "promotesTo": "paladin",
+      "covenantPromotions": { "linus": "bloodsworn" },
       "sprites": { "troy": { "spriteSet": "troy", "sprite": "assets/character/Troy/rotations/south.png", "scale": 1.15 } },
       "promotionBonuses": { "hp": 3, "strength": 2, "magic": 0, "dexterity": 2, "speed": 2, "luck": 0, "defense": 2, "resistance": 2, "movement": 1, "build": 1 }
     },
@@ -274,6 +275,28 @@
       }
     },
     {
+      "id": "bloodsworn",
+      "name": "Bloodsworn",
+      "tier": "advanced",
+      "type": "cavalry",
+      "weaponTypes": ["Spear"],
+      "sprites": { "linus": { "spriteSet": "bloodswornLinus", "sprite": "assets/covenant/bloodsworn-linus/map/rotations/south.png", "scale": 1.2 } },
+      "abilities": [
+        { "id": "blood-oath", "name": "Blood Oath", "description": "Spend an action and 6 HP to protect an adjacent living ally. Halves their next damaging combat hit (damage rounded up), until next player phase. Requires at least 7 HP. Cannot stack; misses and zero damage do not consume it.", "bloodOath": true }
+      ]
+    },
+    {
+      "id": "veilstalker",
+      "name": "Veilstalker",
+      "tier": "advanced",
+      "type": "infantry",
+      "weaponTypes": ["Bow"],
+      "sprites": { "stark": { "spriteSet": "veilstalkerStark", "sprite": "assets/covenant/veilstalker-stark/map/rotations/south.png", "scale": 1 } },
+      "abilities": [
+        { "id": "blood-trail", "name": "Blood Trail", "description": "+2 Movement for the player phase if a living wounded enemy is within 6 tiles at phase start (Manhattan distance, ignoring terrain). Checked once; does not stack or recalculate mid-phase.", "bloodTrail": true }
+      ]
+    },
+    {
       "id": "knight",
       "name": "Knight",
       "tier": "base",
@@ -294,6 +317,7 @@
       "tier": "base",
       "weaponTypes": ["Bow"],
       "promotesTo": "sniper",
+      "covenantPromotions": { "stark": "veilstalker" },
       "promotionBonuses": { "hp": 3, "strength": 1, "magic": 0, "dexterity": 3, "speed": 2, "luck": 1, "defense": 1, "resistance": 1, "movement": 0,       "build": 1 }
           },
           {

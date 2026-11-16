@@ -1,13 +1,15 @@
 import { attackSpeed, getAvoid, getHitRate, weaponRangeLabel } from '../battle/combat.js';
-import { CLASSES } from './classes.js';
+import { CLASSES, getClassAbilities } from './classes.js';
 import { INVENTORY_ITEMS } from './inventory.js';
 import { getWeaponExp, MAX_WEAPON_EXP, rankForExp, WEAPON_RANKS } from './weapon-levels.js';
+import { movementAllowance } from '../game/covenant.js';
 
 const EXP_PER_LEVEL = 100;
 const TABS = ['stats', 'inventory', 'weapons'];
 
 const PORTRAITS = import.meta.glob(
-  ['../../assets/character/*/Idle/rotations/south.png', '../../assets/character/*/rotations/south.png'],
+  ['../../assets/character/*/Idle/rotations/south.png', '../../assets/character/*/rotations/south.png',
+    '../../assets/covenant/*/map/rotations/south.png'],
   { eager: true, query: '?url', import: 'default' },
 );
 
@@ -154,13 +156,16 @@ export function createProfileDialog(dialog) {
   function renderStats(unit, opponent, terrain, opponentTerrain) {
     const grid = dialog.querySelector('#profile-stats');
     grid.replaceChildren(...STAT_ROWS.map(([label, key, ceiling]) => {
-      const value = key === 'hp' ? unit.maxHp : unit[key];
+      const permanent = key === 'hp' ? unit.maxHp : unit[key];
+      const temporary = key === 'movement' ? movementAllowance(unit) - permanent : 0;
+      const value = permanent + temporary;
       const base = unit.baseStats?.[key];
-      const gain = Number.isFinite(base) ? value - base : 0;
+      const gain = Number.isFinite(base) ? permanent - base : 0;
       const row = element('div', 'profile-stat');
       const name = element('span', 'profile-stat-name', label);
       const number = element('span', 'profile-stat-value', String(value));
       if (gain > 0) number.title = `Base ${base} · +${gain} gained`;
+      if (temporary) number.title = `${number.title || `${permanent} permanent`} · +${temporary} Blood Trail (this phase)`;
       const growth = element('span', 'profile-stat-growth', `${unit.growthRates?.[key] ?? 0}%`);
       growth.title = 'Growth rate';
       row.append(name, number, bar(value / ceiling), growth);
@@ -173,6 +178,10 @@ export function createProfileDialog(dialog) {
       ['Terrain', terrain.name],
       ['Terrain Def', `+${terrain.defense}`],
     ];
+    if (unit.bloodOath) combat.push(['Blood Oath', 'Next damaging combat hit halved (round up)']);
+    if (unit.bloodTrailBonus) combat.push(['Blood Trail active', '+2 Movement this player phase']);
+    for (const ability of getClassAbilities(unit).filter((entry) => entry.bloodOath || entry.bloodTrail))
+      combat.push([ability.name, ability.description]);
     if (opponent) combat.push([`Hit vs ${opponent.name}`, `${getHitRate(unit, opponent, opponentTerrain)}%`]);
     definitionList(dialog.querySelector('#profile-combat'), combat);
   }

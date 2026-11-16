@@ -30,6 +30,8 @@ import manorArtUrl from '../../assets/maps/village/manor.png?url';
 import forestArtUrl from '../../assets/maps/village/forest.png?url';
 import campArtUrl from '../../assets/maps/village/camp.png?url';
 import heartArtUrl from '../../assets/maps/village/heart.png?url';
+import crossingArtUrl from '../../assets/maps/village/crossing.png?url';
+import thresholdArtUrl from '../../assets/maps/village/threshold.png?url';
 import { validateWaitingCity } from '../game/waiting-city.js';
 import { addWaitingCity } from './waiting-city.js';
 import { validateShore } from '../game/starless-shore.js';
@@ -295,6 +297,8 @@ const villageImages = {
   forest: await loadImage(forestArtUrl),
   camp: await loadImage(campArtUrl),
   heart: await loadImage(heartArtUrl),
+  crossing: await loadImage(crossingArtUrl),
+  threshold: await loadImage(thresholdArtUrl),
 };
 const infirmaryObjectImages = new Map(await Promise.all([
   ['infirmary_bed', infirmaryBedUrl],
@@ -1872,6 +1876,7 @@ export function buildLevel(THREE, levelGroup, value) {
   delete levelGroup.userData.waitingCity;
   delete levelGroup.userData.abyssalThrone;
   delete levelGroup.userData.shipScene;
+  delete levelGroup.userData.bridgeSquadMarkers;
 
   if (level.shipScene) {
     animatedShipScene = addShipScene(THREE, levelGroup, level, {
@@ -2418,7 +2423,19 @@ export function buildLevel(THREE, levelGroup, value) {
     levelGroup.userData.houseMarkers.push(marker);
     levelGroup.add(marker);
   }
-  if (level.gateEncounter) {
+  if (level.gateEncounter?.pressure) {
+    levelGroup.userData.bridgeSquadMarkers = level.gateEncounter.pressure.squads.map((squad) => {
+      const marker = new THREE.Mesh(new THREE.PlaneGeometry(9, .08),
+        new THREE.MeshBasicMaterial({ color: 0xe9aa43, transparent: true, opacity: .65, depthWrite: false }));
+      marker.rotation.x = -Math.PI / 2;
+      marker.position.set(level.exit.x + .5 - level.width / 2, .15, squad.line + .5 - level.height / 2);
+      marker.name = `bridge-line-${squad.id}`;
+      marker.renderOrder = 2;
+      levelGroup.add(marker);
+      return { squad, marker };
+    });
+  }
+  if (level.gateEncounter && !level.villageScene) {
     const skylineTexture = new THREE.Texture(victorianCityImage);
     skylineTexture.magFilter = THREE.NearestFilter;
     skylineTexture.minFilter = THREE.NearestFilter;

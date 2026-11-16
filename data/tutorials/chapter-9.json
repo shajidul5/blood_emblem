@@ -7,7 +7,7 @@
         "paragraphs": [
           "After a full day beneath the enchanted forest's canopy, the party reaches open fields in the orange light of sunset. Beyond the fenced village, a vast stone bridge carries the road toward Aldermere. Its far bank is lost in the distance. Knights have sealed the near entrance.",
           "\"The last company we admitted could still speak,\" the captain calls. \"By morning they could not. No one crosses.\"",
-          "Three villagers shelter in the houses around a cramped southern courtyard. Linus holds its lanes against the forest beasts. \"Linus! Back to the bridge!\" the captain shouts. The lone rider lowers his lance toward the trees instead."
+          "Three villagers shelter in cottages around the village square and orchard. A wounded rider holds the broken orchard wall against the beasts. His lance faces the trees; the knights at the bridge face the refugees."
         ],
         "button": "Continue"
       },
@@ -25,9 +25,9 @@
         "kicker": "A Rider Alone",
         "title": "Reach Linus",
         "paragraphs": [
-          "Linus is already wounded. He holds his ground near all three villagers, but cannot protect them alone. Follow the staggered lanes through the fences and houses, move Maria next to him and choose Talk to recruit him. His Steel Lance and Potion come with him.",
-          "Wolves emerge first from the southern forest, with another pack on turn 3. Wolfmen follow on turns 5 and 7 alongside the remaining wolves. Their approaches are marked red, and you will receive a warning one turn ahead. There are no further waves after turn 7.",
-          "The knights hold the bridge rather than pursuing the villagers. Varric's Javelin can strike and counter at range 1-2, and is yours if you defeat him."
+          "Linus is already wounded. He holds the orchard approach, but cannot protect the village alone. Rush Maria through the central square to stand next to him and choose Talk to recruit him. His Steel Lance and Potion come with him. Other allies can protect the western evacuation lane or flank through the eastern orchard. Brush grants cover but slows movement.",
+          "A western hunting pack and a wolfman are already closing on the village. Reach Linus by your second turn to keep him out of their jaws. Finite waves alternate between the western forest entrance on turns 2 and 6 and the eastern entrance on turns 4 and 8. Later packs contain more wolfmen. Red markers show their entrances; warnings appear one turn ahead, even with tutorials disabled. Blocked entrances queue arrivals rather than moving them behind your defenders.",
+          "On turn 5, the two flank knights leave the bridge and advance into the square. A warning on turn 4 gives you time to cover the escorts. The Order targets your fighters, not civilians. Varric and the center knight hold the bridge. His Javelin can strike and counter at range 1-2, and is yours if you defeat him."
         ],
         "button": "Continue"
       },
@@ -35,10 +35,20 @@
         "kicker": "Rescue Rewards",
         "title": "Every Life Matters",
         "paragraphs": [
-          "One rescued villager grants two Potions. Two also grant Wind, a light, accurate tome effective against flying foes. All three also entrust you with a Crossing Keepsake worth 10 Insight.",
+          "One rescued villager grants two Potions. Two also grant Wind, a light, accurate tome effective against flying foes, and a battered Orders Emblem for promoting a level 20 ally. All three also entrust you with a Crossing Keepsake worth 10 Insight.",
           "Rewards are cumulative and go to Maria, or the convoy if her inventory is full. The captain's Javelin is a separate drop."
         ],
         "button": "Enter the Village"
+      }
+    ]
+  },
+  "crossingWarning": {
+    "pages": [
+      {
+        "kicker": "The Last Crossing",
+        "title": "Incoming Threat",
+        "paragraphs": ["{warning}"],
+        "button": "Prepare"
       }
     ]
   },

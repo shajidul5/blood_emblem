@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { attachMapDrag } from './game/map-drag.js';
 import { createBattleScreen } from './battle/battle-screen.js';
 import { readCombatAnimations, writeCombatAnimations } from './battle/battle-animation.js';
 import {
@@ -35,9 +36,12 @@ import {
   tileKey,
 } from './battle/grid.js';
 import { createArlanAlly, createBartzAlly, createCorvisAlly, createCypherAlly, createEnemyUnit, createEvelineAlly, createLenaAlly, createLinusAlly, createMaria, createRictorAlly, createSeymourAlly, createStarkAlly, createTroyAlly, createVillager, isBossEnemy } from './characters/characters.js';
-import { enemyDropIds } from './characters/characters.js';
+import { enemyDropIds, enemyMovementType } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
-import { applyClass, canEquipWeapon, equipBlockReason, canPromote, getClassAbilities, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
+import { applyClass, canEquipWeapon, equipBlockReason, promotionBlockReason, getClassAbilities, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
+import { applyBloodOath, applyCombatDamage, BLOOD_OATH, BLOOD_OATH_COST, bloodOathBlockReason,
+  bloodOathTargets, clearCovenantState, endCovenantPlayerPhase, movementAllowance, protectedCombatDamage,
+  startCovenantPlayerPhase } from './game/covenant.js';
 import { awardWeaponExp } from './characters/weapon-levels.js';
 import { applyBooster, boosterBlockReason, isBooster } from './characters/boosters.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
@@ -48,6 +52,7 @@ import { CHAPTER_INTROS, createTutorialPopup, PART_ONE_ENDING, PART_TWO_ENDING, 
 import { awardExperience } from './characters/progression.js';
 import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js';
 import { initializeUiSounds } from './audio/ui-sounds.js';
+import { playDistantGateShriek } from './audio/gate-audio.js';
 import { playBloodBeastRoar, playCrowOmen, playDoorCreak, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
 import { isForestLayout } from './levels/village-scene.js';
 import {
@@ -62,9 +67,9 @@ import {
 import { createPrepMenu } from './game/prep-menu.js';
 import { constrainCityCamera, constrainInteriorCamera, constrainStreetCamera, LONE_SHIP_OCEAN_MARGIN, MANOR_CAMERA_MARGIN, TACTICAL_FOV } from './game/camera-bounds.js';
 import { renderInsightLabel } from './game/insight-display.js';
-import { gateVictoryReady, planGateRavens, shouldSpawnGateBeast } from './game/gate-encounter.js';
+import { activateBridgeSquads, beginGateBeastPressure, gateVictoryReady, planGateRavens, shouldSpawnGateBeast } from './game/gate-encounter.js';
 import { claimInfirmaryCompletion, finishInfirmaryEnemyPhase, freshInfirmary, infirmaryActions, infirmaryApproachTarget, infirmaryBreached, infirmarySpawnTile, infirmaryVictoryReady, infirmaryWarning, infirmaryWaveSealed, performInfirmaryAction } from './game/infirmary.js';
-import { canRecruitLinus, escortPath, freshRescueState, isActiveVillager, rescueProgress, rescueRewardIds } from './game/rescue.js';
+import { advanceRescueGuards, canRecruitLinus, escortPath, freshRescueState, isActiveVillager, rescueProgress, rescueRewardIds, rescueWarnings } from './game/rescue.js';
 import { canRecruitEveline, recruitEveline, freshStreets, streetWarning, streetsVictoryReady } from './game/streets.js';
 import { canSteal, stealableItems, stealItem } from './game/stealing.js';
 import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled } from './game/courtyard.js';
@@ -435,6 +440,7 @@ function resetTutorials(chapter) {
     stairs: chapter >= 1,
     houses: chapter !== 2,
     combatSeen: false,
+    rescueWarningTurn: null,
   });
 }
 
@@ -461,7 +467,16 @@ async function runTutorials() {
     if (!tutorialProgress.intro) {
       tutorialProgress.intro = true;
       const intro = CHAPTER_INTROS[tutorialProgress.chapter];
+      if (intro === 'goldenBridge') {
+        void playDistantGateShriek().catch((error) => console.error('Could not play the distant gate shriek:', error));
+      }
       await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral', 'bellYard', 'shore', 'waitingCity', 'abyssalThrone'].includes(intro) });
+      if (intro === 'goldenBridge') await showGateRavens(enemies);
+    }
+    if (tutorialProgress.rescueWarningTurn !== gameState.turn) {
+      tutorialProgress.rescueWarningTurn = gameState.turn;
+      const warnings = rescueWarnings(activeLevel, enemies, gameState.turn);
+      if (warnings.length) await tutorialPopup.show('crossingWarning', { warning: warnings.join(' ') }, { force: true });
     }
     await showCathedralStory();
     if (activeLevel.bellYard) await showBellYardStory();
@@ -528,7 +543,7 @@ function setDeployed(unit, on) {
 function startMapView() {
   mapViewActive = true;
   setCursor(player.x, player.z);
-  setMessage('Viewing the map. Move the cursor to look around, I for unit info, R for enemy ranges. Press Esc to return.');
+  setMessage('Drag the map or use arrows to look around. Tap Back or press Escape to return.');
   renderTacticalUi();
 }
 
@@ -570,6 +585,7 @@ async function openPrepMenu() {
     },
   });
   await prepMenu.show();
+  startCovenantPlayerPhase(playerTeam, enemies);
   refreshInsightLabel();
   renderTacticalUi();
 }
@@ -638,6 +654,8 @@ function createUnitSpriteGeometry() {
 let playerMovement;
 let enemyMovement;
 let cameraFollowTarget;
+let manualCameraTarget = null;
+let draggingMap = false;
 let pendingCombatTarget;
 const floatingCombatTexts = [];
 let phaseBannerTimeout;
@@ -1474,6 +1492,8 @@ function checkGateObjective() {
 
 async function revealGateBeast(beast) {
   const previousTarget = cameraFollowTarget;
+  const previousManualTarget = manualCameraTarget;
+  manualCameraTarget = null;
   const landing = beast.mesh.position.clone();
   cameraFollowTarget = landing;
   setMessage('The bridge falls silent...');
@@ -1501,9 +1521,10 @@ async function revealGateBeast(beast) {
   renderTacticalUi();
   await wait(650);
   await tutorialPopup.show('bloodBeastArrival', {}, { force: true });
-  spawnGateRavens();
+  await showGateRavens(spawnGateRavens());
   renderTacticalUi();
   cameraFollowTarget = previousTarget;
+  manualCameraTarget = previousManualTarget;
 }
 
 function spawnGateRavens() {
@@ -1514,9 +1535,42 @@ function spawnGateRavens() {
   enemies.push(...ravens);
   encounter.ravenStartTurn ??= gameState.turn;
   encounter.ravenWavesSpawned++;
-  setMessage(`${ravens.length} ravens sweep in over the water! Flying units are weak to bows and wind magic.`);
+  setMessage('Ravens sweep in over the water.');
   saveCurrentGame();
   return ravens;
+}
+
+async function showGateRavens(units) {
+  const ravens = units.filter((unit) => unit.id === 'raven' && unit.hp > 0);
+  if (!activeLevel.gateEncounter || !ravens.length || document.hidden ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const level = activeLevel;
+  const previousTarget = cameraFollowTarget;
+  const previousManualTarget = manualCameraTarget;
+  const previousMode = gameState.mode;
+  gameState.mode = 'combat';
+  manualCameraTarget = null;
+  try {
+    renderTacticalUi();
+    for (const right of [false, true]) {
+      const flank = ravens.filter((unit) => (unit.x >= level.width / 2) === right);
+      if (!flank.length) continue;
+      const focus = new THREE.Vector3();
+      for (const unit of flank) focus.add(unit.mesh.position);
+      cameraFollowTarget = focus.divideScalar(flank.length);
+      await wait(1100);
+      if (activeLevel !== level) return;
+    }
+    cameraFollowTarget = previousTarget ?? previousManualTarget ?? new THREE.Vector3(worldX(cursor.x), .8, worldZ(cursor.z));
+    await wait(500);
+  } finally {
+    if (activeLevel === level) {
+      cameraFollowTarget = previousTarget;
+      manualCameraTarget = previousManualTarget;
+      gameState.mode = previousMode;
+      renderTacticalUi();
+    }
+  }
 }
 
 function hideMainMenu() {
@@ -1527,6 +1581,7 @@ function hideMainMenu() {
 }
 
 function applyUnitSnapshot(unit, snapshot) {
+  clearCovenantState([unit]);
   Object.assign(unit, snapshot.stats, {
     level: snapshot.level,
     experience: snapshot.experience,
@@ -1795,6 +1850,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
     }
   }
   for (const unit of Object.values(roster)) {
+    clearCovenantState([unit]);
     refreshMagicUses(unit.inventory, unit);
     unit.ravaging = false;
     unit.mesh.material.color.set(0xffffff);
@@ -1832,6 +1888,7 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   initializeRescue();
   initializeStreets();
   initializeCourtyard();
+  startCovenantPlayerPhase(playerTeam, enemies);
   experienceDisplay.reset(player.level, player.experience);
   setLevelStatus(`Level: ${activeLevel.name}`);
   setMessage(`${activeLevel.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
@@ -1852,7 +1909,7 @@ async function restartLevel() {
   if ((currentChapter === 2 && activeLevel.villageScene?.layout === 'harbor') ||
       (currentChapter === 3 && activeLevel.villageScene?.layout === 'mansion') ||
       (currentChapter === 4 && activeLevel.villageScene?.layout === 'village') ||
-      currentChapter === 5) {
+      currentChapter === 5 || currentChapter === 8 || currentChapter === 9) {
     try {
       const level = await loadChapterLevel(currentChapter);
       startLevel(level, { chapter: currentChapter, carry: chapterStart });
@@ -1924,6 +1981,8 @@ function continueGame() {
       moveOrigin: saved.moveOrigin ?? null,
       frozen: saved.frozen ?? false,
       ravaging: saved.ravaging === true,
+      bloodOath: saved.bloodOath === true,
+      bloodTrailBonus: saved.bloodTrailBonus,
     });
     if (saved.weaponExp) unit.weaponExp = { ...saved.weaponExp };
     if (saved.classId) applyClass(unit, saved.classId);
@@ -1985,6 +2044,7 @@ function continueGame() {
   });
   syncHeartrootFrenzy();
   syncThronePresentation();
+  advanceRescueGuards(activeLevel, enemies, save.turn);
   initializeRescue(save.rescue);
   initializeStreets();
   initializeCourtyard();
@@ -2014,12 +2074,17 @@ function continueGame() {
   }
   if (gameState.phase === 'player' && checkDefenseVictory(gameState.turn - 1)) return;
   if (gameState.phase === 'player') showPhaseBanner('Player', gameState.turn);
-  if (gameState.phase === 'player' && !gameState.defeated) spawnGateRavens();
+  if (gameState.phase === 'player' && !gameState.defeated) {
+    void showGateRavens(spawnGateRavens()).catch((error) => console.error('Could not reveal gate ravens:', error));
+  }
   renderTacticalUi();
   if (gameState.defeated) {
     showTerminalScreen('game-over', gameOverMessage());
   } else if (gameState.phase === 'victory') {
     showTerminalScreen('victory', 'The objective is complete.');
+  }
+  if (activeLevel.rescue && gameState.phase === 'player' && !gameState.defeated) {
+    window.setTimeout(() => void runTutorials(), 1300);
   }
 }
 
@@ -2252,6 +2317,8 @@ levelFile.addEventListener('change', async () => {
     gameState.defeated = false;
     movementRange.clear();
     resetEnemies();
+    clearCovenantState(Object.values(roster));
+    startCovenantPlayerPhase(playerTeam, enemies);
     hideTerminalScreen();
     sessionStarted = true;
     hideMainMenu();
@@ -2750,8 +2817,8 @@ function renderInventory() {
     } else if (item.effect === 'key') {
       append(entry, itemRow(entry, 'Opens chests', true));
     } else if (item.effect === 'promote') {
-      const ready = player.level >= 20 && canPromote(player);
-      append(entry, itemRow(entry, ready ? 'Use' : canPromote(player) ? 'Needs level 20' : 'Already promoted', !ready, () => useMasterEmblem(entry)));
+      const blocked = promotionBlockReason(player, item.id);
+      append(entry, itemRow(entry, blocked ?? 'Use', Boolean(blocked), () => useMasterEmblem(entry)));
     } else if (isBooster(item)) {
       const blocked = boosterBlockReason(player, item);
       append(entry, itemRow(entry, blocked ?? 'Use', Boolean(blocked), () => useBoosterItem(entry)));
@@ -3144,6 +3211,45 @@ function openStaff(kind, choice) {
 const openHeal = (choice) => openStaff('heal', choice);
 const openFreeze = (choice) => openStaff('freeze', choice);
 
+function openBloodOath() {
+  if (gameState.phase !== 'player' || !gameState.selected || gameState.mode !== 'unit') return;
+  const targets = bloodOathTargets(player, playerTeam);
+  if (!targets.length) {
+    setMessage('Blood Oath requires 7 HP and an adjacent living ally without protection.');
+    return;
+  }
+  gameState.mode = 'heal';
+  renderTacticalUi();
+  showStaffDialog('Blood Oath: protect who? (6 HP)', targets.map((target) => ({
+    label: `${target.name} · ${target.hp}/${target.maxHp} HP · halve next damaging hit`,
+    onClick: () => void useBloodOath(target),
+  })));
+}
+
+async function useBloodOath(target) {
+  const blocked = bloodOathBlockReason(player, target);
+  if (gameState.phase !== 'player' || gameState.mode !== 'heal' ||
+      !playerTeam.includes(target) || blocked) {
+    setMessage(blocked ?? 'Blood Oath target is no longer available.');
+    return;
+  }
+  if (healDialog.open) healDialog.close();
+  gameState.mode = 'combat';
+  combatants.add(player);
+  combatants.add(target);
+  player.facing = getFacing(target.x - player.x, target.z - player.z);
+  renderTacticalUi();
+  await castStaff(player, target, BLOOD_OATH, true, () => {
+    applyBloodOath(player, target);
+    refreshUnitTint(target);
+    showCombatResult(player, `-${BLOOD_OATH_COST}`, 'hit');
+    showCombatResult(target, 'OATH', 'heal');
+  });
+  setMessage(`${player.name} pays 6 HP. Blood Oath halves ${target.name}'s next damaging combat hit until next player phase.`);
+  gameState.mode = 'unit';
+  finishUnit();
+}
+
 function showHealTargets(staff) {
   showStaffDialog(`${staff.name}: heal who?`, healTargets(player, staff).map((target) => ({
     label: `${target.name} · ${target.hp}/${target.maxHp} HP`,
@@ -3226,7 +3332,7 @@ function setEnemyFrozen(enemy, turns) {
 
 // Frost blue wins over Ravage's blood red; otherwise the sprite is untinted.
 function refreshUnitTint(unit) {
-  unit.mesh.material.color.set(unit.frozen ? 0x8fd4ff : unit.ravaging ? 0xff8f8f : 0xffffff);
+  unit.mesh.material.color.set(unit.frozen ? 0x8fd4ff : unit.ravaging ? 0xff8f8f : unit.bloodOath ? 0xffbcc9 : 0xffffff);
 }
 
 function useRavage() {
@@ -3248,6 +3354,7 @@ function showFreezeTargets(staff) {
 
 async function useFreezeStaff(target, staff) {
   if (!castableStaffSpells(player, 'freeze').includes(staff) || !freezeTargets(player, staff).includes(target)) return;
+  activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn, { attacked: target });
   if (healDialog.open) healDialog.close();
   gameState.mode = 'combat';
   combatants.add(player);
@@ -3650,17 +3757,23 @@ async function playPromotionGlow(unit, applyChange) {
 }
 
 async function useMasterEmblem(entry) {
-  if (player.level < 20 || !canPromote(player)) return;
+  const item = INVENTORY_ITEMS.get(entry.id);
+  const blocked = promotionBlockReason(player, entry.id);
+  if (blocked || !gameState.selected || gameState.mode !== 'inventory' || player.acted ||
+      item?.effect !== 'promote' || !player.inventory.includes(entry) || !(entry.uses > 0)) {
+    setMessage(blocked ?? 'This promotion item is no longer available.');
+    return;
+  }
   closeInventory();
   gameState.mode = 'combat';
   combatants.add(player);
   renderTacticalUi();
-  setMessage(`${player.name} raises the Orders Emblem...`);
+  setMessage(`${player.name} raises the ${item.name}...`);
   let result;
   const before = snapshotForPromotion(player, portraitUrl(player));
   const previousMultiplier = getUsesMultiplier(player);
   await playPromotionGlow(player, () => {
-    result = promoteUnit(player);
+    result = promoteUnit(player, entry.id);
     rescaleMagicUses(player, previousMultiplier);
     refreshUnitAppearance(player);
     player.inventory.splice(player.inventory.indexOf(entry), 1);
@@ -3706,7 +3819,8 @@ async function collectEnemyDrop(enemy, recipient) {
   if (shouldSpawnGateBeast(activeLevel, enemies)) {
     const encounter = activeLevel.gateEncounter;
     encounter.spawned = true;
-    gateBeast = createEnemy(encounter.x, encounter.z, encounter.beastId, { ai: 'stationary' });
+    beginGateBeastPressure(activeLevel, gameState.turn);
+    gateBeast = createEnemy(encounter.x, encounter.z, encounter.beastId, { ai: 'stationary', drop: 'covenant-emblem' });
     gateBeast.mesh.visible = false;
     enemies.push(gateBeast);
   }
@@ -3823,6 +3937,14 @@ function updateUnitHoverCard() {
     note.textContent = 'Frozen: movement blocked this player phase; actions available.';
     weapon.append(note);
   }
+  if (unit.bloodOath || unit.bloodTrailBonus) {
+    const note = document.createElement('small');
+    note.textContent = [
+      unit.bloodOath ? 'Blood Oath: next damaging combat hit halved (round up).' : '',
+      unit.bloodTrailBonus ? 'Blood Trail: +2 Movement this player phase.' : '',
+    ].filter(Boolean).join(' ');
+    weapon.append(note);
+  }
   if (unit.weapon?.effect?.length) {
     const effect = document.createElement('small');
     effect.textContent = `Effective vs ${unit.weapon.effect.join(', ')}`;
@@ -3899,7 +4021,7 @@ function renderUnitList() {
       unit.weapon?.name ?? 'None',
       unit.level,
       `${unit.hp}/${unit.maxHp}`,
-      ...UNIT_LIST_STATS.map((stat) => unit[stat]),
+      ...UNIT_LIST_STATS.map((stat) => stat === 'movement' ? movementAllowance(unit) : unit[stat]),
     ];
     row.append(spriteCell, ...cells.map((value) => {
       const cell = document.createElement('td');
@@ -3917,6 +4039,8 @@ function openUnitList() {
 }
 
 function renderTacticalUi() {
+  activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn);
+  for (const { squad, marker } of levelGroup.userData.bridgeSquadMarkers ?? []) marker.visible = !squad.active;
   if (activeLevel.courtyard && !activeLevel.courtyard.recruit.recruited &&
     !enemies.some((enemy) => enemy.id === 'corvis' && enemy.hp > 0)) {
     activeLevel.courtyard.recruit.dead = true;
@@ -3929,15 +4053,21 @@ function renderTacticalUi() {
   phaseLabel.textContent = `${gameState.phase.toUpperCase()} PHASE - TURN ${gameState.turn}`;
   objectiveLabel.textContent = `OBJECTIVE · ${objectiveDescription()}`;
   const rescueStatus = document.querySelector('#rescue-status');
-  rescueStatus.hidden = !rescueState && !activeLevel.infirmary && !activeLevel.streets;
+  rescueStatus.hidden = !rescueState && !activeLevel.infirmary && !activeLevel.streets && !activeLevel.gateEncounter?.pressure;
   const rescueDestination = document.querySelector('#rescue-destination');
   rescueDestination.hidden = !rescueState;
+  if (activeLevel.gateEncounter?.pressure) {
+    const squads = activeLevel.gateEncounter.pressure.squads;
+    rescueStatus.textContent = `${squads.map((squad) =>
+      `${squad.name}: ${squad.active ? 'engaged' : 'holding'}`).join(' · ')}.`;
+  }
   if (rescueState) {
     const wave = activeLevel.reinforcements.find((entry) => !entry.spawned);
     const warning = wave
-      ? `${wave.turn === gameState.turn + 1 ? 'WARNING: ' : ''}Next forest wave: turn ${wave.turn}`
+      ? `${wave.turn <= gameState.turn ? 'Forest wave queued at its entrance' : `Next forest wave: turn ${wave.turn}`}`
       : 'All forest waves have arrived';
-    rescueStatus.textContent = `${rescueState.villagers.map((unit) => `${unit.name}: ${unit.status} (${unit.hp} HP)`).join(' · ')}. ${warning}.`;
+    const warnings = rescueWarnings(activeLevel, enemies, gameState.turn);
+    rescueStatus.textContent = `${rescueState.villagers.map((unit) => `${unit.name}: ${unit.status} (${unit.hp} HP)`).join(' · ')}. ${warning}.${warnings.length ? ` WARNING: ${warnings.join(' ')}` : ''}`;
     rescueDestination.textContent = 'REFUGE: green tiles on the west edge. Escorts walk up to 3 tiles before each enemy phase, then leave safely.';
   }
   if (activeLevel.infirmary) {
@@ -3959,7 +4089,8 @@ function renderTacticalUi() {
       return `${name}: ${wave.spawned ? 'arrived' : trigger.warnedTurn === null ? 'not signaled' : `WARNING: turn ${wave.turn}`}`;
     }).join(' · ');
   }
-  const movementUnit = player.movement === 1 ? 'tile' : 'tiles';
+  const availableMovement = movementAllowance(player);
+  const movementUnit = availableMovement === 1 ? 'tile' : 'tiles';
   const rangeText = weaponRangeLabel(player.weapon);
   updateUnitHoverCard();
   backActionButton.textContent = player.moveOrigin && player.moved && !player.acted
@@ -3993,12 +4124,16 @@ function renderTacticalUi() {
   document.querySelector('#convoy-action').hidden = !gameState.selected || player.acted || !canAccessConvoy(player);
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
   document.querySelector('#freeze-action').hidden = !gameState.selected || freezeTargets(player).length === 0;
+  const oathButton = document.querySelector('#blood-oath-action');
+  oathButton.hidden = !gameState.selected || !getClassAbilities(player).some((ability) => ability.bloodOath);
+  oathButton.disabled = bloodOathTargets(player, playerTeam).length === 0;
+  oathButton.title = 'Costs 6 HP and an action. Protect an adjacent ally from half the next damaging combat hit, until next player phase.';
   const ravageButton = document.querySelector('#ravage-action');
   ravageButton.hidden = !gameState.selected || !canRavage(player);
   ravageButton.textContent = `Ravage (−${ravageCost(player)} HP)`;
   ravageButton.title = emblemTierDescription(EMBLEM_TIERS[1]);
   actionHelp.textContent = gameState.mode === 'move'
-    ? `Choose a tile within ${player.movement} ${movementUnit}; the blue line previews the route.`
+    ? `Choose a tile within ${availableMovement} ${movementUnit}; the blue line previews the route.`
     : gameState.mode === 'attack'
       ? `Choose a target in weapon range ${rangeText}, then press Space or Enter.`
       : house?.villagerId && !player.acted
@@ -4099,6 +4234,7 @@ const AI_LABELS = {
 };
 
 function setCursor(x, z) {
+  manualCameraTarget = null;
   const width = activeLevel.villageScene?.playableWidth ?? activeLevel.width;
   const [minX, minZ, maxX, maxZ] = activeLevel.villageScene?.cursorBounds ?? [0, 0, width - 1, activeLevel.height - 1];
   cursor.x = Math.max(minX, Math.min(maxX, x));
@@ -4118,7 +4254,7 @@ function setCursor(x, z) {
     const arrow = advantage > 0 ? ' ▲ Weapon advantage' : advantage < 0 ? ' ▼ Weapon disadvantage' : '';
     setMessage(`${enemy.name} · ${hitRate}% displayed Hit${arrow} · Space / Enter to attack`);
   } else if (gameState.mode === 'cursor' && !gameState.selected) {
-    setMessage(`WASD / Arrows move · Space / Enter select ${player.name} · Click an empty tile for options`);
+    setMessage('Tap a unit or tile · Drag to pan · Next unit cycles allies');
   }
 }
 
@@ -4181,11 +4317,9 @@ function cyclePlayerUnits() {
     (unit) => unit.x === cursor.x && unit.z === cursor.z,
   );
   const nextUnit = availableUnits[(currentIndex + 1) % availableUnits.length];
-  cursor.x = nextUnit.x;
-  cursor.z = nextUnit.z;
-  showTileInspection(cursor.x, cursor.z);
   player = nextUnit;
-  setMessage(`${nextUnit.name} highlighted. Press Enter to select.`);
+  setCursor(nextUnit.x, nextUnit.z);
+  setMessage(`${nextUnit.name} highlighted. Tap the unit or press Enter to select.`);
 }
 
 function selectMaria() {
@@ -4389,7 +4523,9 @@ function showCombatForecast(target) {
     const attacks = opponent ? getAvailableStrikeCount(unit, getAttackCount(unit, opponent) * getStrikesPerAttack(unit)) : 0;
     const damage = opponent ? getCombatDamage(unit, opponent, terrain) : 0;
     const rows = [
-      ['Damage', opponent ? `${damage} × ${attacks}` : '—'],
+      ['Damage', opponent ? opponent.bloodOath && damage > 0
+        ? `${protectedCombatDamage(opponent, damage)} first hit; ${damage} after`
+        : `${damage} × ${attacks}` : '—'],
       ['Hit', opponent ? `${getHitRate(unit, opponent, terrain)}%` : '—'],
       ['Crit', opponent ? `${getCriticalRate(unit, opponent)}%` : '—'],
     ];
@@ -4405,7 +4541,8 @@ function showCombatForecast(target) {
     if (opponent) {
       const summary = document.createElement('p');
       summary.className = 'forecast-total';
-      summary.textContent = `Up to ${damage * attacks} damage if all strikes hit`;
+      const total = attacks > 0 ? protectedCombatDamage(opponent, damage) + damage * (attacks - 1) : 0;
+      summary.textContent = `Up to ${total} damage if all strikes hit${opponent.bloodOath ? ' · Blood Oath protects one hit' : ''}`;
       panel.append(summary);
       if (isWeaponEffective(unit, opponent)) {
         const effective = document.createElement('div');
@@ -4515,6 +4652,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     setMessage(`Choose a valid target within ${weaponRangeLabel(player.weapon)} range.`);
     return;
   }
+  activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn, { attacked: target });
   player.facing = getFacing(target.x - player.x, target.z - player.z);
   player.moveOrigin = null;
   gameState.mode = 'combat';
@@ -4585,8 +4723,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
             playerHits++;
             recordWeaponHit(player, rankUps);
             if (result.critical) playerCriticalHits++;
-            const strikeDamage = Math.min(target.hp, result.critical ? criticalDamage : damage);
-            target.hp -= strikeDamage;
+            const strikeDamage = applyCombatDamage(target, result.critical ? criticalDamage : damage);
             const drained = healDamageDealt(player, strikeDamage);
             if (drained > 0) showCombatResult(player, `+${drained}`, 'heal');
             playerTotalDamage += strikeDamage;
@@ -4606,8 +4743,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
         const result = counterResults[round];
         await playCombatStrike(target, result, round > 0, () => {
           if (result.hit) {
-            const strikeDamage = Math.min(player.hp, result.critical ? counterCriticalDamage : counterDamage);
-            player.hp -= strikeDamage;
+            const strikeDamage = applyCombatDamage(player, result.critical ? counterCriticalDamage : counterDamage);
+            refreshUnitTint(player);
             const drained = healDamageDealt(target, strikeDamage);
             if (drained > 0) showCombatResult(target, `+${drained}`, 'heal');
             showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
@@ -4722,7 +4859,7 @@ function chooseEnemyTarget(enemy, livingTeam) {
   const quarry = enemy.hunts ? livingTeam.find((unit) => unit.id === enemy.hunts) : null;
   if (quarry && (attackable.includes(quarry) || enemy.ai === 'mobile' && !enemy.frozen)) return quarry;
   if (attackable.length) {
-    const damageTo = (unit) => getCombatDamage(enemy, unit, getTerrain(activeLevel, unit.x, unit.z));
+    const damageTo = (unit) => protectedCombatDamage(unit, getCombatDamage(enemy, unit, getTerrain(activeLevel, unit.x, unit.z)));
     return attackable.reduce((best, unit) => {
       const difference = damageTo(unit) - damageTo(best);
       if (difference !== 0) return difference > 0 ? unit : best;
@@ -4764,6 +4901,7 @@ async function healWithBloodAura() {
 }
 
 async function enemyPhase() {
+  endCovenantPlayerPhase(playerTeam);
   gameState.phase = 'enemy';
   gameState.selected = false;
   gameState.mode = 'cursor';
@@ -4812,6 +4950,13 @@ async function enemyPhase() {
   await advanceVillagers();
   await heartrootPhase();
   await healOnRestorativeTiles(enemies);
+  activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn, {
+    canEngage: (enemy) => {
+      const reach = [...getEnemyReach(enemy).keys()].map((key) => key.split(',').map(Number));
+      return playerTeam.some((unit) => unit.hp > 0 && reach.some(([x, z]) =>
+        isInWeaponRange(enemy, unit, distanceBetween(x, z, unit.x, unit.z))));
+    },
+  });
   const frozenEnemies = [];
   for (const enemy of [...enemies]) {
     if (!enemies.includes(enemy)) continue;
@@ -4991,8 +5136,8 @@ async function enemyPhase() {
               if (result.hit) {
                 hits++;
                 if (result.critical) criticalHits++;
-                const strikeDamage = Math.min(foe.hp, result.critical ? criticalDamage : damage);
-                foe.hp -= strikeDamage;
+                const strikeDamage = applyCombatDamage(foe, result.critical ? criticalDamage : damage);
+                refreshUnitTint(foe);
                 const drained = healDamageDealt(enemy, strikeDamage);
                 if (drained > 0) showCombatResult(enemy, `+${drained}`, 'heal');
                 totalDamage += strikeDamage;
@@ -5016,8 +5161,7 @@ async function enemyPhase() {
                 counterHitCount++;
                 if (playerTeam.includes(foe)) recordWeaponHit(foe, rankUps);
                 if (result.critical) counterCriticalCount++;
-                const strikeDamage = Math.min(enemy.hp, result.critical ? counterCriticalDamage : counterDamage);
-                enemy.hp -= strikeDamage;
+                const strikeDamage = applyCombatDamage(enemy, result.critical ? counterCriticalDamage : counterDamage);
                 const drained = healDamageDealt(foe, strikeDamage);
                 if (drained > 0) showCombatResult(foe, `+${drained}`, 'heal');
                 counterTotalDamage += strikeDamage;
@@ -5118,9 +5262,10 @@ async function enemyPhase() {
   cursor.z = player.z;
   cursorOutline.visible = true;
   setCursor(player.x, player.z);
-  spawnGateRavens();
+  const gateRavens = spawnGateRavens();
   const departedWagons = departTreatmentWagons();
   const reinforcementResult = spawnTurnReinforcements();
+  const advancingGuards = advanceRescueGuards(activeLevel, enemies, gameState.turn);
   if (reinforcementResult.error) {
     console.error('Unable to spawn chapter reinforcements:', reinforcementResult.error);
     setLevelStatus(`Could not spawn reinforcements: ${reinforcementResult.error.message}`, true);
@@ -5134,12 +5279,16 @@ async function enemyPhase() {
         : `${reinforcementResult.units.length} reinforcements have arrived!`);
   }
   if (departedWagons.length) setMessage('Treatment wagons leave the depots! Block the rails or break them before they reach the lift.');
+  if (advancingGuards.length) setMessage('The flank knights leave the bridge and advance into the village square!');
   for (const wave of reinforcementResult.announcements ?? []) if (wave.message) setMessage(wave.message);
+  startCovenantPlayerPhase(playerTeam, enemies);
+  for (const unit of playerTeam) refreshUnitTint(unit);
   if (cityWarning) setMessage('The Bell-Drowned draws back its chains. GOLD lanes will erupt for 18 damage next enemy phase. Move off them!');
   if (throneWarning) setMessage('Vael writes a name in The Last Testament. GOLD tiles take 22 damage next enemy phase. Move away!');
   if (isBenedictionTurn(activeLevel, gameState.turn)) setMessage('Vael begins Profane Benediction. This enemy phase he heals a nearby cultist instead of attacking. Press the opening!');
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  await showGateRavens([...gateRavens, ...reinforcementResult.units]);
   await healOnRestorativeTiles(playerTeam);
   await healWithBloodAura();
   if (activeLevel.infirmary && reinforcementResult.units.some((unit) => unit.id === 'rotten')) {
@@ -5182,9 +5331,10 @@ function spawnTurnReinforcements() {
     while (wave.spawnedCount < wave.units.length) {
       const placement = wave.units[wave.spawnedCount];
       const candidates = [];
+      const flying = enemyMovementType(placement.id) === 'flying';
       for (let z = 0; z < activeLevel.height; z++) {
         for (let x = 0; x < activeLevel.width; x++) {
-          if (isWalkable(activeLevel, x, z) && !occupied.has(tileKey(x, z))) {
+          if (isWalkable(activeLevel, x, z, { type: flying ? 'flying' : undefined }) && !occupied.has(tileKey(x, z))) {
             candidates.push({ x, z });
           }
         }
@@ -5194,9 +5344,10 @@ function spawnTurnReinforcements() {
         distanceBetween(second.x, second.z, placement.x, placement.z));
       const fixedEntrance = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard ||
         activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity ||
-        activeLevel.villageScene?.layout === 'harbor';
+        activeLevel.villageScene?.layout === 'harbor' || activeLevel.rescue?.bridgeAdvance ||
+        activeLevel.gateEncounter?.pressure;
       const spawnTile = fixedEntrance
-        ? infirmarySpawnTile(activeLevel, placement, [...defendingUnits(), ...enemies])
+        ? infirmarySpawnTile(activeLevel, { ...placement, type: flying ? 'flying' : undefined }, [...defendingUnits(), ...enemies])
         : candidates[0];
       if (!spawnTile && fixedEntrance) break;
       if (!spawnTile) {
@@ -5210,6 +5361,9 @@ function spawnTurnReinforcements() {
       occupied.add(tileKey(unit.x, unit.z));
       wave.spawnedCount++;
       createdUnits.push(unit);
+      if (wave.entranceId === 'bridge-ravens' && activeLevel.gateEncounter?.pressure) {
+        activeLevel.gateEncounter.pressure.ravenArrivalTurn = gameState.turn;
+      }
     }
     wave.spawned = wave.spawnedCount === wave.units.length;
     if (!wave.spawned) continue;
@@ -5241,7 +5395,7 @@ function spawnTurnReinforcements() {
 }
 
 async function endPlayerPhase() {
-  if (gameState.phase !== 'player' || gameState.defeated || playerMovement) return;
+  if (gameState.phase !== 'player' || gameState.defeated || playerMovement || gameState.mode === 'combat') return;
   for (const unit of playerTeam) {
     if (unit.frozen && unit.frozen <= gameState.turn) {
       delete unit.frozen;
@@ -5373,6 +5527,7 @@ document.querySelector('#trade-action').addEventListener('click', openTrade);
 document.querySelector('#trade-close').addEventListener('click', closeTrade);
 document.querySelector('#heal-action').addEventListener('click', openHeal);
 document.querySelector('#freeze-action').addEventListener('click', openFreeze);
+document.querySelector('#blood-oath-action').addEventListener('click', openBloodOath);
 document.querySelector('#ravage-action').addEventListener('click', useRavage);
 document.querySelector('#heal-close').addEventListener('click', closeHeal);
 healDialog.addEventListener('cancel', (event) => {
@@ -5491,8 +5646,75 @@ combatForecastDialog.addEventListener('cancel', (event) => {
   event.preventDefault();
   cancelCombatForecast();
 });
+const toolsToggle = document.querySelector('#tools-toggle');
+const mapTools = document.querySelector('#map-tools');
+const mapNavigation = document.querySelector('#map-navigation');
+const nextUnitButton = document.querySelector('#next-unit');
+const mapBackButton = document.querySelector('#map-back');
+
+function setMapToolsOpen(open) {
+  mapTools.hidden = !open;
+  toolsToggle.setAttribute('aria-expanded', String(open));
+}
+
+toolsToggle.addEventListener('click', () => setMapToolsOpen(mapTools.hidden));
+mapTools.addEventListener('click', (event) => {
+  if (event.target.closest('button, a')) setMapToolsOpen(false);
+});
+document.addEventListener('pointerdown', (event) => {
+  if (!event.target.closest('#map-tools, #tools-toggle')) setMapToolsOpen(false);
+});
+
+function canUseMapControls() {
+  return sessionStarted && mainMenu.hidden && terminalScreen.hidden && !gameState.defeated &&
+    gameState.phase === 'player' && !playerMovement && !cameraFollowTarget &&
+    ['cursor', 'unit', 'move', 'attack'].includes(gameState.mode) &&
+    !document.querySelector('dialog[open]');
+}
+
+nextUnitButton.addEventListener('click', () => {
+  if (!canUseMapControls() || mapViewActive || gameState.selected) return;
+  cyclePlayerUnits();
+});
+mapBackButton.addEventListener('click', () => {
+  if (canUseMapControls()) goBack();
+});
+
+const panPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.8);
+const panRaycaster = new THREE.Raycaster();
+function panPoint(x, y) {
+  const bounds = renderer.domElement.getBoundingClientRect();
+  panRaycaster.setFromCamera(new THREE.Vector2(
+    (x - bounds.left) / bounds.width * 2 - 1,
+    -(y - bounds.top) / bounds.height * 2 + 1,
+  ), camera);
+  return panRaycaster.ray.intersectPlane(panPlane, new THREE.Vector3());
+}
+
+const cancelMapDrag = attachMapDrag(renderer.domElement, {
+  canPan: canUseMapControls,
+  onStart() {
+    const scale = Math.max(activeLevel.infirmary ? 1.45 : .55, activeLevel.width / 21, activeLevel.height / 19);
+    manualCameraTarget = camera.position.clone().sub(cameraShakeOffset).sub(CAM_OFFSET.clone().multiplyScalar(scale));
+    manualCameraTarget.y = .8;
+    draggingMap = true;
+    pointerHoveredUnit = null;
+    document.body.classList.add('map-dragging');
+  },
+  onPan(fromX, fromY, toX, toY) {
+    const from = panPoint(fromX, fromY), to = panPoint(toX, toY);
+    if (from && to) manualCameraTarget.add(from.sub(to));
+    manualCameraTarget.x = THREE.MathUtils.clamp(manualCameraTarget.x, -activeLevel.width / 2, activeLevel.width / 2);
+    manualCameraTarget.z = THREE.MathUtils.clamp(manualCameraTarget.z, -activeLevel.height / 2, activeLevel.height / 2);
+  },
+  onEnd() {
+    draggingMap = false;
+    document.body.classList.remove('map-dragging');
+  },
+});
 renderer.domElement.addEventListener('click', clickBattlefield);
 renderer.domElement.addEventListener('pointermove', (event) => {
+  if (event.buttons || event.pointerType === 'touch') return;
   const bounds = renderer.domElement.getBoundingClientRect();
   pointerPosition.set(
     ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
@@ -5536,6 +5758,11 @@ const savedGame = refreshContinueButton();
 let backCtrlPending = false;
 
 function goBack() {
+  if (!mapTools.hidden) {
+    setMapToolsOpen(false);
+    toolsToggle.focus();
+    return true;
+  }
   if (document.querySelector('#level-up-dialog')?.open || document.querySelector('#rank-up-dialog')?.open || itemPopup.open || tutorialPopup.open) return false;
   if (combatForecastDialog.open) {
     cancelCombatForecast();
@@ -5632,6 +5859,15 @@ window.addEventListener('keydown', (event) => {
       event.preventDefault();
       return;
     }
+  }
+  if (event.target instanceof Element && event.target.closest('#map-tools, #tools-toggle, #map-navigation') &&
+      ['Enter', 'Space', 'Tab'].includes(event.code)) return;
+  if (!mapTools.hidden) {
+    if (menuDirections[event.code]) {
+      event.preventDefault();
+      moveActionFocus(mapTools, menuDirections[event.code]);
+    }
+    return;
   }
   if (!terminalScreen.hidden) {
     if (event.code === 'Enter' || event.code === 'Space') {
@@ -5730,6 +5966,15 @@ window.addEventListener('keydown', (event) => {
 });
 
 function update(dt, t) {
+  const mapControlsAvailable = canUseMapControls();
+  mapNavigation.hidden = !mapControlsAvailable || gameState.mode === 'unit' && gameState.selected;
+  nextUnitButton.hidden = mapViewActive || gameState.selected;
+  nextUnitButton.disabled = gameState.selected || !playerTeam.some((unit) => unit.hp > 0 && !unit.acted);
+  mapBackButton.disabled = !mapViewActive && !gameState.selected;
+  if (!mapControlsAvailable) {
+    cancelMapDrag();
+    manualCameraTarget = null;
+  }
   for (const marker of levelGroup.userData.houseMarkers ?? []) {
     const house = activeLevel.houses.find((entry) => entry.id === marker.userData.houseId);
     marker.visible = Boolean(house) && !house.visited;
@@ -5918,6 +6163,8 @@ function update(dt, t) {
     ? new THREE.Vector3(playerWorldX, 0.8, playerWorldZ)
     : cameraFollowTarget
       ? new THREE.Vector3(cameraFollowTarget.x, 0.8, cameraFollowTarget.z)
+      : manualCameraTarget
+        ? manualCameraTarget.clone()
       : (gameState.selected || gameState.phase === 'player')
         ? new THREE.Vector3(worldX(cursor.x), 0.8, worldZ(cursor.z))
         : new THREE.Vector3(0, 0.8, 0);
@@ -5940,9 +6187,11 @@ function update(dt, t) {
   if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
   else if (cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
   if (boundedInterior) constrainMapCamera(target);
+  if (manualCameraTarget) manualCameraTarget.copy(target);
   const desired = target.clone().add(offset);
   camera.position.sub(cameraShakeOffset);
-  camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
+  if (draggingMap && manualCameraTarget) camera.position.copy(desired);
+  else camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
   let fov = TACTICAL_FOV;
   if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) {
     target.copy(camera.position).sub(offset);

@@ -22,7 +22,68 @@ export function validateGateEncounter(value, level) {
     level.reinforcements.some((wave) => wave.units.some((unit) =>
       unit.id === captainId || unit.id === beastId || unit.x === x && unit.z === z))
   ) throw new Error('Gate encounter requires one Golden Order captain and a reserved, walkable gate exit for the Blood Beast.');
-  return { captainId, beastId, x, z, spawned, ravenStartTurn, ravenWavesSpawned };
+  let pressure;
+  if (value.pressure !== undefined) {
+    const squads = value.pressure?.squads;
+    const ravenArrivalTurn = value.pressure?.ravenArrivalTurn ?? null;
+    const ids = new Set(), tiles = new Set();
+    if ((ravenArrivalTurn !== null && (!Number.isInteger(ravenArrivalTurn) || ravenArrivalTurn < 1)) ||
+      !Array.isArray(squads) || squads.length !== 4 || !squads.every((squad) => {
+      if (!squad || typeof squad.id !== 'string' || !squad.id.trim() || ids.has(squad.id) ||
+        typeof squad.name !== 'string' || !squad.name.trim() ||
+        !Number.isInteger(squad.line) || squad.line < 1 || squad.line >= level.height ||
+        !Number.isInteger(squad.turn) || squad.turn < 3 ||
+        typeof squad.active !== 'boolean' || !Array.isArray(squad.members) || !squad.members.length) return false;
+      ids.add(squad.id);
+      return squad.members.every((member) => {
+        if (!member || tiles.has(tileKey(member.x, member.z)) ||
+          !level.enemies.some((enemy) => enemy.id === member.id && enemy.id.startsWith('golden-') &&
+            enemy.x === member.x && enemy.z === member.z && enemy.ai === 'guard')) return false;
+        tiles.add(tileKey(member.x, member.z));
+        return true;
+      });
+    }) || level.enemies.some((enemy) => enemy.id.startsWith('golden-') && !tiles.has(tileKey(enemy.x, enemy.z)))) {
+      throw new Error('Bridge pressure requires four unique squads covering every authored Golden Order defender.');
+    }
+    pressure = { ravenArrivalTurn, squads: squads.map((squad) => ({
+      id: squad.id, name: squad.name, line: squad.line, turn: squad.turn, active: squad.active,
+      members: squad.members.map(({ id, x, z }) => ({ id, x, z })),
+    })) };
+  }
+  return { captainId, beastId, x, z, spawned, ravenStartTurn, ravenWavesSpawned,
+    ...(pressure ? { pressure } : {}) };
+}
+
+export function activateBridgeSquads(level, enemies, party, turn, { attacked, canEngage } = {}) {
+  const activated = [];
+  for (const squad of level.gateEncounter?.pressure?.squads ?? []) {
+    if (squad.active) continue;
+    const members = squad.members.map((placement) => enemies.find((unit) =>
+      unit.id === placement.id && unit.x === placement.x && unit.z === placement.z && unit.hp > 0));
+    if (turn < squad.turn &&
+      !party.some((unit) => unit.hp > 0 && unit.z <= squad.line) &&
+      !members.some((unit) => unit && (unit === attacked || unit.hp < unit.maxHp || canEngage?.(unit))) &&
+      members.every(Boolean)) continue;
+    squad.active = true;
+    for (const unit of members.filter(Boolean)) unit.ai = 'mobile';
+    activated.push(squad);
+  }
+  return activated;
+}
+
+export function beginGateBeastPressure(level, turn) {
+  const encounter = level.gateEncounter;
+  if (!encounter?.pressure) return;
+  const waves = level.reinforcements.filter((wave) => wave.entranceId === 'bridge-ravens');
+  // A scheduled pair and the reveal flock never arrive on the same player turn.
+  if (encounter.pressure.ravenArrivalTurn === turn || waves.some((wave) => wave.turn <= turn &&
+    (wave.spawned && wave.turn === turn || !wave.spawned && wave.spawnedCount > 0))) {
+    encounter.ravenStartTurn = turn + 1;
+  }
+  for (const wave of waves) {
+    wave.spawned = true;
+    wave.spawnedCount = wave.units.length;
+  }
 }
 
 export function planGateRavens(level, turn, units) {

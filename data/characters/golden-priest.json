@@ -1,0 +1,18 @@
+{
+  "id": "golden-priest",
+  "name": "Golden Order Priest",
+  "classId": "priest",
+  "type": "infantry",
+  "spriteSet": "genericPriest",
+  "sprite": "assets/character/Generic_Priest/rotations/south.png",
+  "scale": 1,
+  "level": 18,
+  "experience": 0,
+  "weaponId": "heal-staff",
+  "inventory": ["heal-staff"],
+  "weaponExp": { "Staff": 30 },
+  "ai": "guard",
+  "baseStats": { "hp": 30, "strength": 1, "magic": 14, "dexterity": 11, "speed": 8, "luck": 4, "defense": 5, "resistance": 15, "movement": 5, "build": 5 },
+  "currentStats": { "hp": 30, "strength": 1, "magic": 14, "dexterity": 11, "speed": 8, "luck": 4, "defense": 5, "resistance": 15, "movement": 5, "build": 5 },
+  "growthRates": { "hp": 40, "strength": 0, "magic": 40, "dexterity": 30, "speed": 20, "luck": 20, "defense": 10, "resistance": 45, "movement": 0, "build": 0 }
+}

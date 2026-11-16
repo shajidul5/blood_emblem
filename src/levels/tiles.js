@@ -48,6 +48,10 @@ for (const [id, name, walkable, extras] of [
   ['forest_thicket', 'Bramble Thicket', true, { avoid: 30, moveCost: 2 }],
   ['forest_bridge', 'Log Footbridge', true, {}],
   ['forest_block', 'Dense Forest / Channel', false, {}],
+  ['crossing_lane', 'Village Road', true, {}],
+  ['crossing_cover', 'Orchard Brush', true, { avoid: 20, defense: 2, moveCost: 2 }],
+  ['crossing_block', 'Building / Wall / River', false, {}],
+  ['threshold_scenery', 'Distant Bridge / Gatehouse', false, {}],
 ]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...extras }));
 for (const [id, name, walkable, bonuses] of [
   ['cathedral_floor', 'Cathedral Marble', true, {}],
@@ -174,7 +178,7 @@ export function isLevelTileWalkable(level, x, z, unit) {
   const tileId = level?.tileIds?.[z]?.[x];
   const flying = unit?.type === 'flying';
   return Boolean(tileId) && (flying
-    ? TILE_DEFS.has(tileId) && !['throne_building', 'throne_statue', 'city_wall', 'city_building', 'city_statue', 'city_rampart', 'city_mechanism', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch', 'shore_ruin', 'shore_beacon', 'shore_mooring'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
+    ? TILE_DEFS.has(tileId) && !['threshold_scenery', 'throne_building', 'throne_statue', 'city_wall', 'city_building', 'city_statue', 'city_rampart', 'city_mechanism', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch', 'shore_ruin', 'shore_beacon', 'shore_mooring'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
     : isTileWalkable(tileId)) &&
     !(level?.waitingCity && !level.waitingCity.opened && tileId === 'city_seal') &&
     !(level?.gateEncounter && !level.gateEncounter.spawned &&

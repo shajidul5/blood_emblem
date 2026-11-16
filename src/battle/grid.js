@@ -2,6 +2,7 @@ import { isInWeaponRange } from './combat.js';
 import { getTileDef, isLevelTileWalkable } from '../levels/tiles.js';
 import { canTraverseThroneEdge } from '../levels/throne-terraces.js';
 import { canTraverseShipEdge } from '../levels/ship-navigation.js';
+import { movementAllowance } from '../game/covenant.js';
 
 export function canTraverseEdge(level, from, to, unit) {
   return canTraverseThroneEdge(level, from, to, unit) && canTraverseShipEdge(level, from, to, unit);
@@ -50,7 +51,7 @@ export function getMovementRange(unit, level, enemies, allies = []) {
       if (!isWalkable(level, x, z, unit) || !canTraverseEdge(level, current, { x, z }, unit) ||
           findEnemyAt(enemies, x, z)) continue;
       const cost = current.cost + terrainMoveCost(level, x, z, unit);
-      if (cost > unit.movement || cost >= (distances.get(key) ?? Infinity)) continue;
+      if (cost > movementAllowance(unit) || cost >= (distances.get(key) ?? Infinity)) continue;
       distances.set(key, cost);
       open.push({ x, z, cost });
     }

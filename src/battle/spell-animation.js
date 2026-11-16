@@ -10,6 +10,9 @@ export const SPELL_EFFECTS = Object.freeze({
   'wind-tome': Object.freeze({ key: 'wind', element: 'wind', travelMs: 500, impactMs: 300, tint: '#a2f5b2', motion: 'projectile' }),
   gale: Object.freeze({ key: 'gale', element: 'wind', travelMs: 420, impactMs: 300, tint: '#8de0a0', motion: 'projectile' }),
   tempest: Object.freeze({ key: 'tempest', element: 'wind', travelMs: 300, impactMs: 420, tint: '#7fd896', motion: 'bolt', stretch: 1.25 }),
+  'light-tome': Object.freeze({ key: 'light', element: 'holy', travelMs: 240, impactMs: 360, tint: '#fff3bb', motion: 'bolt' }),
+  lumen: Object.freeze({ key: 'lumen', element: 'holy', travelMs: 220, impactMs: 380, tint: '#ffe9a1', motion: 'bolt', stretch: 1.125 }),
+  aureole: Object.freeze({ key: 'aureole', element: 'holy', travelMs: 300, impactMs: 440, tint: '#fff8d6', motion: 'bolt', stretch: 1.25 }),
 });
 
 // Arrows share the spell timeline (release, flight, contact) but are physical shots.
@@ -22,6 +25,7 @@ export const BULLET_EFFECT = Object.freeze({ key: 'bullet', travelMs: 110, impac
 
 // Staves never travel: the effect rises at the recipient's feet like a bolt.
 export const STAFF_EFFECTS = Object.freeze({
+  bloodOath: Object.freeze({ key: 'heal', element: 'holy', travelMs: 160, impactMs: 520, tint: '#ed8f9e', motion: 'bolt', stretch: 1.25, support: true }),
   heal: Object.freeze({ key: 'heal', element: 'holy', travelMs: 160, impactMs: 520, tint: '#ffe58a', motion: 'bolt', stretch: 1.25, support: true }),
   freeze: Object.freeze({ key: 'freeze', element: 'ice', travelMs: 160, impactMs: 460, tint: '#9fe3ff', motion: 'bolt', stretch: 1.25, support: true }),
 });
@@ -31,6 +35,7 @@ export function spellEffectFor(weapon) {
 }
 
 export function staffEffectFor(staff) {
+  if (staff?.id === 'blood-oath' && staff.type === 'Blood Rite') return STAFF_EFFECTS.bloodOath;
   if (staff?.type !== 'Staff') return null;
   return staff.freeze ? STAFF_EFFECTS.freeze : staff.heal ? STAFF_EFFECTS.heal : null;
 }

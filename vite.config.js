@@ -21,6 +21,7 @@ export default defineConfig({
       input: {
         main: resolve(root, 'index.html'),
         mapEditor: resolve(root, 'map-editor.html'),
+        characterGallery: resolve(root, 'character-gallery.html'),
       },
     },
   },

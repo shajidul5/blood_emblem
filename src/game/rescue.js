@@ -39,13 +39,49 @@ export function validateRescueRules(value, level) {
     if (occupied.has(key)) throw new Error('Rescue units cannot share a starting tile with another unit.');
     occupied.add(key);
   }
+  const bridgeAdvance = value.bridgeAdvance;
+  if (bridgeAdvance !== undefined && (
+    !bridgeAdvance || !Number.isInteger(bridgeAdvance.turn) || bridgeAdvance.turn < 2 ||
+    !Array.isArray(bridgeAdvance.units) || bridgeAdvance.units.length !== 2 ||
+    new Set(bridgeAdvance.units.map((unit) => unit && tileKey(unit.x, unit.z))).size !== 2 ||
+    !bridgeAdvance.units.every((unit) => validTile(unit) && level.enemies.some((enemy) =>
+      enemy.id === 'bridge-knight' && enemy.ai === 'stationary' && enemy.x === unit.x && enemy.z === unit.z))
+  )) throw new Error('Bridge advance needs a turn after the opening and two distinct stationary bridge knights.');
   return {
     captainId: value.captainId,
     recruit: { ...value.recruit },
     refuge: value.refuge.map(({ x, z }) => ({ x, z })),
     villagers: value.villagers.map((villager) => ({ ...villager })),
     rewards: value.rewards.map(({ rescued, items }) => ({ rescued, items: [...items] })),
+    ...(bridgeAdvance === undefined ? {} : {
+      bridgeAdvance: { turn: bridgeAdvance.turn, units: bridgeAdvance.units.map(({ x, z }) => ({ x, z })) },
+    }),
   };
+}
+
+function waitingBridgeGuards(level, enemies) {
+  return enemies.filter((enemy) => enemy.id === 'bridge-knight' && enemy.hp > 0 && enemy.ai === 'stationary' &&
+    level.rescue?.bridgeAdvance?.units.some((unit) => unit.x === enemy.x && unit.z === enemy.z));
+}
+
+export function advanceRescueGuards(level, enemies, turn) {
+  if (!level.rescue?.bridgeAdvance || turn < level.rescue.bridgeAdvance.turn) return [];
+  const guards = waitingBridgeGuards(level, enemies);
+  for (const guard of guards) guard.ai = 'mobile';
+  return guards;
+}
+
+export function rescueWarnings(level, enemies, turn) {
+  if (!level.rescue) return [];
+  const warnings = level.reinforcements.filter((wave) => !wave.spawned && wave.turn === turn + 1).map((wave) => {
+    const side = wave.units.every((unit) => unit.x < level.width / 2) ? 'western' :
+      wave.units.every((unit) => unit.x >= level.width / 2) ? 'eastern' : 'southern';
+    return `Beasts approach the ${side} forest entrance. ${wave.units.length} arrive on turn ${wave.turn}, before your actions.`;
+  });
+  if (level.rescue.bridgeAdvance?.turn === turn + 1 && waitingBridgeGuards(level, enemies).length) {
+    warnings.push(`The captain orders his flank knights into the square on turn ${turn + 1}. The captain and center knight will hold the bridge.`);
+  }
+  return warnings;
 }
 
 export function freshRescueState(level) {

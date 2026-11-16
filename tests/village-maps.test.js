@@ -228,6 +228,7 @@ test('right-edge arrivals queue at occupied tiles instead of teleporting, with n
     activeLevel: level, gameState: { turn: 2 }, enemies: [{ x:20,z:10,hp:20 }],
     defendingUnits: () => [], tileKey: (x,z) => `${x},${z}`,
     isWalkable: grid.isWalkable, infirmaryWaveSealed: () => false,
+    enemyMovementType: characters.enemyMovementType,
     courtyardWaveEnabled: () => true, cathedralWaveEnabled: () => true,
     distanceBetween: (x,z,cx,cz) => Math.abs(x-cx)+Math.abs(z-cz),
     infirmarySpawnTile: (level, placement, units) =>

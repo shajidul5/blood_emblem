@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blood Emblem - Character compendium</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Blood Emblem / The company</p>
+        <h1>Blood, steel &amp; resolve</h1>
+        <p>Every playable character, their promotions, and featured adversaries. One living collection of sprites, battle animations and effects.</p>
+        <div class="toolbar">
+          <label>Character<select id="character"></select></label>
+          <button id="pause" type="button" aria-pressed="false">Pause loops</button>
+        </div>
+        <p class="subtle">Spoilers: includes the full playable roster and promotion branches. No saves are read or changed.</p>
+      </header>
+      <section aria-labelledby="name">
+        <h2 id="name"></h2>
+        <p id="identity"></p>
+        <div id="branches" class="branches" role="group" aria-label="Promotion branches"></div>
+      </section>
+      <section class="panel" aria-labelledby="class-name">
+        <p id="branch-label" class="eyebrow"></p>
+        <h2 id="class-name"></h2>
+        <p id="weapons"></p>
+        <ul id="abilities"></ul>
+        <p id="promotion-note" class="subtle"></p>
+      </section>
+      <section aria-labelledby="map-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">On the battlefield</p><h2 id="map-title">Map sprites</h2></div>
+          <label>Map animation<select id="map-animation"></select></label>
+        </div>
+        <div id="maps" class="maps"></div>
+        <p class="subtle">Eight directions, native pixels. All available walking, attack, casting and weapon-variant clips are included.</p>
+      </section>
+      <section aria-labelledby="battle-title">
+        <div class="section-heading"><div><p class="eyebrow">Steel &amp; sorcery</p><h2 id="battle-title">Battle artwork</h2></div></div>
+        <div id="battle-art" class="art-grid"></div>
+        <p id="battle-note" class="subtle"></p>
+      </section>
+      <section class="panel" aria-labelledby="combat-title">
+        <h2 id="combat-title">Try the actual battle renderer</h2>
+        <p>Authored impact timing, projectiles, critical sequences and support effects, with the game's combat audio.</p>
+        <div class="toolbar">
+          <label>Weapon / spell / rite<select id="weapon"></select></label>
+          <label>Range<select id="range"></select></label>
+          <label>Side<select id="side"><option value="left">Left</option><option value="right">Right</option></select></label>
+          <label>Result<select id="result"><option value="normal">Normal hit</option><option value="critical">Critical hit</option><option value="miss">Miss</option></select></label>
+          <label>Backdrop<select id="backdrop"><option value="0">At sea</option><option value="5">Hollow Wood</option><option value="10" selected>Coast</option></select></label>
+          <button id="play" type="button">Play combat</button>
+        </div>
+        <p id="combat-note" class="subtle"></p>
+      </section>
+      <section aria-labelledby="effects-title">
+        <p class="eyebrow">The arcane &amp; the unseen</p><h2 id="effects-title">Effects &amp; abilities</h2>
+        <div id="effects" class="art-grid"></div>
+      </section>
+      <p id="status" role="status" aria-live="polite">Loading the company...</p>
+      <footer>Uses the live class definitions and original art catalogs. Missing battle sets are labeled, never substituted with another character's art. Loops are silent; combat previews use audio. Pause loops for still frames.</footer>
+    </main>
+    <script type="module" src="./src/gallery/character-gallery.js"></script>
+  </body>
+</html>

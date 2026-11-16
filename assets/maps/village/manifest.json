@@ -3,6 +3,25 @@
   "generator": "PixelLab Pixen",
   "pixelCellSize": 16,
   "images": {
+    "threshold": {
+      "file": "threshold.png",
+      "generator": "AI image generation",
+      "sourceImage": "sha256:fbb6f18e7ccc6768d142665163e4a4268a90162a8625888f2452520e49874106",
+      "width": 1024,
+      "height": 1536,
+      "styleReference": "crossing.png",
+      "notes": "Approved native portrait artwork. UV crop removes 21 pixels per side to align the nine-cell roadway with the 23x36 grid. Complete gatehouse and city are painted, not duplicate geometry; collision follows the central sandbag island and open flanks."
+    },
+    "crossing": {
+      "file": "crossing.png",
+      "generator": "AI image generation",
+      "sourceImage": "sha256:94745ce51a233a6a4ceeb715912dce2d93c1c49569bb5498ffd9b618b70ce53a",
+      "width": 1024,
+      "height": 1024,
+      "pixelCellSize": 32,
+      "styleReference": "heart.png",
+      "notes": "Native pixels installed without resampling. Nine-cell stone roadway with parapets matches Chapter 10; river continues beyond the northern edge with no far shoreline or city gate."
+    },
     "village": {
       "file": "village.png",
       "jobId": "2d1f2ae1-8374-495b-9e27-e8462fb8b3cb",
@@ -61,6 +80,8 @@
     }
   },
   "layouts": {
+    "threshold": { "chapter": 10, "source": "threshold", "crop": [21, 0, 982, 1536], "grid": [23, 36], "lighting": "dusk" },
+    "crossing": { "chapter": 9, "source": "crossing", "crop": [0, 0, 1024, 1024], "grid": [32, 32], "pixelCellSize": 32, "lighting": "sunset" },
     "harbor": { "chapter": 3, "source": "village", "crop": [0, 0, 384, 336], "grid": [24, 21], "playableGrid": [21, 21] },
     "mansion": { "chapter": 4, "source": "mansion", "crop": [0, 0, 512, 512], "grid": [32, 32], "legacy": true },
     "manor": { "chapter": 4, "source": "manor", "crop": [0, 0, 384, 320], "grid": [24, 20], "tint": "#8c88a8" },

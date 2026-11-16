@@ -12,6 +12,33 @@
     "forest": "2a301c9e-196e-420f-9967-72e044eb71a1"
   },
   "spells": {
+    "light": {
+      "file": "spell-light.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "69188cc1-79ae-47b2-8ce8-1529619a50bb",
+      "job": "84995920-355a-4e8d-9740-f2a77835a616"
+    },
+    "lumen": {
+      "file": "spell-lumen.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "8b99957f-dcd9-40f1-b0ed-0619dde8ef95",
+      "job": "afc90544-4976-4041-8d73-39e48054ab5e"
+    },
+    "aureole": {
+      "file": "spell-aureole.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "fcb3b8bd-b1ff-4af6-8754-6acee3aa81b9",
+      "job": "d0dad9d7-aa6c-424a-9749-5c4adaaabe74"
+    },
     "fire": {
       "file": "spell-fire.png",
       "width": 64,
@@ -113,6 +140,270 @@
     }
   },
   "fighters": {
+    "linus-bloodsworn": {
+      "size": 128,
+      "anchorX": 45,
+      "baseline": 108,
+      "scale": 0.75,
+      "idle": "../covenant/bloodsworn-linus/battle/idle.png",
+      "idleJob": "b82fdc38-2c04-447d-b956-91ba4e0a0b3b",
+      "idleLoop": {
+        "file": "../covenant/bloodsworn-linus/battle/idle-loop.png",
+        "job": "63c1ec46-f11a-4c08-b90f-77cc040ad7e1",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "../covenant/bloodsworn-linus/battle/attack.png",
+        "job": "83906d1b-70ad-41fb-92b4-c6b0937ca07c",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 60,
+        "advance": 48,
+        "contact": { "x": 125, "y": 43 }
+      },
+      "critical": {
+        "file": "../covenant/bloodsworn-linus/battle/critical.png",
+        "job": "475f3cf6-4214-4080-a4be-949991efc6b1",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 100,
+        "advance": 48,
+        "contact": { "x": 125, "y": 44 }
+      },
+      "thrown": {
+        "attack": {
+          "file": "../covenant/bloodsworn-linus/battle/thrown-attack.png",
+          "job": "38fe0237-ae49-4c7a-b398-90dff1c24479",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 14,
+          "catchFrame": 20,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": { "x": 69, "y": 43 },
+          "catchPoint": { "x": 54, "y": 45 }
+        },
+        "critical": {
+          "file": "../covenant/bloodsworn-linus/battle/thrown-critical.png",
+          "job": "fdb70a9c-53b8-41f3-b1c4-1f37459ee107",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 12,
+          "catchFrame": 28,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": { "x": 69, "y": 43 },
+          "catchPoint": { "x": 54, "y": 45 }
+        }
+      },
+      "staff": {
+        "idle": "../covenant/bloodsworn-linus/battle/idle.png",
+        "cast": {
+          "file": "../covenant/bloodsworn-linus/battle/blood-oath.png",
+          "job": "fae32f28-1a73-4583-8a1c-b308df00a7ec",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 10,
+          "holdMs": 120,
+          "advance": 0,
+          "contact": { "x": 63, "y": 45 }
+        }
+      }
+    },
+    "stark-veilstalker": {
+      "size": 128,
+      "anchorX": 41,
+      "baseline": 104,
+      "scale": 0.8,
+      "casting": true,
+      "idle": "../covenant/veilstalker-stark/battle/idle.png",
+      "idleJob": "cbd74a4f-77a3-4165-988f-8dd064c93fc4",
+      "idleLoop": {
+        "file": "../covenant/veilstalker-stark/battle/idle-loop.png",
+        "job": "0fb890a4-88bb-4d94-a41c-f9eed6e9bf15",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "../covenant/veilstalker-stark/battle/attack.png",
+        "job": "d36edf68-3370-4ed1-8eb8-99f6bb8b064d",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 18,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": { "x": 83, "y": 55 }
+      },
+      "critical": {
+        "file": "../covenant/veilstalker-stark/battle/critical.png",
+        "job": "06374efb-eec2-4bdb-ae11-83afc51442d7",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 25,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": { "x": 103, "y": 51 }
+      }
+    },
+    "rictor-oathkeeper": {
+      "size": 128,
+      "anchorX": 33,
+      "baseline": 108,
+      "scale": 0.76,
+      "idle": "rictor-oathkeeper-idle.png",
+      "idleJob": "8acc3ebd-63e9-4196-9c8b-687c0e769796",
+      "idleLoop": {
+        "file": "rictor-oathkeeper-idle-loop.png",
+        "job": "b3ad8c8f-dc8e-4c46-919c-2f7ab71888b6",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "rictor-oathkeeper-attack.png",
+        "job": "257720fd-ff10-42cc-a1bb-2456f3ff218b",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 120,
+        "advance": 26,
+        "contact": { "x": 124, "y": 46 }
+      },
+      "critical": {
+        "file": "rictor-oathkeeper-critical.png",
+        "job": "eb4ad19d-7583-4a2b-9f2d-3ce2e1336560",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 180,
+        "advance": 26,
+        "contact": { "x": 124, "y": 55 }
+      },
+      "thrown": {
+        "attack": {
+          "file": "rictor-oathkeeper-thrown-attack.png",
+          "job": "401e7e42-a354-467d-bd8b-ed55bb203784",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 7,
+          "catchFrame": 20,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": { "x": 83, "y": 37 },
+          "catchPoint": { "x": 49, "y": 57 }
+        },
+        "critical": {
+          "file": "rictor-oathkeeper-thrown-critical.png",
+          "job": "9ec3528f-5c5e-4579-9c2e-832187e1fd79",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 18,
+          "catchFrame": 29,
+          "holdMs": 150,
+          "advance": 0,
+          "contact": { "x": 93, "y": 42 },
+          "catchPoint": { "x": 54, "y": 58 }
+        }
+      }
+    },
+    "rictor-templar-lance": {
+      "size": 128,
+      "anchorX": 43,
+      "baseline": 108,
+      "scale": 0.76,
+      "idle": "rictor-templar-lance-idle.png",
+      "idleJob": "57e74def-315c-4a7d-8240-8bfadc75c1eb",
+      "idleLoop": {
+        "file": "rictor-templar-lance-idle-loop.png",
+        "job": "3d4f68cb-3f22-4aec-a32e-fb734eae566e",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "rictor-templar-lance-attack.png",
+        "job": "a00a19d6-bcd4-4559-8b11-0a3107bd514d",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 120,
+        "advance": 46,
+        "contact": { "x": 124, "y": 45 }
+      },
+      "critical": {
+        "file": "rictor-templar-lance-critical.png",
+        "job": "e0b40663-fd46-4b31-b1af-c46940d58fcc",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 180,
+        "advance": 46,
+        "contact": { "x": 124, "y": 45 }
+      },
+      "thrown": {
+        "attack": {
+          "file": "rictor-templar-lance-thrown-attack.png",
+          "job": "63cfd446-4deb-4429-8b79-38f30b5c5bdc",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 11,
+          "catchFrame": 21,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": { "x": 74, "y": 36 },
+          "catchPoint": { "x": 57, "y": 47 }
+        },
+        "critical": {
+          "file": "rictor-templar-lance-thrown-critical.png",
+          "job": "6cc4231d-9916-4edf-8c02-472b5198cc7d",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 20,
+          "catchFrame": 30,
+          "holdMs": 150,
+          "advance": 0,
+          "contact": { "x": 74, "y": 36 },
+          "catchPoint": { "x": 56, "y": 48 }
+        }
+      }
+    },
+    "rictor-templar-light": {
+      "size": 128,
+      "anchorX": 43,
+      "baseline": 108,
+      "scale": 0.76,
+      "casting": true,
+      "idle": "rictor-templar-light-idle.png",
+      "idleJob": "2722185f-c253-4f79-b9ff-ae99b5b690f3",
+      "idleSourceJob": "57e74def-315c-4a7d-8240-8bfadc75c1eb",
+      "idleLoop": {
+        "file": "rictor-templar-light-idle-loop.png",
+        "job": "7eaf4bcc-4dd7-4258-a99a-89717f5dbd10",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "rictor-templar-light-attack.png",
+        "job": "03116221-529e-4a74-b308-0660cce67a95",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 120,
+        "advance": 0,
+        "contact": { "x": 75, "y": 32 }
+      },
+      "critical": {
+        "file": "rictor-templar-light-critical.png",
+        "job": "31a35622-a91c-43c9-b2d2-78f41058a33d",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 16,
+        "holdMs": 180,
+        "advance": 0,
+        "contact": { "x": 90, "y": 43 }
+      }
+    },
     "deep-merfolk": {
       "size": 128,
       "anchorX": 36,
@@ -1386,6 +1677,358 @@
         "contact": {
           "x": 117,
           "y": 85
+        }
+      }
+    },
+    "generic-paladin": {
+      "size": 128,
+      "anchorX": 52,
+      "baseline": 115,
+      "scale": 0.72,
+      "idle": "generic-paladin-idle.png",
+      "idleJob": "bdce78af-c2a3-4bcf-bba1-1a58b2d79e19",
+      "idleLoop": {
+        "file": "generic-paladin-idle-loop.png",
+        "job": "0b6b33cf-a279-4f78-85bc-1d9369f8a2ba",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-paladin-attack.png",
+        "job": "95fc0bf3-a49f-46e6-a82d-0a0c2bd3ee7d",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 60,
+        "contact": {
+          "x": 126,
+          "y": 54
+        }
+      },
+      "critical": {
+        "file": "generic-paladin-critical.png",
+        "job": "1fb6f60d-a211-4f03-80f8-885462ade084",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 16,
+        "holdMs": 100,
+        "advance": 60,
+        "contact": {
+          "x": 126,
+          "y": 60
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-paladin-thrown-attack.png",
+          "job": "997d4ea3-3641-47e6-8d7b-252715c79b83",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 11,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 77,
+            "y": 51
+          },
+          "catchFrame": 16,
+          "catchPoint": {
+            "x": 68,
+            "y": 51
+          }
+        },
+        "critical": {
+          "file": "generic-paladin-thrown-critical.png",
+          "job": "71200b28-f46d-4b77-a461-b84833fc9567",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 18,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 77,
+            "y": 51
+          },
+          "catchFrame": 24,
+          "catchPoint": {
+            "x": 68,
+            "y": 51
+          }
+        }
+      }
+    },
+    "generic-mage": {
+      "size": 128,
+      "anchorX": 57,
+      "baseline": 123,
+      "scale": 0.65,
+      "idle": "generic-mage-idle.png",
+      "idleJob": "dd781fcd-afdd-44ee-8ebd-dd28dbd28b2b",
+      "idleLoop": {
+        "file": "generic-mage-idle-loop.png",
+        "job": "f9ed054b-0853-4ee8-9b09-06729d4ec64a",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-mage-attack.png",
+        "job": "3d6a74f0-9fa0-4aed-a019-6032de53fa50",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 109,
+          "y": 55
+        }
+      },
+      "critical": {
+        "file": "generic-mage-critical.png",
+        "job": "336dbf0c-b6c6-43c9-a2c7-d7f396a3f1b1",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 106,
+          "y": 52
+        }
+      },
+      "casting": true
+    },
+    "lena-thief": {
+      "size": 128,
+      "anchorX": 44,
+      "baseline": 100,
+      "scale": 0.82,
+      "idle": "lena-thief-idle.png",
+      "idleJob": "736eaabb-d8ee-4f63-8d22-c5d64e055243",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Lena/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "lena-thief-idle-loop.png",
+        "job": "56c389da-4256-404c-90ea-22dba69ad16c",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "lena-thief-attack.png",
+        "job": "beddcb98-e35e-44a3-9de8-7e06dc17fc96",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 55,
+        "advance": 52,
+        "contact": { "x": 122, "y": 85 }
+      },
+      "critical": {
+        "file": "lena-thief-critical.png",
+        "job": "dff07a6b-6d31-40f2-b8e9-4044a7d129e3",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 95,
+        "advance": 56,
+        "contact": { "x": 120, "y": 62 }
+      }
+    },
+    "lena-assassin-sword": {
+      "size": 128,
+      "anchorX": 48,
+      "baseline": 100,
+      "scale": 0.82,
+      "idle": "lena-assassin-sword-idle.png",
+      "idleJob": "df62986a-55da-46bf-b435-81b6b064e086",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Assassin_Lena/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "lena-assassin-sword-idle-loop.png",
+        "job": "99820c6e-6bf3-401a-bcdb-c1a9eae34397",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "lena-assassin-sword-attack.png",
+        "job": "593ea41d-2bc6-43f7-942d-951e811e5719",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 55,
+        "advance": 60,
+        "contact": { "x": 122, "y": 58 }
+      },
+      "critical": {
+        "file": "lena-assassin-sword-critical.png",
+        "job": "963575a9-4b74-40c7-a5f1-5894687b1cfa",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 95,
+        "advance": 60,
+        "contact": { "x": 122, "y": 65 }
+      }
+    },
+    "lena-assassin-bow": {
+      "size": 128,
+      "anchorX": 48,
+      "baseline": 100,
+      "scale": 0.82,
+      "casting": true,
+      "idle": "lena-assassin-bow-idle.png",
+      "idleJob": "5268b0be-8943-4d7b-a215-c34e9f46251a",
+      "sourceJob": "df62986a-55da-46bf-b435-81b6b064e086",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Assassin_Lena/rotations/east.png",
+      "projectileCleanup": {
+        "description": "Removed detached generated arrows outside the bow; the runtime renders the actual projectile.",
+        "attackFrames": [16, 17, 18],
+        "criticalFrames": [23, 24, 31]
+      },
+      "idleLoop": {
+        "file": "lena-assassin-bow-idle-loop.png",
+        "job": "85300417-ccb5-4b49-ac9e-a5548fbd325f",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "lena-assassin-bow-attack.png",
+        "job": "77149bb0-6457-4bd4-8498-01e7c69c0e67",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 16,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": { "x": 86, "y": 57 }
+      },
+      "critical": {
+        "file": "lena-assassin-bow-critical.png",
+        "job": "8ee68656-5333-4edd-8b58-ce9f2f9fc2ea",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 24,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": { "x": 94, "y": 60 }
+      }
+    },
+    "generic-undead": {
+      "size": 128,
+      "anchorX": 56,
+      "baseline": 113,
+      "scale": 0.74,
+      "idle": "generic-undead-idle.png",
+      "idleJob": "304f8c7e-dd5a-42b0-bef0-c3e876384643",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Generic_Undead/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "generic-undead-idle-loop.png",
+        "job": "fcd327da-c809-42cc-af5f-13e5c9b93d97",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-undead-attack.png",
+        "job": "3b0bb08b-8284-4164-83dd-627592f35272",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 65,
+        "advance": 106,
+        "contact": { "x": 107, "y": 88 }
+      },
+      "critical": {
+        "file": "generic-undead-critical.png",
+        "job": "b2fcddca-2e50-4200-97e5-99f618d99d80",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 105,
+        "advance": 94,
+        "contact": { "x": 113, "y": 80 }
+      }
+    },
+    "rotten": {
+      "size": 160,
+      "anchorX": 74,
+      "baseline": 143,
+      "scale": 0.59,
+      "idle": "rotten-idle.png",
+      "idleJob": "989d4cfe-aa27-4f11-8a2a-c3d6f64d8f70",
+      "sourceIndex": 0,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/Rotten/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "rotten-idle-loop.png",
+        "job": "48a0b9b6-33e2-4df7-98a5-53066c8cf534",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "rotten-attack.png",
+        "job": "5de58610-c5e8-46fe-9094-1123863e83c7",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 65,
+        "advance": 72,
+        "contact": { "x": 142, "y": 94 }
+      },
+      "critical": {
+        "file": "rotten-critical.png",
+        "job": "4d47475f-13a8-4f42-bfa9-e1f9247be6e5",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 105,
+        "advance": 68,
+        "contact": { "x": 144, "y": 112 }
+      }
+    },
+    "blood-beast": {
+      "size": 128,
+      "anchorX": 57,
+      "baseline": 121,
+      "scale": 0.63,
+      "idle": "blood-beast-idle.png",
+      "idleJob": "c9e019e4-b92c-43bb-b6d5-b6386608f391",
+      "idleLoop": {
+        "file": "blood-beast-idle-loop.png",
+        "job": "89cfaf6d-94ea-4cc2-9420-7ea6b71909b4",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "blood-beast-attack.png",
+        "job": "50c0b87b-c7b3-4100-ad1f-a7f4b61887a4",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 60,
+        "advance": 96,
+        "contact": {
+          "x": 113,
+          "y": 109
+        }
+      },
+      "critical": {
+        "file": "blood-beast-critical.png",
+        "job": "eaea9c46-c415-4f64-be61-c8c6b1a260af",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 100,
+        "advance": 92,
+        "contact": {
+          "x": 115,
+          "y": 107
         }
       }
     }

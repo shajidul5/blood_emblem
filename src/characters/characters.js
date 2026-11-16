@@ -25,6 +25,7 @@ import goldenCaptainProfile from '../../data/characters/golden-captain.json';
 import goldenCavalierProfile from '../../data/characters/golden-cavalier.json';
 import goldenKnightProfile from '../../data/characters/golden-knight.json';
 import goldenMageProfile from '../../data/characters/golden-mage.json';
+import goldenPriestProfile from '../../data/characters/golden-priest.json';
 import goldenSoldierProfile from '../../data/characters/golden-soldier.json';
 import goldenArcherProfile from '../../data/characters/golden-archer.json';
 import bloodBeastProfile from '../../data/characters/blood-beast.json';
@@ -204,6 +205,7 @@ const ENEMY_PROFILES = new Map([
   [goldenCavalierProfile.id, goldenCavalierProfile],
   [goldenKnightProfile.id, goldenKnightProfile],
   [goldenMageProfile.id, goldenMageProfile],
+  [goldenPriestProfile.id, goldenPriestProfile],
   [goldenSoldierProfile.id, goldenSoldierProfile],
   [goldenArcherProfile.id, goldenArcherProfile],
   [bloodBeastProfile.id, bloodBeastProfile],

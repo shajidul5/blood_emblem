@@ -1,6 +1,8 @@
 export const MANOR_TILE_IDS = ['manor_floor', 'manor_block', 'manor_stairs'];
 export const FOREST_TILE_IDS = ['forest_trail', 'forest_undergrowth', 'forest_thicket', 'forest_bridge', 'forest_block'];
-export const VILLAGE_TILE_IDS = ['village_path', 'village_block', ...MANOR_TILE_IDS, ...FOREST_TILE_IDS];
+export const CROSSING_TILE_IDS = ['crossing_lane', 'crossing_cover', 'crossing_block'];
+export const THRESHOLD_TILE_IDS = ['crossing_deck', 'crossing_parapet', 'bridge_sandbags', 'water_a', 'city_wall', 'threshold_scenery'];
+export const VILLAGE_TILE_IDS = ['village_path', 'village_block', ...MANOR_TILE_IDS, ...FOREST_TILE_IDS, ...CROSSING_TILE_IDS, 'threshold_scenery'];
 
 export const VILLAGE_LAYOUTS = Object.freeze({
   harbor: { width: 21, height: 21, image: 'village', crop: [0, 0, 336, 336] },
@@ -11,15 +13,18 @@ export const VILLAGE_LAYOUTS = Object.freeze({
   forest: { width: 48, height: 21, image: 'forest', crop: [0, 0, 1536, 672] },
   camp: { width: 48, height: 21, image: 'camp', crop: [0, 0, 1536, 672] },
   heart: { width: 48, height: 32, image: 'heart', crop: [0, 0, 1536, 1024] },
+  crossing: { width: 32, height: 32, image: 'crossing', crop: [0, 0, 1024, 1024], lighting: 'sunset' },
+  threshold: { width: 23, height: 36, image: 'threshold', crop: [21, 0, 982, 1536], lighting: 'dusk' },
 });
 export const isForestLayout = (layout) => ['forest', 'camp', 'heart'].includes(layout);
 
 const MANOR_LAYOUTS = ['mansion', 'manor'];
 export const isManorLayout = (layout) => MANOR_LAYOUTS.includes(layout);
 export const layoutTileIds = (layout) => isManorLayout(layout) ? MANOR_TILE_IDS
-  : isForestLayout(layout) ? FOREST_TILE_IDS : ['village_path', 'village_block'];
+  : isForestLayout(layout) ? FOREST_TILE_IDS : layout === 'crossing' ? CROSSING_TILE_IDS
+    : layout === 'threshold' ? THRESHOLD_TILE_IDS : ['village_path', 'village_block'];
 export const layoutDefaultTile = (layout) => layoutTileIds(layout)[0];
-const layoutBlockTile = (layout) => layoutTileIds(layout).find((id) => id.endsWith('_block'));
+const layoutBlockTile = (layout) => layout === 'threshold' ? 'threshold_scenery' : layoutTileIds(layout).find((id) => id.endsWith('_block'));
 
 export function villageLayout(level) {
   const layout = VILLAGE_LAYOUTS[level.villageScene.layout];
@@ -37,9 +42,9 @@ export function validateVillageScene(value, level) {
   const layout = VILLAGE_LAYOUTS[value?.layout];
   const legacyHarbor = value.layout === 'harbor' && level.width === 24;
   if (value.version !== 1 || !layout || (!legacyHarbor && level.width !== layout.width) || level.height !== layout.height ||
-      level.lighting !== 'night' || level.objects.length ||
+      level.lighting !== (layout.lighting ?? 'night') || level.objects.length ||
       level.tileIds.some((row) => row.some((id) => !layoutTileIds(value.layout).includes(id)))) {
-    throw new Error('Village scenes require a version 1 night layout, fixed artwork dimensions and matching collision terrain without duplicate props.');
+    throw new Error('Village scenes require a version 1 layout, matching lighting, fixed artwork dimensions and matching collision terrain without duplicate props.');
   }
   if (value.playableWidth !== undefined &&
       (!Number.isInteger(value.playableWidth) || value.playableWidth < 1 || value.playableWidth > level.width ||

@@ -20,6 +20,11 @@ function validateClasses() {
       (entry.unarmed && entry.weaponTypes.length)) {
       throw new Error(`Class ${entry.id} must list weapon types, or be explicitly unarmed with an empty list.`);
     }
+    for (const targetId of Object.values(entry.covenantPromotions ?? {})) {
+      if (entry.tier !== 'base' || CLASSES.get(targetId)?.tier !== 'advanced' || !entry.promotesTo) {
+        throw new Error(`Class ${entry.id} has an invalid Covenant promotion "${targetId}".`);
+      }
+    }
     if (entry.promotesTo === undefined) {
       if (entry.promotionBonuses !== undefined) {
         throw new Error(`Class ${entry.id} has promotion bonuses but no promotesTo.`);
@@ -85,14 +90,29 @@ export function weaponSpriteSet(unit) {
   return variants[unit.weapon?.type]?.[unit.spriteSet] ?? unit.spriteSet;
 }
 
-export function canPromote(unit) {
-  return Boolean(CLASSES.get(unit.classId)?.promotesTo);
+function promotionTarget(unit, emblemId) {
+  const entry = CLASSES.get(unit.classId);
+  return emblemId === 'covenant-emblem' ? entry?.covenantPromotions?.[unit.id] : entry?.promotesTo;
+}
+
+export function canPromote(unit, emblemId = 'master-emblem') {
+  return Boolean(promotionTarget(unit, emblemId));
+}
+
+export function promotionBlockReason(unit, emblemId = 'master-emblem') {
+  if (!canPromote(unit, emblemId)) {
+    return CLASSES.get(unit.classId)?.tier === 'advanced' ? 'Already promoted'
+      : emblemId === 'covenant-emblem' ? 'Only Cavalier Linus or Archer Stark' : 'Cannot promote';
+  }
+  return unit.level < 20 ? 'Needs level 20' : undefined;
 }
 
 // Adds the base class's promotion bonuses to the unit and switches it to the advanced class.
-export function promoteUnit(unit) {
+export function promoteUnit(unit, emblemId = 'master-emblem') {
   const from = getClass(unit.classId);
-  if (!from.promotesTo) throw new Error(`${unit.name}'s class ${from.name} cannot be promoted.`);
+  const target = promotionTarget(unit, emblemId);
+  if (!target) throw new Error(`${unit.name}'s class ${from.name} cannot use this promotion.`);
+  if (emblemId === 'covenant-emblem' && unit.level < 20) throw new Error('Covenant promotion requires level 20.');
   const gains = {};
   for (const [stat, bonus] of Object.entries(from.promotionBonuses)) {
     if (!bonus) continue;
@@ -105,7 +125,8 @@ export function promoteUnit(unit) {
     unit.weaponExp ??= {};
     unit.weaponExp[type] = Math.max(getWeaponExp(unit, type), WEAPON_RANKS.find((entry) => entry.id === rank).exp);
   }
-  applyClass(unit, from.promotesTo);
+  applyClass(unit, target);
+  if (unit.weapon && !canEquipWeapon(unit, unit.weapon)) unit.weapon = null;
   return { from: from.name, to: unit.class, gains };
 }
 

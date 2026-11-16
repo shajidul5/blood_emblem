@@ -7,7 +7,7 @@ import {
 } from './insight.js';
 import { renderInsightLabel } from './insight-display.js';
 import { rescaleMagicUses, spellsOf } from '../characters/inventory.js';
-import { canPromote, getUsesMultiplier, promoteUnit } from '../characters/classes.js';
+import { getUsesMultiplier, promoteUnit, promotionBlockReason } from '../characters/classes.js';
 import { applyBooster, boosterBlockReason, isBooster } from '../characters/boosters.js';
 import { snapshotForPromotion } from '../characters/promotion-dialog.js';
 
@@ -94,13 +94,13 @@ export function createPrepMenu({
     const item = items.get(entry.id);
     if (item.effect === 'promote') {
       if (!canUse(user, item) || !listOf(holder).includes(entry) || !(entry.uses > 0)) {
-        flash = 'This Orders Emblem cannot be used by the selected unit.';
+        flash = `${item.name}: ${promotionBlockReason(user, item.id) ?? 'Item is no longer available'}.`;
         render();
         return;
       }
       const before = snapshotForPromotion(user, portrait(user));
       const previousMultiplier = getUsesMultiplier(user);
-      const result = promoteUnit(user);
+      const result = promoteUnit(user, item.id);
       rescaleMagicUses(user, previousMultiplier);
       entry.uses--;
       if (!entry.uses) listOf(holder).splice(listOf(holder).indexOf(entry), 1);
@@ -130,12 +130,12 @@ export function createPrepMenu({
   const canUse = (unit, item) =>
     item?.itemType === 'consumable' &&
     (item.insight || (isBooster(item) && !boosterBlockReason(unit, item)) ||
-      (item.effect === 'promote' && unit.level >= 20 && canPromote(unit)) ||
+      (item.effect === 'promote' && !promotionBlockReason(unit, item.id)) ||
       (item.heal && unit.hp < unit.maxHp));
 
   const promotionAction = (holder, entry, unit) => {
     const ready = canUse(unit, items.get(entry.id));
-    return button(ready ? 'Use' : canPromote(unit) ? 'Needs level 20' : 'Already promoted',
+    return button(ready ? 'Use' : promotionBlockReason(unit, entry.id),
       () => useEntry(holder, entry, unit), !ready);
   };
 

@@ -5,7 +5,9 @@ export const COMBAT_ANIMATIONS_KEY = 'blood-emblem-combat-animations';
 // Fighters whose manifest entry has `thrown` clips for range-2 axe or spear attacks.
 export const THROWING_FIGHTERS = new Set([
   'bartz-pirate', 'bartz-berserker', 'generic-knight', 'generic-cavalier', 'generic-soldier',
-  'linus-cavalier-lance', 'linus-paladin-lance',
+  'linus-cavalier-lance', 'linus-paladin-lance', 'generic-paladin',
+  'rictor-oathkeeper', 'rictor-templar-lance',
+  'linus-bloodsworn',
 ]);
 
 export function battleThrow(unit, distance) {
@@ -26,10 +28,26 @@ export function battleSpriteKey(unit) {
   if (unit.id === 'maria' && unit.classId === 'ravager' && unit.weapon?.type === 'Gun') return 'maria-ravager-gun';
   if (unit.id === 'bartz' && unit.classId === 'pirate' && unit.weapon?.type === 'Axe') return 'bartz-pirate';
   if (unit.id === 'bartz' && unit.classId === 'berserker' && unit.weapon?.type === 'Axe') return 'bartz-berserker';
+  if (unit.id === 'lena') {
+    if (unit.classId === 'thief' && unit.weapon?.type === 'Sword') return 'lena-thief';
+    if (unit.classId === 'assassin') {
+      if (unit.weapon?.type === 'Sword') return 'lena-assassin-sword';
+      if (unit.weapon?.type === 'Bow') return 'lena-assassin-bow';
+    }
+  }
   if (unit.id === 'linus' && ['Spear', 'Sword'].includes(unit.weapon?.type)) {
     const weapon = unit.weapon.type === 'Spear' ? 'lance' : 'sword';
     if (unit.classId === 'cavalier') return `linus-cavalier-${weapon}`;
     if (unit.classId === 'paladin') return `linus-paladin-${weapon}`;
+    if (unit.classId === 'bloodsworn' && unit.weapon.type === 'Spear') return 'linus-bloodsworn';
+  }
+  if (unit.id === 'rictor') {
+    if (unit.weapon?.type === 'Spear') {
+      if (unit.classId === 'oathkeeper') return 'rictor-oathkeeper';
+      if (unit.classId === 'templar') return 'rictor-templar-lance';
+    }
+    if (unit.classId === 'templar' && unit.weapon?.type === 'Light' && spellEffectFor(unit.weapon))
+      return 'rictor-templar-light';
   }
   if (unit.spriteSet === 'raider' && unit.classId === 'raider' && unit.weapon?.type === 'Axe') return 'raider';
   if (unit.spriteSet === 'genericArcher' && unit.classId === 'archer' && unit.weapon?.type === 'Bow') return 'generic-archer';
@@ -37,6 +55,7 @@ export function battleSpriteKey(unit) {
   if (unit.weapon?.type === 'Spear') {
     if (unit.spriteSet === 'genericKnight' && ['knight', 'general'].includes(unit.classId)) return 'generic-knight';
     if (unit.spriteSet === 'genericCavalier' && unit.classId === 'cavalier') return 'generic-cavalier';
+    if (unit.spriteSet === 'genericPaladin' && unit.classId === 'paladin') return 'generic-paladin';
     if (unit.spriteSet === 'genericSoldier' && unit.classId === 'soldier') return 'generic-soldier';
   }
   if (['merfolk', 'merfolk-boss'].includes(unit.id) && unit.classId === 'merfolk' &&
@@ -45,9 +64,14 @@ export function battleSpriteKey(unit) {
       unit.spriteSet === 'killian' && unit.weapon?.type === 'Axe') return 'deep-merfolk';
   if (unit.id === 'cypher' && unit.classId === 'mage' && spellEffectFor(unit.weapon)) return 'cyrus-mage';
   if (unit.id === 'cypher' && unit.classId === 'sage' && spellEffectFor(unit.weapon)) return 'cyrus-sage';
+  if (unit.spriteSet === 'genericMage' && unit.classId === 'mage' && spellEffectFor(unit.weapon)) return 'generic-mage';
+  if (unit.spriteSet === 'bloodBeast' && unit.classId === 'blood-beast' && unit.weapon?.type === 'Claw') return 'blood-beast';
+  if (unit.spriteSet === 'genericUndead' && unit.classId === 'undead' && unit.weapon?.type === 'Claw') return 'generic-undead';
+  if (unit.spriteSet === 'rotten' && unit.classId === 'rotten' && unit.weapon?.type === 'Claw') return 'rotten';
   if (unit.id === 'stark' && unit.weapon?.type === 'Bow') {
     if (unit.classId === 'archer') return 'stark-archer';
     if (unit.classId === 'sniper') return 'stark-sniper';
+    if (unit.classId === 'veilstalker') return 'stark-veilstalker';
   }
   if (['feral-wolf', 'great-wolf'].includes(unit.id) && unit.classId === 'wolf' &&
       unit.spriteSet === 'feralWolf' && unit.weapon?.type === 'Claw') return unit.id;
@@ -61,6 +85,8 @@ export function battleSpriteKey(unit) {
 // Staff casters reuse a fighter entry whose `staff` block holds the staff idle and cast clip.
 export function staffBattleKey(unit, staff) {
   if (!staffEffectFor(staff)) return null;
+  if (staff.type === 'Blood Rite')
+    return unit.id === 'linus' && unit.classId === 'bloodsworn' ? 'linus-bloodsworn' : null;
   if (unit.id === 'cypher' && unit.classId === 'sage') return 'cyrus-sage';
   return null;
 }
@@ -72,7 +98,8 @@ export function supportsStaffScene(caster, target, staff) {
 
 export function supportsBattleScene(left, right) {
   const distance = Math.abs(left.x - right.x) + Math.abs(left.z - right.z);
-  const rangedArt = (unit) => Boolean(rangedEffectFor(unit.weapon) || battleSpriteKey(unit) === 'deep-merfolk' ||
+  const rangedArt = (unit) => Boolean(rangedEffectFor(unit.weapon) ||
+    ['deep-merfolk', 'blood-beast', 'rotten'].includes(battleSpriteKey(unit)) ||
     battleThrow(unit, distance));
   // Long-range weapons (Bolting at 3–10) open the scene at any distance they can reach.
   const reaches = (unit) => rangedArt(unit) && (distance === 2 || (unit.weapon?.maxRange ?? 2) >= distance);
@@ -119,6 +146,11 @@ export function createImpactGate(applyImpact) {
 
 export function animationFrameAt(clip, milliseconds) {
   return Math.min(clip.frames - 1, Math.max(0, Math.floor(milliseconds / clip.frameMs)));
+}
+
+export function idleFrameAt(clip, milliseconds, reducedMotion = false) {
+  if (!clip || reducedMotion) return 0;
+  return Math.floor(Math.max(0, milliseconds) / clip.frameMs) % clip.frames;
 }
 
 export function displayedBattleHp(health, now) {

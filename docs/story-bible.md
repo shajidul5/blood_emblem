@@ -76,17 +76,25 @@ The player can use a recovered emblem without agreeing with the Order. This is a
 
 **Implementation boundary:** the existing item is displayed as **Orders Emblem**, with ID `master-emblem`, and promotes eligible level-20 units along one advanced-class path. "Order Emblem" is the proposed editorial name, not an instruction to rename IDs or invalidate saves.
 
-### Covenant Emblem - established concept, unimplemented system
+### Covenant Emblem - alternative promotions
 
 This belongs to the group studying and distributing healing blood. Recommended structure: the **Sanguine Covenant** is the Healing Church's research and distribution fraternity, not a fourth unrelated major faction. The Church is its public authority; the Covenant controls laboratories, treatment protocols, consignments and initiation.
 
 Its emblem promotes a unit into a **covenant class instead of the Order-aligned advanced class**. The resulting appearance, equipment and abilities should express a different doctrine of strength, not simply higher statistics.
 
-**Proposed design boundary:** this is an alternative promotion branch at the same broad stage of advancement, not a compulsory second promotion stacked on top of the Order path. Exact classes, eligibility, costs, availability, respecialization and balance remain undecided. No playable covenant class tree exists yet.
+**Implemented design boundary:** this is an alternative promotion branch at the same stage of advancement, not a second promotion stacked on top of the Order path. Level-20+ Cavalier Linus and Archer Stark can use it for the branches below; Paladin and Sniper cannot switch. Other characters' Covenant branches remain undecided. Both implemented branches reuse their base class's existing promotion stat bonuses.
 
-**Current implementation:** the first Covenant Emblem (`covenant-emblem`) drops from the Omen in Chapter 7. Until covenant classes exist, it promotes exactly like the Orders Emblem (level 20+, standard advanced class), so the item's story is established before its system.
+**Current implementation:** the first Covenant Emblem (`covenant-emblem`) drops from the Omen in Chapter 7; Chapter 10's Blood Beast also drops one. These bearers are closer to the blood than ordinary Order soldiers. It now selects the character-specific Covenant branch in preparations or battlefield inventory, rather than acting as an Orders Emblem. Existing promoted units and standard Orders promotion paths remain unchanged.
 
 Do not make using it secretly corrupt, kill or remove an ally. Any eventual permanent consequence must be disclosed as a gameplay rule. Its story can be troubling without deceiving the player about an item.
+
+#### Covenant branch art direction - Bloodsworn and Veilstalker
+
+These two branches are implemented with their approved art. Both replace the normal level-20 promotion rather than stacking on Paladin or Sniper. Saved games retain their existing classes unless the player uses an emblem on an eligible base unit. Unspent protection and the phase's tracking bonus survive saving and loading, without changing permanent Movement; chapter transitions clear temporary effects.
+
+- **Linus - Bloodsworn:** a mounted physical lancer with **Spears and Blood Rites**, not an Anima caster or a healer with ordinary staves. Blood Rites are deliberate HP-paid class support actions, not inventory weapons. His first rite, **Blood Oath**, uses his action and 6 HP to protect one adjacent living ally; no self-targeting, stacking, or casting below 7 HP. The **next damaging physical or magical combat hit, including a critical, deals half damage rounded up**, before capping damage to remaining HP. Protection expires at the next player phase. Misses and zero-damage hits do not consume it; later Brave or follow-up hits deal normal damage. Direct map hazards are not combat hits. His duty becomes literal self-sacrifice, not automatic corruption or generic lifesteal. Dark steel, a faded teal cloak with crimson oath-cords, blond uncovered head and a living gray horse preserve his identity.
+- **Stark - Veilstalker:** a **Bow** specialist and mobile finisher rather than a magical archer. **Blood Trail** grants **+2 movement for the player phase if any living wounded enemy is within 6 tiles at phase start** (Manhattan distance, ignoring intervening terrain). Check once and never stack; killing or healing the trigger afterward does not recalculate the bonus mid-phase. No trigger means ordinary movement. No free post-kill action, extra bow range or magic damage is implied. Sniper retains its existing bow-critical specialization. Blue hair, practical muted leather, an ash-gray hunting cloak, burgundy scarf and restrained crimson tracking threads keep Stark human; a subtle eye-glint suggests perception altered by proximity to the blood.
+- **Art scope:** eight-direction map sprites and separate side-view battle assets. Map art uses PixelLab outfit edits of the existing Linus and Stark sprites and walking frames, retaining the roster's mature proportions, native fine-pixel shading and poses rather than a separate chibi style. Bloodsworn uses lance idle/normal/critical, range-2 throw/catch clips and a protective open-palm Blood Oath cast; Veilstalker uses bow idle/normal/critical. The separate Covenant art packages are wired into the runtime without replacing existing Cavalier, Paladin, Archer or Sniper assets.
 
 ### Blood Emblem - established origin
 
@@ -307,6 +315,10 @@ Each entry separates the existing playable spine from proposed narrative present
 - **Existing spine:** rescue villagers, reach wounded Linus, overcome the captain and finite beasts, then reach the bridge.
 - **Story summary:** the Order protects a boundary while leaving people outside it.
 - **Environment/gameplay:** closed barricades face the refugees; Linus holds a lane facing the beasts instead. Civilian movement and his injuries make the disagreement legible.
+- **Chapter continuity:** the northern bridge continues directly into Chapter 10: nine walkable tiles across, with a parapet on each side. Chapter 9 shows only the near entrance and river extending beyond the artwork; neither the far bank nor the city gate is visible.
+- **Pursuer:** no ravens or Omen encounter in Chapter 9. The Omen returns in Part Three; do not add a replacement arrival timer to this rescue chapter.
+- **HD layout:** sunset village square, western wagon refuge, eastern orchard loop and two southern beast approaches. Maria can rush wounded Linus through the square while allies cover evacuation; painted walls, cottages and the trough shape lanes without a fence maze. Three wolves and one wolfman open the hunt. Finite waves alternate western turns 2/6 and eastern turns 4/8, with more wolfmen in later waves. On turn 5 the two flank knights advance against the party, while the captain and center guard hold the bridge. All scheduled threats receive one-turn-ahead warnings. Maria starts far enough forward to recruit Linus on turn 2 even before promotion; sheltered villagers have two opening enemy phases before beasts can reach them.
+- **Rescue gift:** saving two villagers grants Wind and an Orders Emblem, in addition to the first survivor's two Potions. Saving all three still grants the Crossing Keepsake. Rewards remain cumulative and are awarded on chapter completion.
 - **Item/boss evidence:** the captain's sealed gate orders and Linus's abandoned formation distinguish command from conscience. Rescue rewards remain gifts, not proof victims existed to reward the player.
 - **Adaptation:** replace shouted commands and Linus's recruitment dialogue with formation, lowered lance, an assist action and shared defense.
 - **Player takeaway:** disobedience can preserve the values an institution claims to uphold.
@@ -316,6 +328,7 @@ Each entry separates the existing playable spine from proposed narrative present
 - **Existing spine:** defeat Aurelan, confront the Blood Beast and reach the city gate.
 - **Story summary:** military containment surrounds a catastrophe already inside the city.
 - **Environment/gameplay:** defenders watch both directions. The beast drops from the gatehouse wearing high clerical insignia; no ally identifies the symbol aloud. Ravens arrive with the disturbance.
+- **HD bridge encounter:** complete illustrated gatehouse and skyline, Chapter 9's nine-cell-wide stone roadway and teal water, four sandbag pockets. Twenty-two Order defenders operate in four squads (5/6/5/6), including two healing priests; the Crossfire priest drops a Heal staff. Engaging a member or crossing its amber line commits the formation; otherwise timed advances occur on turns 4/7/10/13. Two ravens circle from the opening; pairs approach on turns 4/8. Actual arrivals receive brief camera shots, not advance-warning popups. The opening is a short objective and a distant monstrous shriek: something waits beyond the gate. The Beast reveal cancels unarrived bridge pairs and postpones its own flock if a scheduled pack just arrived. Boss-based victory and the Orders Emblem drop remain unchanged.
 - **Item/boss evidence:** retain the chain and vestment design in later Cathedral art so players can connect the cleric to the institution.
 - **Adaptation:** remove the captain's decree, Linus's question and Seymour's explanation. Do not make Aurelan's dropped emblem magically create the beast.
 - **Player takeaway:** authority neither escaped transformation nor kept the threat outside.
@@ -487,7 +500,7 @@ This is documentation of required future changes, not a request to execute all o
 - Exact biological relationships among wolves, transformed people and deeper beasts.
 - The Deep One's nature and intentions. Neither needs a spoken answer.
 - Whether bells regulate offerings, access, subjects or the Deep One itself; do not assert all four as fact.
-- Covenant promotion branches, acquisition, reversibility and interaction with already-promoted units.
+- Remaining characters' Covenant promotion branches and later emblem availability; Linus/Stark's base-class-only, non-switching branches are established above.
 - Chapter 20's objective, final encounter and the consequences of ending the contract.
 - Campaign part labels if the late-game descent is to be grouped differently.
 

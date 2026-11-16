@@ -289,6 +289,7 @@ test('Four finite coastal waves queue blocked arrivals, resume partial waves and
   const state = { turn: 3 }, enemies = [boss()];
   const context = {
     activeLevel: level, gameState: state, enemies, defendingUnits: () => defenders,
+    enemyMovementType: characters.enemyMovementType,
     tileKey: (x, z) => `${x},${z}`, infirmaryWaveSealed: () => false,
     courtyardWaveEnabled: () => true, cathedralWaveEnabled: () => true,
     isWalkable: (map, x, z) => tiles.isLevelTileWalkable(map, x, z),

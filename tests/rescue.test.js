@@ -97,8 +97,8 @@ test('captain carries a range 1-2 Javelin and knights hold position', () => {
 test('rescue rewards are cumulative for zero through three survivors', () => {
   assert.deepEqual(rescue.rescueRewardIds(level.rescue, 0), []);
   assert.deepEqual(rescue.rescueRewardIds(level.rescue, 1), ['potion', 'potion']);
-  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 2), ['potion', 'potion', 'wind-tome']);
-  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 3), ['potion', 'potion', 'wind-tome', 'crossing-keepsake']);
+  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 2), ['potion', 'potion', 'wind-tome', 'master-emblem']);
+  assert.deepEqual(rescue.rescueRewardIds(level.rescue, 3), ['potion', 'potion', 'wind-tome', 'master-emblem', 'crossing-keepsake']);
 });
 
 test('only adjacent Maria can recruit living, unrecruited Linus', () => {
@@ -183,28 +183,33 @@ test('Linus recruitment and increased promoted HP validate against the saved par
   assert.ok(rescue.validateRescueState(state, level, new Set(), [{ id: 'linus', stats: { maxHp: 43 } }]).recruited);
 });
 
-test('chapter waves end at turn seven and invalid rescue metadata fails explicitly', () => {
-  assert.deepEqual(level.reinforcements.map((wave) => wave.turn), [3, 5, 7]);
-  assert.deepEqual(level.reinforcements.map((wave) => wave.units.length), [2, 2, 3]);
+test('invalid rescue metadata fails explicitly', () => {
   assert.throws(() => rescue.validateRescueRules({ ...level.rescue, villagers: [] }, level), /three unique villagers/);
 });
 
-test('sunset bridge is seven tiles wide, reaches the northern edge and has no far bank', () => {
+test('sunset bridge matches Chapter 10 nine-tile roadway; north edge is continuing bridge and river scenery', async () => {
   assert.equal(level.lighting, 'sunset');
-  for (let z = 0; z < 8; z++) {
-    assert.equal(level.tiles[z].filter((id) => id === 'crossing_deck').length, 7);
-    assert.equal(level.tiles[z][10], 'crossing_parapet');
-    assert.equal(level.tiles[z][18], 'crossing_parapet');
-    assert.ok(level.tiles[z].every((id) => ['water_a', 'water_b', 'crossing_deck', 'crossing_parapet'].includes(id)));
+  const next = JSON.parse(await readFile(new URL('../data/levels/map_10_golden_threshold.json', import.meta.url), 'utf8'));
+  const width = next.tiles[6].filter((id) => id === 'crossing_deck').length;
+  assert.equal(width, 9);
+  for (let z = 4; z < 8; z++) {
+    assert.equal(level.tiles[z].filter((id) => id === 'crossing_lane').length, width);
+    assert.equal(level.tiles[z][10], 'crossing_block');
+    assert.equal(level.tiles[z][20], 'crossing_block');
   }
-  assert.equal(level.extendEdges, true);
+  assert.ok(level.tiles.slice(0, 4).flat().every((id) => id === 'crossing_block'));
+  assert.equal(level.extendEdges, false);
+  assert.equal(level.forestEdges, false);
+  assert.deepEqual(level.villageScene, { version: 1, layout: 'crossing', cursorBounds: [2, 4, 29, 29] });
+  assert.ok([...level.enemies, ...level.reinforcements.flatMap((wave) => wave.units)]
+    .every((unit) => !['crowman', 'forest-raven'].includes(unit.id)));
 });
 
-test('all villagers are near Linus and have unblocked escort routes through the fenced village', () => {
+test('all villagers have connected escort lanes; Maria can rush Linus while allies cover the village', () => {
   const blocks = new Set(level.objects.filter((object) => object.id !== 'lantern')
     .map((object) => grid.tileKey(object.x, object.z)));
   for (const house of level.houses) {
-    assert.ok(grid.distanceBetween(house.door.x, house.door.z, level.rescue.recruit.x, level.rescue.recruit.z) <= 7);
+    assert.ok(grid.distanceBetween(house.door.x, house.door.z, level.rescue.recruit.x, level.rescue.recruit.z) <= 11);
     const path = grid.findPath(house.door, level.rescue.refuge, blocks, level);
     assert.ok(path.length > 1, `${house.id} needs a clear escort route`);
     assert.ok(path.every((tile) => tiles.isLevelTileWalkable(level, tile.x, tile.z)));
@@ -213,8 +218,6 @@ test('all villagers are near Linus and have unblocked escort routes through the 
     .map(([dx, dz]) => ({ x: level.rescue.recruit.x + dx, z: level.rescue.recruit.z + dz }));
   const approach = grid.findPath(level.spawn, recruitmentGoals, blocks, level);
   assert.ok(approach.length > 1, 'Maria must be able to reach Linus');
-  assert.ok(approach.length - 1 > grid.distanceBetween(level.spawn.x, level.spawn.z,
-    approach.at(-1).x, approach.at(-1).z), 'Fenced lanes should require a detour');
   for (const [i, house] of level.houses.entries()) {
     for (const other of level.houses.slice(i + 1)) {
       assert.ok(grid.distanceBetween(house.door.x, house.door.z, other.door.x, other.door.z) >= 7,
@@ -223,17 +226,25 @@ test('all villagers are near Linus and have unblocked escort routes through the 
   }
 });
 
-test('wolves lead the attack, then mobile wolfmen arrive from the southern forest', () => {
+test('opening hunting pack and four alternating waves sustain finite pressure', () => {
   const beasts = level.enemies.filter((unit) => !unit.id.startsWith('bridge-'));
-  assert.ok(beasts.every((unit) => unit.id === 'feral-wolf' && unit.z > level.height / 2));
+  assert.equal(beasts.filter((unit) => unit.id === 'feral-wolf').length, 3);
+  assert.equal(beasts.filter((unit) => unit.id === 'root-warden').length, 1);
+  assert.ok(beasts.every((unit) => unit.ai === 'mobile'));
+  assert.deepEqual(level.reinforcements.map((wave) => wave.turn), [2, 4, 6, 8]);
+  assert.deepEqual(level.reinforcements.map((wave) => wave.units.length), [2, 2, 3, 3]);
+  for (const [i, wave] of level.reinforcements.entries()) {
+    assert.ok(wave.units.every((unit) => unit.x === (i % 2 === 0 ? 9 : 24)));
+    assert.equal(new Set(wave.units.map((unit) => grid.tileKey(unit.x, unit.z))).size, wave.units.length);
+  }
   assert.ok(level.reinforcements[0].units.every((unit) => unit.id === 'feral-wolf'));
   const wolfmen = level.reinforcements.flatMap((wave) =>
     wave.units.filter((unit) => unit.id === 'root-warden').map((unit) => ({ ...unit, turn: wave.turn })));
-  assert.equal(wolfmen.length, 3);
-  assert.ok(wolfmen.every((unit) => unit.turn >= 5 && unit.ai === 'mobile' && unit.z >= 23));
+  assert.equal(wolfmen.length, 6);
+  assert.ok(wolfmen.every((unit) => unit.turn >= 4 && unit.ai === 'mobile' && unit.z >= 27));
 });
 
-test('opening wolves cannot reach civilians before the party has time to approach Linus', () => {
+test('opening beasts give villagers two safe phases and Maria two turns to reach Linus', () => {
   const blocked = new Set(level.objects.filter((object) => object.id !== 'lantern')
     .map((object) => grid.tileKey(object.x, object.z)));
   const neighbors = ({ x, z }) => [[-1, 0], [1, 0], [0, -1], [0, 1]]
@@ -242,22 +253,69 @@ test('opening wolves cannot reach civilians before the party has time to approac
   const cost = (path) => path.slice(1).reduce((sum, tile) =>
     sum + grid.terrainMoveCost(level, tile.x, tile.z), 0);
   const approach = grid.findPath(level.spawn, neighbors(level.rescue.recruit), blocked, level);
-  assert.ok(approach.length > 1 && cost(approach) <= 3 * characters.createMaria().movement);
-  for (const wolf of level.enemies.filter((unit) => unit.id === 'feral-wolf')) {
-    const unit = characters.createEnemyUnit(wolf.id, wolf.x, wolf.z, wolf);
-    for (const house of level.houses) {
-      const path = grid.findPath(wolf, neighbors(house.door), blocked, level);
-      assert.ok(path.length > 1 && cost(path) > unit.movement * 2,
-        'Initial wolves should not reach unrescued civilians during the first two enemy phases');
+  assert.ok(approach.length > 1 && cost(approach) <= 2 * characters.createMaria().movement);
+  let urgentThreats = 0;
+  for (const beast of level.enemies.filter((unit) => ['feral-wolf', 'root-warden'].includes(unit.id))) {
+    const unit = characters.createEnemyUnit(beast.id, beast.x, beast.z, beast);
+    for (const target of [...level.houses.map((house) => house.door), level.rescue.recruit]) {
+      const path = grid.findPath(beast, neighbors(target), blocked, level);
+      const linus = target === level.rescue.recruit;
+      assert.ok(path.length > 1 && cost(path) > unit.movement * (linus ? 1 : 2),
+        `Opening ${beast.id} at ${beast.x},${beast.z} must allow time to protect ${linus ? 'Linus' : 'a villager'}`);
+      if (linus && cost(path) <= unit.movement * 2) urgentThreats++;
     }
   }
+  assert.ok(urgentThreats > 0, 'Waiting beyond player turn 2 must put Linus in immediate danger');
 });
 
-test('fences and bridge parapets block movement, without blocking units or wave spawns', () => {
+test('only surviving flank knights advance on turn 5, once, without moving the captain or center guard', () => {
+  const enemies = level.enemies.map((unit) => characters.createEnemyUnit(unit.id, unit.x, unit.z, unit));
+  assert.deepEqual(rescue.advanceRescueGuards(level, enemies, 4), []);
+  const advancing = rescue.advanceRescueGuards(level, enemies, 5);
+  assert.deepEqual(advancing.map(({ x, z }) => ({ x, z })), level.rescue.bridgeAdvance.units);
+  assert.ok(advancing.every((unit) => unit.ai === 'mobile'));
+  assert.ok(enemies.filter((unit) => unit.id === 'bridge-captain' || unit.id === 'bridge-knight' && unit.x === 15)
+    .every((unit) => unit.ai === 'stationary'));
+  assert.deepEqual(rescue.advanceRescueGuards(level, enemies, 6), []);
+  const dead = level.enemies.map((unit) => ({ ...unit, hp: 0 }));
+  assert.deepEqual(rescue.advanceRescueGuards(level, dead, 5), []);
+  assert.deepEqual(rescue.advanceRescueGuards({ rescue: null }, enemies, 5), []);
+});
+
+test('warnings name the next entrance and give a full turn before each arrival or bridge advance', () => {
+  const enemies = level.enemies.map((unit) => ({ ...unit, hp: 1 }));
+  for (const [turn, side] of [[1, 'western'], [3, 'eastern'], [5, 'western'], [7, 'eastern']]) {
+    const warning = rescue.rescueWarnings(level, enemies, turn);
+    assert.equal(warning.length, 1);
+    assert.match(warning[0], new RegExp(`${side}.*turn ${turn + 1}`));
+  }
+  assert.match(rescue.rescueWarnings(level, enemies, 4)[0], /knights.*turn 5/);
+  assert.deepEqual(rescue.rescueWarnings(level, enemies, 8), []);
+  const completed = { ...level, reinforcements: level.reinforcements.map((wave) => ({ ...wave, spawned: true })) };
+  assert.deepEqual(rescue.rescueWarnings(completed, enemies, 3), []);
+  assert.deepEqual(rescue.rescueWarnings({ rescue: null }, [], 1), []);
+});
+
+test('bridge advance rules validate their timing and distinct authored guards; legacy rules still load', () => {
+  for (const bridgeAdvance of [null, { turn: 1, units: level.rescue.bridgeAdvance.units },
+    { turn: 5, units: [{ x: 12, z: 7 }, { x: 12, z: 7 }] },
+    { turn: 5, units: [{ x: 12, z: 7 }, { x: 15, z: 6 }] }]) {
+    assert.throws(() => rescue.validateRescueRules({ ...level.rescue, bridgeAdvance }, level), /Bridge advance/);
+  }
+  const { bridgeAdvance, ...legacy } = level.rescue;
+  assert.equal(rescue.validateRescueRules(legacy, level).bridgeAdvance, undefined);
+});
+
+test('painted buildings, walls and parapets block movement without blocking units or wave spawns', () => {
   for (const id of ['village_fence_h', 'village_fence_v', 'crossing_parapet']) {
     assert.equal(tiles.isTileWalkable(id), false);
   }
-  assert.ok(level.tiles.flat().filter((id) => id.startsWith('village_fence_')).length >= 45);
+  assert.equal(tiles.isTileWalkable('crossing_block'), false);
+  for (const house of level.houses) {
+    for (let z = house.z; z < house.z + house.height; z++)
+      for (let x = house.x; x < house.x + house.width; x++)
+        assert.equal(tiles.isLevelTileWalkable(level, x, z), false);
+  }
   for (const unit of [...level.players, ...level.enemies, level.rescue.recruit,
     ...level.reinforcements.flatMap((wave) => wave.units)]) {
     assert.ok(tiles.isLevelTileWalkable(level, unit.x, unit.z), `${unit.id} must stand on accessible terrain`);

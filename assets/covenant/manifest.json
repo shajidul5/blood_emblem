@@ -1,0 +1,393 @@
+{
+  "version": 1,
+  "generator": "PixelLab",
+  "status": "implemented",
+  "runtimeEnabled": true,
+  "description": "PixelLab Covenant promotion artwork for playable Bloodsworn Linus and Veilstalker Stark. Original roster sprites remain unchanged.",
+  "fighters": {
+    "bloodsworn": {
+      "unitId": "linus",
+      "classId": "bloodsworn",
+      "map": {
+        "generator": "PixelLab",
+        "method": "edit_image + transfer_outfit",
+        "sourceSpriteFolder": "assets/character/Linus",
+        "rotationJob": "85c26ab9-98fc-4464-b3a3-2b25d5221c42",
+        "walkingJobs": [
+          "37fd91b5-bd85-4617-bfb3-d12f34f050a4",
+          "39938cdc-43ec-48b3-830a-f305d0b7a62d",
+          "df7dd95f-0d71-4a40-8266-5145e72de1a8",
+          "8f9568f3-06f8-4a53-8179-9346e84889fc",
+          "45ff09c8-0253-4921-82fb-b2a91abb929f"
+        ],
+        "seed": 9271,
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "walkingSize": {
+          "width": 68,
+          "height": 68
+        },
+        "walkingFrames": 8,
+        "frameMs": 100,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ],
+        "preprocessing": "Walking references cropped by 6 transparent pixels per edge before PixelLab; identical padding restored after generation. No resampling.",
+        "rotations": {
+          "south": "bloodsworn-linus/map/rotations/south.png",
+          "south-east": "bloodsworn-linus/map/rotations/south-east.png",
+          "east": "bloodsworn-linus/map/rotations/east.png",
+          "north-east": "bloodsworn-linus/map/rotations/north-east.png",
+          "north": "bloodsworn-linus/map/rotations/north.png",
+          "north-west": "bloodsworn-linus/map/rotations/north-west.png",
+          "west": "bloodsworn-linus/map/rotations/west.png",
+          "south-west": "bloodsworn-linus/map/rotations/south-west.png"
+        },
+        "animations": {
+          "Walking": {
+            "south": [
+              "bloodsworn-linus/map/animations/Walking/south/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/south/frame_007.png"
+            ],
+            "south-east": [
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/south-east/frame_007.png"
+            ],
+            "east": [
+              "bloodsworn-linus/map/animations/Walking/east/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/east/frame_007.png"
+            ],
+            "north-east": [
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/north-east/frame_007.png"
+            ],
+            "north": [
+              "bloodsworn-linus/map/animations/Walking/north/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/north/frame_007.png"
+            ],
+            "north-west": [
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/north-west/frame_007.png"
+            ],
+            "west": [
+              "bloodsworn-linus/map/animations/Walking/west/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/west/frame_007.png"
+            ],
+            "south-west": [
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_000.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_001.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_002.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_003.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_004.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_005.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_006.png",
+              "bloodsworn-linus/map/animations/Walking/south-west/frame_007.png"
+            ]
+          }
+        }
+      },
+      "battle": {
+        "size": 128,
+        "anchorX": 45,
+        "baseline": 108,
+        "scale": 0.75,
+        "facing": "east",
+        "idle": "bloodsworn-linus/battle/idle.png",
+        "idleJob": "b82fdc38-2c04-447d-b956-91ba4e0a0b3b",
+        "idleLoop": {
+          "file": "bloodsworn-linus/battle/idle-loop.png",
+          "job": "63c1ec46-f11a-4c08-b90f-77cc040ad7e1",
+          "frames": 9,
+          "frameMs": 120
+        },
+        "attack": {
+          "file": "bloodsworn-linus/battle/attack.png",
+          "job": "83906d1b-70ad-41fb-92b4-c6b0937ca07c",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 13,
+          "holdMs": 60,
+          "advance": 48,
+          "contact": {
+            "x": 125,
+            "y": 43
+          }
+        },
+        "critical": {
+          "file": "bloodsworn-linus/battle/critical.png",
+          "job": "475f3cf6-4214-4080-a4be-949991efc6b1",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 10,
+          "holdMs": 100,
+          "advance": 48,
+          "contact": {
+            "x": 125,
+            "y": 44
+          }
+        },
+        "thrown": {
+          "attack": {
+            "file": "bloodsworn-linus/battle/thrown-attack.png",
+            "job": "38fe0237-ae49-4c7a-b398-90dff1c24479",
+            "frames": 25,
+            "frameMs": 40,
+            "impactFrame": 14,
+            "catchFrame": 20,
+            "holdMs": 60,
+            "advance": 0,
+            "contact": {
+              "x": 69,
+              "y": 43
+            },
+            "catchPoint": {
+              "x": 54,
+              "y": 45
+            }
+          },
+          "critical": {
+            "file": "bloodsworn-linus/battle/thrown-critical.png",
+            "job": "fdb70a9c-53b8-41f3-b1c4-1f37459ee107",
+            "frames": 33,
+            "frameMs": 40,
+            "impactFrame": 12,
+            "catchFrame": 28,
+            "holdMs": 100,
+            "advance": 0,
+            "contact": {
+              "x": 69,
+              "y": 43
+            },
+            "catchPoint": {
+              "x": 54,
+              "y": 45
+            }
+          }
+        },
+        "bloodOath": {
+          "file": "bloodsworn-linus/battle/blood-oath.png",
+          "job": "fae32f28-1a73-4583-8a1c-b308df00a7ec",
+          "frames": 25,
+          "frameMs": 40,
+          "casting": true,
+          "impactFrame": 10,
+          "holdMs": 120,
+          "advance": 0,
+          "contact": {
+            "x": 63,
+            "y": 45
+          }
+        }
+      }
+    },
+    "veilstalker": {
+      "unitId": "stark",
+      "classId": "veilstalker",
+      "map": {
+        "generator": "PixelLab",
+        "method": "edit_image + transfer_outfit",
+        "sourceSpriteFolder": "assets/character/Stark",
+        "rotationJob": "bb3fb30c-4836-42ac-bb2b-6d07de4c2c47",
+        "walkingJobs": [
+          "d2cd966c-8636-45d6-bb5b-93b8724c489a",
+          "16513c46-1177-475e-82e4-cff72462b359",
+          "3e2355f0-f336-4309-818c-0be78e19fbf3",
+          "4df1c92e-7b1d-4eef-91a0-eb7849184d41"
+        ],
+        "seed": 9272,
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "walkingSize": {
+          "width": 48,
+          "height": 48
+        },
+        "walkingFrames": 6,
+        "frameMs": 100,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ],
+        "preprocessing": "Native source frames preserved without resizing or resampling.",
+        "rotations": {
+          "south": "veilstalker-stark/map/rotations/south.png",
+          "south-east": "veilstalker-stark/map/rotations/south-east.png",
+          "east": "veilstalker-stark/map/rotations/east.png",
+          "north-east": "veilstalker-stark/map/rotations/north-east.png",
+          "north": "veilstalker-stark/map/rotations/north.png",
+          "north-west": "veilstalker-stark/map/rotations/north-west.png",
+          "west": "veilstalker-stark/map/rotations/west.png",
+          "south-west": "veilstalker-stark/map/rotations/south-west.png"
+        },
+        "animations": {
+          "Walking": {
+            "south": [
+              "veilstalker-stark/map/animations/Walking/south/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/south/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/south/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/south/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/south/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/south/frame_005.png"
+            ],
+            "south-east": [
+              "veilstalker-stark/map/animations/Walking/south-east/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/south-east/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/south-east/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/south-east/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/south-east/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/south-east/frame_005.png"
+            ],
+            "east": [
+              "veilstalker-stark/map/animations/Walking/east/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/east/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/east/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/east/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/east/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/east/frame_005.png"
+            ],
+            "north-east": [
+              "veilstalker-stark/map/animations/Walking/north-east/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/north-east/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/north-east/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/north-east/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/north-east/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/north-east/frame_005.png"
+            ],
+            "north": [
+              "veilstalker-stark/map/animations/Walking/north/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/north/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/north/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/north/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/north/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/north/frame_005.png"
+            ],
+            "north-west": [
+              "veilstalker-stark/map/animations/Walking/north-west/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/north-west/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/north-west/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/north-west/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/north-west/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/north-west/frame_005.png"
+            ],
+            "west": [
+              "veilstalker-stark/map/animations/Walking/west/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/west/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/west/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/west/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/west/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/west/frame_005.png"
+            ],
+            "south-west": [
+              "veilstalker-stark/map/animations/Walking/south-west/frame_000.png",
+              "veilstalker-stark/map/animations/Walking/south-west/frame_001.png",
+              "veilstalker-stark/map/animations/Walking/south-west/frame_002.png",
+              "veilstalker-stark/map/animations/Walking/south-west/frame_003.png",
+              "veilstalker-stark/map/animations/Walking/south-west/frame_004.png",
+              "veilstalker-stark/map/animations/Walking/south-west/frame_005.png"
+            ]
+          }
+        }
+      },
+      "battle": {
+        "size": 128,
+        "anchorX": 41,
+        "baseline": 104,
+        "scale": 1,
+        "facing": "east",
+        "idle": "veilstalker-stark/battle/idle.png",
+        "idleJob": "cbd74a4f-77a3-4165-988f-8dd064c93fc4",
+        "idleLoop": {
+          "file": "veilstalker-stark/battle/idle-loop.png",
+          "job": "0fb890a4-88bb-4d94-a41c-f9eed6e9bf15",
+          "frames": 9,
+          "frameMs": 120
+        },
+        "attack": {
+          "file": "veilstalker-stark/battle/attack.png",
+          "job": "d36edf68-3370-4ed1-8eb8-99f6bb8b064d",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 18,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 83,
+            "y": 55
+          }
+        },
+        "critical": {
+          "file": "veilstalker-stark/battle/critical.png",
+          "job": "06374efb-eec2-4bdb-ae11-83afc51442d7",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 25,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 103,
+            "y": 51
+          }
+        },
+        "casting": true
+      }
+    }
+  }
+}

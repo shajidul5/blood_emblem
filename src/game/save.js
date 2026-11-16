@@ -7,6 +7,7 @@ import { CLASSES, MAX_USES_MULTIPLIER } from '../characters/classes.js';
 import { validateRescueState } from './rescue.js';
 import { validateGateEncounterState } from './gate-encounter.js';
 import { validateInfirmaryState } from './infirmary.js';
+import { validCovenantState } from './covenant.js';
 
 const validClassId = (classId) => classId === undefined || CLASSES.has(classId);
 
@@ -51,6 +52,8 @@ export function serializeUnit(player) {
     moveOrigin: player.moveOrigin ?? null,
     ...(player.frozen ? { frozen: player.frozen } : {}),
     ...(player.ravaging ? { ravaging: true } : {}),
+    ...(player.bloodOath ? { bloodOath: true } : {}),
+    ...(player.bloodTrailBonus !== undefined ? { bloodTrailBonus: player.bloodTrailBonus } : {}),
     inventory: player.inventory.map(copyEntry),
     equippedWeaponId: player.weapon?.id ?? null,
     stats: Object.fromEntries(PLAYER_STATS.map((stat) => [stat, player[stat]])),
@@ -243,6 +246,7 @@ export function parseSave(rawSave) {
     !isIntegerInRange(player.experience, 0, 99) ||
     !validWeaponExp(player.weaponExp) ||
     !validClassId(player.classId) ||
+    !validCovenantState(player) ||
     !FACINGS.has(player.facing) ||
     typeof player.moved !== 'boolean' ||
     typeof player.acted !== 'boolean' ||
@@ -278,6 +282,7 @@ export function parseSave(rawSave) {
       !isIntegerInRange(ally.experience, 0, 99) ||
       !validWeaponExp(ally.weaponExp) ||
       !validClassId(ally.classId) ||
+      !validCovenantState(ally) ||
       !FACINGS.has(ally.facing) ||
       typeof ally.moved !== 'boolean' ||
       typeof ally.acted !== 'boolean' ||

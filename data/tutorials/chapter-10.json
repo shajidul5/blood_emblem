@@ -5,19 +5,8 @@
         "kicker": "Part Two - Chapter 10",
         "title": "The Golden Threshold",
         "paragraphs": [
-          "The last light of day burns orange across the water. Ahead, Aldermere's bridge ends beneath a gate crowned with the Golden Order's sun.",
-          "Captain Aurelan rides before the portcullis. \"The Golden Order holds this bridge by decree of the Healing Church. Turn back. Whatever follows you will not enter this city.\"",
-          "Linus looks up at the battlements. \"Then why are your men watching the gate, Captain?\" Aurelan does not answer."
-        ]
-      },
-      {
-        "kicker": "Bridge Defenses",
-        "title": "Break the Golden Line",
-        "paragraphs": [
-          "Sandbag barricades force you to alternate between the bridge's lanes. Golden Order Soldiers, Archers, Cavaliers, Knights and Mages guard the crossing: they advance only when someone enters their movement and attack reach.",
-          "The defenders cover one another. Soldiers hold the detours while archers behind them shoot at range 2; the first soldier carries a Javelin with range 1-2. Entering one guard's reach can expose you to another. Inspect combined enemy ranges before advancing.",
-          "Mages shelter behind the barricades with Fire magic, striking at range 1-2. The mage nearest the gate casts the stronger Blaze, backed by an archer. Lead with durable units, then close on the bowmen or flank the spellcasters; do not leave low-Resistance allies exposed.",
-          "Defeat Captain Aurelan to claim his Orders Emblem, then bring Maria to the marked gate tile. Maria must survive. You do not need to defeat every bridge defender."
+          "Defeat Captain Aurelan and bring Maria to the city gate. Maria must survive.",
+          "A distant shriek echoes from beyond the gate. The soldiers do not turn to look."
         ],
         "button": "Cross the Bridge"
       }
@@ -34,18 +23,8 @@
         "kicker": "Something Above",
         "title": "The Blood Beast",
         "paragraphs": [
-          "Aurelan's seal strikes the stone. Far above, claws scrape the gatehouse. Something immense drops from the battlements and lands across the threshold.",
-          "Beneath its blood-matted mane hang the remnants of white vestments. A heavy gold chain and a many-rayed clerical sunburst are tangled around its neck. Seymour goes pale. \"That insignia... only the highest ministers of the Healing Church wear it.\"",
-          "The beast answers with a roar. Whoever it was, no name remains."
-        ]
-      },
-      {
-        "kicker": "Final Objective",
-        "title": "Claim the Gate",
-        "paragraphs": [
-          "The Blood Beast will not leave the gate tile. Its enormous talons strike at range 1-2, and its strength and endurance far exceed the captain's. Inspect its stats before committing.",
-          "Four carrion ravens arrive over the water, two from each side. They fly across water and barricades, are very fast and attack at close range with their beaks. Bows and wind magic deal effective damage against flying units.",
-          "Two more ravens arrive every two turns for three further waves, one on each side. Defeat the Blood Beast, then move Maria onto the green gate tile to complete Part Two. You do not need to clear the ravens or surviving Golden Order defenders."
+          "Torn white vestments. A high cleric's golden chain. The creature blocks the threshold.",
+          "Defeat the Blood Beast, then move Maria onto the marked gate tile."
         ],
         "button": "Face the Beast"
       }

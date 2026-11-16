@@ -9,6 +9,7 @@
     "test": "node --test",
     "create-test-save": "node scripts/create-chapter16-save.mjs",
     "item-guide": "node scripts/generate-item-guide.mjs",
+    "character-gallery": "node scripts/export-character-gallery.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

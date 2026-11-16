@@ -79,10 +79,11 @@ function assertArtworkBounds(target, offset, aspect, width, height, fov) {
   }
 }
 
-test('all six illustrated maps keep every viewport corner inside the exact artwork with no padding', async () => {
+test('all ten illustrated maps keep every viewport corner inside the exact artwork with no padding', async () => {
   const { readFile } = await import('node:fs/promises');
   for (const file of ['map_01_two_ships', 'map_02_boarders_from_the_deep',
-    'map_03_fishing_village', 'map_04_mansion', 'map_05_escape', 'map_06_hollow_wood']) {
+    'map_03_fishing_village', 'map_04_mansion', 'map_05_escape', 'map_06_hollow_wood',
+    'map_07_orders_camp', 'map_08_rotted_heart', 'map_09_last_crossing', 'map_10_golden_threshold']) {
     const map = JSON.parse(await readFile(new URL(`../data/levels/${file}.json`, import.meta.url), 'utf8'));
     assert.ok(map.shipScene || map.villageScene);
     const scale = Math.max(0.55, map.width / 21, map.height / 19);

@@ -4,7 +4,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 import { drawHpDigits } from '../src/battle/hp-digits.js';
 import {
-  animationFrameAt, battleBackdrop, battleSpriteKey, battleThrow, COMBAT_ANIMATIONS_KEY, createImpactGate,
+  animationFrameAt, idleFrameAt, battleBackdrop, battleSpriteKey, battleThrow, COMBAT_ANIMATIONS_KEY, createImpactGate,
   battleHpSegments, battleImpactShake, displayedBattleHp, flurryPose, flurryTimeline,
   readCombatAnimations, strikePose, supportsBattleScene, THROWING_FIGHTERS, writeCombatAnimations,
 } from '../src/battle/battle-animation.js';
@@ -17,6 +17,32 @@ const bartz = () => ({ id: 'bartz', classId: 'pirate', x: 1, z: 0, weapon: { typ
 const deepMerfolk = () => ({ id: 'deep-merfolk', classId: 'deep-merfolk', spriteSet: 'killian',
   x: 1, z: 0, weapon: { id: 'tentacle', type: 'Axe', minRange: 1, maxRange: 2 } });
 
+test('Rictor has infantry and mounted spear art, including javelin throws, without changing his equipment', async () => {
+  const profile = JSON.parse(await readFile(new URL('../data/characters/rictor.json', import.meta.url)));
+  const vigil = JSON.parse(await readFile(new URL('../data/weapons/vigil-lance.json', import.meta.url)));
+  const javelin = JSON.parse(await readFile(new URL('../data/weapons/javelin.json', import.meta.url)));
+  for (const [classId, key] of [['oathkeeper', 'rictor-oathkeeper'], ['templar', 'rictor-templar-lance']]) {
+    const unit = { ...profile, classId, x: 0, z: 0, weapon: vigil };
+    assert.equal(battleSpriteKey(unit), key);
+    assert.ok(art.fighters[key].idleLoop);
+    assert.ok(supportsBattleScene(unit, { ...maria(), x: 1 }));
+    assert.equal(battleThrow(unit, 2), null);
+    const ranged = { ...unit, weapon: javelin };
+    assert.equal(battleThrow(ranged, 1), null);
+    assert.equal(battleThrow(ranged, 2)?.key, 'thrown-spear');
+    assert.ok(THROWING_FIGHTERS.has(key));
+    assert.ok(art.fighters[key].thrown);
+    assert.ok(supportsBattleScene(ranged, { ...maria(), x: 2 }));
+    assert.ok(supportsBattleScene({ ...maria(), x: 2 }, ranged));
+    assert.equal(supportsBattleScene(ranged, { ...maria(), x: 3 }), false);
+    for (const type of ['Sword', 'Anima', 'Bow', 'Staff'])
+      assert.equal(battleSpriteKey({ ...unit, weapon: { type } }), null);
+    assert.equal(battleSpriteKey({ ...unit, id: 'not-rictor' }), null);
+    assert.equal(battleSpriteKey({ ...unit, classId: 'cavalier' }), null);
+    assert.equal(unit.weapon, vigil);
+  }
+});
+
 test('generic combat art covers every matching roster profile without leaking to other classes or weapons', async () => {
   const families = {
     genericArcher: ['archer', 'Bow', 'generic-archer'],
@@ -24,6 +50,7 @@ test('generic combat art covers every matching roster profile without leaking to
     genericCavalier: ['cavalier', 'Spear', 'generic-cavalier'],
     genericSoldier: ['soldier', 'Spear', 'generic-soldier'],
     genericWolfman: ['wolfman', 'Claw', 'generic-wolfman'],
+    genericPaladin: ['paladin', 'Spear', 'generic-paladin'],
   };
   const covered = new Set();
   const directory = new URL('../data/characters/', import.meta.url);
@@ -43,7 +70,7 @@ test('generic combat art covers every matching roster profile without leaking to
     assert.equal(battleSpriteKey({ ...unit, spriteSet: 'genericUndead' }), null, file);
     covered.add(profile.spriteSet);
   }
-  assert.equal(covered.size, 5);
+  assert.equal(covered.size, 6);
   assert.equal(art.fighters['generic-archer'].casting, true);
 });
 
@@ -51,6 +78,7 @@ test('generic lance users thrust adjacent and throw javelins at range 2', () => 
   for (const [spriteSet, classId, key] of [
     ['genericKnight', 'knight', 'generic-knight'], ['genericKnight', 'general', 'generic-knight'],
     ['genericCavalier', 'cavalier', 'generic-cavalier'], ['genericSoldier', 'soldier', 'generic-soldier'],
+    ['genericPaladin', 'paladin', 'generic-paladin'],
   ]) {
     const unit = { id: 'generic-test', spriteSet, classId, x: 0, z: 0,
       weapon: { id: 'javelin', type: 'Spear', minRange: 1, maxRange: 2 } };
@@ -94,6 +122,54 @@ test('Linus and Paladin Linus have distinct sword, lance and range-2 lance anima
   }
   assert.notEqual(art.fighters['linus-cavalier-lance'].idle, art.fighters['linus-paladin-lance'].idle);
   assert.notEqual(art.fighters['linus-cavalier-sword'].idle, art.fighters['linus-paladin-sword'].idle);
+});
+
+test('generic mages cast every supported Anima spell and Blood Beast claws animate at both ranges', () => {
+  for (const id of ['fire-tome', 'blaze', 'inferno', 'thunder-tome', 'elthunder', 'bolting', 'wind-tome', 'gale', 'tempest']) {
+    const mage = { id: 'golden-mage', spriteSet: 'genericMage', classId: 'mage', x: 0, z: 0,
+      weapon: { id, type: 'Anima', maxRange: id === 'bolting' ? 10 : 2 } };
+    assert.equal(battleSpriteKey(mage), 'generic-mage');
+    assert.equal(art.fighters['generic-mage'].casting, true);
+    for (const distance of id === 'bolting' ? [3, 10] : [1, 2]) {
+      assert.ok(supportsBattleScene(mage, { ...maria(), x: distance }));
+      assert.ok(supportsBattleScene({ ...maria(), x: distance }, mage));
+    }
+    assert.equal(battleSpriteKey({ ...mage, classId: 'sage' }), null);
+  }
+  const beast = { id: 'blood-beast', spriteSet: 'bloodBeast', classId: 'blood-beast', x: 0, z: 0,
+    weapon: { id: 'blood-claws', type: 'Claw', maxRange: 2 } };
+  for (const distance of [1, 2]) {
+    assert.equal(battleSpriteKey(beast), 'blood-beast');
+    assert.ok(supportsBattleScene(beast, { ...maria(), x: distance }));
+    assert.ok(supportsBattleScene({ ...maria(), x: distance }, beast));
+    assert.equal(battleThrow(beast, distance), null);
+  }
+  assert.equal(supportsBattleScene(beast, { ...maria(), x: 3 }), false);
+  assert.equal(battleSpriteKey({ ...beast, weapon: { type: 'Axe' } }), null);
+});
+
+test('animated battle idles loop, clamp negative time and honor reduced motion', () => {
+  for (const key of ['generic-paladin', 'generic-mage', 'blood-beast',
+    'rictor-oathkeeper', 'rictor-templar-lance', 'rictor-templar-light']) {
+    const clip = art.fighters[key].idleLoop;
+    assert.ok(clip.frames > 1 && clip.frameMs > 0);
+    assert.equal(idleFrameAt(clip, -1), 0);
+    assert.equal(idleFrameAt(clip, clip.frameMs - 1), 0);
+    assert.equal(idleFrameAt(clip, clip.frameMs), 1);
+    assert.equal(idleFrameAt(clip, clip.frames * clip.frameMs), 0);
+    assert.equal(idleFrameAt(clip, clip.frameMs, true), 0);
+  }
+  assert.equal(idleFrameAt(undefined, 999), 0);
+});
+
+test('new fighter canvases fit below their full HP panels, including the 150-HP Blood Beast', () => {
+  for (const [key, hp] of [['generic-paladin', 78], ['generic-mage', 34], ['blood-beast', 150],
+    ['rictor-oathkeeper', 80], ['rictor-templar-lance', 80], ['rictor-templar-light', 80]]) {
+    const fighter = art.fighters[key];
+    const panelBottom = 8 + 48 + (Math.ceil(hp / 40) - 1) * 8;
+    const spriteTop = 233 - fighter.baseline * 2 * fighter.scale;
+    assert.ok(spriteTop >= panelBottom, `${key} head and rearing critical stay below the HP panel`);
+  }
 });
 
 test('generic cavalry select sword art independently of lance art and never throw swords', () => {
@@ -238,7 +314,8 @@ test('Bartz throws his axe at range 2 with dedicated clips; future range-2 spear
     const fighter = art.fighters[key];
     assert.ok(fighter.thrown, `${key} has thrown clips`);
     const { attack, critical } = fighter.thrown;
-    assert.ok(critical.frames > attack.frames && critical.impactFrame > attack.impactFrame);
+    assert.ok(critical.frames > attack.frames);
+    assert.ok(critical.impactFrame > 0 && critical.impactFrame < critical.frames - 1);
     assert.notEqual(attack.job, critical.job);
     for (const clip of [attack, critical]) {
       assert.equal(clip.advance, 0, 'throws stay planted');
@@ -354,7 +431,8 @@ test('animation timing holds the actual contact frame, advances and returns with
       assert.equal(animationFrameAt(clip, end + 1000), clip.frames - 1);
     }
     assert.ok(fighter.critical.frames > fighter.attack.frames);
-    assert.ok(fighter.critical.impactFrame > fighter.attack.impactFrame);
+    // Critical flourishes can release earlier; their authored contact cue is independent.
+    assert.ok(fighter.critical.impactFrame > 0 && fighter.critical.impactFrame < fighter.critical.frames - 1);
     assert.notEqual(fighter.attack.job, fighter.critical.job);
   }
 });
@@ -367,8 +445,13 @@ test('all generated sheets contain every declared frame at original size', async
   };
   for (const [key, fighter] of Object.entries(art.fighters)) {
     const idle = await png(fighter.idle);
-    assert.equal(idle.width, 128, key);
-    assert.equal(idle.height, 128, key);
+    assert.equal(idle.width, fighter.size, key);
+    assert.equal(idle.height, fighter.size, key);
+    if (fighter.idleLoop) {
+      const sheet = await png(fighter.idleLoop.file);
+      assert.equal(sheet.width, fighter.size * fighter.idleLoop.frames, `${key} idle loop`);
+      assert.equal(sheet.height, fighter.size);
+    }
     for (const kind of ['attack', 'critical']) {
       const clip = fighter[kind];
       const sheet = await png(clip.file);

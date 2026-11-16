@@ -50,3 +50,37 @@ test('each player weapon type has an icon', () => {
     assert.ok(profile.weaponTypeIcon(type), type);
   }
 });
+
+test('Veilstalker profile distinguishes phase movement from permanent stat gains', async (t) => {
+  const { createStarkAlly } = await server.ssrLoadModule('/src/characters/characters.js');
+  const { promoteUnit } = await server.ssrLoadModule('/src/characters/classes.js');
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => previous ? Object.defineProperty(globalThis, 'document', previous) : delete globalThis.document);
+  const node = () => ({
+    children: [], style: {}, title: '', classList: { add() {}, toggle() {} },
+    append(...children) { this.children.push(...children); },
+    replaceChildren(...children) { this.children = children; },
+    setAttribute() {}, addEventListener() {}, focus() {}, showModal() {},
+  });
+  globalThis.document = { createElement: node };
+  const nodes = new Map();
+  const dialog = { ...node(), querySelectorAll: () => [], querySelector(selector) {
+    if (!nodes.has(selector)) nodes.set(selector, node());
+    return nodes.get(selector);
+  } };
+  const stark = { ...createStarkAlly(), level: 20 };
+  promoteUnit(stark, 'covenant-emblem');
+  stark.movement++;
+  stark.bloodTrailBonus = 2;
+  const ui = profile.createProfileDialog(dialog);
+  const terrain = { name: 'Road', defense: 0, avoid: 0 };
+  ui.show(stark, null, terrain, terrain);
+  const movement = () => nodes.get('#profile-stats').children.find((row) => row.children[0].textContent === 'Movement').children[1];
+  assert.equal(movement().textContent, '8');
+  assert.equal(movement().title, 'Base 5 · +1 gained · +2 Blood Trail (this phase)');
+  assert.equal(stark.movement, 6);
+  delete stark.bloodTrailBonus;
+  ui.show(stark, null, terrain, terrain);
+  assert.equal(movement().textContent, '6');
+  assert.equal(movement().title, 'Base 5 · +1 gained');
+});

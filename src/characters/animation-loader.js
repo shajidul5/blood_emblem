@@ -164,6 +164,10 @@ const genericCavalierIdleSprites = import.meta.glob('../../assets/character/Gene
 const genericCavalierWalkingFrames = import.meta.glob('../../assets/character/Generic_cavalier/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericCavalierAttackFrames = import.meta.glob('../../assets/character/Generic_cavalier/animations/The_knight_pulls_the_lance_back_towards_the_should/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusIdleSprites = import.meta.glob('../../assets/character/Linus/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const bloodswornIdleSprites = import.meta.glob('../../assets/covenant/bloodsworn-linus/map/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const bloodswornWalkingFrames = import.meta.glob('../../assets/covenant/bloodsworn-linus/map/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const veilstalkerIdleSprites = import.meta.glob('../../assets/covenant/veilstalker-stark/map/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const veilstalkerWalkingFrames = import.meta.glob('../../assets/covenant/veilstalker-stark/map/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusWalkingFrames = import.meta.glob('../../assets/character/Linus/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusAttackFrames = import.meta.glob('../../assets/character/Linus/animations/The_rider_pulls_the_lance_back_towards_the_shoulde/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusSwordIdleSprites = import.meta.glob('../../assets/character/Linus/Linus_sword/rotations/*.png', { eager: true, query: '?url', import: 'default' });
@@ -534,6 +538,8 @@ export async function loadCharacterSprites() {
     ['genericKnight', 'Generic_Knight', genericKnightIdleSprites, genericKnightWalkingFrames, genericKnightAttackFrames],
     ['genericCavalier', 'Generic_cavalier', genericCavalierIdleSprites, genericCavalierWalkingFrames, genericCavalierAttackFrames],
     ['linus', 'Linus', linusIdleSprites, linusWalkingFrames, linusAttackFrames],
+    ['bloodswornLinus', 'Bloodsworn Linus', bloodswornIdleSprites, bloodswornWalkingFrames, {}],
+    ['veilstalkerStark', 'Veilstalker Stark', veilstalkerIdleSprites, veilstalkerWalkingFrames, {}],
     ['linusSword', 'Linus Sword', linusSwordIdleSprites, linusWalkingFrames, linusSwordAttackFrames],
     ['villager', 'Villager', villagerIdleSprites, villagerWalkingFrames, {}],
     ['genericPaladin', 'Generic Paladin', genericPaladinIdleSprites, genericPaladinWalkingFrames, genericPaladinAttackFrames],

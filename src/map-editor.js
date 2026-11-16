@@ -6,7 +6,8 @@ import fenceHorizontalUrl from '../assets/tiles/Village_Fence/fence_horizontal.p
 import fenceVerticalUrl from '../assets/tiles/Village_Fence/fence_vertical.png?url';
 import sandbagsUrl from '../assets/tiles/Golden_Bridge/sandbags.png?url';
 import shipTileset from '../assets/tiles/ship_oblique/ship_oblique_tileset.json';
-import { getTileDef } from './levels/tiles.js';
+import { getTileDef, isLevelTileWalkable } from './levels/tiles.js';
+import { enemyMovementType } from './characters/characters.js';
 import { SHIP_TILE_IDS, validateShipScene } from './levels/ship-scene.js';
 import twoShipsUrl from '../assets/maps/ships/two-ships.png?url';
 import loneShipUrl from '../assets/maps/ships/lone-ship.png?url';
@@ -17,6 +18,8 @@ import manorArtUrl from '../assets/maps/village/manor.png?url';
 import forestArtUrl from '../assets/maps/village/forest.png?url';
 import campArtUrl from '../assets/maps/village/camp.png?url';
 import heartArtUrl from '../assets/maps/village/heart.png?url';
+import crossingArtUrl from '../assets/maps/village/crossing.png?url';
+import thresholdArtUrl from '../assets/maps/village/threshold.png?url';
 
 const TILE_TYPES = [
   ...shipTileset.tiles.list.map((tile) => ({ key: tile.id, name: tile.id, walkable: tile.walkable })),
@@ -86,6 +89,8 @@ let map;
 const villageImages = new Map(await Promise.all([
   ['village', villageArtUrl], ['mansion', mansionArtUrl], ['manor', manorArtUrl], ['forest', forestArtUrl], ['camp', campArtUrl],
   ['heart', heartArtUrl],
+  ['crossing', crossingArtUrl],
+  ['threshold', thresholdArtUrl],
 ].map(async ([layout, url]) => [layout, await loadImage(url, 'illustrated village map')])));
 let selectedTile = 'deck_a';
 let drawing = false;
@@ -144,7 +149,7 @@ function validateMap(value) {
   if (typeof name !== 'string' || !name.trim()) {
     throw new Error('Give the level a name.');
   }
-  if (!['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'seize-gate'].includes(objective)) {
+  if (!['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'seize-gate', 'rescue-villagers'].includes(objective)) {
     throw new Error('Choose a valid level objective.');
   }
   if (objective === 'defend' && (!Number.isInteger(value.defendTurns) || value.defendTurns < 1 || value.defendTurns > 99)) {
@@ -175,7 +180,10 @@ function validateMap(value) {
   if (shipScene || villageScene) {
     for (const unit of [...(value.players ?? []), ...(value.enemies ?? [])]) {
       const { x, z } = readCoordinate(unit, width, height, 'unit');
-      if (!ATLAS_TILES.get(tiles[z][x]).walkable) throw new Error('Illustrated-map units must stand on walkable collision cells.');
+      const type = value.enemies?.includes(unit) ? enemyMovementType(unit.id) : undefined;
+      if (!isLevelTileWalkable({ tileIds: tiles }, x, z, { type })) {
+        throw new Error('Illustrated-map units must stand on terrain their movement type can cross.');
+      }
     }
   }
   return {

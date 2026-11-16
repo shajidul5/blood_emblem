@@ -69,6 +69,7 @@ function encounter() {
     defendingUnits: () => level.players.map((unit) => ({ ...unit, hp: 30 })),
     tileKey: (x, z) => `${x},${z}`, createEnemy: create,
     isWalkable: grid.isWalkable,
+    enemyMovementType: characters.enemyMovementType,
     distanceBetween: (x1, z1, x2, z2) => Math.abs(x1 - x2) + Math.abs(z1 - z2),
     infirmaryWaveSealed: () => false, courtyardWaveEnabled: () => true, cathedralWaveEnabled: () => true,
     showCombatResult() {}, setMessage() {}, renderTacticalUi() {}, wait: async () => {},
