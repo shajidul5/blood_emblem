@@ -1,0 +1,16 @@
+{
+  "id": "spear",
+  "name": "Spear",
+  "type": "Spear",
+  "damageType": "physical",
+  "might": 12,
+  "weight": 12,
+  "hit": 85,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "effect": [],
+  "sound": "stab",
+  "lore": "A heavy, balanced war spear carried by Severin. Its long steel head strikes harder and flies truer than a common javelin.",
+  "sprite": "assets/weapons/Steel_Spear/rotations/Steel_Spear.png"
+}

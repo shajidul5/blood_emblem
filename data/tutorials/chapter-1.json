@@ -21,6 +21,16 @@
         ],
         "diagram": "weapon-triangle",
         "button": "To Arms"
+      },
+      {
+        "kicker": "Tactics",
+        "title": "The Magic Triangle",
+        "paragraphs": [
+          "Magic has its own rivalry: Anima beats Holy (Light), Holy beats Dark, and Dark beats Anima. Fire, Thunder and Wind are all Anima; they are neutral against each other.",
+          "Advantage grants {hit} Hit, {avoid} Avoid and {damage} extra damage; disadvantage applies the same penalties. Magic versus physical weapons, staves and matching schools is neutral. Physical reavers do not change the magic triangle."
+        ],
+        "diagram": "magic-triangle",
+        "button": "To Arms"
       }
     ]
   },

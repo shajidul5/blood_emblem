@@ -4,6 +4,11 @@
     "Sword": "Axe",
     "Axe": "Spear"
   },
+  "magicBeats": {
+    "Anima": "Light",
+    "Light": "Dark",
+    "Dark": "Anima"
+  },
   "hit": 10,
   "avoid": 10,
   "damage": 1

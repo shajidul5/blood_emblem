@@ -1,4 +1,28 @@
 {
+  "bellYard-split": { "pages": [
+    { "kicker": "Part Four - Chapter 16", "title": "The Delivery Bell", "paragraphs": [
+      "The Church sealed the Bell Lift to bar the way to the shore. Maria enters through the western warehouses while Rictor approaches through the eastern freight yard.",
+      "Defeat the Winch Captain in the west and the Brake Marshal in the east. Stand on the marked control tile and operate it. Neither squad can cross over until both controls are released.",
+      "Once the approaches open, defeat Halloran and board the lift with both Maria and Rictor. Defeating the Omen is optional."
+    ] }
+  ] },
+  "bellYard-split-bell": { "pages": [
+    { "kicker": "The West Service Road", "title": "The Last Omen", "paragraphs": [
+      "The bell rings once. The Rotten turn toward the sound, but a figure at the far west gate turns toward Maria.",
+      "The Omen enters with two crows at the start of turn 4. More pairs descend on turns 7, 10, and 13. Defeat him for his Covenant Emblem and Crow Greatsword, or leave him behind and take the lift."
+    ] }
+  ] },
+  "bellYard-split-lift": { "pages": [
+    { "kicker": "The Northern Quay", "title": "The Lift-Keeper", "paragraphs": [
+      "Halloran stands on the lift. A white flame burns over the open pages of Cinder Vigil. Beyond him the shaft smells of seawater; far below, the chains disappear into darkness."
+    ] }
+  ] },
+  "bellYard-split-ending": { "pages": [
+    { "kicker": "Part Four - Chapter 16 Complete", "title": "The Long Descent", "paragraphs": [
+      "The Bell Lift descends past the city foundations. Below the stone, the sound of waves grows louder.",
+      "{omen}"
+    ] }
+  ] },
   "bellYard": { "pages": [
     { "kicker": "Part Four - Chapter 16", "title": "The Delivery Bell", "paragraphs": [
       "Behind the Cathedral, Voss's ledgers named one more address: the Delivery Yard, where the Church's \"treated\" patients were crated, loaded onto rail wagons and lowered beneath the city on the Bell Lift.",

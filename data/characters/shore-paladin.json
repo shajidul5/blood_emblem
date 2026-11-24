@@ -1,0 +1,8 @@
+{
+  "id": "shore-paladin", "name": "Drowned Outrider", "classId": "paladin", "type": "cavalry",
+  "spriteSet": "genericPaladin", "sprite": "assets/character/Generic_Paladin/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "silver-lance", "weaponExp": { "Spear": 240 }, "ai": "mobile",
+  "baseStats": { "hp": 64, "strength": 33, "magic": 0, "dexterity": 42, "speed": 23, "luck": 12, "defense": 27, "resistance": 20, "movement": 8, "build": 15 },
+  "currentStats": { "hp": 64, "strength": 33, "magic": 0, "dexterity": 42, "speed": 23, "luck": 12, "defense": 27, "resistance": 20, "movement": 8, "build": 15 },
+  "growthRates": { "hp": 45, "strength": 35, "magic": 0, "dexterity": 40, "speed": 30, "luck": 20, "defense": 30, "resistance": 25, "movement": 0, "build": 0 }
+}

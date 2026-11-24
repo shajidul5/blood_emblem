@@ -1,0 +1,62 @@
+{
+  "name": "The Shore Beneath the World",
+  "scene": "scene.png",
+  "sceneSource": "scene-source.png",
+  "sceneGeneration": "sha256:9104ae02647ad4668ffbf12cd8f778a3fd3f13de439d171ab29bfa95ef4b593a",
+  "sceneWidth": 1491,
+  "sceneHeight": 1055,
+  "alignmentWidth": 1472,
+  "alignmentHeight": 1042,
+  "scenePatches": [
+    { "source": [675, 572], "target": [345, 478, 46, 62] },
+    { "source": [675, 572], "target": [696, 375, 48, 48] },
+    { "source": [675, 572], "target": [1067, 478, 47, 60] }
+  ],
+  "scenePatchesPurpose": "Native-size masonry crops remove the three baked objective fires and plinths; runtime beacon sprites alone display their active/extinguished state.",
+  "sceneAlignment": "The complete cleaned approval scene covers the 48x40 grid. Pixel rectangles below trace safe walking surfaces; cells are selected by their centers. Architecture remains baked into the scene, with blocked footprints and one-tile trial controls at its feet. No repeated-material assembly is used for new chapters.",
+  "groundAreas": [
+    [215, 385, 510, 733],
+    [607, 248, 829, 798],
+    [930, 403, 1197, 736],
+    [303, 299, 1107, 333],
+    [294, 247, 348, 397],
+    [1104, 270, 1169, 402],
+    [157, 169, 348, 274],
+    [1099, 159, 1305, 287],
+    [514, 519, 593, 580],
+    [845, 519, 918, 581],
+    [516, 711, 594, 769],
+    [845, 711, 920, 769],
+    [358, 759, 1069, 798],
+    [539, 787, 892, 916],
+    [635, 206, 784, 251],
+    [184, 755, 308, 821],
+    [1120, 756, 1228, 821]
+  ],
+  "blockedAreas": [
+    [185, 111, 293, 232],
+    [1168, 104, 1289, 241],
+    [234, 356, 306, 452],
+    [412, 602, 473, 675],
+    [693, 489, 750, 559],
+    [631, 629, 670, 701],
+    [764, 629, 801, 701],
+    [978, 386, 1022, 443],
+    [1130, 605, 1185, 676]
+  ],
+  "floor": "floor.png",
+  "materials": "materials.png",
+  "ocean": "ocean.png",
+  "width": 3072,
+  "height": 2560,
+  "tilePixels": 64,
+  "columns": 48,
+  "rows": 40,
+  "materialsGeneration": "sha256:43d6824aa9a8731d813c62851ec2b47ea06920aa99ec46ff998c2dc0abcce8f4",
+  "assembly": "scripts/assemble-chapter17-art.js exports assembleChapter17Art(map, image), returning a native Canvas PNG.",
+  "alignment": "Each tile is drawn 64x64 at (x*64,z*64). All sea cells remain transparent. Source material patches are cropped at native resolution, never stretched. Buildings and single-tile fixtures are separate complete sprites.",
+  "fixtures": {
+    "drowned-bell.png": "c372dc01-d553-48bf-95fb-df46926627c6",
+    "constellation-instrument.png": "a6a1bb57-9484-4665-9afb-b9a68519800a"
+  }
+}

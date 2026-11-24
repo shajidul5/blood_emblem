@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import animationsConfig from '../../data/animations-config.json';
 
+const yieldToBrowser = () => globalThis.scheduler?.yield
+  ? globalThis.scheduler.yield()
+  : new Promise(resolve => setTimeout(resolve, 0));
+
 function getSpriteBounds(imageData, width, height) {
   const data = imageData.data;
   let left = width;
@@ -33,6 +37,12 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
   // sprites is an array of textures
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  let workStarted = performance.now();
+  async function yieldIfNeeded() {
+    if (performance.now() - workStarted < 6) return;
+    await yieldToBrowser();
+    workStarted = performance.now();
+  }
   
   let maxWidth = 0;
   let maxHeight = 0;
@@ -55,6 +65,7 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
     } else {
       boundsList.push(null);
     }
+    await yieldIfNeeded();
   }
   
   if (maxWidth === 0 || maxHeight === 0) return sprites;
@@ -111,8 +122,10 @@ async function normalizeSpritesToConsistentSize(sprites, characterName, directio
     texture.userData.idleHeightRatio = boundsList[0].height / frameSize;
     texture.needsUpdate = true;
     normalizedSprites.push(texture);
+    await yieldIfNeeded();
   }
   
+  await yieldToBrowser();
   return normalizedSprites;
 }
 
@@ -133,6 +146,22 @@ const cypherAttackFrames = import.meta.glob('../../assets/character/Cyrus/Idle/a
 const seymourIdleSprites = import.meta.glob('../../assets/character/Seymour/Idle/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const seymourWalkingFrames = import.meta.glob('../../assets/character/Seymour/Idle/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const seymourStaffFrames = import.meta.glob('../../assets/character/Seymour/Idle/animations/Staff/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+
+const leonIdleSprites = import.meta.glob('../../assets/character/Leon/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const leonWalkingFrames = import.meta.glob('../../assets/character/Leon/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const leonAttackFrames = import.meta.glob('../../assets/character/Leon/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const heroLeonIdleSprites = import.meta.glob('../../assets/character/Hero_Leon/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const heroLeonWalkingFrames = import.meta.glob('../../assets/character/Hero_Leon/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const heroLeonAttackFrames = import.meta.glob('../../assets/character/Hero_Leon/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const heroLeonAxeIdleSprites = import.meta.glob('../../assets/character/Hero_Leon/Hero_Axe_leon/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const heroLeonAxeAttackFrames = import.meta.glob('../../assets/character/Hero_Leon/Hero_Axe_leon/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const serraIdleSprites = import.meta.glob('../../assets/character/Serra/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const serraWalkingFrames = import.meta.glob('../../assets/character/Serra/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const serraAttackFrames = import.meta.glob('../../assets/character/Serra/animations/The_character_holds_a_tome_in_the_left_hand_while/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const sageSerraIdleSprites = import.meta.glob('../../assets/character/Sage_Serra/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const sageSerraWalkingFrames = import.meta.glob('../../assets/character/Sage_Serra/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const sageSerraAttackFrames = import.meta.glob('../../assets/character/Sage_Serra/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const sageSerraStaffFrames = import.meta.glob('../../assets/character/Sage_Serra/animations/Staff/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 
 const bishopSeymourIdleSprites = import.meta.glob('../../assets/character/Bishop_Seymour/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const bishopSeymourWalkingFrames = import.meta.glob('../../assets/character/Bishop_Seymour/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -155,6 +184,15 @@ const ravenAttackFrames = import.meta.glob('../../assets/character/Raven/animati
 const crowmanIdleSprites = import.meta.glob('../../assets/character/Crowman/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const crowmanWalkingFrames = import.meta.glob('../../assets/character/Crowman/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const crowmanAttackFrames = import.meta.glob('../../assets/character/Crowman/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const bellEnvoyIdleSprites = import.meta.glob('../../assets/character/Bell_Envoy/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const bellEnvoyWalkingFrames = import.meta.glob('../../assets/character/Bell_Envoy/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const bellEnvoyAttackFrames = import.meta.glob('../../assets/character/Bell_Envoy/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const shoreIdleSprites = import.meta.glob('../../assets/character/Shore_*/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const shoreWalkingFrames = import.meta.glob('../../assets/character/Shore_*/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const shoreAttackFrames = import.meta.glob('../../assets/character/Shore_*/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const shoreFolder = (files, folder) => Object.fromEntries(
+  Object.entries(files).filter(([path]) => path.includes(`/character/${folder}/`)),
+);
 const bloodBeastWalkingFrames = import.meta.glob('../../assets/character/Blood_Beast/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const bloodBeastAttackFrames = import.meta.glob('../../assets/character/Blood_Beast/animations/The_beast_pulls_both_giant_arms_back_to_its_flanks/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const genericKnightIdleSprites = import.meta.glob('../../assets/character/Generic_Knight/rotations/*.png', { eager: true, query: '?url', import: 'default' });
@@ -166,8 +204,9 @@ const genericCavalierAttackFrames = import.meta.glob('../../assets/character/Gen
 const linusIdleSprites = import.meta.glob('../../assets/character/Linus/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const bloodswornIdleSprites = import.meta.glob('../../assets/covenant/bloodsworn-linus/map/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const bloodswornWalkingFrames = import.meta.glob('../../assets/covenant/bloodsworn-linus/map/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const veilstalkerIdleSprites = import.meta.glob('../../assets/covenant/veilstalker-stark/map/rotations/*.png', { eager: true, query: '?url', import: 'default' });
-const veilstalkerWalkingFrames = import.meta.glob('../../assets/covenant/veilstalker-stark/map/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const veilstalkerIdleSprites = import.meta.glob('../../assets/character/Veilstalker_Stark/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const veilstalkerWalkingFrames = import.meta.glob('../../assets/character/Veilstalker_Stark/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const veilstalkerAttackFrames = import.meta.glob('../../assets/character/Veilstalker_Stark/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusWalkingFrames = import.meta.glob('../../assets/character/Linus/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusAttackFrames = import.meta.glob('../../assets/character/Linus/animations/The_rider_pulls_the_lance_back_towards_the_shoulde/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const linusSwordIdleSprites = import.meta.glob('../../assets/character/Linus/Linus_sword/rotations/*.png', { eager: true, query: '?url', import: 'default' });
@@ -187,17 +226,23 @@ const paladinLinusSwordAttackFrames = import.meta.glob('../../assets/character/P
 const starkIdleSprites = import.meta.glob('../../assets/character/Stark/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const heartrootIdleSprites = import.meta.glob('../../assets/character/Heartroot/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const starkWalkingFrames = import.meta.glob('../../assets/character/Stark/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const starkAttackFrames = import.meta.glob('../../assets/character/Stark/animations/The_character_pulls_back_the_bowstring_with_the_ri/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const starkAttackFrames = import.meta.glob('../../assets/character/Stark/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const sniperStarkIdleSprites = import.meta.glob('../../assets/character/Sniper_Stark/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const sniperStarkWalkingFrames = import.meta.glob('../../assets/character/Sniper_Stark/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const sniperStarkAttackFrames = import.meta.glob('../../assets/character/Sniper_Stark/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const rictorIdleSprites = import.meta.glob('../../assets/character/Rictor_Templar/rotations/*.png', { eager: true, query: '?url', import: 'default' });
-const rictorWalkingFrames = import.meta.glob('../../assets/character/Rictor_Templar/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const rictorAttackFrames = import.meta.glob('../../assets/character/Rictor_Templar/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const templarRictorIdleSprites = import.meta.glob('../../assets/character/Rictor_Mounted_Templar/rotations/*.png', { eager: true, query: '?url', import: 'default' });
-const templarRictorWalkingFrames = import.meta.glob('../../assets/character/Rictor_Mounted_Templar/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const templarRictorAttackFrames = import.meta.glob('../../assets/character/Rictor_Mounted_Templar/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
-const templarRictorHolyFrames = import.meta.glob('../../assets/character/Rictor_Mounted_Templar/animations/Holy_Attack/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const rictorIdleSprites = import.meta.glob('../../assets/character/Rictor/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const rictorWalkingFrames = import.meta.glob('../../assets/character/Rictor/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const rictorAttackFrames = import.meta.glob('../../assets/character/Rictor/animations/The_right_hand_draws_the_lance_back_to_the_hip_wit/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const templarRictorIdleSprites = import.meta.glob('../../assets/character/Templar_Rictor/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const templarRictorWalkingFrames = import.meta.glob('../../assets/character/Templar_Rictor/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const templarRictorAttackFrames = import.meta.glob('../../assets/character/Templar_Rictor/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const templarRictorHolyFrames = import.meta.glob('../../assets/character/Templar_Rictor/animations/Holy_Attack/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const oathboundRictorIdleSprites = import.meta.glob('../../assets/character/Outhbound_Rictor/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const oathboundRictorWalkingFrames = import.meta.glob('../../assets/character/Outhbound_Rictor/animations/Walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const oathboundRictorAttackFrames = import.meta.glob('../../assets/character/Outhbound_Rictor/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const oathboundRictorDarkFrames = import.meta.glob('../../assets/character/Outhbound_Rictor/animations/Dark_Attack/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
+const oathboundRictorSwordIdleSprites = import.meta.glob('../../assets/character/Outhbound_Rictor/Oathbound_Rictor_Sword/rotations/*.png', { eager: true, query: '?url', import: 'default' });
+const oathboundRictorSwordFrames = import.meta.glob('../../assets/character/Outhbound_Rictor/Oathbound_Rictor_Sword/animations/Attacking_with_sword/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const lenaIdleSprites = import.meta.glob('../../assets/character/Lena/rotations/*.png', { eager: true, query: '?url', import: 'default' });
 const lenaWalkingFrames = import.meta.glob('../../assets/character/Lena/animations/walking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
 const lenaAttackFrames = import.meta.glob('../../assets/character/Lena/animations/Attacking/*/frame_*.png', { eager: true, query: '?url', import: 'default' });
@@ -349,82 +394,34 @@ async function loadCharacterWithAllAnimations(characterName, idleGlob, walkingGl
     attacking: {},
   };
   
-  // Load idle sprites
-  for (const [path, url] of Object.entries(idleGlob)) {
-    const direction = getDirectionFromPath(path);
-    if (!direction) continue;
-    
-    try {
-      const texture = await new Promise((resolve, reject) => {
-        loader.load(url, resolve, undefined, reject);
-      });
-      texture.magFilter = THREE.NearestFilter;
-      texture.minFilter = THREE.NearestFilter;
-      texture.generateMipmaps = false;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      if (!allTextures.idle[direction]) allTextures.idle[direction] = [];
-      allTextures.idle[direction].push(texture);
-    } catch (error) {
-      console.warn(`Could not load ${characterName} idle sprite for ${direction}: ${error.message}`);
-    }
-  }
-  
-  // Load walking frames
-  const walkingEntries = [];
-  for (const [path, url] of Object.entries(walkingGlob)) {
-    const direction = getDirectionFromPath(path);
-    const frameIndex = getFrameIndexFromPath(path);
-    if (!direction || frameIndex === null) continue;
-    
-    try {
-      const texture = await new Promise((resolve, reject) => {
-        loader.load(url, resolve, undefined, reject);
-      });
-      texture.magFilter = THREE.NearestFilter;
-      texture.minFilter = THREE.NearestFilter;
-      texture.generateMipmaps = false;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      walkingEntries.push({ direction, frameIndex, texture });
-    } catch (error) {
-      console.warn(`Could not load ${characterName} walking frame for ${direction}: ${error.message}`);
-    }
-  }
-  
-  // Organize walking frames by direction
-  for (const direction of animationsConfig.animationDirections) {
-    allTextures.walking[direction] = walkingEntries
-      .filter(e => e.direction === direction)
-      .sort((a, b) => a.frameIndex - b.frameIndex)
-      .map(e => e.texture);
-  }
-  
-  // Load attacking frames
-  const attackingEntries = [];
-  for (const [path, url] of Object.entries(attackingGlob)) {
-    const direction = getDirectionFromPath(path);
-    const frameIndex = getFrameIndexFromPath(path);
-    if (!direction || frameIndex === null) continue;
-    
-    try {
-      const texture = await new Promise((resolve, reject) => {
-        loader.load(url, resolve, undefined, reject);
-      });
-      texture.magFilter = THREE.NearestFilter;
-      texture.minFilter = THREE.NearestFilter;
-      texture.generateMipmaps = false;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      attackingEntries.push({ direction, frameIndex, texture });
-    } catch (error) {
-      console.warn(`Could not load ${characterName} attacking frame for ${direction}: ${error.message}`);
-    }
-  }
-  
-  // Organize attacking frames by direction
-  for (const direction of animationsConfig.animationDirections) {
-    allTextures.attacking[direction] = attackingEntries
-      .filter(e => e.direction === direction)
-      .sort((a, b) => a.frameIndex - b.frameIndex)
-      .map(e => e.texture);
+  const frames = Object.entries({ idle: idleGlob, walking: walkingGlob, attacking: attackingGlob })
+    .flatMap(([kind, sources]) => Object.entries(sources).flatMap(([path, url]) => {
+      const direction = getDirectionFromPath(path);
+      const index = kind === 'idle' ? 0 : getFrameIndexFromPath(path);
+      return direction && index !== null ? [{ kind, direction, index, url, path }] : [];
+    }))
+    .sort((a, b) => a.index - b.index);
+
+  // Bound concurrent image requests while retaining authored frame order.
+  const batchSize = 12;
+  for (let start = 0; start < frames.length; start += batchSize) {
+    const batch = frames.slice(start, start + batchSize);
+    const textures = await Promise.all(batch.map(async ({ path, url }) => {
+      try {
+        const texture = await loader.loadAsync(url);
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.NearestFilter;
+        texture.generateMipmaps = false;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        return texture;
+      } catch (error) {
+        console.warn(`Could not load ${characterName} sprite: ${path}`, error);
+        return null;
+      }
+    }));
+    batch.forEach(({ kind, direction }, i) => {
+      if (textures[i]) (allTextures[kind][direction] ??= []).push(textures[i]);
+    });
   }
   
   // Now normalize all textures (idle + walking + attacking) per direction
@@ -486,41 +483,100 @@ async function loadCharacterWithAllAnimations(characterName, idleGlob, walkingGl
   };
 }
 
-export async function loadCharacterSprites() {
+export async function loadCharacterSprites(onProgress = () => {}) {
+  // Keep idle poses ready for saves, previews and reinforcements. Load motion only for fielded sets.
+  const motion = new Map();
+  const motionGroups = new Map();
+  const idleJobs = [];
+  const motionJobs = [];
+  let activeJobs = 0;
+  function drainMotion() {
+    while (activeJobs < 2 && motionJobs.length) {
+      activeJobs++;
+      const { group, resolve, reject } = motionJobs.shift();
+      void group.load().then(resolve, reject).finally(() => {
+        activeJobs--;
+        drainMotion();
+      });
+    }
+  }
+  function load(name, idle, walking, attack, reference) {
+    const data = { idle: {}, walking: {}, attacking: {} };
+    async function populate(walkingFrames, attackFrames, updateIdle) {
+      const next = await loadCharacterWithAllAnimations(name, idle, walkingFrames, attackFrames, reference);
+      if (updateIdle) Object.assign(data.idle, next.idle);
+      Object.assign(data.walking, next.walking);
+      Object.assign(data.attacking, next.attacking);
+      if (name === 'Generic_Priest') data.attacking['north-west'] = data.attacking.north;
+    }
+    idleJobs.push(() => populate({}, {}, true));
+    if (Object.keys(walking).length || Object.keys(attack).length)
+      motion.set(data.idle, { load: () => populate(walking, attack, true) });
+    return data;
+  }
   const result = {
     animationFrameDuration: animationsConfig.animationFrameDuration,
+    loadMotion(set) {
+      const groups = motionGroups.get(set) ?? [];
+      return Promise.all(groups.map((group) => {
+        group.pending ??= new Promise((resolve, reject) => {
+          motionJobs.push({ group, resolve, reject });
+          drainMotion();
+        }).catch((error) => {
+          group.pending = undefined;
+          throw new Error(`Could not load animations for ${set}.`, { cause: error });
+        });
+        return group.pending;
+      }));
+    },
   };
 
   // Load Maria with all animations normalized together
-  const mariaData = await loadCharacterWithAllAnimations('Maria', mariaIdleSprites, mariaWalkingFrames, mariaAttackFrames);
+  const mariaData = await load('Maria', mariaIdleSprites, mariaWalkingFrames, mariaAttackFrames);
   result.maria = mariaData.idle;
   result.mariaWalkingFrames = mariaData.walking;
   result.mariaAttackFrames = mariaData.attacking;
 
   // Load Bartz with all animations normalized together
-  const bartzData = await loadCharacterWithAllAnimations('Bartz', bartzIdleSprites, bartzWalkingFrames, bartzAttackFrames);
+  const bartzData = await load('Bartz', bartzIdleSprites, bartzWalkingFrames, bartzAttackFrames);
   result.bartz = bartzData.idle;
   result.bartzWalkingFrames = bartzData.walking;
   result.bartzAttackFrames = bartzData.attacking;
 
-  const cypherData = await loadCharacterWithAllAnimations('Cyrus', cypherIdleSprites, cypherWalkingFrames, cypherAttackFrames);
+  const cypherData = await load('Cyrus', cypherIdleSprites, cypherWalkingFrames, cypherAttackFrames);
   result.cypher = cypherData.idle;
   result.cypherWalkingFrames = cypherData.walking;
   result.cypherAttackFrames = cypherData.attacking;
 
-  const seymourData = await loadCharacterWithAllAnimations('Seymour', seymourIdleSprites, seymourWalkingFrames, seymourStaffFrames);
+  const seymourData = await load('Seymour', seymourIdleSprites, seymourWalkingFrames, seymourStaffFrames);
   result.seymour = seymourData.idle;
   result.seymourWalkingFrames = seymourData.walking;
   result.seymourStaffFrames = seymourData.attacking;
 
-  const bishopSeymourData = await loadCharacterWithAllAnimations('Bishop_Seymour', bishopSeymourIdleSprites, bishopSeymourWalkingFrames, bishopSeymourAttackFrames);
+  const bishopSeymourData = await load('Bishop_Seymour', bishopSeymourIdleSprites, bishopSeymourWalkingFrames, bishopSeymourAttackFrames);
   result.bishopSeymour = bishopSeymourData.idle;
   result.bishopSeymourWalkingFrames = bishopSeymourData.walking;
   result.bishopSeymourAttackFrames = bishopSeymourData.attacking;
-  const bishopSeymourStaffData = await loadCharacterWithAllAnimations('Bishop_Seymour_Staff', bishopSeymourIdleSprites, bishopSeymourWalkingFrames, bishopSeymourStaffFrames);
+  const bishopSeymourStaffData = await load('Bishop_Seymour_Staff', bishopSeymourIdleSprites, bishopSeymourWalkingFrames, bishopSeymourStaffFrames);
   result.bishopSeymourStaffFrames = bishopSeymourStaffData.attacking;
 
+  const shoreSets = [
+    ['shoreUnmooredDuelist', 'Shore_Unmoored_Duelist'],
+    ['shoreTideboundSentinel', 'Shore_Tidebound_Sentinel'],
+    ['shoreKeelbreaker', 'Shore_Keelbreaker'],
+    ['shoreHorizonWatcher', 'Shore_Horizon_Watcher'],
+    ['shoreStormCustodian', 'Shore_Storm_Custodian'],
+    ['shoreHorizonKeeper', 'Shore_Horizon_Keeper'],
+    ['shoreCrowman', 'Shore_Crowman'],
+  ].map(([key, folder]) => [key, folder, shoreFolder(shoreIdleSprites, folder),
+    shoreFolder(shoreWalkingFrames, folder), shoreFolder(shoreAttackFrames, folder)]);
   for (const [key, folder, idle, walking, attack] of [
+    ...shoreSets,
+    ['leon', 'Leon', leonIdleSprites, leonWalkingFrames, leonAttackFrames],
+    ['heroLeon', 'Hero_Leon', heroLeonIdleSprites, heroLeonWalkingFrames, heroLeonAttackFrames],
+    ['heroLeonAxe', 'Hero_Leon_Axe', heroLeonAxeIdleSprites, heroLeonWalkingFrames, heroLeonAxeAttackFrames],
+    ['serra', 'Serra', serraIdleSprites, serraWalkingFrames, serraAttackFrames],
+    ['sageSerra', 'Sage_Serra', sageSerraIdleSprites, sageSerraWalkingFrames, sageSerraAttackFrames],
     ['genericWolfman', 'Generic_Wolfman', genericWolfmanIdleSprites, genericWolfmanWalkingFrames, genericWolfmanAttackFrames],
     ['genericArcher', 'Generic_Archer', genericArcherIdleSprites, genericArcherWalkingFrames, genericArcherAttackFrames],
     ['genericMage', 'Generic_Mage', genericMageIdleSprites, genericMageWalkingFrames, genericMageAttackFrames],
@@ -535,11 +591,12 @@ export async function loadCharacterSprites() {
     ['bloodBeast', 'Blood_Beast', bloodBeastIdleSprites, bloodBeastWalkingFrames, bloodBeastAttackFrames],
     ['raven', 'Raven', ravenIdleSprites, ravenWalkingFrames, ravenAttackFrames],
     ['crowman', 'Crowman', crowmanIdleSprites, crowmanWalkingFrames, crowmanAttackFrames],
+    ['bellEnvoy', 'Bell_Envoy', bellEnvoyIdleSprites, bellEnvoyWalkingFrames, bellEnvoyAttackFrames],
     ['genericKnight', 'Generic_Knight', genericKnightIdleSprites, genericKnightWalkingFrames, genericKnightAttackFrames],
     ['genericCavalier', 'Generic_cavalier', genericCavalierIdleSprites, genericCavalierWalkingFrames, genericCavalierAttackFrames],
     ['linus', 'Linus', linusIdleSprites, linusWalkingFrames, linusAttackFrames],
     ['bloodswornLinus', 'Bloodsworn Linus', bloodswornIdleSprites, bloodswornWalkingFrames, {}],
-    ['veilstalkerStark', 'Veilstalker Stark', veilstalkerIdleSprites, veilstalkerWalkingFrames, {}],
+    ['veilstalkerStark', 'Veilstalker Stark', veilstalkerIdleSprites, veilstalkerWalkingFrames, veilstalkerAttackFrames],
     ['linusSword', 'Linus Sword', linusSwordIdleSprites, linusWalkingFrames, linusSwordAttackFrames],
     ['villager', 'Villager', villagerIdleSprites, villagerWalkingFrames, {}],
     ['genericPaladin', 'Generic Paladin', genericPaladinIdleSprites, genericPaladinWalkingFrames, genericPaladinAttackFrames],
@@ -552,6 +609,9 @@ export async function loadCharacterSprites() {
     ['rictor', 'Rictor', rictorIdleSprites, rictorWalkingFrames, rictorAttackFrames],
     ['templarRictor', 'Templar_Rictor', templarRictorIdleSprites, templarRictorWalkingFrames, templarRictorAttackFrames],
     ['templarRictorHoly', 'Templar_Rictor_Holy', templarRictorIdleSprites, templarRictorWalkingFrames, templarRictorHolyFrames],
+    ['oathboundRictor', 'Oathbound_Rictor', oathboundRictorIdleSprites, oathboundRictorWalkingFrames, oathboundRictorAttackFrames],
+    ['oathboundRictorDark', 'Oathbound_Rictor_Dark', oathboundRictorIdleSprites, oathboundRictorWalkingFrames, oathboundRictorDarkFrames],
+    ['oathboundRictorSword', 'Oathbound_Rictor_Sword', oathboundRictorSwordIdleSprites, oathboundRictorWalkingFrames, oathboundRictorSwordFrames],
     ['lena', 'Lena', lenaIdleSprites, lenaWalkingFrames, lenaAttackFrames],
     ['assassinLena', 'Assassin_Lena', assassinLenaIdleSprites, assassinLenaWalkingFrames, assassinLenaAttackFrames],
     ['assassinLenaBow', 'Assassin_Lena_Bow', assassinLenaIdleSprites, assassinLenaWalkingFrames, assassinLenaBowFrames],
@@ -576,7 +636,7 @@ export async function loadCharacterSprites() {
     ['eveline', 'Eveline', evelineIdleSprites, evelineWalkingFrames, evelineStaffFrames],
     ['valkyrieEveline', 'Valkyrie Eveline', valkyrieEvelineIdleSprites, valkyrieEvelineWalkingFrames, valkyrieEvelineStaffFrames],
   ]) {
-    const data = await loadCharacterWithAllAnimations(folder, idle, walking, attack, key === 'lena' ? mariaData.idle : undefined);
+    const data = await load(folder, idle, walking, attack, key === 'lena' ? mariaData.idle : undefined);
     result[key] = data.idle;
     result[`${key}WalkingFrames`] = data.walking;
     result[`${key}AttackFrames`] = data.attacking;
@@ -585,51 +645,51 @@ export async function loadCharacterSprites() {
       result[`${key}StaffFrames`] = data.attacking;
     }
   }
-  const seatedVael = await loadCharacterWithAllAnimations('High_Cantor_Vael_Seated', vaelSeatedSprite, {}, {});
-  result.highCantorVaelSeated = Object.fromEntries(animationsConfig.animationDirections
-    .map((direction) => [direction, seatedVael.idle.south]));
-  result.highCantorVaelStaffFrames = result.highCantorVaelAttackFrames;
-  // The supplied priest has no northwest cast; north is its closest available pose.
-  result.genericPriestStaffFrames['north-west'] = result.genericPriestStaffFrames.north;
+  const sageSerraStaffData = await load('Sage_Serra_Staff',
+    sageSerraIdleSprites, sageSerraWalkingFrames, sageSerraStaffFrames);
+  result.sageSerraStaffFrames = sageSerraStaffData.attacking;
 
-  const darkSageStaffData = await loadCharacterWithAllAnimations('Dark_Sage_Corvis_Staff',
+  const seatedVael = await load('High_Cantor_Vael_Seated', vaelSeatedSprite, {}, {});
+  result.highCantorVaelStaffFrames = result.highCantorVaelAttackFrames;
+
+  const darkSageStaffData = await load('Dark_Sage_Corvis_Staff',
     darkSageCorvisStaffIdleSprites, darkSageCorvisWalkingFrames, darkSageCorvisStaffFrames);
   result.darkSageCorvisStaff = darkSageStaffData.idle;
   result.darkSageCorvisStaffWalkingFrames = darkSageStaffData.walking;
   result.darkSageCorvisStaffStaffFrames = darkSageStaffData.attacking;
 
   // Load Raider with all animations normalized together
-  const raiderData = await loadCharacterWithAllAnimations('Raider', raiderIdleSprites, raiderWalkingFrames, raiderAttackFrames);
+  const raiderData = await load('Raider', raiderIdleSprites, raiderWalkingFrames, raiderAttackFrames);
   result.raider = raiderData.idle;
   result.raiderWalkingFrames = raiderData.walking;
   result.raiderAttackFrames = raiderData.attacking;
 
-  const merfolkData = await loadCharacterWithAllAnimations('Merfolk', merfolkIdleSprites, merfolkWalkingFrames, merfolkAttackFrames);
+  const merfolkData = await load('Merfolk', merfolkIdleSprites, merfolkWalkingFrames, merfolkAttackFrames);
   result.merfolk = merfolkData.idle;
   result.merfolkWalkingFrames = merfolkData.walking;
   result.merfolkAttackFrames = merfolkData.attacking;
-  const wolfData = await loadCharacterWithAllAnimations('Ferral_Wolf', wolfIdleSprites, wolfWalkingFrames, wolfAttackFrames);
+  const wolfData = await load('Ferral_Wolf', wolfIdleSprites, wolfWalkingFrames, wolfAttackFrames);
   result.feralWolf = wolfData.idle;
   result.feralWolfWalkingFrames = wolfData.walking;
   result.feralWolfAttackFrames = wolfData.attacking;
-  const liamData = await loadCharacterWithAllAnimations('Liam', liamIdleSprites, liamWalkingFrames, liamAttackFrames);
+  const liamData = await load('Liam', liamIdleSprites, liamWalkingFrames, liamAttackFrames);
   result.liam = liamData.idle;
   result.liamWalkingFrames = liamData.walking;
   result.liamAttackFrames = liamData.attacking;
 
-  const killianData = await loadCharacterWithAllAnimations('Killian', killianIdleSprites, killianWalkingFrames, killianAttackFrames);
+  const killianData = await load('Killian', killianIdleSprites, killianWalkingFrames, killianAttackFrames);
   result.killian = killianData.idle;
   result.killianWalkingFrames = killianData.walking;
   result.killianAttackFrames = killianData.attacking;
 
-  const ravagerMariaData = await loadCharacterWithAllAnimations('Ravager_Maria', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaAttackFrames);
+  const ravagerMariaData = await load('Ravager_Maria', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaAttackFrames);
   result.ravagerMaria = ravagerMariaData.idle;
   result.ravagerMariaWalkingFrames = ravagerMariaData.walking;
   result.ravagerMariaAttackFrames = ravagerMariaData.attacking;
-  const ravagerMariaFirearmData = await loadCharacterWithAllAnimations('Ravager_Maria_Firearm', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaFirearmFrames);
+  const ravagerMariaFirearmData = await load('Ravager_Maria_Firearm', ravagerMariaIdleSprites, ravagerMariaWalkingFrames, ravagerMariaFirearmFrames);
   result.ravagerMariaFirearmFrames = ravagerMariaFirearmData.attacking;
 
-  const berserkerBartzData = await loadCharacterWithAllAnimations('Berserker_Bartz', berserkerBartzIdleSprites, berserkerBartzWalkingFrames, berserkerBartzAttackFrames);
+  const berserkerBartzData = await load('Berserker_Bartz', berserkerBartzIdleSprites, berserkerBartzWalkingFrames, berserkerBartzAttackFrames);
   result.berserkerBartz = berserkerBartzData.idle;
   result.berserkerBartzWalkingFrames = berserkerBartzData.walking;
   result.berserkerBartzAttackFrames = berserkerBartzData.attacking;
@@ -640,5 +700,29 @@ export async function loadCharacterSprites() {
   result.sageCypherAttackFrames = cypherData.attacking;
   result.sageCypherStaffFrames = cypherData.attacking;
 
+  const extra = {
+    bishopSeymour: bishopSeymourStaffData,
+    sageSerra: sageSerraStaffData,
+    ravagerMaria: ravagerMariaFirearmData,
+  };
+  for (const [key, idle] of Object.entries(result)) {
+    if (!motion.has(idle)) continue;
+    motionGroups.set(key, [motion.get(idle), motion.get(extra[key]?.idle)].filter(Boolean));
+  }
+  onProgress(0, idleJobs.length);
+  // Lena's padding uses Maria's idle poses as a reference.
+  await idleJobs[0]();
+  let completed = 1;
+  let nextJob = 1;
+  onProgress(completed, idleJobs.length);
+  async function loadIdleQueue() {
+    while (nextJob < idleJobs.length) {
+      await idleJobs[nextJob++]();
+      onProgress(++completed, idleJobs.length);
+    }
+  }
+  await Promise.all(Array.from({ length: 3 }, loadIdleQueue));
+  result.highCantorVaelSeated = Object.fromEntries(animationsConfig.animationDirections
+    .map((direction) => [direction, seatedVael.idle.south]));
   return result;
 }

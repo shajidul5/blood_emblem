@@ -1,0 +1,418 @@
+{
+  "version": 1,
+  "generator": "PixelLab",
+  "styleAnchor": "assets/character/Maria/Idle/rotations/south.png",
+  "styleReferences": [
+    "Maria",
+    "Bartz"
+  ],
+  "nativeRotationSize": 48,
+  "resampling": false,
+  "characters": {
+    "stark": {
+      "source": "user-supplied",
+      "root": "assets/character/Stark",
+      "appearance": "Tousled navy hair, a crimson scarf, silver-gray guards over brown leather, tan wraps and a wooden recurve bow.",
+      "battleReference": "assets/battle/stark-archer-idle.png",
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 8,
+          "nativeSize": 64
+        },
+        "Bow Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "nativeSize": 64
+        }
+      }
+    },
+    "sniper": {
+      "source": "user-supplied",
+      "root": "assets/character/Sniper_Stark",
+      "appearance": "Bareheaded Stark in a long ivory-white split-tailed hunter coat, dark trousers and red scarf.",
+      "battleReference": "assets/battle/stark-sniper-idle.png",
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 8,
+          "nativeSize": 68
+        },
+        "Bow Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "nativeSize": 68
+        }
+      }
+    },
+    "veilstalker": {
+      "source": "user-supplied",
+      "root": "assets/character/Veilstalker_Stark",
+      "appearance": "Charcoal cloth hood, black leather, deep indigo cloth, a dark crimson mantle and ragged scarf, and a dark recurve bow.",
+      "battleReference": "assets/battle/stark-veilstalker-night-idle.png",
+      "animations": {
+        "Walking": {
+          "directory": "walking",
+          "frames": 8,
+          "nativeSize": 64
+        },
+        "Bow Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "nativeSize": 64
+        }
+      }
+    },
+    "seymour": {
+      "characterId": "ba7fb017-d58a-4e3e-93a9-4ab48d3aa9ea",
+      "root": "assets/character/Seymour/Idle",
+      "appearance": "Clean-shaven young church investigator with long dark brown hair, charcoal travel cassock, ivory stole and wooden healing staff.",
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 6,
+          "group": "5d927180-32b3-4872-a6bd-14c1626446ab"
+        },
+        "Staff": {
+          "directory": "Staff",
+          "frames": 9,
+          "group": "1e71b439-3c0e-4722-89de-3bb9ef8c23d5"
+        }
+      },
+      "sourceImageJob": "234bade0-ec0a-42f1-afbf-19becf4c6d4a",
+      "styleAnchor": "assets/character/Bartz/Idle/rotations/south.png"
+    },
+    "bishop": {
+      "characterId": "5dc55a96-b2ac-4c6b-9e93-bc9572a07d07",
+      "root": "assets/character/Bishop_Seymour",
+      "appearance": "The same youthful long-brown-haired Seymour with ornate ivory and gold clerical trim, golden crozier and tome.",
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 6,
+          "group": "f03a8f19-dc81-4add-a740-268a84e709a1"
+        },
+        "Healing": {
+          "directory": "Healing",
+          "frames": 9,
+          "group": "42ece98d-0f26-4316-aa53-8346061d741f"
+        },
+        "Light Attack": {
+          "directory": "The_figure_lifts_the_heavy_tome_with_the_left_hand",
+          "frames": 9,
+          "group": "5556964f-0f10-4bfb-8b03-4128a0f8f02c"
+        }
+      },
+      "sourceImageJob": "e4145c62-94bc-4afb-872b-9a96fe4009f1",
+      "styleAnchor": "assets/character/Bartz/Idle/rotations/south.png"
+    },
+    "lena": {
+      "characterId": "dcbdffe2-6fe3-4b2a-af94-92ab1b35a8f2",
+      "root": "assets/character/Lena",
+      "nativeRotationSize": 48,
+      "sourceImageJob": "f5111687-4c4b-443e-b567-2959c7853db3",
+      "appearance": "Burgundy-hooded young thief with auburn hair, charcoal/navy leather, red scarf, pouches and slender silver sword.",
+      "animations": {
+        "Walking": {
+          "directory": "walking",
+          "frames": 6,
+          "group": "14149598-b24b-4b57-8a27-50d60190cecf",
+          "nativeSize": {
+            "south": 48,
+            "south-east": 48,
+            "east": 48,
+            "north-east": 48,
+            "north": 48,
+            "north-west": 48,
+            "west": 48,
+            "south-west": 48
+          }
+        },
+        "Sword Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "group": "8d8767ab-8ae5-42cd-adbd-a6c42b5640b9",
+          "nativeSize": {
+            "south": 68,
+            "south-east": 68,
+            "east": 68,
+            "north-east": 68,
+            "north": 68,
+            "north-west": 68,
+            "west": 68,
+            "south-west": 68
+          }
+        }
+      },
+      "styleAnchor": "assets/character/Maria/Idle/rotations/south.png"
+    },
+    "assassin": {
+      "characterId": "925a93eb-75ab-4e78-9945-42c4a69ae608",
+      "root": "assets/character/Assassin_Lena",
+      "nativeRotationSize": 48,
+      "sourceImageJob": "9e88a4de-8976-4621-bff6-30f4454eaa57",
+      "appearance": "The same Lena in a charcoal hood and layered dark assassin leathers with silver edges, burgundy scarf and sword/bow equipment.",
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 6,
+          "group": "a2d89a34-d3b4-4b6d-aeba-8a1b60a7f896",
+          "nativeSize": {
+            "south": 48,
+            "south-east": 48,
+            "east": 48,
+            "north-east": 48,
+            "north": 48,
+            "north-west": 48,
+            "west": 48,
+            "south-west": 48
+          }
+        },
+        "Sword Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "group": "fc1c5efe-68bd-4770-94bf-2bfabb51517a",
+          "nativeSize": {
+            "south": 68,
+            "south-east": 68,
+            "east": 68,
+            "north-east": 68,
+            "north": 68,
+            "north-west": 68,
+            "west": 68,
+            "south-west": 68
+          }
+        },
+        "Bow Attack": {
+          "directory": "The_character_grasps_the_bow_with_the_left_hand_wh",
+          "frames": 9,
+          "group": "67340e02-e9a5-4eda-aa50-03d569129fa4",
+          "nativeSize": {
+            "south": 68,
+            "south-east": 68,
+            "east": 68,
+            "north-east": 68,
+            "north": 68,
+            "north-west": 68,
+            "west": 68,
+            "south-west": 68
+          }
+        }
+      },
+      "styleAnchor": "assets/character/Maria/Idle/rotations/south.png"
+    },
+    "rictor": {
+      "root": "assets/character/Rictor",
+      "source": "user-supplied",
+      "nativeRotationSize": 48,
+      "animations": {
+        "Walking": {
+          "directory": "walking",
+          "frames": 8,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        },
+        "Spear Attack": {
+          "directory": "The_right_hand_draws_the_lance_back_to_the_hip_wit",
+          "frames": 9,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        }
+      }
+    },
+    "templar": {
+      "root": "assets/character/Templar_Rictor",
+      "source": "user-supplied",
+      "nativeRotationSize": 48,
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 8,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        },
+        "Spear Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        },
+        "Holy Attack": {
+          "directory": "Holy_Attack",
+          "frames": 9,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        }
+      }
+    },
+    "oathbound": {
+      "root": "assets/character/Outhbound_Rictor",
+      "source": "user-supplied",
+      "nativeRotationSize": 48,
+      "animations": {
+        "Walking": {
+          "directory": "Walking",
+          "frames": 8,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        },
+        "Spear Attack": {
+          "directory": "Attacking",
+          "frames": 9,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        },
+        "Dark Attack": {
+          "directory": "Dark_Attack",
+          "frames": 9,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        },
+        "Sword Attack": {
+          "directory": "../Oathbound_Rictor_Sword/animations/Attacking_with_sword",
+          "frames": 9,
+          "nativeSize": {
+            "east": 68,
+            "north-east": 68,
+            "north-west": 68,
+            "north": 68,
+            "south-east": 68,
+            "south-west": 68,
+            "south": 68,
+            "west": 68
+          }
+        }
+      }
+    }
+  },
+  "preservedBattleHashes": {
+    "stark-archer-attack.png": "056befe12c03e26b8a907a820c3e69ec639b4d38805899ca859ce30908cbde52",
+    "stark-archer-critical.png": "665276285a4ab9fd1e614e48b222438b974b6744433f5d137582a00aaff84865",
+    "stark-archer-idle.png": "69b51bc9f0c62ddb3018db9322074dcc36dc22dcabb56bcc59dc558b85a32073",
+    "stark-sniper-idle.png": "50d4a3698c5dcc5da0c3446ad7c49318985fff792d306657b773713312f35daf",
+    "stark-sniper-idle-loop.png": "2536b29592a84ca6d7c9a80dbd4c78881d42bd217d0cf9fbb904e3ee29cd94e6",
+    "stark-sniper-attack.png": "6ab87e3ff627cb1f3b45437a759aa45f60ab2f1c7cb5e2c3a54aaba9646d8c09",
+    "stark-sniper-critical.png": "edf8ddb05bae6a01de78399629ac507d65c3788627a21d01537ce7f89e323f49",
+    "../covenant/veilstalker-stark/battle/idle.png": "1dd27b05af1c257daa0153554f74f9148aff7b9078ef396fd11ca5eeea0318cf",
+    "../covenant/veilstalker-stark/battle/idle-loop.png": "9f05b2b0f048f5a5ed6e2889cd6fe3013b39485b3b0632ba494e40f2f3af88fe",
+    "../covenant/veilstalker-stark/battle/attack.png": "655783f0d3c4e20c002edc761737a9299a90930687a693438d5a60e171654d7a",
+    "../covenant/veilstalker-stark/battle/critical.png": "1445dca654c939efda6f9c3727decf22dbc42a243406e5131b5dd9f6545507d0",
+    "seymour-priest-idle.png": "0bf25b24fae5910529c377a4ecf0976b01daa69dfc4259c814e851a9d0fe4b6e",
+    "seymour-priest-staff-cast.png": "dc0bbd787803c2a00fc6fc54abbf856c1c2a840b517617874c3292de1d0511a6",
+    "seymour-bishop-idle.png": "45123b739641caa0cceda434d10b98ae7e8332e0400aa2c4fdce27bb01e89e57",
+    "seymour-bishop-attack.png": "5a5c49ca8ce5e6a53be2b91a86481998705d86eb463be561a44366fcd2288861",
+    "seymour-bishop-critical.png": "0b3536d493e420cb0d462eff960e9317df59adf29015944738ed022f7ecd370e",
+    "seymour-bishop-staff-cast.png": "9d1ff95b4b4c654fd6d7791d7f5088ec10074e823c144a2c426ca0f5bf716976",
+    "rictor-oathkeeper-idle.png": "fc2f910137061ba6bf1f102a1bf68154218f20c7d4816df2cdd231d438ab3be4",
+    "rictor-oathkeeper-idle-loop.png": "9da387e161b13f34c154158312fa8c10968e8205d46dae44a3df2a3afed0b429",
+    "rictor-oathkeeper-attack.png": "51f711ad3150e4e85160c806c86570bed4164a26786f71cfd9c4fde468112453",
+    "rictor-oathkeeper-critical.png": "ad6b108641e18ca3261c3128c5294a95befe2c07429955fe3a675306ee266994",
+    "rictor-oathkeeper-thrown-attack.png": "1400726c415da307499077452a8e802ce06e10e1df65a5727d1f91a5a8451790",
+    "rictor-oathkeeper-thrown-critical.png": "bfc400bf5be0492310cab674d085fc6a0eeac528fdce5b2bb6289a0f16ad4029",
+    "rictor-templar-lance-idle.png": "7b27353c53741d271eced14bebf8b3c634e2bb812814b07537356bb89081e1c0",
+    "rictor-templar-lance-idle-loop.png": "0dc072356fa18eb221432f51db279b234769971d109527d89e98fb779c6d8d7b",
+    "rictor-templar-lance-attack.png": "c6878a3e1370052ae98dc0fad7b77f184ec19235c8d907137b8b3458b2487b5d",
+    "rictor-templar-lance-critical.png": "cffe253a5e5e40852a54a1b433b3ff7f8678986b18e6e4ee6522a3e5a3f49966",
+    "rictor-templar-lance-thrown-attack.png": "9028908c61ff3c61d937cdd92fe63ed80dbdbfca2dfd7bb2bdc7adb0b9282ead",
+    "rictor-templar-lance-thrown-critical.png": "02869afeebf62d10333100f02cd53bfa15c4223357b7e7d51a746dbb6a30c066",
+    "rictor-templar-light-idle.png": "b20ec881d530f92e5ebbbecc6ad1f26846fbec4363260071c3f9f165c3413068",
+    "rictor-templar-light-idle-loop.png": "7c83ccddc52dbf258b45a383d095add78b9e519876d31bbeb19c8733af8626ae",
+    "rictor-templar-light-attack.png": "8e02a187927a17726e502c3aa908a9005b8f40483ede688d1245ec050429d168",
+    "rictor-templar-light-critical.png": "f9cb77f2a861df889e8045b11edfd088e77028f86f9ba71733da98d2b3934cce",
+    "lena-thief-idle.png": "b7bc8070f2ff4cb7eaab951874ee80bdaeea5b8cb12afc17214c32150481cf22",
+    "lena-thief-idle-loop.png": "8573c2b45d65afc4b00e8218909fb6de9f8f49c1620d67597fb6a7c9d8397ad2",
+    "lena-thief-attack.png": "066cf01511ff167f970a70bedfd237681ac6897ce8af46bd6d2677263893ea21",
+    "lena-thief-critical.png": "76cb2c97d8e9b6fb572b791cab5dec1fae05f10127b7b3fe4da56abc547cc751",
+    "lena-assassin-sword-idle.png": "519bcd4ce54ed450ae514cd6a7626f6e2c4194a4b80b6ca5e8c627246e7ce525",
+    "lena-assassin-sword-idle-loop.png": "9ecee7b3f2ae71bb9dc1dfb6e2fdc6e3da42597e555486dc8de71e8ae52448bf",
+    "lena-assassin-sword-attack.png": "f5f39756d1913a9488cd63b16f81f05244d83139ef12397fd4fbab81315bff53",
+    "lena-assassin-sword-critical.png": "d3f588c4af4342b5a710dcb4d8007fef29e6f93b9b9f05bb24bba45e5c582567",
+    "lena-assassin-bow-idle.png": "55390563dbc3da57f74c6d9d5d35ca155ae6ac65ddc83cabd4499adca60bff10",
+    "lena-assassin-bow-idle-loop.png": "c32a35e72699296608f3993527c2d58f5c2fa9a933a979c7c171f888df2210a2",
+    "lena-assassin-bow-attack.png": "798272470c0e14b728cc18b686beff5962d8c36d29df1a5edf118b4ffc0e290b",
+    "lena-assassin-bow-critical.png": "978899bda07298df032646654fd6838e2cebec6f1d08802190c04a4817091bf9"
+  },
+  "styleMatch": "Native 48px infantry and 64px mounted rotations, detailed single-pixel material shading and selective outlines matched directly to Maria and Bartz; no resampling.",
+  "preservedReferenceHashes": {
+    "assets/character/Maria/Idle/rotations/south.png": "0f6b4e81091b9f8ba985c6d14c20e981c3b08d6623ab605ef025ca3d8ab27d34",
+    "assets/character/Maria/Idle/rotations/south-east.png": "a98e6ca73411e4a45c237cdbed2bbc4aac45ab7eaf5055d71ab6d8cde8cf58bc",
+    "assets/character/Maria/Idle/rotations/east.png": "92500b017d45e7335774b6cb4d64f7ab49b7b7c01520663c8d9c409e4d22f600",
+    "assets/character/Maria/Idle/rotations/north-east.png": "82eaf1105476b38e292977cc0f648f5a26e7a1cc252eb5cb9b67c539a4a19c89",
+    "assets/character/Maria/Idle/rotations/north.png": "07760005f391c4b246f94bc1b75f7a334d27c51bb44cd2a3523c134b62e49b84",
+    "assets/character/Maria/Idle/rotations/north-west.png": "b704217b142f4001a0917696c5a594c3138e828f44d3173bc92db01df3f46c59",
+    "assets/character/Maria/Idle/rotations/west.png": "24cf247ea0206469bd3cb2d86761dac96938bbcf69876e2580995cab203531ff",
+    "assets/character/Maria/Idle/rotations/south-west.png": "787b1c9d9e3c8f2684d625e4682922bc13bcc5390cd539ae0cb70ef6366c3084",
+    "assets/character/Bartz/Idle/rotations/south.png": "4cfad864ab05d871a708d1e7cde6dd115b457359ffd9150a6d78effa74f8d540",
+    "assets/character/Bartz/Idle/rotations/south-east.png": "21a030e9eaa9440cf677702752a3ae1e451570f3c2d9bfbc68986e6ce7044862",
+    "assets/character/Bartz/Idle/rotations/east.png": "283b2e7d9854390fd4f4532c8c8ef37c2939a62cb851614669f46de4174ae3fd",
+    "assets/character/Bartz/Idle/rotations/north-east.png": "a4a3648c154290057b763c2c7c13cb325e78c1d4e13d91e2c8def2f6eed21245",
+    "assets/character/Bartz/Idle/rotations/north.png": "4e1850a61535d6720db84c740ab1f9f950ce888d6349010f4ec7d922c7fed6ea",
+    "assets/character/Bartz/Idle/rotations/north-west.png": "fce00d37e4033766f771d3ef5fd4b6f8b429c11c383a6b9a373badf94f610de7",
+    "assets/character/Bartz/Idle/rotations/west.png": "9c30df7260b9807aa664e8b314a27198215e4f8164f7d960ef912308ffdd7430",
+    "assets/character/Bartz/Idle/rotations/south-west.png": "45fa42d7a19e419513f06c3dbcdd4abae7cc4b49426669c40d12fa40e2bcf662"
+  }
+}

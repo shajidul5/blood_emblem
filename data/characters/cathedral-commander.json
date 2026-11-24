@@ -1,0 +1,9 @@
+{
+  "id": "cathedral-commander", "name": "Commander Aldren Cade", "classId": "paladin", "type": "cavalry",
+  "spriteSet": "genericPaladin", "sprite": "assets/character/Generic_Paladin/rotations/south.png",
+  "scale": 1.32, "level": 26, "experience": 0, "weaponId": "silver-lance",
+  "weaponExp": { "Spear": 180 }, "ai": "mobile",
+  "baseStats": { "hp": 63, "strength": 23, "magic": 1, "dexterity": 20, "speed": 18, "luck": 10, "defense": 18, "resistance": 14, "movement": 8, "build": 13 },
+  "currentStats": { "hp": 63, "strength": 23, "magic": 1, "dexterity": 20, "speed": 18, "luck": 10, "defense": 18, "resistance": 14, "movement": 8, "build": 13 },
+  "growthRates": { "hp": 55, "strength": 40, "magic": 0, "dexterity": 40, "speed": 35, "luck": 25, "defense": 30, "resistance": 25, "movement": 0, "build": 0 }
+}

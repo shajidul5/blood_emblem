@@ -3576,7 +3576,7 @@
       "moveOrigin": null,
       "inventory": [
         {
-          "id": "iron-katana",
+          "id": "iron-sword",
           "uses": null
         },
         {
@@ -3596,7 +3596,7 @@
           "uses": 1
         }
       ],
-      "equippedWeaponId": "iron-katana",
+      "equippedWeaponId": "iron-sword",
       "stats": {
         "hp": 35,
         "maxHp": 35,
@@ -4152,7 +4152,7 @@
         "moveOrigin": null,
         "inventory": [
           {
-            "id": "iron-katana",
+            "id": "iron-sword",
             "uses": null
           },
           {
@@ -4172,7 +4172,7 @@
             "uses": 1
           }
         ],
-        "equippedWeaponId": "iron-katana",
+        "equippedWeaponId": "iron-sword",
         "stats": {
           "hp": 35,
           "maxHp": 35,

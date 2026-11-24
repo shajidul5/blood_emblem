@@ -57,6 +57,7 @@ map.spawn = { x: 9, z: 16 };
 map.players = ['maria', 'bartz', 'cypher', 'seymour', 'stark'].map((id, i) => ({
   id, x: [9, 8, 6, 7, 8][i], z: [16, 16, 16, 17, 17][i],
 }));
+map.players.push({ id: 'linus', x: 17, z: 18 }, { id: 'leon', x: 17, z: 20 });
 map.exit = { x: 15, z: 6 };
 map.enemies = [
   { id: 'bridge-captain', x: 15, z: 6, ai: 'stationary', drop: 'javelin' },
@@ -65,16 +66,16 @@ map.enemies = [
     .map((point) => ({ id: 'feral-wolf', level: 17, ...point, ai: 'mobile' })),
   { id: 'root-warden', level: 16, x: 10, z: 24, ai: 'mobile' },
 ];
-map.rescue.recruit = { id: 'linus', x: 17, z: 18, hp: 28 };
+map.rescue.recruit = { id: 'linus', x: 17, z: 18, hp: 40 };
 map.rescue.bridgeAdvance = { turn: 5, units: [{ x: 12, z: 7 }, { x: 18, z: 7 }] };
 map.rescue.refuge = [{ x: 3, z: 15 }, { x: 4, z: 15 }, { x: 3, z: 16 }, { x: 4, z: 16 }];
 const reward = map.rescue.rewards.find((entry) => entry.rescued === 2);
 reward.items = ['wind-tome', 'master-emblem'];
 const beast = (id, level, x, z) => ({ id, level, x, z, ai: 'mobile' });
 map.reinforcements = [
-  { turn: 2, units: [beast('feral-wolf', 18, 9, 28), beast('feral-wolf', 18, 9, 29)] },
-  { turn: 4, units: [beast('feral-wolf', 19, 24, 28), beast('root-warden', 16, 24, 29)] },
-  { turn: 6, units: [beast('feral-wolf', 19, 9, 27), beast('root-warden', 16, 9, 28), beast('root-warden', 17, 9, 29)] },
-  { turn: 8, units: [beast('root-warden', 16, 24, 27), beast('root-warden', 17, 24, 28), beast('root-warden', 18, 24, 29)] },
+  { turn: 2, units: [beast('feral-wolf', 18, 9, 27), beast('feral-wolf', 18, 9, 28), beast('feral-wolf', 18, 9, 29)] },
+  { turn: 4, units: [beast('feral-wolf', 19, 24, 27), beast('feral-wolf', 19, 24, 28), beast('root-warden', 16, 24, 29)] },
+  { turn: 6, units: [beast('feral-wolf', 19, 9, 26), beast('feral-wolf', 19, 9, 27), beast('root-warden', 16, 9, 28), beast('root-warden', 17, 9, 29)] },
+  { turn: 8, units: [beast('feral-wolf', 19, 24, 26), beast('root-warden', 16, 24, 27), beast('root-warden', 17, 24, 28), beast('root-warden', 18, 24, 29)] },
 ];
 await writeFile(file, `${JSON.stringify(map, null, 2)}\n`);

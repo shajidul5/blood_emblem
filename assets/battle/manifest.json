@@ -4,12 +4,14 @@
   "backgrounds": {
     "ship": "ship.png",
     "coast": "coast.png",
-    "forest": "forest.png"
+    "forest": "forest.png",
+    "shore": "shore.png"
   },
   "backgroundJobs": {
     "ship": "d7391642-7a6d-4449-afaf-20106315d1d1",
     "coast": "6e14d53c-6866-4252-abef-5995df2b462b",
-    "forest": "2a301c9e-196e-420f-9967-72e044eb71a1"
+    "forest": "2a301c9e-196e-420f-9967-72e044eb71a1",
+    "shore": "7eb41fd4-7555-40f5-b4e4-cdb3c7cb0fff"
   },
   "spells": {
     "light": {
@@ -137,10 +139,654 @@
       "frameMs": 60,
       "sourceJob": "30cd988c-8d2e-4d9c-b694-ef1caa38ece9",
       "job": "49cf2967-6110-45e8-a8d8-0455f7209598"
+    },
+    "dark": {
+      "file": "spell-dark.png",
+      "width": 64,
+      "height": 128,
+      "frames": 9,
+      "frameMs": 40,
+      "sourceJob": "a3c67a88-0445-4483-9172-250b8dacf4c2",
+      "job": "c7415836-ec5c-4413-be1b-59877e4305d2"
+    }
+  },
+  "items": {
+    "beast-killer": {
+      "file": "../weapons/Beast_Killer/beast-killer.png",
+      "job": "b08bd857-b4d8-4923-bb21-d30a7de8dea0",
+      "size": 64
     }
   },
   "fighters": {
+    "leon-mercenary": {
+      "bodyTop": 45,
+      "size": 160,
+      "anchorX": 61,
+      "baseline": 121,
+      "scale": 0.86,
+      "idle": "leon-mercenary-idle.png",
+      "idleJob": "f2d45084-d33d-4816-9942-90da5d4b2cef",
+      "sourceIndex": 0,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/Leon/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "grounding": "Lossless integer translations place the lowest boot pixel at baseline; no resampling or recoloring.",
+      "idleLoop": {
+        "file": "leon-mercenary-idle-loop.png",
+        "job": "5ab2e6e4-cdf5-45b0-bd7d-e416b8cd14bf",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "leon-mercenary-attack.png",
+        "job": "e400a0b3-c77a-4a67-85c0-623ebb5e1df9",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 55,
+        "advance": 60,
+        "contact": {
+          "x": 135,
+          "y": 109
+        }
+      },
+      "critical": {
+        "file": "leon-mercenary-critical.png",
+        "job": "a70e6877-a29f-4c56-be58-9264e6b880e7",
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "selection": "Omit the extra preliminary slash; keep the overhead finishing cut and recovery.",
+        "frames": 32,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 95,
+        "advance": 62,
+        "contact": {
+          "x": 134,
+          "y": 82
+        }
+      }
+    },
+    "leon-hero-sword": {
+      "bodyTop": 46,
+      "size": 160,
+      "anchorX": 50,
+      "baseline": 115,
+      "scale": 0.95,
+      "idle": "leon-hero-sword-idle.png",
+      "idleJob": "997efcb1-8fb3-4988-a273-6a9e37e3ba30",
+      "sourceIndex": 2,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/Hero_Leon/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "grounding": "Native frames retain their planted boot baseline without resampling.",
+      "idleLoop": {
+        "file": "leon-hero-sword-idle-loop.png",
+        "job": "3f9cf4fe-7246-40eb-b7cf-5ec42e116c4e",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "leon-hero-sword-attack.png",
+        "job": "3f730e3f-3861-44cf-b503-601a1f1c8b51",
+        "sourceFrames": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "selection": "Omit the stray first-frame sword smear before the wind-up.",
+        "frames": 24,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 55,
+        "advance": 38,
+        "contact": {
+          "x": 135,
+          "y": 99
+        }
+      },
+      "critical": {
+        "file": "leon-hero-sword-critical.png",
+        "job": "3cd313ba-74b7-4be4-af9f-c6d8e6589401",
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          4,
+          5,
+          5,
+          6,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          32
+        ],
+        "selection": "Hold three wind-up poses, keep one horizontal finishing cut and return to ready; omit the generated second strike.",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 95,
+        "advance": 10,
+        "contact": {
+          "x": 149,
+          "y": 73
+        }
+      }
+    },
+    "leon-hero-axe": {
+      "bodyTop": 46,
+      "size": 160,
+      "anchorX": 50,
+      "baseline": 115,
+      "scale": 0.95,
+      "idle": "leon-hero-axe-idle.png",
+      "idleJob": "5ea5a738-439a-47bd-a89d-2d5d1d187b5b",
+      "sourceIndex": 0,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "sourceFighter": "leon-hero-sword",
+      "mapReference": "assets/character/Hero_Leon/Hero_Axe_leon/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "grounding": "Lossless integer translations place the lowest boot pixel at baseline; no resampling or recoloring.",
+      "idleLoop": {
+        "file": "leon-hero-axe-idle-loop.png",
+        "job": "285d8eec-b85a-42b1-ba32-1a8f11d85c7a",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "leon-hero-axe-attack.png",
+        "job": "3c3f97f1-dc0a-4048-b2f8-49059a3e0177",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 55,
+        "advance": 42,
+        "contact": {
+          "x": 133,
+          "y": 103
+        }
+      },
+      "critical": {
+        "file": "leon-hero-axe-critical.png",
+        "job": "38d789e1-0d4d-40fb-aeee-d15c21cb4925",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 14,
+        "holdMs": 95,
+        "advance": 26,
+        "contact": {
+          "x": 141,
+          "y": 104
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "leon-hero-axe-throw-attack.png",
+          "job": "cf61f6fc-d7ed-4db8-a53e-d5a1ddbcf024",
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            21,
+            22,
+            23,
+            24
+          ],
+          "selection": "Omit baked outbound/returning axes; keep empty hands until the independent projectile reaches the catch.",
+          "frames": 19,
+          "frameMs": 40,
+          "impactFrame": 8,
+          "holdMs": 55,
+          "advance": 0,
+          "contact": {
+            "x": 78,
+            "y": 73
+          },
+          "catchFrame": 15,
+          "catchPoint": {
+            "x": 91,
+            "y": 83
+          }
+        },
+        "critical": {
+          "file": "leon-hero-axe-throw-critical.png",
+          "job": "0d2b94bf-12f0-4fe8-b97b-c44522670e08",
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "selection": "Omit baked outbound/returning axes; keep empty hands until the independent projectile reaches the catch.",
+          "frames": 28,
+          "frameMs": 40,
+          "impactFrame": 12,
+          "holdMs": 95,
+          "advance": 0,
+          "contact": {
+            "x": 99,
+            "y": 73
+          },
+          "catchFrame": 23,
+          "catchPoint": {
+            "x": 73,
+            "y": 72
+          }
+        }
+      }
+    },
+    "serra-mage": {
+      "bodyTop": 39,
+      "size": 160,
+      "anchorX": 68,
+      "baseline": 127,
+      "scale": 0.76,
+      "casting": true,
+      "idle": "serra-mage-idle.png",
+      "idleJob": "4215aabf-0a04-48bf-a995-8155b5387015",
+      "sourceIndex": 2,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/Serra/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "grounding": "Lossless integer translations align the bottom-six-pixel boot midpoint to anchorX and lowest boot pixel to baseline. Native colors and alpha are preserved.",
+      "idleLoop": {
+        "file": "serra-mage-idle-loop.png",
+        "job": "30fff10f-52e8-4a7c-8fd3-c0832fb5661c",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "serra-mage-attack.png",
+        "job": "09fcccb0-0517-448f-9d4c-749ac123acba",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 111,
+          "y": 66
+        }
+      },
+      "critical": {
+        "file": "serra-mage-critical.png",
+        "job": "118b6029-2602-4ed4-a99e-812ac64dc3dd",
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          10,
+          11,
+          11,
+          12,
+          12,
+          13,
+          13,
+          13,
+          16,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "selection": "Hold the gathered casting pose for anticipation; omit baked fire/beam frames so every tome uses its own independent elemental effect.",
+        "frames": 26,
+        "frameMs": 40,
+        "impactFrame": 19,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 111,
+          "y": 65
+        }
+      }
+    },
+    "serra-sage": {
+      "bodyTop": 46,
+      "size": 160,
+      "anchorX": 61,
+      "baseline": 128,
+      "scale": 0.69,
+      "casting": true,
+      "idle": "serra-sage-idle.png",
+      "idleJob": "588ee1c2-f91f-46c5-bc27-4cbf418a48c3",
+      "sourceIndex": 1,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/Sage_Serra/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "grounding": "Lossless integer translations align the bottom-six-pixel boot midpoint to anchorX and lowest boot pixel to baseline. Native colors and alpha are preserved.",
+      "idleLoop": {
+        "file": "serra-sage-idle-loop.png",
+        "job": "66c3fde4-6eb7-42f8-8db7-290678d2029f",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "serra-sage-attack.png",
+        "job": "d1f152cf-bc00-4718-bfcb-48be32e97c0e",
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "selection": "Omit the baked golden projectile; the equipped tome supplies the independent effect.",
+        "frames": 23,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 100,
+          "y": 70
+        }
+      },
+      "critical": {
+        "file": "serra-sage-critical.png",
+        "job": "7c67f2ab-50bd-41b0-a94f-aa8e74cf4db1",
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "selection": "Omit baked fire/beam frames so every tome uses its own independent elemental effect.",
+        "frames": 24,
+        "frameMs": 40,
+        "impactFrame": 5,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 103,
+          "y": 73
+        }
+      },
+      "staff": {
+        "idle": "serra-sage-staff-idle.png",
+        "idleJob": "b4c28af6-7b86-436e-aa3d-984313afbf67",
+        "sourceIndex": 0,
+        "sourceSize": 128,
+        "transparentPadding": 16,
+        "idleOffset": {
+          "x": 1,
+          "y": -12
+        },
+        "cast": {
+          "file": "serra-sage-staff-cast.png",
+          "job": "f26104f9-30da-4028-b114-a13c29d88537",
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "selection": "Omit baked golden magic; Heal/Mend and Freeze retain their own effects.",
+          "frames": 19,
+          "frameMs": 40,
+          "impactFrame": 7,
+          "holdMs": 80,
+          "advance": 0,
+          "contact": {
+            "x": 93,
+            "y": 64
+          }
+        }
+      }
+    },
+    "seymour-priest": {
+      "bodyTop": 34,
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 100,
+      "casting": true,
+      "supportOnly": true,
+      "idle": "seymour-priest-idle.png",
+      "idleJob": "ea21c7bc-114b-4db8-bd8f-6aa20a8baaf9",
+      "staff": {
+        "idle": "seymour-priest-idle.png",
+        "idleJob": "ea21c7bc-114b-4db8-bd8f-6aa20a8baaf9",
+        "cast": {
+          "file": "seymour-priest-staff-cast.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 8,
+          "holdMs": 80,
+          "advance": 0,
+          "contact": {
+            "x": 57,
+            "y": 36
+          },
+          "job": "53899525-a463-4586-a4b1-21e2b5b4514d"
+        }
+      }
+    },
+    "seymour-bishop": {
+      "bodyTop": 34,
+      "size": 128,
+      "anchorX": 32,
+      "baseline": 100,
+      "casting": true,
+      "idle": "seymour-bishop-idle.png",
+      "idleJob": "43ac2aed-b9e9-43c0-a3e2-4692095bdd21",
+      "attack": {
+        "file": "seymour-bishop-attack.png",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 82,
+          "y": 58
+        },
+        "job": "62411994-253b-488b-9d93-cb619abeacf7"
+      },
+      "critical": {
+        "file": "seymour-bishop-critical.png",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 12,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 86,
+          "y": 58
+        },
+        "job": "76639a66-3eb7-452c-8e27-a6ea3dddea74"
+      },
+      "staff": {
+        "idle": "seymour-bishop-idle.png",
+        "idleJob": "43ac2aed-b9e9-43c0-a3e2-4692095bdd21",
+        "cast": {
+          "file": "seymour-bishop-staff-cast.png",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 80,
+          "advance": 0,
+          "contact": {
+            "x": 84,
+            "y": 35
+          },
+          "job": "1ab1906f-2abf-484d-affe-2778e41399c3"
+        }
+      }
+    },
     "linus-bloodsworn": {
+      "bodyTop": 20,
+      "mounted": true,
       "size": 128,
       "anchorX": 45,
       "baseline": 108,
@@ -161,7 +807,10 @@
         "impactFrame": 13,
         "holdMs": 60,
         "advance": 48,
-        "contact": { "x": 125, "y": 43 }
+        "contact": {
+          "x": 125,
+          "y": 43
+        }
       },
       "critical": {
         "file": "../covenant/bloodsworn-linus/battle/critical.png",
@@ -171,7 +820,10 @@
         "impactFrame": 10,
         "holdMs": 100,
         "advance": 48,
-        "contact": { "x": 125, "y": 44 }
+        "contact": {
+          "x": 125,
+          "y": 44
+        }
       },
       "thrown": {
         "attack": {
@@ -183,8 +835,14 @@
           "catchFrame": 20,
           "holdMs": 60,
           "advance": 0,
-          "contact": { "x": 69, "y": 43 },
-          "catchPoint": { "x": 54, "y": 45 }
+          "contact": {
+            "x": 69,
+            "y": 43
+          },
+          "catchPoint": {
+            "x": 54,
+            "y": 45
+          }
         },
         "critical": {
           "file": "../covenant/bloodsworn-linus/battle/thrown-critical.png",
@@ -195,8 +853,14 @@
           "catchFrame": 28,
           "holdMs": 100,
           "advance": 0,
-          "contact": { "x": 69, "y": 43 },
-          "catchPoint": { "x": 54, "y": 45 }
+          "contact": {
+            "x": 69,
+            "y": 43
+          },
+          "catchPoint": {
+            "x": 54,
+            "y": 45
+          }
         }
       },
       "staff": {
@@ -209,46 +873,61 @@
           "impactFrame": 10,
           "holdMs": 120,
           "advance": 0,
-          "contact": { "x": 63, "y": 45 }
+          "contact": {
+            "x": 63,
+            "y": 45
+          }
         }
       }
     },
+    "voss": {
+      "size": 128, "anchorX": 48, "baseline": 122, "bodyTop": 6, "casting": true,
+      "idle": "voss-idle.png",
+      "idleJob": "273374a6-3c0a-4c10-899a-c3fff492e748",
+      "attack": { "file": "voss-attack.png", "frames": 9, "frameMs": 40, "impactFrame": 5, "holdMs": 100, "advance": 0, "contact": { "x": 96, "y": 52 }, "job": "12ddff8b-cffb-457f-990e-0357b37a8624" },
+      "critical": { "file": "voss-critical.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 150, "advance": 0, "contact": { "x": 97, "y": 53 }, "job": "f93abacb-e820-48f5-bad8-7e96e02645d3" },
+      "staff": {
+        "idle": "voss-idle.png",
+        "cast": { "file": "voss-attack.png", "frames": 9, "frameMs": 40, "impactFrame": 5, "holdMs": 100, "advance": 0, "contact": { "x": 96, "y": 52 } }
+      }
+    },
     "stark-veilstalker": {
+      "bodyTop": 4,
       "size": 128,
-      "anchorX": 41,
-      "baseline": 104,
-      "scale": 0.8,
+      "anchorX": 49,
+      "baseline": 119,
       "casting": true,
-      "idle": "../covenant/veilstalker-stark/battle/idle.png",
-      "idleJob": "cbd74a4f-77a3-4165-988f-8dd064c93fc4",
-      "idleLoop": {
-        "file": "../covenant/veilstalker-stark/battle/idle-loop.png",
-        "job": "0fb890a4-88bb-4d94-a41c-f9eed6e9bf15",
-        "frames": 9,
-        "frameMs": 120
-      },
+      "idle": "stark-veilstalker-night-idle.png",
+      "idleJob": "48eca93f-d7d8-44e9-a50f-d734ef55050e",
       "attack": {
-        "file": "../covenant/veilstalker-stark/battle/attack.png",
-        "job": "d36edf68-3370-4ed1-8eb8-99f6bb8b064d",
-        "frames": 25,
+        "file": "stark-veilstalker-night-attack.png",
+        "job": "6dacf694-1b87-4c53-80e1-20549c50894d",
+        "frames": 9,
         "frameMs": 40,
-        "impactFrame": 18,
+        "impactFrame": 5,
         "holdMs": 60,
         "advance": 0,
-        "contact": { "x": 83, "y": 55 }
+        "contact": {
+          "x": 112,
+          "y": 55
+        }
       },
       "critical": {
-        "file": "../covenant/veilstalker-stark/battle/critical.png",
-        "job": "06374efb-eec2-4bdb-ae11-83afc51442d7",
-        "frames": 33,
+        "file": "stark-veilstalker-night-critical.png",
+        "job": "0a386943-fd2c-4e8a-b1c5-4fb3307c0ca3",
+        "frames": 13,
         "frameMs": 40,
-        "impactFrame": 25,
+        "impactFrame": 8,
         "holdMs": 100,
         "advance": 0,
-        "contact": { "x": 103, "y": 51 }
+        "contact": {
+          "x": 112,
+          "y": 51
+        }
       }
     },
     "rictor-oathkeeper": {
+      "bodyTop": 21,
       "size": 128,
       "anchorX": 33,
       "baseline": 108,
@@ -269,7 +948,10 @@
         "impactFrame": 7,
         "holdMs": 120,
         "advance": 26,
-        "contact": { "x": 124, "y": 46 }
+        "contact": {
+          "x": 124,
+          "y": 46
+        }
       },
       "critical": {
         "file": "rictor-oathkeeper-critical.png",
@@ -279,7 +961,10 @@
         "impactFrame": 15,
         "holdMs": 180,
         "advance": 26,
-        "contact": { "x": 124, "y": 55 }
+        "contact": {
+          "x": 124,
+          "y": 55
+        }
       },
       "thrown": {
         "attack": {
@@ -291,8 +976,14 @@
           "catchFrame": 20,
           "holdMs": 100,
           "advance": 0,
-          "contact": { "x": 83, "y": 37 },
-          "catchPoint": { "x": 49, "y": 57 }
+          "contact": {
+            "x": 83,
+            "y": 37
+          },
+          "catchPoint": {
+            "x": 49,
+            "y": 57
+          }
         },
         "critical": {
           "file": "rictor-oathkeeper-thrown-critical.png",
@@ -303,12 +994,20 @@
           "catchFrame": 29,
           "holdMs": 150,
           "advance": 0,
-          "contact": { "x": 93, "y": 42 },
-          "catchPoint": { "x": 54, "y": 58 }
+          "contact": {
+            "x": 93,
+            "y": 42
+          },
+          "catchPoint": {
+            "x": 54,
+            "y": 58
+          }
         }
       }
     },
     "rictor-templar-lance": {
+      "bodyTop": 19,
+      "mounted": true,
       "size": 128,
       "anchorX": 43,
       "baseline": 108,
@@ -329,7 +1028,10 @@
         "impactFrame": 8,
         "holdMs": 120,
         "advance": 46,
-        "contact": { "x": 124, "y": 45 }
+        "contact": {
+          "x": 124,
+          "y": 45
+        }
       },
       "critical": {
         "file": "rictor-templar-lance-critical.png",
@@ -339,7 +1041,10 @@
         "impactFrame": 13,
         "holdMs": 180,
         "advance": 46,
-        "contact": { "x": 124, "y": 45 }
+        "contact": {
+          "x": 124,
+          "y": 45
+        }
       },
       "thrown": {
         "attack": {
@@ -351,8 +1056,14 @@
           "catchFrame": 21,
           "holdMs": 100,
           "advance": 0,
-          "contact": { "x": 74, "y": 36 },
-          "catchPoint": { "x": 57, "y": 47 }
+          "contact": {
+            "x": 74,
+            "y": 36
+          },
+          "catchPoint": {
+            "x": 57,
+            "y": 47
+          }
         },
         "critical": {
           "file": "rictor-templar-lance-thrown-critical.png",
@@ -363,12 +1074,20 @@
           "catchFrame": 30,
           "holdMs": 150,
           "advance": 0,
-          "contact": { "x": 74, "y": 36 },
-          "catchPoint": { "x": 56, "y": 48 }
+          "contact": {
+            "x": 74,
+            "y": 36
+          },
+          "catchPoint": {
+            "x": 56,
+            "y": 48
+          }
         }
       }
     },
     "rictor-templar-light": {
+      "bodyTop": 19,
+      "mounted": true,
       "size": 128,
       "anchorX": 43,
       "baseline": 108,
@@ -391,7 +1110,10 @@
         "impactFrame": 11,
         "holdMs": 120,
         "advance": 0,
-        "contact": { "x": 75, "y": 32 }
+        "contact": {
+          "x": 75,
+          "y": 32
+        }
       },
       "critical": {
         "file": "rictor-templar-light-critical.png",
@@ -401,7 +1123,10 @@
         "impactFrame": 16,
         "holdMs": 180,
         "advance": 0,
-        "contact": { "x": 90, "y": 43 }
+        "contact": {
+          "x": 90,
+          "y": 43
+        }
       }
     },
     "deep-merfolk": {
@@ -438,6 +1163,7 @@
       }
     },
     "cyrus-mage": {
+      "bodyTop": 33,
       "size": 128,
       "anchorX": 32,
       "baseline": 100,
@@ -543,6 +1269,7 @@
       }
     },
     "maria-hunter": {
+      "bodyTop": 35,
       "size": 128,
       "anchorX": 32,
       "baseline": 100,
@@ -584,6 +1311,7 @@
       }
     },
     "bartz-pirate": {
+      "bodyTop": 31,
       "size": 128,
       "anchorX": 50,
       "baseline": 100,
@@ -655,6 +1383,7 @@
       }
     },
     "raider": {
+      "bodyTop": 38,
       "size": 128,
       "anchorX": 55,
       "baseline": 91,
@@ -688,6 +1417,7 @@
       }
     },
     "stark-archer": {
+      "bodyTop": 28,
       "size": 128,
       "anchorX": 34,
       "baseline": 104,
@@ -722,37 +1452,44 @@
       }
     },
     "stark-sniper": {
+      "bodyTop": 32,
       "size": 128,
       "anchorX": 40,
       "baseline": 105,
       "casting": true,
       "idle": "stark-sniper-idle.png",
-      "idleJob": "fdbbd509-aaf3-4a69-bbc2-2be968f15319",
+      "idleJob": "620fd345-b804-401f-8ae7-af0afc97127b",
+      "idleLoop": {
+        "file": "stark-sniper-idle-loop.png",
+        "job": "ca4a6be0-5b51-4f1f-bd5e-f26cf148d951",
+        "frames": 9,
+        "frameMs": 120
+      },
       "attack": {
         "file": "stark-sniper-attack.png",
         "frames": 25,
         "frameMs": 40,
-        "impactFrame": 20,
+        "impactFrame": 15,
         "holdMs": 60,
         "advance": 0,
         "contact": {
           "x": 80,
           "y": 50
         },
-        "job": "a99b039b-ce79-4c98-924d-da74c4a294d0"
+        "job": "56a1157e-09e1-44ef-b079-3a3927b86fb5"
       },
       "critical": {
         "file": "stark-sniper-critical.png",
         "frames": 33,
         "frameMs": 40,
-        "impactFrame": 24,
+        "impactFrame": 23,
         "holdMs": 100,
         "advance": 0,
         "contact": {
           "x": 90,
           "y": 61
         },
-        "job": "ef991b58-40ec-4016-9f54-c2997cbd32dc"
+        "job": "eb1ef565-946e-40c5-ad8a-4cead0b7fc86"
       }
     },
     "feral-wolf": {
@@ -854,6 +1591,45 @@
         "job": "470ca21a-235c-46eb-a8b8-7237626bed1c"
       }
     },
+    "bell-envoy": {
+      "size": 192,
+      "sourceSize": 128,
+      "scale": 0.66,
+      "anchorX": 80,
+      "baseline": 160,
+      "design": "lost-humanity",
+      "conceptImage": "sha256:36102012aeaefffe5460b07b78cf55c96dd48ad223b68363e8f848f450b00515",
+      "idle": "bell-envoy-idle.png",
+      "idleJob": "efa22054-36d2-4de3-9d7e-acfbeb1d7310",
+      "idleLoop": {
+        "file": "bell-envoy-idle-loop.png",
+        "frames": 9,
+        "frameMs": 140,
+        "job": "dda80861-605b-43a8-80c7-2d384f866602"
+      },
+      "mapCharacter": "1a76f71e-42f9-44a6-a1b5-208f0f771139",
+      "processing": "Gaunt exposed-human crow-headed design with a bloodshot eye and dragging wings, distinct from the mission-driven Omen. Native pixels only: 128px idle and 168px generated frames are horizontally centered and vertically translated to a common planted-foot baseline on 192px transparent canvases, never resampled. Separately generated vacant twitching idle, feral rake and mindless frenzy. Existing map sprites and encounter mechanics are unchanged.",
+      "attack": {
+        "file": "bell-envoy-attack.png",
+        "frames": 13,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 60,
+        "advance": 40,
+        "contact": { "x": 164, "y": 94 },
+        "job": "8bb48c39-de05-427f-b9d0-a64ffcf3b64d"
+      },
+      "critical": {
+        "file": "bell-envoy-critical.png",
+        "frames": 17,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 110,
+        "advance": 48,
+        "contact": { "x": 160, "y": 92 },
+        "job": "7f58dc46-e76d-4da7-a340-14b3f22fff44"
+      }
+    },
     "crowman": {
       "size": 128,
       "anchorX": 44,
@@ -921,6 +1697,7 @@
       }
     },
     "maria-ravager": {
+      "bodyTop": 30,
       "size": 128,
       "anchorX": 32,
       "baseline": 99,
@@ -991,7 +1768,32 @@
         }
       }
     },
+    "generic-berserker": {
+      "bodyTop": 30, "size": 128, "anchorX": 50, "baseline": 100,
+      "idle": "bartz-berserker-idle.png",
+      "filter": "sepia(.45) saturate(.85) hue-rotate(320deg) brightness(.86)",
+      "strikeEffect": "axe-cleave",
+      "attack": { "file": "bartz-berserker-attack.png", "frames": 25, "frameMs": 40, "impactFrame": 11, "holdMs": 110, "advance": 108, "contact": { "x": 100, "y": 95 }, "job": "dd573054-d21b-4fea-9295-877c6c2aa18e" },
+      "critical": { "file": "bartz-berserker-critical.png", "frames": 33, "frameMs": 40, "impactFrame": 14, "holdMs": 175, "advance": 120, "contact": { "x": 94, "y": 96 }, "leap": { "from": 9, "to": 13, "height": 64 }, "job": "e34acc49-73be-444f-b506-0399b6941dae" },
+      "thrown": {
+        "attack": { "file": "bartz-berserker-thrown-attack.png", "frames": 25, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 0, "contact": { "x": 118, "y": 52 }, "catchFrame": 18, "catchPoint": { "x": 103, "y": 62 }, "job": "5d9d0544-590e-4855-80f4-3a402d916c03" },
+        "critical": { "file": "bartz-berserker-thrown-critical.png", "frames": 33, "frameMs": 40, "impactFrame": 13, "holdMs": 100, "advance": 0, "contact": { "x": 118, "y": 62 }, "catchFrame": 22, "catchPoint": { "x": 110, "y": 52 }, "job": "b948984a-9175-4c13-90f7-d2874e184cc8" }
+      }
+    },
+    "generic-halberdier": {
+      "bodyTop": 32, "size": 128, "anchorX": 32, "baseline": 99,
+      "idle": "generic-soldier-idle.png",
+      "filter": "sepia(.55) saturate(.85) hue-rotate(350deg) contrast(1.14)",
+      "strikeEffect": "lance-thrust",
+      "attack": { "file": "generic-soldier-attack.png", "frames": 25, "frameMs": 36, "impactFrame": 6, "holdMs": 80, "advance": 22, "contact": { "x": 125, "y": 60 }, "job": "60000bbe-f4e4-4a4b-8bdd-a48b1720ef8a" },
+      "critical": { "file": "generic-soldier-critical.png", "frames": 33, "frameMs": 38, "impactFrame": 17, "holdMs": 135, "advance": 18, "contact": { "x": 127, "y": 59 }, "job": "f8e934eb-bd65-4a4f-9e7a-6e3118556256" },
+      "thrown": {
+        "attack": { "file": "generic-soldier-thrown-attack.png", "frames": 25, "frameMs": 40, "impactFrame": 9, "holdMs": 60, "advance": 0, "contact": { "x": 64, "y": 51 }, "catchFrame": 20, "catchPoint": { "x": 52, "y": 59 }, "job": "d0b4a6c9-68ab-40c2-96fd-ad4a5cce3fb5" },
+        "critical": { "file": "generic-soldier-thrown-critical.png", "frames": 33, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 0, "contact": { "x": 58, "y": 58 }, "catchFrame": 30, "catchPoint": { "x": 46, "y": 60 }, "job": "3e4c654c-1d9a-45ae-a6a7-6cee9100ce75" }
+      }
+    },
     "bartz-berserker": {
+      "bodyTop": 30,
       "size": 128,
       "anchorX": 50,
       "baseline": 100,
@@ -1068,6 +1870,7 @@
       }
     },
     "cyrus-sage": {
+      "bodyTop": 33,
       "size": 128,
       "anchorX": 32,
       "baseline": 100,
@@ -1119,6 +1922,7 @@
       }
     },
     "maria-ravager-gun": {
+      "bodyTop": 30,
       "size": 128,
       "anchorX": 32,
       "baseline": 99,
@@ -1153,6 +1957,7 @@
       }
     },
     "generic-archer": {
+      "bodyTop": 33,
       "size": 128,
       "anchorX": 32,
       "baseline": 99,
@@ -1187,6 +1992,7 @@
       }
     },
     "generic-knight": {
+      "bodyTop": 32,
       "size": 128,
       "anchorX": 32,
       "baseline": 99,
@@ -1258,6 +2064,8 @@
       }
     },
     "generic-cavalier": {
+      "bodyTop": 19,
+      "mounted": true,
       "size": 128,
       "anchorX": 50,
       "baseline": 108,
@@ -1330,6 +2138,7 @@
       }
     },
     "generic-soldier": {
+      "bodyTop": 32,
       "size": 128,
       "anchorX": 32,
       "baseline": 99,
@@ -1401,6 +2210,8 @@
       }
     },
     "generic-cavalier-sword": {
+      "bodyTop": 20,
+      "mounted": true,
       "size": 128,
       "anchorX": 50,
       "baseline": 108,
@@ -1435,6 +2246,8 @@
       }
     },
     "linus-cavalier-lance": {
+      "bodyTop": 19,
+      "mounted": true,
       "size": 128,
       "anchorX": 50,
       "baseline": 108,
@@ -1507,6 +2320,8 @@
       }
     },
     "linus-paladin-lance": {
+      "bodyTop": 19,
+      "mounted": true,
       "size": 128,
       "anchorX": 50,
       "baseline": 108,
@@ -1579,6 +2394,8 @@
       }
     },
     "linus-cavalier-sword": {
+      "bodyTop": 20,
+      "mounted": true,
       "size": 128,
       "anchorX": 50,
       "baseline": 108,
@@ -1613,6 +2430,8 @@
       }
     },
     "linus-paladin-sword": {
+      "bodyTop": 19,
+      "mounted": true,
       "size": 128,
       "anchorX": 50,
       "baseline": 108,
@@ -1681,6 +2500,8 @@
       }
     },
     "generic-paladin": {
+      "bodyTop": 10,
+      "mounted": true,
       "size": 128,
       "anchorX": 52,
       "baseline": 115,
@@ -1759,6 +2580,7 @@
       }
     },
     "generic-mage": {
+      "bodyTop": 4,
       "size": 128,
       "anchorX": 57,
       "baseline": 123,
@@ -1800,6 +2622,7 @@
       "casting": true
     },
     "lena-thief": {
+      "bodyTop": 29,
       "size": 128,
       "anchorX": 44,
       "baseline": 100,
@@ -1823,7 +2646,10 @@
         "impactFrame": 8,
         "holdMs": 55,
         "advance": 52,
-        "contact": { "x": 122, "y": 85 }
+        "contact": {
+          "x": 122,
+          "y": 85
+        }
       },
       "critical": {
         "file": "lena-thief-critical.png",
@@ -1833,10 +2659,14 @@
         "impactFrame": 12,
         "holdMs": 95,
         "advance": 56,
-        "contact": { "x": 120, "y": 62 }
+        "contact": {
+          "x": 120,
+          "y": 62
+        }
       }
     },
     "lena-assassin-sword": {
+      "bodyTop": 30,
       "size": 128,
       "anchorX": 48,
       "baseline": 100,
@@ -1860,7 +2690,10 @@
         "impactFrame": 11,
         "holdMs": 55,
         "advance": 60,
-        "contact": { "x": 122, "y": 58 }
+        "contact": {
+          "x": 122,
+          "y": 58
+        }
       },
       "critical": {
         "file": "lena-assassin-sword-critical.png",
@@ -1870,10 +2703,14 @@
         "impactFrame": 9,
         "holdMs": 95,
         "advance": 60,
-        "contact": { "x": 122, "y": 65 }
+        "contact": {
+          "x": 122,
+          "y": 65
+        }
       }
     },
     "lena-assassin-bow": {
+      "bodyTop": 30,
       "size": 128,
       "anchorX": 48,
       "baseline": 100,
@@ -1886,8 +2723,16 @@
       "mapReference": "assets/character/Assassin_Lena/rotations/east.png",
       "projectileCleanup": {
         "description": "Removed detached generated arrows outside the bow; the runtime renders the actual projectile.",
-        "attackFrames": [16, 17, 18],
-        "criticalFrames": [23, 24, 31]
+        "attackFrames": [
+          16,
+          17,
+          18
+        ],
+        "criticalFrames": [
+          23,
+          24,
+          31
+        ]
       },
       "idleLoop": {
         "file": "lena-assassin-bow-idle-loop.png",
@@ -1903,7 +2748,10 @@
         "impactFrame": 16,
         "holdMs": 60,
         "advance": 0,
-        "contact": { "x": 86, "y": 57 }
+        "contact": {
+          "x": 86,
+          "y": 57
+        }
       },
       "critical": {
         "file": "lena-assassin-bow-critical.png",
@@ -1913,7 +2761,10 @@
         "impactFrame": 24,
         "holdMs": 100,
         "advance": 0,
-        "contact": { "x": 94, "y": 60 }
+        "contact": {
+          "x": 94,
+          "y": 60
+        }
       }
     },
     "generic-undead": {
@@ -1940,7 +2791,10 @@
         "impactFrame": 8,
         "holdMs": 65,
         "advance": 106,
-        "contact": { "x": 107, "y": 88 }
+        "contact": {
+          "x": 107,
+          "y": 88
+        }
       },
       "critical": {
         "file": "generic-undead-critical.png",
@@ -1950,7 +2804,10 @@
         "impactFrame": 9,
         "holdMs": 105,
         "advance": 94,
-        "contact": { "x": 113, "y": 80 }
+        "contact": {
+          "x": 113,
+          "y": 80
+        }
       }
     },
     "rotten": {
@@ -1979,7 +2836,10 @@
         "impactFrame": 11,
         "holdMs": 65,
         "advance": 72,
-        "contact": { "x": 142, "y": 94 }
+        "contact": {
+          "x": 142,
+          "y": 94
+        }
       },
       "critical": {
         "file": "rotten-critical.png",
@@ -1989,7 +2849,461 @@
         "impactFrame": 10,
         "holdMs": 105,
         "advance": 68,
-        "contact": { "x": 144, "y": 112 }
+        "contact": {
+          "x": 144,
+          "y": 112
+        }
+      }
+    },
+    "arlan-knight": {
+      "bodyTop": 43,
+      "size": 160,
+      "anchorX": 60,
+      "baseline": 116,
+      "scale": 0.72,
+      "idle": "arlan-knight-idle.png",
+      "idleJob": "b403d124-8205-497b-ab75-0d90e611e356",
+      "sourceIndex": 2,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/Arlan/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "arlan-knight-idle-loop.png",
+        "job": "6245c5d3-5cb4-412e-9b46-0ef4f354f567",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "arlan-knight-attack.png",
+        "job": "6de451f7-ad86-4c6c-bca4-52cf4aa9f88a",
+        "sourceSize": 160,
+        "sourceFrames": [
+          0,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "frames": 23,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 60,
+        "advance": 38,
+        "contact": {
+          "x": 145,
+          "y": 79
+        }
+      },
+      "critical": {
+        "file": "arlan-knight-critical.png",
+        "job": "e2763a86-451a-4e24-b9df-a0b410028b88",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 50,
+        "contact": {
+          "x": 139,
+          "y": 80
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "arlan-knight-thrown-attack.png",
+          "job": "b746c124-651a-49b7-a689-8fa2742ac1b8",
+          "sourceSize": 160,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            21,
+            22,
+            23,
+            24
+          ],
+          "cleanup": "Source frames 10-19: remove exposed duplicate back-spear pixels above the helmet and behind the rear boot; preserve native body pixels. Omit source frame 9's baked projectile and frame 20's residual back-spear.",
+          "frames": 23,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 98,
+            "y": 75
+          },
+          "catchFrame": 19,
+          "catchPoint": {
+            "x": 70,
+            "y": 84
+          }
+        },
+        "critical": {
+          "file": "arlan-knight-thrown-critical.png",
+          "job": "3ac39e19-47eb-44b9-87ce-58cee98d2803",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 19,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 110,
+            "y": 78
+          },
+          "catchFrame": 29,
+          "catchPoint": {
+            "x": 68,
+            "y": 80
+          }
+        }
+      }
+    },
+    "arlan-general-spear": {
+      "bodyTop": 40,
+      "size": 160,
+      "anchorX": 64,
+      "baseline": 120,
+      "scale": 0.7,
+      "idle": "arlan-general-spear-idle.png",
+      "idleJob": "a2f0ae67-9a17-4e23-927a-c10ebe10eac6",
+      "sourceIndex": 1,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "mapReference": "assets/character/General_Arlan/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "arlan-general-spear-idle-loop.png",
+        "job": "09063eed-19d4-4a20-a1b5-07f2d5d69e89",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "arlan-general-spear-attack.png",
+        "job": "b64faeec-4db7-46e3-94a6-055f6da35bd2",
+        "sourceSize": 160,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "frames": 17,
+        "frameMs": 40,
+        "impactFrame": 3,
+        "holdMs": 60,
+        "advance": 38,
+        "contact": {
+          "x": 149,
+          "y": 85
+        }
+      },
+      "critical": {
+        "file": "arlan-general-spear-critical.png",
+        "job": "cbba16fd-a925-4f0b-91e3-79fdf2c66d23",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 58,
+        "contact": {
+          "x": 139,
+          "y": 80
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "arlan-general-spear-thrown-attack.png",
+          "job": "bb5a8fbe-14ea-4807-9284-1dc2c8121ec9",
+          "sourceSize": 160,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "cleanup": "Source frames 12-20: remove exposed duplicate back-spear pixels above the helmet and behind the cape; preserve native body pixels. Omit source frame 11's baked projectile.",
+          "frames": 24,
+          "frameMs": 40,
+          "impactFrame": 11,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 107,
+            "y": 80
+          },
+          "catchFrame": 20,
+          "catchPoint": {
+            "x": 74,
+            "y": 87
+          }
+        },
+        "critical": {
+          "file": "arlan-general-spear-thrown-critical.png",
+          "job": "fe297d6c-44be-4d6d-bd58-a4b81e953567",
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "frames": 32,
+          "frameMs": 40,
+          "impactFrame": 13,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 118,
+            "y": 74
+          },
+          "catchFrame": 29,
+          "catchPoint": {
+            "x": 71,
+            "y": 83
+          }
+        }
+      }
+    },
+    "arlan-general-axe": {
+      "bodyTop": 27,
+      "size": 128,
+      "anchorX": 52,
+      "baseline": 110,
+      "scale": 0.68,
+      "idle": "arlan-general-axe-idle.png",
+      "idleJob": "ea8e610f-99f6-42cd-9c87-0fdde05b48ca",
+      "sourceIndex": 1,
+      "mapReference": "assets/character/General_Arlan/rotations/east.png",
+      "styleReference": "arlan-general-spear-idle.png",
+      "idleLoop": {
+        "file": "arlan-general-axe-idle-loop.png",
+        "job": "a905624e-aca6-41bb-a5bf-9ca0b9aaf2d3",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "arlan-general-axe-attack.png",
+        "job": "26e63541-543f-49d6-9507-f5bfecb37ab6",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 60,
+        "advance": 100,
+        "contact": {
+          "x": 106,
+          "y": 94
+        }
+      },
+      "critical": {
+        "file": "arlan-general-axe-critical.png",
+        "job": "d5c2bf16-4da2-44e6-b82a-d97f79e2989e",
+        "sourceFrames": [
+          0,
+          1,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "frames": 30,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "holdMs": 100,
+        "advance": 78,
+        "contact": {
+          "x": 117,
+          "y": 92
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "arlan-general-axe-thrown-attack.png",
+          "job": "4f0712e5-9131-4814-9e42-eb06b81238ab",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 7,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 88,
+            "y": 60
+          },
+          "catchFrame": 22,
+          "catchPoint": {
+            "x": 57,
+            "y": 71
+          }
+        },
+        "critical": {
+          "file": "arlan-general-axe-thrown-critical.png",
+          "job": "6c3c431c-5203-48e5-b0d1-d040bc4658c1",
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "frames": 32,
+          "frameMs": 40,
+          "impactFrame": 13,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 109,
+            "y": 60
+          },
+          "catchFrame": 28,
+          "catchPoint": {
+            "x": 57,
+            "y": 71
+          }
+        }
       }
     },
     "blood-beast": {
@@ -2029,6 +3343,2114 @@
         "contact": {
           "x": 115,
           "y": 107
+        }
+      }
+    },
+    "rictor-oathbound-lance": {
+      "bodyTop": 36,
+      "size": 128,
+      "anchorX": 44,
+      "baseline": 94,
+      "scale": 0.86,
+      "idle": "rictor-oathbound-lance-idle.png",
+      "idleJob": "109833f4-3c0a-4840-b9dd-5e69d4e148bf",
+      "idleLoop": {
+        "file": "rictor-oathbound-lance-idle-loop.png",
+        "job": "3728ee87-ac12-4c5a-9ee9-fda35b67086d",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "rictor-oathbound-lance-attack.png",
+        "job": "c9f6be4a-78ad-48d6-965c-7c0410fe52bb",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 6,
+        "contact": {
+          "x": 120,
+          "y": 55
+        },
+        "holdMs": 120,
+        "advance": 56
+      },
+      "critical": {
+        "file": "rictor-oathbound-lance-critical.png",
+        "job": "f79c7a6e-5763-4364-9766-fdf3c0bbdfd4",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 18,
+        "contact": {
+          "x": 120,
+          "y": 59
+        },
+        "holdMs": 160,
+        "advance": 56
+      },
+      "sourceReference": "assets/character/Outhbound_Rictor/rotations/east.png",
+      "thrown": {
+        "attack": {
+          "file": "rictor-oathbound-lance-thrown-attack.png",
+          "job": "d8c1c3ea-c8ae-4a5e-9a64-70375084ad06",
+          "frames": 17,
+          "frameMs": 40,
+          "impactFrame": 6,
+          "catchFrame": 14,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 75,
+            "y": 51
+          },
+          "catchPoint": {
+            "x": 62,
+            "y": 60
+          }
+        },
+        "critical": {
+          "file": "rictor-oathbound-lance-thrown-critical.png",
+          "job": "031d81f3-3608-46fe-b103-076eee4b451a",
+          "frames": 33,
+          "frameMs": 40,
+          "impactFrame": 19,
+          "catchFrame": 31,
+          "holdMs": 140,
+          "advance": 0,
+          "contact": {
+            "x": 73,
+            "y": 52
+          },
+          "catchPoint": {
+            "x": 63,
+            "y": 60
+          }
+        }
+      }
+    },
+    "rictor-oathbound-sword": {
+      "bodyTop": 36,
+      "size": 128,
+      "anchorX": 44,
+      "baseline": 94,
+      "scale": 0.86,
+      "idle": "rictor-oathbound-sword-idle.png",
+      "idleJob": "99b3d5cf-8db9-4d55-a085-ad22e574ef50",
+      "idleLoop": {
+        "file": "rictor-oathbound-sword-idle-loop.png",
+        "job": "0a194aa2-fed9-44f0-87e5-11f03ddb765b",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "rictor-oathbound-sword-attack.png",
+        "job": "ef2d1ac1-0dea-4253-8e90-9a3367655043",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 8,
+        "contact": {
+          "x": 86,
+          "y": 90
+        },
+        "holdMs": 120,
+        "advance": 124
+      },
+      "critical": {
+        "file": "rictor-oathbound-sword-critical.png",
+        "job": "a63ba1ca-01ca-4154-8e3f-81eaba4c86d9",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "contact": {
+          "x": 113,
+          "y": 83
+        },
+        "holdMs": 160,
+        "advance": 70
+      },
+      "sourceReference": "assets/character/Outhbound_Rictor/rotations/east.png"
+    },
+    "rictor-oathbound-dark": {
+      "bodyTop": 36,
+      "size": 128,
+      "anchorX": 44,
+      "baseline": 94,
+      "scale": 0.86,
+      "idle": "rictor-oathbound-dark-idle.png",
+      "idleJob": "29ac63ec-54a5-4f21-b207-cae6ecaa7313",
+      "idleLoop": {
+        "file": "rictor-oathbound-dark-idle-loop.png",
+        "job": "3ff83f32-1b80-401d-8130-4f1a645d47c5",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "casting": true,
+      "attack": {
+        "file": "rictor-oathbound-dark-attack.png",
+        "job": "c9ad011f-07f7-4e9a-b889-a73e1397243f",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "contact": {
+          "x": 73,
+          "y": 50
+        },
+        "holdMs": 80,
+        "advance": 0
+      },
+      "critical": {
+        "file": "rictor-oathbound-dark-critical.png",
+        "job": "1dcd77e3-cc4a-4f2d-85e2-c577ea416fdc",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "contact": {
+          "x": 73,
+          "y": 51
+        },
+        "holdMs": 140,
+        "advance": 0
+      },
+      "sourceReference": "assets/character/Outhbound_Rictor/rotations/east.png"
+    },
+    "generic-paladin-sword": {
+      "bodyTop": 39,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 62,
+      "baseline": 144,
+      "scale": 0.66,
+      "idle": "generic-paladin-sword-idle.png",
+      "idleJob": "53618056-e53b-4e9a-9d9f-300cf1e8f7e4",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Generic_Paladin/Generic_Sword_Paladin/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "generic-paladin-sword-idle-loop.png",
+        "job": "e7e8bece-9d26-4576-a3a6-39281f6c9941",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-paladin-sword-attack.png",
+        "job": "22c7019f-5476-4216-8cdc-7769d4da4876",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 11,
+        "holdMs": 60,
+        "advance": 42,
+        "contact": {
+          "x": 145,
+          "y": 88
+        }
+      },
+      "critical": {
+        "file": "generic-paladin-sword-critical.png",
+        "job": "64848bca-111f-4f99-80f9-8e9e8b8fdea0",
+        "frames": 26,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          6,
+          6,
+          7,
+          8,
+          8,
+          8,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          32
+        ],
+        "impactFrame": 10,
+        "holdMs": 100,
+        "advance": 48,
+        "contact": {
+          "x": 142,
+          "y": 140
+        }
+      }
+    },
+    "generic-paladin-axe": {
+      "bodyTop": 39,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 62,
+      "baseline": 144,
+      "scale": 0.65,
+      "idle": "generic-paladin-axe-idle.png",
+      "idleJob": "15b861d0-c20d-4aab-bb08-59f74a521ac4",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Generic_Paladin/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "generic-paladin-axe-idle-loop.png",
+        "job": "5a3078f1-4a02-404e-9532-dc7db5335f6f",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-paladin-axe-attack.png",
+        "job": "bd853fdf-6280-43c6-bb1c-7364fd3ea5f9",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 58,
+        "contact": {
+          "x": 137,
+          "y": 141
+        }
+      },
+      "critical": {
+        "file": "generic-paladin-axe-critical.png",
+        "job": "218a174f-8487-4d66-b37d-329eb8fb2d3a",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 100,
+        "advance": 42,
+        "contact": {
+          "x": 145,
+          "y": 141
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-paladin-axe-thrown-attack.png",
+          "job": "c1dfcc9c-e771-4ed0-8c5a-1baf36f982c2",
+          "frames": 25,
+          "frameMs": 40,
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 121,
+            "y": 62
+          },
+          "catchFrame": 19,
+          "catchPoint": {
+            "x": 96,
+            "y": 74
+          }
+        },
+        "critical": {
+          "file": "generic-paladin-axe-thrown-critical.png",
+          "job": "43b3041c-c6c3-4fad-804d-9ee5571f988f",
+          "frames": 26,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            8,
+            9,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 8,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 112,
+            "y": 59
+          },
+          "catchFrame": 21,
+          "catchPoint": {
+            "x": 88,
+            "y": 88
+          }
+        }
+      }
+    },
+    "generic-general-spear": {
+      "bodyTop": 42,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 76,
+      "baseline": 144,
+      "scale": 0.71,
+      "idle": "generic-general-spear-idle.png",
+      "idleJob": "6cef6f02-9d97-40de-be77-40f4a5d471a7",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/General_Severin/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "generic-general-spear-idle-loop.png",
+        "job": "95cb1ba5-5b85-4f78-b7af-ef533a8b6b7d",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-general-spear-attack.png",
+        "job": "218b358b-6a73-4d42-8362-4300e1e7b96e",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 9,
+        "holdMs": 60,
+        "advance": 50,
+        "contact": {
+          "x": 155,
+          "y": 100
+        }
+      },
+      "critical": {
+        "file": "generic-general-spear-critical.png",
+        "job": "42280179-bf03-4201-99cb-ae528742bc4c",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 100,
+        "advance": 52,
+        "contact": {
+          "x": 154,
+          "y": 104
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-general-spear-thrown-attack.png",
+          "job": "cc233d2b-f00d-41df-95d4-5014da08a849",
+          "frames": 23,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 133,
+            "y": 77
+          },
+          "catchFrame": 18,
+          "catchPoint": {
+            "x": 81,
+            "y": 104
+          }
+        },
+        "critical": {
+          "file": "generic-general-spear-thrown-critical.png",
+          "job": "4f2a3c35-8e44-450a-8a30-b1c7f2c23f40",
+          "frames": 32,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 12,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 140,
+            "y": 84
+          },
+          "catchFrame": 24,
+          "catchPoint": {
+            "x": 81,
+            "y": 103
+          }
+        }
+      }
+    },
+    "generic-general-axe": {
+      "bodyTop": 42,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 76,
+      "baseline": 144,
+      "scale": 0.74,
+      "idle": "generic-general-axe-idle.png",
+      "idleJob": "b1b574e5-caaf-43ae-8fa7-974a590211d0",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/General_Severin/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "generic-general-axe-idle-loop.png",
+        "job": "f044088a-c635-4d23-84fa-2050155db627",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-general-axe-attack.png",
+        "job": "38cac08b-3738-4d2b-a10f-f54647297c69",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 78,
+        "contact": {
+          "x": 141,
+          "y": 135
+        }
+      },
+      "critical": {
+        "file": "generic-general-axe-critical.png",
+        "job": "c39bcba0-ea56-46c0-9fb3-7efdcf5f57b1",
+        "frames": 29,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 13,
+        "holdMs": 100,
+        "advance": 70,
+        "contact": {
+          "x": 145,
+          "y": 137
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "generic-general-axe-thrown-attack.png",
+          "job": "f72fa741-48ce-4f30-bc2b-6147a6dcd8e0",
+          "frames": 24,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "impactFrame": 7,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 154,
+            "y": 88
+          },
+          "catchFrame": 18,
+          "catchPoint": {
+            "x": 85,
+            "y": 103
+          }
+        },
+        "critical": {
+          "file": "generic-general-axe-thrown-critical.png",
+          "job": "df3a9fce-dc95-45d9-8486-95ee3f29b50c",
+          "frames": 31,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 9,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 138,
+            "y": 90
+          },
+          "catchFrame": 24,
+          "catchPoint": {
+            "x": 86,
+            "y": 103
+          }
+        }
+      }
+    },
+    "generic-sage": {
+      "bodyTop": 41,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 79,
+      "baseline": 144,
+      "scale": 0.8,
+      "idle": "generic-sage-idle.png",
+      "idleJob": "07dce6b4-4c3f-4197-9c20-5ca41c40ecc1",
+      "sourceIndex": 1,
+      "mapReference": "assets/character/Generic_Sage/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "casting": true,
+      "idleLoop": {
+        "file": "generic-sage-idle-loop.png",
+        "job": "9ba3f25a-cc2c-40aa-9b94-d885f8c61508",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "generic-sage-attack.png",
+        "job": "f792d3ef-eda5-4fd3-b5de-d4cd27e0d0b5",
+        "frames": 22,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 114,
+          "y": 77
+        }
+      },
+      "critical": {
+        "file": "generic-sage-critical.png",
+        "job": "47f55198-4d3e-4708-9d0c-b1c562cb8e33",
+        "frames": 26,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 10,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 123,
+          "y": 76
+        }
+      },
+      "staff": {
+        "idle": "generic-sage-staff-idle.png",
+        "idleJob": "23bd14ad-ffed-4784-b81a-669b393dcab2",
+        "cast": {
+          "file": "generic-sage-staff-cast.png",
+          "job": "32bb3289-694b-46b7-acb5-66ba2bda2a9e",
+          "frames": 17,
+          "frameMs": 40,
+          "impactFrame": 10,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 108,
+            "y": 66
+          },
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      }
+    },
+    "troy-cavalier-lance": {
+      "bodyTop": 46,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 71,
+      "baseline": 144,
+      "scale": 0.71,
+      "idle": "troy-cavalier-lance-idle.png",
+      "idleJob": "3bd64959-6acc-4205-b052-06b1ddf86fa6",
+      "sourceIndex": 3,
+      "mapReference": "assets/character/Troy/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "troy-cavalier-lance-idle-loop.png",
+        "job": "8ffdcdd5-934e-476e-a5a3-784faf35e200",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "troy-cavalier-lance-attack.png",
+        "job": "5026c894-e381-4b77-a16e-b2c1a15d2e31",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 10,
+        "holdMs": 60,
+        "advance": 46,
+        "contact": {
+          "x": 152,
+          "y": 76
+        }
+      },
+      "critical": {
+        "file": "troy-cavalier-lance-critical.png",
+        "job": "0a750658-fb62-423a-99d7-c7d94da5a1b2",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 20,
+        "holdMs": 100,
+        "advance": 40,
+        "contact": {
+          "x": 155,
+          "y": 78
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "troy-cavalier-lance-thrown-attack.png",
+          "job": "4937f635-13aa-47af-8f82-2f1c9bbd164c",
+          "frames": 24,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "impactFrame": 10,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 124,
+            "y": 69
+          },
+          "catchFrame": 19,
+          "catchPoint": {
+            "x": 83,
+            "y": 77
+          }
+        },
+        "critical": {
+          "file": "troy-cavalier-lance-thrown-critical.png",
+          "job": "a6547c5e-0ef0-4945-b2c7-65290a63b24f",
+          "frames": 32,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 15,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 125,
+            "y": 63
+          },
+          "catchFrame": 26,
+          "catchPoint": {
+            "x": 83,
+            "y": 72
+          }
+        }
+      }
+    },
+    "troy-cavalier-sword": {
+      "bodyTop": 46,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 71,
+      "baseline": 144,
+      "scale": 0.71,
+      "idle": "troy-cavalier-sword-idle.png",
+      "idleJob": "3c9b20e9-e76d-42b7-bacb-8b9777d3cdc4",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Troy/Troy_sword/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "troy-cavalier-sword-idle-loop.png",
+        "job": "f813e5a9-9497-45f6-a6ca-0e81b3441220",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "troy-cavalier-sword-attack.png",
+        "job": "70b89eb1-888b-41fa-aa15-5ce52998b6bd",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 50,
+        "contact": {
+          "x": 150,
+          "y": 118
+        }
+      },
+      "critical": {
+        "file": "troy-cavalier-sword-critical.png",
+        "job": "2b30e319-9d08-41ab-905c-4e8d32b07551",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 21,
+        "holdMs": 100,
+        "advance": 78,
+        "contact": {
+          "x": 136,
+          "y": 109
+        }
+      }
+    },
+    "troy-paladin-lance": {
+      "bodyTop": 38,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 61,
+      "baseline": 144,
+      "scale": 0.66,
+      "idle": "troy-paladin-lance-idle.png",
+      "idleJob": "740f615f-53d4-4291-8fca-ea478ef7cd45",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Paladin_Troy/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "troy-paladin-lance-idle-loop.png",
+        "job": "a3547666-49d7-4d20-8454-948f2352655d",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "troy-paladin-lance-attack.png",
+        "job": "3d9eb12a-9cbb-4bc0-99c6-c6d893ea6fc9",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 20,
+        "contact": {
+          "x": 155,
+          "y": 84
+        }
+      },
+      "critical": {
+        "file": "troy-paladin-lance-critical.png",
+        "job": "cd5e5377-2cea-4070-9501-9d317cbd8ec5",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 13,
+        "holdMs": 100,
+        "advance": 40,
+        "contact": {
+          "x": 145,
+          "y": 67
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "troy-paladin-lance-thrown-attack.png",
+          "job": "771cf9b6-da0b-43fe-a115-7b21aa038243",
+          "frames": 23,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "impactFrame": 6,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 125,
+            "y": 58
+          },
+          "catchFrame": 18,
+          "catchPoint": {
+            "x": 91,
+            "y": 57
+          }
+        },
+        "critical": {
+          "file": "troy-paladin-lance-thrown-critical.png",
+          "job": "2775baa7-b283-46d4-9f55-860aa2ae4d83",
+          "frames": 31,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 15,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 122,
+            "y": 68
+          },
+          "catchFrame": 28,
+          "catchPoint": {
+            "x": 90,
+            "y": 69
+          }
+        }
+      }
+    },
+    "troy-paladin-sword": {
+      "bodyTop": 52,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 74,
+      "baseline": 144,
+      "scale": 0.76,
+      "idle": "troy-paladin-sword-idle.png",
+      "idleJob": "7aec1cb6-9f01-4b7d-b0fc-ac51a234b5ec",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Paladin_Troy/Paladin_troy_sword/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "troy-paladin-sword-idle-loop.png",
+        "job": "05616480-d149-4823-b1b4-2b16aa750b8f",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "troy-paladin-sword-attack.png",
+        "job": "6257aa07-b096-469d-bd0a-f7f2786b4af1",
+        "frames": 20,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "impactFrame": 8,
+        "holdMs": 60,
+        "advance": 98,
+        "contact": {
+          "x": 129,
+          "y": 118
+        }
+      },
+      "critical": {
+        "file": "troy-paladin-sword-critical.png",
+        "job": "4e8f9ec9-c4dc-4066-92da-05f8e4cfbc79",
+        "frames": 24,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          32
+        ],
+        "impactFrame": 10,
+        "holdMs": 100,
+        "advance": 102,
+        "contact": {
+          "x": 127,
+          "y": 121
+        }
+      }
+    },
+    "troy-paladin-axe": {
+      "bodyTop": 52,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 74,
+      "baseline": 144,
+      "scale": 0.76,
+      "idle": "troy-paladin-axe-idle.png",
+      "idleJob": "10b2887e-a2ac-4456-afb2-f58f06854983",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Paladin_Troy/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "troy-paladin-axe-idle-loop.png",
+        "job": "89253095-5aff-4eb2-9812-0208fbba965b",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "troy-paladin-axe-attack.png",
+        "job": "f50ec852-7698-46dc-aca0-492c5d3308fd",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 5,
+        "holdMs": 60,
+        "advance": 92,
+        "contact": {
+          "x": 132,
+          "y": 130
+        }
+      },
+      "critical": {
+        "file": "troy-paladin-axe-critical.png",
+        "job": "d1edc35c-344c-4233-995c-7c9fe1b7807e",
+        "frames": 26,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          18,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 16,
+        "holdMs": 100,
+        "advance": 90,
+        "contact": {
+          "x": 133,
+          "y": 134
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "troy-paladin-axe-thrown-attack.png",
+          "job": "0643af3b-f41c-48fe-b8a6-f9e11bd68ff7",
+          "frames": 24,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "impactFrame": 7,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 122,
+            "y": 75
+          },
+          "catchFrame": 17,
+          "catchPoint": {
+            "x": 93,
+            "y": 79
+          }
+        },
+        "critical": {
+          "file": "troy-paladin-axe-thrown-critical.png",
+          "job": "ab6bfc20-7783-4ee6-85bc-f859175dfec4",
+          "frames": 32,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 11,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 123,
+            "y": 71
+          },
+          "catchFrame": 27,
+          "catchPoint": {
+            "x": 92,
+            "y": 80
+          }
+        }
+      }
+    },
+    "corvis-shaman": {
+      "bodyTop": 34,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 76,
+      "baseline": 144,
+      "scale": 0.66,
+      "idle": "corvis-shaman-idle.png",
+      "idleJob": "1067f727-9cc2-424e-a2e0-fbe97a91bf30",
+      "sourceIndex": 2,
+      "mapReference": "assets/character/Corvis/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "casting": true,
+      "idleLoop": {
+        "file": "corvis-shaman-idle-loop.png",
+        "job": "14372fde-4772-4a6c-a0bb-e88f33a679c4",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "corvis-shaman-attack.png",
+        "job": "fb608a39-625e-4cfc-bc72-02abf761bbc2",
+        "frames": 16,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "impactFrame": 5,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 127,
+          "y": 66
+        }
+      },
+      "critical": {
+        "file": "corvis-shaman-critical.png",
+        "job": "538cd5bd-792f-4b99-8b74-597b788cc154",
+        "frames": 26,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          13,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 8,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 126,
+          "y": 67
+        }
+      }
+    },
+    "corvis-dark-sage": {
+      "bodyTop": 48,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 76,
+      "baseline": 144,
+      "scale": 0.77,
+      "idle": "corvis-dark-sage-idle.png",
+      "idleJob": "cf2b2820-2151-47ab-86a5-271058045f25",
+      "sourceIndex": 1,
+      "mapReference": "assets/character/Dark_Sage_Corvis/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "casting": true,
+      "idleLoop": {
+        "file": "corvis-dark-sage-idle-loop.png",
+        "job": "9ef6364d-11a9-4887-8670-7df04094c78e",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "corvis-dark-sage-attack.png",
+        "job": "4798e90d-5808-4449-be87-a24a57f19283",
+        "frames": 16,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          8,
+          9,
+          10,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "impactFrame": 5,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 130,
+          "y": 83
+        }
+      },
+      "critical": {
+        "file": "corvis-dark-sage-critical.png",
+        "job": "fc21c508-b69f-4554-8d2d-91294dd8bafc",
+        "frames": 24,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11,
+          13,
+          14,
+          15,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 9,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 125,
+          "y": 87
+        }
+      },
+      "staff": {
+        "idle": "corvis-dark-sage-staff-idle.png",
+        "idleJob": "9bcab1c4-bde0-4304-b7f5-a87be31755c9",
+        "cast": {
+          "file": "corvis-dark-sage-staff-cast.png",
+          "job": "52e180b4-4983-447b-a9f5-ab2497889205",
+          "frames": 11,
+          "frameMs": 40,
+          "impactFrame": 6,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 118,
+            "y": 75
+          },
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      }
+    },
+    "eveline-troubadour": {
+      "bodyTop": 51,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 75,
+      "baseline": 144,
+      "scale": 0.78,
+      "idle": "eveline-troubadour-idle.png",
+      "idleJob": "5817e210-6bf1-439f-9127-1308291301e4",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Eveline_Troubadour/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "casting": true,
+      "idleLoop": {
+        "file": "eveline-troubadour-idle-loop.png",
+        "job": "04556bbb-44c0-4a6e-b469-a7f8cf007101",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "staff": {
+        "idle": "eveline-troubadour-idle.png",
+        "idleJob": "5817e210-6bf1-439f-9127-1308291301e4",
+        "cast": {
+          "file": "eveline-troubadour-cast.png",
+          "job": "2830de90-970f-409c-bf46-35d463bfe8ed",
+          "frames": 20,
+          "frameMs": 40,
+          "impactFrame": 3,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 88,
+            "y": 54
+          },
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      },
+      "supportOnly": true
+    },
+    "eveline-valkyrie": {
+      "bodyTop": 42,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 78,
+      "baseline": 144,
+      "scale": 0.75,
+      "idle": "eveline-valkyrie-idle.png",
+      "idleJob": "bce19428-ea4e-4ec5-bfd7-fa7c6f28e7d7",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Eveline_Valkyrie/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "casting": true,
+      "idleLoop": {
+        "file": "eveline-valkyrie-idle-loop.png",
+        "job": "3424ee2d-5436-4571-b7d9-85352b748b6a",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "eveline-valkyrie-attack.png",
+        "job": "7c5d44b0-2a84-4a59-a533-0f877459533b",
+        "frames": 16,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "impactFrame": 5,
+        "holdMs": 60,
+        "advance": 0,
+        "contact": {
+          "x": 113,
+          "y": 54
+        }
+      },
+      "critical": {
+        "file": "eveline-valkyrie-critical.png",
+        "job": "a930aeb6-dea7-46e3-b8ab-6febb424b233",
+        "frames": 26,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          10,
+          11,
+          12,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 9,
+        "holdMs": 100,
+        "advance": 0,
+        "contact": {
+          "x": 115,
+          "y": 54
+        }
+      },
+      "staff": {
+        "idle": "eveline-valkyrie-staff-idle.png",
+        "idleJob": "0e553454-0494-4a16-b929-ec03b807b037",
+        "cast": {
+          "file": "eveline-valkyrie-staff-cast.png",
+          "job": "9285bdb8-d07e-4133-8d2b-cdf9040b3038",
+          "frames": 16,
+          "frameMs": 40,
+          "impactFrame": 4,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 112,
+            "y": 37
+          },
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      }
+    },
+    "linus-paladin-axe": {
+      "bodyTop": 58,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 60,
+      "baseline": 144,
+      "scale": 0.8,
+      "idle": "linus-paladin-axe-idle.png",
+      "idleJob": "e0f5bed1-0ef9-4099-ac88-f76eb3b5ca38",
+      "sourceIndex": 0,
+      "mapReference": "assets/character/Paladin_Linus/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "linus-paladin-axe-idle-loop.png",
+        "job": "555cfa88-7c0e-45e2-baf2-556b2ec39fe2",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "linus-paladin-axe-attack.png",
+        "job": "4990fabb-0382-4fa0-aa97-6fdacd5369cc",
+        "frames": 24,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 62,
+        "contact": {
+          "x": 133,
+          "y": 103
+        }
+      },
+      "critical": {
+        "file": "linus-paladin-axe-critical.png",
+        "job": "e06c252d-e55e-4b9d-b84a-1528729d60e7",
+        "frames": 28,
+        "frameMs": 40,
+        "sourceFrames": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "impactFrame": 5,
+        "holdMs": 100,
+        "advance": 104,
+        "contact": {
+          "x": 112,
+          "y": 135
+        }
+      },
+      "thrown": {
+        "attack": {
+          "file": "linus-paladin-axe-thrown-attack.png",
+          "job": "138da6e3-a100-44b6-8bdb-4709dcad127e",
+          "frames": 23,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            21,
+            22,
+            23,
+            24
+          ],
+          "impactFrame": 9,
+          "holdMs": 60,
+          "advance": 0,
+          "contact": {
+            "x": 116,
+            "y": 66
+          },
+          "catchFrame": 19,
+          "catchPoint": {
+            "x": 94,
+            "y": 85
+          }
+        },
+        "critical": {
+          "file": "linus-paladin-axe-thrown-critical.png",
+          "job": "da3e302a-250f-47f6-80dd-59f74c9b2e4e",
+          "frames": 31,
+          "frameMs": 40,
+          "sourceFrames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "impactFrame": 7,
+          "holdMs": 100,
+          "advance": 0,
+          "contact": {
+            "x": 116,
+            "y": 65
+          },
+          "catchFrame": 25,
+          "catchPoint": {
+            "x": 94,
+            "y": 86
+          }
+        }
+      }
+    },
+    "shore-duelist": {
+      "size": 224, "sourceSize": 128, "scale": 0.61, "anchorX": 112, "baseline": 188,
+      "idle": "shore-duelist-idle.png", "idleJob": "4908507a-ce13-415c-b2d8-61681bb0c13e",
+      "idleLoop": { "file": "shore-duelist-idle-loop.png", "frames": 9, "frameMs": 140, "job": "64fb2e8d-ec40-4049-8ced-321f59c0b942" },
+      "attack": { "file": "shore-duelist-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "095456c0-8e87-479c-9831-5311ff9cef67" },
+      "critical": { "file": "shore-duelist-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "c117efeb-e302-44a0-8e85-8a0fbc4f4a5c" }
+    },
+    "shore-sentinel": {
+      "size": 224, "sourceSize": 128, "scale": 0.66, "anchorX": 112, "baseline": 188,
+      "idle": "shore-sentinel-idle.png", "idleJob": "139a4518-0a9f-4cb4-b435-104dfc88829c",
+      "idleLoop": { "file": "shore-sentinel-idle-loop.png", "frames": 9, "frameMs": 140, "job": "0ed992fd-0868-40ae-8117-da07f169d976" },
+      "attack": { "file": "shore-sentinel-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "0ebcf5a9-de71-4b04-8b65-7575789a158e" },
+      "critical": { "file": "shore-sentinel-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "6bc3d899-f8dc-4b50-9047-6597a933a4c8" }
+    },
+    "shore-keelbreaker": {
+      "size": 224, "sourceSize": 128, "scale": 0.66, "anchorX": 112, "baseline": 188,
+      "idle": "shore-keelbreaker-idle.png", "idleJob": "3a936a47-0d3c-4396-9fb3-4178e996014b",
+      "idleLoop": { "file": "shore-keelbreaker-idle-loop.png", "frames": 9, "frameMs": 140, "job": "a79fc00f-d5a7-4eb7-a265-e73eec5752b3" },
+      "attack": { "file": "shore-keelbreaker-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "847fe8d8-d03c-4bb2-a905-fab304cbcfd7" },
+      "critical": { "file": "shore-keelbreaker-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "0fc69a09-5ccf-4319-894c-2e704b605175" }
+    },
+    "shore-watcher": {
+      "size": 224, "sourceSize": 128, "scale": 0.66, "anchorX": 112, "baseline": 188, "casting": true,
+      "idle": "shore-watcher-idle.png", "idleJob": "6035cf0e-cd75-471c-baf1-cf7fd845cdb1",
+      "idleLoop": { "file": "shore-watcher-idle-loop.png", "frames": 9, "frameMs": 140, "job": "4da05afb-77d3-4fb2-85f3-7d987c701a18" },
+      "attack": { "file": "shore-watcher-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 0, "contact": { "x": 160, "y": 120 }, "job": "e64a28a3-87c3-415d-84cb-296419b199f8" },
+      "critical": { "file": "shore-watcher-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 0, "contact": { "x": 160, "y": 120 }, "job": "a98664af-f0f3-4e88-98e4-f4a0602b8446" }
+    },
+    "shore-custodian": {
+      "size": 224, "sourceSize": 128, "scale": 0.66, "anchorX": 112, "baseline": 188, "casting": true,
+      "idle": "shore-custodian-idle.png", "idleJob": "c1084aa3-3b44-4418-ba3d-c34748655bc1",
+      "idleLoop": { "file": "shore-custodian-idle-loop.png", "frames": 9, "frameMs": 140, "job": "c0b9af05-5339-428f-915d-9534a4ec66ae" },
+      "attack": { "file": "shore-custodian-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 0, "contact": { "x": 160, "y": 120 }, "job": "23dbdd02-fb3c-4d59-af55-32f353da9cfc" },
+      "critical": { "file": "shore-custodian-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 0, "contact": { "x": 160, "y": 120 }, "job": "73e58377-8719-4ec3-b885-5d1b0cd48d02" }
+    },
+    "shore-keeper": {
+      "size": 224, "sourceSize": 128, "scale": 0.66, "anchorX": 112, "baseline": 188, "casting": true,
+      "idle": "shore-keeper-idle.png", "idleJob": "a5560943-d6bb-44e0-bab3-c03e0758e9f4",
+      "idleLoop": { "file": "shore-keeper-idle-loop.png", "frames": 9, "frameMs": 140, "job": "700b1430-a435-478c-b09c-1d42145101cd" },
+      "attack": { "file": "shore-keeper-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 0, "contact": { "x": 160, "y": 120 }, "job": "e45174fb-6125-44fc-bb76-fa7e30938fe1" },
+      "critical": { "file": "shore-keeper-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 0, "contact": { "x": 160, "y": 120 }, "job": "65016a92-2710-47a5-8aa4-c8513ca43aab" }
+    },
+    "shore-crowman": {
+      "size": 224, "sourceSize": 128, "scale": 0.66, "anchorX": 112, "baseline": 188,
+      "idle": "shore-crowman-idle.png", "idleJob": "28b7353e-2628-4401-a98b-67b53cbf3d0b",
+      "idleLoop": { "file": "shore-crowman-idle-loop.png", "frames": 9, "frameMs": 140, "job": "42dbc76f-7a5c-4d62-b769-ade5db644cfb" },
+      "attack": { "file": "shore-crowman-attack.png", "frames": 13, "frameMs": 40, "impactFrame": 8, "holdMs": 60, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "86a463f5-92d7-434e-9990-9a119d0924a5" },
+      "critical": { "file": "shore-crowman-critical.png", "frames": 17, "frameMs": 40, "impactFrame": 12, "holdMs": 100, "advance": 72, "contact": { "x": 180, "y": 120 }, "job": "603f1760-a66c-431d-be77-f6c019fabd21" }
+    },
+    "linus-bloodsworn-sword": {
+      "bodyTop": 56,
+      "mounted": true,
+      "size": 160,
+      "sourceSize": 128,
+      "transparentPadding": 16,
+      "anchorX": 56,
+      "baseline": 144,
+      "scale": 0.75,
+      "idle": "linus-bloodsworn-sword-idle.png",
+      "idleJob": "273ec73d-f9f8-4e74-9cf7-705b89cc5d38",
+      "sourceIndex": 0,
+      "mapReference": "assets/covenant/bloodsworn-linus/map/rotations/east.png",
+      "styleReference": "assets/battle/maria-hunter-idle.png",
+      "idleLoop": {
+        "file": "linus-bloodsworn-sword-idle-loop.png",
+        "job": "ea6d017f-f651-4d2e-ae6a-0e3659e02ae5",
+        "frames": 9,
+        "frameMs": 120
+      },
+      "attack": {
+        "file": "linus-bloodsworn-sword-attack.png",
+        "job": "a16bc70c-5a61-43c8-8922-9aaeb02d5e00",
+        "frames": 25,
+        "frameMs": 40,
+        "impactFrame": 7,
+        "holdMs": 60,
+        "advance": 28,
+        "contact": {
+          "x": 146,
+          "y": 92
+        }
+      },
+      "critical": {
+        "file": "linus-bloodsworn-sword-critical.png",
+        "job": "d8f8ae97-d582-41b0-b383-a4ed129325c5",
+        "frames": 33,
+        "frameMs": 40,
+        "impactFrame": 15,
+        "holdMs": 100,
+        "advance": 28,
+        "contact": {
+          "x": 146,
+          "y": 126
         }
       }
     }

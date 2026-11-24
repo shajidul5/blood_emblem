@@ -11,26 +11,47 @@ import { enemyMovementType } from './characters/characters.js';
 import { SHIP_TILE_IDS, validateShipScene } from './levels/ship-scene.js';
 import twoShipsUrl from '../assets/maps/ships/two-ships.png?url';
 import loneShipUrl from '../assets/maps/ships/lone-ship.png?url';
-import { villageLayout, VILLAGE_TILE_IDS, validateVillageScene, layoutTileIds, layoutDefaultTile } from './levels/village-scene.js';
+import { villageLayout, VILLAGE_TILE_IDS, STREET_SCENE_TILE_IDS, validateVillageScene, layoutTileIds, layoutDefaultTile } from './levels/village-scene.js';
+import { cathedralAtlasUrl, cathedralMaterialRect, cathedralPlanMaterial } from './levels/cathedral-materials.js';
+import cathedralIllustrationUrl from '../assets/maps/cathedral-interior-hd.png?url';
 import villageArtUrl from '../assets/maps/village/village.png?url';
+import villageHdArtUrl from '../assets/maps/village/village-hd.png?url';
+import harborArtUrl from '../assets/maps/village/harbor.png?url';
 import mansionArtUrl from '../assets/maps/village/mansion.png?url';
 import manorArtUrl from '../assets/maps/village/manor.png?url';
+import manorHdArtUrl from '../assets/maps/village/manor-hd.png?url';
 import forestArtUrl from '../assets/maps/village/forest.png?url';
 import campArtUrl from '../assets/maps/village/camp.png?url';
 import heartArtUrl from '../assets/maps/village/heart.png?url';
 import crossingArtUrl from '../assets/maps/village/crossing.png?url';
 import thresholdArtUrl from '../assets/maps/village/threshold.png?url';
+import wardArtUrl from '../assets/maps/village/ward.png?url';
+import compactWardArtUrl from '../assets/maps/village/ward-compact.png?url';
+import compactInfirmaryArtUrl from '../assets/maps/village/infirmary-compact.png?url';
+import infirmaryArtUrl from '../assets/maps/village/infirmary.png?url';
+import streetsArtUrl from '../assets/maps/village/streets.png?url';
+import streetsDepthArtUrl from '../assets/maps/village/streets-depth.png?url';
+import courtyardArtUrl from '../assets/maps/village/courtyard.png?url';
+import courtyardConceptArtUrl from '../assets/maps/village/courtyard-concept.png?url';
+import courtyardAlignedArtUrl from '../assets/maps/village/courtyard-aligned.png?url';
+import courtyardRepairedArtUrl from '../assets/maps/village/courtyard-repaired.png?url';
+import courtyardDepthArtUrl from '../assets/maps/village/courtyard-depth.png?url';
+import courtyardPassageArtUrl from '../assets/maps/village/courtyard-passage.png?url';
+import courtyardRedrawnArtUrl from '../assets/maps/village/courtyard-redrawn.png?url';
 
 const TILE_TYPES = [
   ...shipTileset.tiles.list.map((tile) => ({ key: tile.id, name: tile.id, walkable: tile.walkable })),
   ...SHIP_TILE_IDS.map((id) => ({ key: id, name: getTileDef(id).name, walkable: getTileDef(id).walkable })),
   ...VILLAGE_TILE_IDS.map((id) => ({ key: id, name: getTileDef(id).name, walkable: getTileDef(id).walkable })),
+  ...STREET_SCENE_TILE_IDS.filter((id) => !shipTileset.tiles.list.some((tile) => tile.id === id))
+    .map((id) => ({ key: id, name: getTileDef(id).name, walkable: getTileDef(id).walkable })),
   { key: '@spawn', name: 'Start', walkable: true },
   { key: '@exit', name: 'Exit', walkable: true },
 ];
 const ATLAS_TILES = new Map(shipTileset.tiles.list.map((tile) => [tile.id, tile]));
 for (const id of SHIP_TILE_IDS) ATLAS_TILES.set(id, getTileDef(id));
 for (const id of VILLAGE_TILE_IDS) ATLAS_TILES.set(id, getTileDef(id));
+for (const id of STREET_SCENE_TILE_IDS) ATLAS_TILES.set(id, getTileDef(id));
 const fenceImages = new Map(await Promise.all([
   ['village_fence_h', fenceHorizontalUrl], ['village_fence_v', fenceVerticalUrl],
   ['bridge_sandbags', sandbagsUrl],
@@ -48,6 +69,10 @@ const LEGACY_ATLAS_TILES = {
   m: 'mast_base',
   s: 'deck_a',
   e: 'deck_a',
+  B: 'village_building',
+  C: 'street_curb',
+  L: 'street_lamp',
+  g: 'ground_cobble_a',
 };
 const canvas = document.querySelector('#map');
 const context = canvas.getContext('2d');
@@ -72,10 +97,12 @@ function loadImage(url, label) {
   });
 }
 
-const [tileAtlas, objectAtlas, mastImage, initialMapResponse] = await Promise.all([
+const [tileAtlas, objectAtlas, mastImage, cathedralAtlas, cathedralIllustration, initialMapResponse] = await Promise.all([
   loadImage(shipTilesUrl, 'ship tile atlas'),
   loadImage(shipObjectsUrl, 'ship object atlas'),
   loadImage(mastUrl, 'ship mast'),
+  loadImage(cathedralAtlasUrl, 'Cathedral materials'),
+  loadImage(cathedralIllustrationUrl, 'illustrated Cathedral'),
   fetch(initialMapUrl),
 ]);
 if (!initialMapResponse.ok) {
@@ -87,10 +114,26 @@ const shipImages = new Map(await Promise.all([
 ].map(async ([layout, url]) => [layout, await loadImage(url, 'illustrated ship map')])));
 let map;
 const villageImages = new Map(await Promise.all([
+  ['village-hd', villageHdArtUrl],
+  ['manor-hd', manorHdArtUrl],
+  ['harbor', harborArtUrl],
   ['village', villageArtUrl], ['mansion', mansionArtUrl], ['manor', manorArtUrl], ['forest', forestArtUrl], ['camp', campArtUrl],
   ['heart', heartArtUrl],
   ['crossing', crossingArtUrl],
   ['threshold', thresholdArtUrl],
+  ['ward', wardArtUrl],
+  ['ward-compact', compactWardArtUrl],
+  ['infirmary-compact', compactInfirmaryArtUrl],
+  ['infirmary', infirmaryArtUrl],
+  ['streets', streetsArtUrl],
+  ['streets-depth', streetsDepthArtUrl],
+  ['courtyard', courtyardArtUrl],
+  ['courtyard-concept', courtyardConceptArtUrl],
+  ['courtyard-aligned', courtyardAlignedArtUrl],
+  ['courtyard-repaired', courtyardRepairedArtUrl],
+  ['courtyard-depth', courtyardDepthArtUrl],
+  ['courtyard-passage', courtyardPassageArtUrl],
+  ['courtyard-redrawn', courtyardRedrawnArtUrl],
 ].map(async ([layout, url]) => [layout, await loadImage(url, 'illustrated village map')])));
 let selectedTile = 'deck_a';
 let drawing = false;
@@ -149,7 +192,7 @@ function validateMap(value) {
   if (typeof name !== 'string' || !name.trim()) {
     throw new Error('Give the level a name.');
   }
-  if (!['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'seize-gate', 'rescue-villagers'].includes(objective)) {
+  if (!['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'seize-gate', 'rescue-villagers', 'seize-streets'].includes(objective)) {
     throw new Error('Choose a valid level objective.');
   }
   if (objective === 'defend' && (!Number.isInteger(value.defendTurns) || value.defendTurns < 1 || value.defendTurns > 99)) {
@@ -261,6 +304,7 @@ function render() {
   const offsetX = (bounds.width - cell * map.width) / 2;
   const offsetY = (bounds.height - cell * map.height) / 2;
   const tileSize = shipTileset.tileSize;
+  const illustratedCathedral = map.cathedral?.artwork === 'illustrated';
   if (map.shipScene) {
     context.fillStyle = '#081825';
     context.fillRect(offsetX, offsetY, cell * map.width, cell * map.height);
@@ -270,14 +314,25 @@ function render() {
     const { image, crop } = villageLayout(map);
     context.drawImage(villageImages.get(image), ...crop, offsetX, offsetY, cell * map.width, cell * map.height);
   }
+  if (illustratedCathedral) {
+    context.drawImage(cathedralIllustration, offsetX, offsetY, cell * map.width, cell * map.height);
+  }
   for (let z = 0; z < map.height; z++) {
     for (let x = 0; x < map.width; x++) {
       const tile = ATLAS_TILES.get(map.tiles[z][x]);
       const px = offsetX + x * cell;
       const py = offsetY + z * cell;
-      if (map.shipScene || map.villageScene) {
-        context.fillStyle = tile.walkable ? 'rgba(80,210,150,0.12)' : 'rgba(125,40,50,0.12)';
+      if (map.shipScene || map.villageScene || illustratedCathedral) {
+        context.fillStyle = illustratedCathedral && tile.id === 'cathedral_stairs' ? 'rgba(255,195,70,0.25)'
+          : tile.walkable ? 'rgba(80,210,150,0.12)' : illustratedCathedral ? 'rgba(125,40,50,0.30)' : 'rgba(125,40,50,0.12)';
         context.fillRect(px, py, cell, cell);
+      } else if (tile.id.startsWith('cathedral_')) {
+        const material = cathedralPlanMaterial(tile.id, x, z);
+        context.drawImage(cathedralAtlas, ...cathedralMaterialRect(material), px, py, cell, cell);
+        if (!tile.walkable) {
+          context.fillStyle = 'rgba(24,16,24,0.30)';
+          context.fillRect(px, py, cell, cell);
+        }
       } else context.drawImage(
         tileAtlas,
         tile.col * tileSize,
@@ -340,7 +395,7 @@ function render() {
   renderMarker(map.spawn.x, map.spawn.z, 'S', '#688847', offsetX, offsetY, cell);
   renderMarker(map.exit.x, map.exit.z, 'E', '#407d83', offsetX, offsetY, cell);
   for (const house of map.houses ?? [])
-    renderMarker(house.door.x, house.door.z, 'V', '#279e53', offsetX, offsetY, cell);
+    renderMarker(house.door.x, house.door.z, house.destroyed ? 'X' : 'V', house.destroyed ? '#a64b37' : '#279e53', offsetX, offsetY, cell);
   for (const chest of map.chests ?? [])
     renderMarker(chest.x, chest.z, 'C', '#a57827', offsetX, offsetY, cell);
 

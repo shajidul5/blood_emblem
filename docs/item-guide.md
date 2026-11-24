@@ -35,6 +35,8 @@ Insight is spent from the Preparations **Insight** screen. Every item that grant
 | **Crossing Keepsake** | Read to gain 10 Insight. | 1 | Three names are scratched into a small seal. Below them, in a different hand: 'Someone turned back for us.' |
 | **Liam's Pocketwatch** | Read to gain 10 Insight. | 1 | A brass hunter's watch, stopped at the hour an oath was sworn. Scratched inside the lid: "Tell Ellen I kept watch. I kept watch." Whoever reads it understands, for a moment, what a man sees after a lifetime of watching the dark. |
 | **Orsen's Journal** | Read to gain 10 Insight. | 1 | The Order's commander kept this journal until the end. The early pages speak of an escort, a plague, and a promise to protect the island's people. The later pages speak of orders to burn the infected, and then of the whispers in the wood. The last page is one line, repeated: 'Hold the road. Let no one in. Let no one out.' |
+| **Sealed Transit Tag** | Read to gain 10 Insight. | 1 | A brass dispatch plate, polished clean around its fastening holes. A ward number has been struck through beneath the Cathedral seal. The receiving mark is still blank. |
+| **Treatment Ledger** | Read to gain 10 Insight. | 1 | Fever remedies fill the public register. Between its covers lies a second list: patient numbers, rising doses of crimson extract, discharge dates crossed out. Beside one number: 'Pulse absent. Movement resumed. Continue observation.' Later entries mention an emblem removed from the ward; after that, the handwriting grows hurried. A crest in the margin looks familiar to Rictor. |
 
 ### Promotion and Key Items
 
@@ -42,7 +44,7 @@ Insight is spent from the Preparations **Insight** screen. Every item that grant
 | --- | --- | --- | --- |
 | **Blood Emblem** (bound) | A bound keepsake. Awaken it with Insight and equip it: Blood Aura mends Maria and those beside her, Ravage trades her blood for strength, and Blood Feast drinks from every Ravaged blow. | 1 | A drop-shaped seal of dark metal, warm as a living hand. It was given to Maria before she sailed and she has never learned why it feels so heavy. Faint grooves on its face run like veins, and on this island they seem to move toward the sea. |
 | **Chest Key** | Opens a locked chest or cell door. | 1 | Cold and slick with salt, its teeth worn smooth. Someone locked things away with it, again and again, until the locking became a habit. |
-| **Covenant Emblem** | Promotes a level 20+ unit to their advanced class. | 1 | A raven seal pried from the Omen's breast. Survey hands sworn to the Sanguine Covenant wore it on the descent that found the Blood Emblem. Ansel Wren kept his oath long after he stopped being a man. |
+| **Covenant Emblem** | Promotes level 20+ Cavalier Linus to Bloodsworn, Archer Stark to Veilstalker or Oathkeeper Rictor to Oathbound (Spears, Swords and Dark). Cannot change an already-promoted class. | 1 | A raven seal of the Sanguine Covenant, worn beneath armor and expedition coats alike. Survey hands wore the same mark on the descent that found the Blood Emblem. Ansel Wren kept his oath long after he stopped being a man. |
 | **Orders Emblem** | Promotes a level 20+ unit to their advanced class. | 1 | A tarnished knight's seal, stamped with the crest of an order that sailed here and never wrote home. Whoever bears it is said to carry the order's full authority, and to be bound by it. |
 
 ## Weapons
@@ -53,26 +55,30 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 
 | Weapon | Rank | Mt | Hit | Crit | Wt | Range | Uses | Effect | Upgrades |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Iron Katana** | E | 5 | 90 | 0 | 3 | 1 | — | — | — |
+| **Iron Sword** | E | 5 | 90 | 0 | 3 | 1 | — | — | — |
 | **Rapier** | E | 6 | 85 | 10 | 2 | 1 | — | — | Evolves into **Bloodletter** for 30 Insight. |
 | **Bloodletter** | E | 7 | 90 | 15 | 1 | 1 | — | Strikes twice in a row. Maria only. | Evolved form of **Rapier**. |
 | **Lancereaver** | E | 7 | 75 | 0 | 5 | 1 | — | Reverses the weapon triangle against Spear users. | — |
 | **Zanbato** | E | 9 | 70 | 0 | 10 | 1 | — | Effective against cavalry and armored foes (triple might). | — |
+| **Beast Killer** | D | 7 | 85 | 0 | 7 | 1 | — | Effective against beast foes (triple might). | — |
 | **Armorslayer** | D | 8 | 75 | 0 | 8 | 1 | — | Effective against armored foes (triple might). | — |
 | **Killing Edge** | D | 8 | 80 | 30 | 6 | 1 | — | — | — |
 | **Steel Sword** | D | 8 | 80 | 0 | 8 | 1 | — | — | — |
+| **Silver Sword** | B | 12 | 80 | 0 | 9 | 1 | — | — | — |
 | **Starless Edge** | B | 13 | 85 | 0 | 8 | 1 | — | — | — |
 
 <details><summary>Lore</summary>
 
-- **Iron Katana:** Traded from a distant port. Its owner scored a tally of notches into the scabbard, and stopped counting at a number he never spoke of.
+- **Iron Sword:** Traded from a distant port. Its owner scored a tally of notches into the scabbard, and stopped counting at a number he never spoke of.
 - **Rapier:** A parting gift from her husband. A half-filed crest on the guard is something Maria has never asked about.
 - **Bloodletter:** The rapier, finally seen for what it is: a long, slim, double-edged blade that is never quite dry. The half-filed crest on the guard has resolved into a name, and the blade strikes twice before the air can close behind it.
 - **Lancereaver:** A knight's sword with a notched, hooked guard made to catch a lance and wrench it aside. The order forged it for the hunt in this village and then locked it in the mayor's strongroom, as if even they feared what it was used for. Dried salt crusts the fuller where a spear's shaft once splintered against it.
 - **Zanbato:** A headsman's blade, far too large for any fisherman. It was kept under the floorboards wrapped in nets, and the netmaker never explained why he kept it.
+- **Beast Killer:** Leon's broad hunting blade, carried to keep the forest's beasts from the village doors.
 - **Armorslayer:** A reinforced blade once kept by the bellkeeper, built to find the gaps in a Church knight's armor.
 - **Killing Edge:** A narrow blade issued to the Cathedral's confessors. It rewards precision rather than brute force.
 - **Steel Sword:** A workmanlike city-watch blade, its edge kept keen through long nights on the barricades.
+- **Silver Sword:** An officer's sword packed for the descent, its silver edge wrapped in oilcloth. The guard bears the Order's sun; the scabbard bears a freight number.
 - **Starless Edge:** A midnight-blue blade of the drowned civilization. Its bronze guard bears the last star chart made before the sea swallowed their observatories; the edge has outlasted every name on it.
 
 </details>
@@ -89,6 +95,7 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 | **Steel Spear** | E | 9 | 75 | 0 | 8 | 1 | — | — | — |
 | **Longinus** | E | 10 | 85 | 5 | 6 | 1 | — | The Demonslayer Lance. Effective against undead, cavalry and armored foes. Rictor only. | Evolved form of **Vigil Lance**. |
 | **Silver Lance** | E | 12 | 75 | 0 | 10 | 1 | — | — | — |
+| **Spear** | E | 12 | 85 | 0 | 12 | 1–2 | — | — | — |
 | **Axereaver** | D | 8 | 75 | 0 | 9 | 1 | — | Reverses the weapon triangle against Axe users. | — |
 | **Tidepiercer** | B | 14 | 80 | 0 | 10 | 1 | — | — | — |
 
@@ -102,6 +109,7 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 - **Steel Spear:** Better kept than the rest, with the ghost of an order mark ground off the blade. Whoever carried it was an officer, and wanted that forgotten.
 - **Longinus:** The Vigil Lance with its crest filed clean away. Underneath was an older mark: a spear through a church bell. Rictor does not know who carved it, only that the dead fear it.
 - **Silver Lance:** Silver plating conceals the iron underneath. The Church calls it a symbol of mercy.
+- **Spear:** A heavy, balanced war spear carried by Severin. Its long steel head strikes harder and flies truer than a common javelin.
 - **Axereaver:** A hooked lance forged to wrench an axe aside. Swords slip past its guard: it reverses and doubles both sides of the weapon triangle.
 - **Tidepiercer:** A lance recovered from the drowned civilization's sea gates. Its wave-marked bronze collar once named an officer of the harbor guard; the dark point remains straight after centuries beneath the tide.
 
@@ -115,7 +123,9 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 | **Iron Axe** | E | 7 | 75 | 0 | 5 | 1 | — | — | — |
 | **Hunter's Hatchet** | E | 10 | 80 | 10 | 7 | 1 | — | — | — |
 | **Steel Axe** | E | 10 | 70 | 0 | 10 | 1 | — | — | — |
+| **Silver Axe** | E | 14 | 70 | 0 | 14 | 1 | — | — | — |
 | **Killer Axe** | D | 10 | 80 | 30 | 9 | 1 | — | — | — |
+| **Tomahawk** | B | 12 | 65 | 0 | 14 | 1–2 | — | — | — |
 | **Keelbreaker** | B | 16 | 75 | 0 | 12 | 1 | — | — | — |
 
 <details><summary>Lore</summary>
@@ -124,7 +134,9 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 - **Iron Axe:** A pirate's boarding axe, its edge chipped from rail and rigging. Bartz has never once sharpened it, and never needed to.
 - **Hunter's Hatchet:** A woodsman's tool once used to dress game. Now the haft is worn smooth by hands that have forgotten why they hold it.
 - **Steel Axe:** A heavy axe from the Cathedral armory. Newly promoted Generals can wield it without prior axe training.
+- **Silver Axe:** A silver-edged execution axe from the Order's armory. Its weight is meant to end resistance in a single stroke.
 - **Killer Axe:** A crescent executioner's axe seized from the freight guards. Its keen inner edge turns a practiced stroke into a killing blow.
+- **Tomahawk:** A heavy throwing axe from the freight guards' armory. Its iron-bound haft balances the broad silver edge, but only a practiced arm sends it straight.
 - **Keelbreaker:** A broad axe forged by the shipwrights of the drowned civilization. The wave-cut socket was made to endure a lifetime of salt and hard timber. The shipyards are gone; their finest edge remains.
 
 </details>
@@ -136,6 +148,7 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 | **Iron Bow** | E | 6 | 95 | 0 | 5 | 2 | 40 | — | — |
 | **Hunter Bow** | E | 7 | 90 | 5 | 5 | 2 | 30 | Effective against beast foes (triple might). | — |
 | **Killer Bow** | D | 7 | 80 | 30 | 6 | 2 | — | Effective against flying foes (triple might). | — |
+| **Steel Bow** | D | 9 | 85 | 0 | 8 | 2 | 35 | Effective against flying foes (triple might). | — |
 | **Horizon String** | B | 12 | 85 | 0 | 8 | 2 | — | — | — |
 
 <details><summary>Lore</summary>
@@ -143,6 +156,7 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 - **Iron Bow:** A plain yew bow strung with waxed gut. The Order issued these to every watchman on the island, and few of them were ever allowed to leave.
 - **Hunter Bow:** A recurve bow of ash and sinew, notched along the grip for every wolf its owner brought down. Stark's old hunting bow, sharpened to kill beasts.
 - **Killer Bow:** A precise bow kept for the Church's silent watch. Its low draw weight favors an Assassin's aim.
+- **Steel Bow:** Steel-reinforced limbs lend this hunting bow a heavier draw. The fallen Order's archers still keep their strings taut.
 - **Horizon String:** A darkwood bow of the drowned civilization's coastal sentinels. Bronze inlays trace the horizon they watched until their towers slipped beneath it. Its limbs still draw true, without prayer or enchantment.
 
 </details>
@@ -174,6 +188,7 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 | **Tempest** | B | 8 | 90 | 10 | 6 | 1–3 | 6 | Effective against flying foes (triple might). A howling storm that reaches three tiles away. | Tier 3 spell written in **Wind**; costs 12 Insight to unlock. |
 | **Inferno** | B | 13 | 70 | 5 | 11 | 1–2 | 5 | Effective against beast foes (triple might). A pillar of fire that swallows its target. Devastating, heavy and hard to aim. | Tier 3 spell written in **Fire**; costs 12 Insight to unlock. |
 | **Bolting** | A | 12 | 60 | 5 | 12 | 3–10 | 4 | Effective against aquatic foes (triple might). Calls lightning from far away (range 3-10). Cannot strike or counter up close. | Tier 3 spell written in **Thunder**; costs 12 Insight to unlock. |
+| **Cinder Vigil** | S | 17 | 80 | 10 | 12 | 1–2 | 8 | Effective against beast foes (triple might). | — |
 
 <details><summary>Lore</summary>
 
@@ -186,6 +201,7 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 - **Tempest:** The Golden Order used this rite to scatter crowds. The margins call them "the infected".
 - **Inferno:** The last page is scorched through. Whatever was written there was read once, aloud.
 - **Bolting:** A siege-rite. The hedge-mage never cast it; the page is folded shut and sewn closed.
+- **Cinder Vigil:** The Church kept one flame burning below the bells. When the last attendant fled, Halloran took it with him.
 
 </details>
 
@@ -196,12 +212,14 @@ Only weapons the party can wield are listed; monsters' natural weapons are omitt
 | **Light** | E | 4 | 75 | 0 | 6 | 1–2 | 10 | Effective against undead foes (triple might). | Unlocks **Lumen** (6 Insight, rank D), then **Aureole** (12 Insight, rank B) in the same book. |
 | **Lumen** | D | 8 | 80 | 5 | 8 | 1–2 | 8 | Effective against undead foes (triple might). A lance of pale radiance that sears the unholy. | Tier 2 spell written in **Light**; costs 6 Insight to unlock. |
 | **Aureole** | B | 11 | 75 | 10 | 10 | 1–2 | 5 | Effective against undead foes (triple might). A blinding halo. It pierces magical wards, halving the target's Resistance. | Tier 3 spell written in **Light**; costs 12 Insight to unlock. |
+| **Last Benediction** | S | 16 | 85 | 10 | 11 | 1–2 | 8 | Effective against undead foes (triple might). | — |
 
 <details><summary>Lore</summary>
 
 - **Light:** A heavy book bound in pale vellum that gives off a steady glow. Its verses are a litany to a sky the island has forgotten. The sea seems to avoid its light.
 - **Lumen:** A second litany, to a dawn the island has not seen in a generation.
 - **Aureole:** The final verse is not a prayer. It is an accusation, and it names the church.
+- **Last Benediction:** Voss kept the Church's final benediction sealed until there was no congregation left to hear it.
 
 </details>
 

@@ -1,0 +1,11 @@
+{
+  "id": "sealed-transit-tag",
+  "name": "Sealed Transit Tag",
+  "type": "consumable",
+  "effect": "insight",
+  "description": "A dispatch plate carried by the Bell Envoy. Read for 10 Insight.",
+  "lore": "A brass dispatch plate, polished clean around its fastening holes. A ward number has been struck through beneath the Cathedral seal. The receiving mark is still blank.",
+  "maxUses": 1,
+  "insight": 10,
+  "sprite": "assets/items/Sealed_Transit_Tag/sealed-transit-tag.svg"
+}

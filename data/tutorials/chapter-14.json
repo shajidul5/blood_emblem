@@ -1,4 +1,58 @@
 {
+  "courtyardLegacy": {
+    "pages": [{
+      "kicker": "Part Three - Chapter 14",
+      "title": "The Silent Courtyard",
+      "paragraphs": [
+        "The Cathedral gardens are untouched while smoke rises beyond the walls. Defeat Severin at the northern doors. Eveline alone can Talk to Corvis in the western walk.",
+        "This saved battle retains its original defenses: six advancing Cavaliers, garden Knights and overlapping central magic. Check ranges and use the outer walks. Progress warns one rear cavalry wave and one northern Raven wave, each arriving next turn."
+      ],
+      "button": "Enter the Courtyard"
+    }]
+  },
+  "courtyardLegacyCavalryWarning": {
+    "pages": [{
+      "kicker": "Beyond the Fountain Midpoint",
+      "title": "Hooves Behind the Gate",
+      "paragraphs": [
+        "One finite wave of three level-20 Cavaliers arrives next turn at (11,29), (12,29) and (14,29). Your player phase comes before their first attacks. Occupied marked tiles queue arrivals without relocation."
+      ],
+      "button": "Watch the South Gate"
+    }]
+  },
+  "courtyardLegacyRavenWarning": {
+    "pages": [{
+      "kicker": "The Upper Courtyard",
+      "title": "The Bell Answers",
+      "paragraphs": [
+        "The bell sounds. The defenders do not look up.",
+        "Four level-18 Ravens arrive next turn at (1,3), (2,3), (23,3) and (24,3). Your player phase comes before their first attacks. This is the final finite wave; Severin remains the only victory target."
+      ],
+      "button": "Watch the Northern Walls"
+    }]
+  },
+  "courtyardLegacyEnding": {
+    "pages": [{
+      "kicker": "The Silent Courtyard - Aftermath",
+      "title": "The Last Door",
+      "paragraphs": [
+        "Severin falls beneath the Cathedral doors. Behind the company, the fountain remains dry. Arlan lifts the latch. The Bishop is still inside."
+      ],
+      "button": "Enter the Cathedral"
+    }]
+  },
+  "courtyardGuard": {
+    "pages": [{
+      "kicker": "Part Three - Chapter 14",
+      "title": "The Silent Courtyard",
+      "paragraphs": [
+        "Beyond the smoke, the Cathedral courtyard is immaculate. Defeat General Severin at the northern doors. The reserve riders advance together when approached or attacked.",
+        "Optional: Eveline can Talk to Corvis in the western garden. Lena can steal Giant's Marrow from the western Sage. Inspect enemy ranges; the northern priest carries Freeze. Progress signals a finite rear cavalry wave with two player turns of warning.",
+        "A bell calls an optional Envoy and two Ravens to the eastern delivery court. In this saved encounter they guard that court only and never pursue outside it. Finish side objectives before defeating Severin; victory ends the chapter."
+      ],
+      "button": "Enter the Courtyard"
+    }]
+  },
   "courtyard": {
     "pages": [
       {
@@ -6,17 +60,9 @@
         "title": "The Silent Courtyard",
         "paragraphs": [
           "Beyond the smoke, the Cathedral courtyard is immaculate. Pale paving runs between clipped hedges and low limestone walls. The fountain is dry. No worshippers wait here; only soldiers in golden armor.",
-          "General Severin stands before the northern doors. \"You have crossed the last boundary,\" he says. \"The Bishop receives no petition from armed fugitives.\" Rictor lowers his lance. \"Then you will hear it instead.\"",
-          "Defeat General Severin to win. There are no houses, civilian rescues, treasure or gate controls to seize. Rictor, Lena, Arlan and Troy begin at the south entrance; Eveline accompanies them only if she joined in the streets. Carried supplies remain your own."
-        ]
-      },
-      {
-        "kicker": "A Courtyard Built for Defense",
-        "title": "Choose a Lane, Not a Killing Ground",
-        "paragraphs": [
-          "Six aggressive cavaliers advance from staggered positions. Five knights defend the gardens while four mages and two Inferno Sages hold the central lanes. Their overlapping magic punishes a direct rush; use the outer garden walks to flank them. The hedge openings and fountain bypasses reconnect the lanes. Garden lawns, including their flowerbeds, grant +10 Avoid and +1 Defense; hedges, low walls and the fountain block ground movement.",
-          "The western priest casts Freeze within five tiles and remains behind a knight. The northern healer stands next to Severin and can restore adjacent injured defenders. Check each enemy's actual range and remaining staff uses rather than rushing into several spells together.",
-          "Passing the fountain midpoint calls one cavalry wave from the marked south gate. Entering the upper courtyard calls one final raven wave from the marked north corners. Each warning grants the next player phase before the arrivals attack; occupied arrival tiles queue their units without moving them elsewhere."
+          "Defeat General Severin at the northern doors. Clear the first riders, regroup south of the fountain, then break the northern guard. The reserve riders advance together when approached or attacked. Severin carries a range 1-2 Spear, Silver Axe and Silver Lance; he chooses the strongest usable attack on his turn and drops Spear.",
+          "Optional: Eveline can Talk to Corvis in the western garden. Lena can steal Giant's Marrow from the western Sage. Inspect enemy ranges; the northern priest carries Freeze. Progress signals a finite rear cavalry wave with two player turns of warning.",
+          "Mages and Sages hold until a target enters their movement-plus-attack range. A bell also calls an optional, stationary Envoy to the eastern delivery court. Three pairs of Ravens pursue freely: with the Envoy, then two and four turns after its actual arrival. Finish side objectives before defeating Severin; victory ends the chapter."
         ],
         "button": "Enter the Courtyard"
       }
@@ -28,8 +74,7 @@
         "kicker": "Corvis - Shaman",
         "title": "A Familiar Voice",
         "paragraphs": [
-          "\"Corvis?\" Eveline stops at the western side of the fountain. \"You were assigned to the ward. Look at the smoke behind us.\"",
-          "He closes his dark tome halfway. \"I was told the gates were keeping the sickness out.\" \"They kept us in,\" she answers. \"Come and see who gave the order.\"",
+          "Eveline stops at the western garden. \"Corvis. Come with us.\" His gaze moves from her bloodied sleeves to the untouched flowers. He closes his book.",
           "Only Eveline can stand adjacent to living Corvis and choose Talk. Talking consumes her action. Corvis joins in his current condition, keeping his remaining HP and tome uses; recruitment is not a free heal. Without Eveline, he remains a defender, and defeating Severin still ends the chapter."
         ],
         "button": "Welcome Corvis"
@@ -55,13 +100,25 @@
         "kicker": "Beyond the Fountain Midpoint",
         "title": "Hooves Behind the Gate",
         "paragraphs": [
-          "An officer raises two fingers as the company passes the fountain's midpoint. Troy hears hooves beyond the southern ironwork. \"That gate was never unguarded. They waited until we were inside.\"",
-          "One finite wave of three level-20 cavaliers will arrive next turn on the marked south entrance tiles (11,29), (12,29) and (14,29). They arrive before your player phase and cannot attack until the following enemy phase.",
+          "An officer raises two fingers. Hooves answer beyond the southern ironwork.",
+          "One finite wave of three level-20 cavaliers will arrive in two turns, at the marked south gate and its staging tiles. You receive two player phases before their first attacks. They arrive before your player phase, never directly into an attack.",
           "Occupied arrival tiles delay those units on their exact marked tiles; no rider is relocated behind your line. Cover the rear or keep advancing together. Crossing the midpoint again cannot call another wave."
         ],
         "button": "Watch the South Gate"
       }
     ]
+  },
+  "courtyardGuardRavenWarning": {
+    "pages": [{
+      "kicker": "The Upper Courtyard",
+      "title": "The Bell Calls an Envoy",
+      "paragraphs": [
+        "The Cathedral bell gives a single measured stroke. Severin's officers tighten their formation as though this arrival was expected.",
+        "The Bell Envoy and two Ravens arrive next turn inside the eastern delivery court. Your player phase comes before their first attacks. In this saved encounter they guard that court only; stay outside its hedge opening to bypass them.",
+        "This is the final finite wave. Defeat the clawed Envoy for 5 Insight and its carried treasure. Severin remains the sole victory target."
+      ],
+      "button": "Prepare for the Envoy"
+    }]
   },
   "courtyardRavenWarning": {
     "pages": [
@@ -70,8 +127,8 @@
         "title": "The Bell Calls an Envoy",
         "paragraphs": [
           "The Cathedral bell gives a single measured stroke. Black wings lift beyond the northern walls. The knights do not turn; Severin's officers tighten their formation as though this arrival was expected.",
-          "\"An envoy called by the Church's own bell,\" Arlan says. \"Even their birds know the signal.\" Lena watches the northern corners. \"Then we know where they will come from.\"",
-          "This is the final finite wave: four level-18 ravens arrive next turn at (1,3), (2,3), (23,3) and (24,3). Your player phase comes before their first attacks. Occupied marked tiles queue arrivals without relocation. There are no repeating waves; Severin remains the sole victory target."
+          "The Bell Envoy and two Ravens arrive next turn inside the eastern delivery court. Your player phase comes before their first attacks. The Envoy stays planted and attacks adjacent targets, but the Ravens actively pursue beyond the court.",
+          "Only three pairs of Ravens arrive: the first with the Envoy, the second two turns later, the final pair four turns later. Occupied arrival tiles queue their units instead of relocating them. The unarmed Envoy fights with its claws; defeat it for 5 Insight and its carried treasure. This fight is optional; Severin remains the sole victory target."
         ],
         "button": "Prepare for the Envoy"
       }
@@ -84,8 +141,8 @@
         "title": "The Last Door",
         "paragraphs": [
           "Severin's armored knees strike the paving. The defenders hesitate, and the company gathers beneath the Cathedral's closed doors.",
-          "\"He was guarding someone, not a sanctuary,\" Lena says. Rictor looks at the brass-bound wood. \"The orders did not begin in this courtyard.\"",
-          "Beyond the doors the Bishop is still inside. Arlan lifts the latch while Troy watches the emptied fountain. No answer has been given yet. The company enters the Cathedral."
+          "His weapon falls against the pale stone. No one speaks. The fountain behind them is still dry; the flowers are untrampled.",
+          "The Bishop is still inside. Arlan lifts the latch. The company enters the Cathedral."
         ],
         "button": "Enter the Cathedral"
       }

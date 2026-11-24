@@ -51,6 +51,37 @@ test('each player weapon type has an icon', () => {
   }
 });
 
+test('Lance rank labels preserve saved Spear EXP and show Lance in the profile', async (t) => {
+  const { createRictorAlly } = await server.ssrLoadModule('/src/characters/characters.js');
+  const { weaponTypeLabel, getWeaponExp } = await server.ssrLoadModule('/src/characters/weapon-levels.js');
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => previous ? Object.defineProperty(globalThis, 'document', previous) : delete globalThis.document);
+  const node = () => ({
+    children: [], style: {}, classList: { add() {}, toggle() {} },
+    append(...children) { this.children.push(...children); },
+    replaceChildren(...children) { this.children = children; },
+    setAttribute() {}, addEventListener() {}, focus() {}, showModal() {},
+  });
+  globalThis.document = { createElement: node };
+  const nodes = new Map(), dialog = {
+    ...node(), querySelectorAll: () => [],
+    querySelector(selector) {
+      if (!nodes.has(selector)) nodes.set(selector, node());
+      return nodes.get(selector);
+    },
+  };
+  const unit = createRictorAlly();
+  unit.weaponExp.Spear = 95;
+  assert.equal(weaponTypeLabel('Spear'), 'Lance');
+  assert.equal(weaponTypeLabel('Axe'), 'Axe');
+  assert.equal(getWeaponExp(unit, 'Spear'), 95);
+  profile.createProfileDialog(dialog).show(unit, null, {}, {});
+  const labels = nodes.get('#profile-weapon-levels').children.map((row) => row.children[1].children[0].textContent);
+  assert.ok(labels.includes('Lance'));
+  assert.equal(labels.includes('Spear'), false);
+  assert.equal(profile.weaponLevelRows(unit).find((row) => row.type === 'Spear').rank.id, 'C');
+});
+
 test('Veilstalker profile distinguishes phase movement from permanent stat gains', async (t) => {
   const { createStarkAlly } = await server.ssrLoadModule('/src/characters/characters.js');
   const { promoteUnit } = await server.ssrLoadModule('/src/characters/classes.js');
@@ -70,16 +101,14 @@ test('Veilstalker profile distinguishes phase movement from permanent stat gains
   } };
   const stark = { ...createStarkAlly(), level: 20 };
   promoteUnit(stark, 'covenant-emblem');
-  stark.movement++;
-  stark.bloodTrailBonus = 2;
+  const prey = { x: stark.x + 10, z: stark.z, hp: 1, maxHp: 10 };
   const ui = profile.createProfileDialog(dialog);
   const terrain = { name: 'Road', defense: 0, avoid: 0 };
-  ui.show(stark, null, terrain, terrain);
+  ui.show(stark, null, terrain, terrain, undefined, [prey]);
   const movement = () => nodes.get('#profile-stats').children.find((row) => row.children[0].textContent === 'Movement').children[1];
-  assert.equal(movement().textContent, '8');
-  assert.equal(movement().title, 'Base 5 · +1 gained · +2 Blood Trail (this phase)');
+  assert.equal(movement().textContent, '10');
+  assert.equal(movement().title, 'Base 5 · +1 gained · +4 Blood Trail');
   assert.equal(stark.movement, 6);
-  delete stark.bloodTrailBonus;
   ui.show(stark, null, terrain, terrain);
   assert.equal(movement().textContent, '6');
   assert.equal(movement().title, 'Base 5 · +1 gained');

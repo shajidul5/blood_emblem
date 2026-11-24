@@ -1,0 +1,15 @@
+{
+  "id": "street-raider",
+  "name": "Street Raider",
+  "classId": "raider",
+  "type": "infantry",
+  "spriteSet": "raider",
+  "sprite": "assets/character/Generic_Raider/Idle/rotations/south.png",
+  "level": 14,
+  "experience": 0,
+  "weaponId": "steel-axe",
+  "ai": "mobile",
+  "baseStats": { "hp": 32, "strength": 13, "magic": 0, "dexterity": 10, "speed": 10, "luck": 3, "defense": 8, "resistance": 3, "movement": 5, "build": 10 },
+  "currentStats": { "hp": 32, "strength": 13, "magic": 0, "dexterity": 10, "speed": 10, "luck": 3, "defense": 8, "resistance": 3, "movement": 5, "build": 10 },
+  "growthRates": { "hp": 65, "strength": 45, "magic": 0, "dexterity": 35, "speed": 35, "luck": 20, "defense": 25, "resistance": 10, "movement": 0, "build": 0 }
+}

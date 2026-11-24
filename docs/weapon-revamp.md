@@ -1,6 +1,6 @@
 # Weapon and Insight Revamp
 
-Design reference for the planned overhaul of the physical weapon roster and the Insight upgrade screen. Nothing here is implemented yet. When it is, the data in `data/weapons` and `data/upgrades.json` becomes the source of truth and [item-guide.md](./item-guide.md) is regenerated from it.
+Design reference for the planned overhaul of the physical weapon roster and the Insight upgrade screen. The Iron Katana to Iron Sword rename is implemented, retaining its original stats (including 3 weight); older save IDs migrate automatically. Other changes below remain planned. Live data in `data/weapons` and `data/upgrades.json` is the source of truth, and [item-guide.md](./item-guide.md) is regenerated from it.
 
 - **Decided** marks a direction you have already chosen.
 - **Proposed** marks numbers or choices I filled in to complete the picture. These are open for discussion.
@@ -43,7 +43,7 @@ Stat columns: Mt / Hit / Crit / Wt / Range. **Bold** values are changes from the
 
 | Weapon | Rank | Mt | Hit | Crit | Wt | Rng | Effect | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Iron Sword** | E | 5 | 90 | 0 | **5** | 1 | — | Renamed from Iron Katana (decided); weight proposed |
+| **Iron Sword** | E | 5 | 90 | 0 | 3 | 1 | — | Rename implemented; original stats retained |
 | **Steel Sword** | D | 8 | 80 | 0 | 8 | 1 | — | Unchanged |
 | **Silver Sword** | B | 12 | 85 | 0 | 8 | 1 | — | New (decided); stats proposed |
 | **Starless Edge** | **A** | **14** | 85 | 0 | 8 | 1 | — | Rank A (decided); +1 Mt so it clearly beats Silver (proposed) |
@@ -149,7 +149,7 @@ Removing leadership leaves Insight without a party-wide reward. The emblem is th
 
 - **Data**
   - Rename the `Spear` type to `Lance` in `data/weapons/*`, `data/classes.json`, `data/weapon-triangle.json` and character `weaponExp` keys.
-  - Rename weapon ids: `iron-katana` → `iron-sword`, `iron-spear` → `iron-lance`.
+  - Implemented: `iron-katana` → `iron-sword`, with legacy save migration. Still planned: `iron-spear` → `iron-lance`.
   - Merge `steel-spear` into `steel-lance`.
   - Add the new weapons: Silver Sword, Beast Killer, Spear, Killer Lance, Silver Axe, Tomahawk.
 - **Saves**

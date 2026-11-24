@@ -7,8 +7,9 @@ export const LONE_SHIP_OCEAN_MARGIN = 4;
 export const STREET_CAMERA_PADDING = 8;
 export const STREET_SKYLINE = Object.freeze({ x: 0, y: 0.2, z: -22, width: 96, height: 32 });
 
-export function constrainInteriorCamera(target, offset, aspect, width, height, padding = INTERIOR_CAMERA_PADDING, groundY = 0, nearEdgeX = false) {
+export function constrainInteriorCamera(target, offset, aspect, width, height, padding = INTERIOR_CAMERA_PADDING, groundY = 0, nearEdgeX = false, northExtension = 0) {
   // A small border keeps edge tiles and upright spawn sprites inside the viewport.
+  height += northExtension;
   width += padding * 2;
   height += padding * 2;
   const distance = Math.hypot(offset.y, offset.z);
@@ -47,7 +48,8 @@ export function constrainInteriorCamera(target, offset, aspect, width, height, p
   const minX = nearEdgeX ? view.nearMinX : view.minX;
   const maxX = nearEdgeX ? view.nearMaxX : view.maxX;
   target.x = Math.max(-width / 2 - minX, Math.min(width / 2 - maxX, target.x));
-  target.z = Math.max(-height / 2 - view.minZ, Math.min(height / 2 - view.maxZ, target.z));
+  target.z = Math.max(-height / 2 - view.minZ,
+    Math.min(height / 2 - view.maxZ, target.z + northExtension / 2)) - northExtension / 2;
   return Math.atan(low) * 360 / Math.PI;
 }
 

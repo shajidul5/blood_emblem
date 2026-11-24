@@ -4,15 +4,23 @@ export const SPELL_EFFECTS = Object.freeze({
   'fire-tome': Object.freeze({ key: 'fire', element: 'fire', travelMs: 440, impactMs: 280, tint: '#ff9d42', motion: 'projectile' }),
   blaze: Object.freeze({ key: 'blaze', element: 'fire', travelMs: 380, impactMs: 300, tint: '#ffb347', motion: 'projectile' }),
   inferno: Object.freeze({ key: 'inferno', element: 'fire', travelMs: 300, impactMs: 420, tint: '#ff6a2a', motion: 'bolt', stretch: 1.25 }),
+  'cinder-vigil': Object.freeze({ key: 'cinder-vigil', element: 'fire', travelMs: 640, impactMs: 960, motion: 'pyre' }),
   'thunder-tome': Object.freeze({ key: 'thunder', element: 'thunder', travelMs: 240, impactMs: 360, tint: '#d3baff', motion: 'bolt', stretch: 1.375 }),
   elthunder: Object.freeze({ key: 'elthunder', element: 'thunder', travelMs: 220, impactMs: 380, tint: '#9fb8ff', motion: 'bolt', stretch: 1.375 }),
   bolting: Object.freeze({ key: 'bolting', element: 'thunder', travelMs: 320, impactMs: 440, tint: '#c4f2ff', motion: 'bolt', stretch: 1.375 }),
+  heavenfall: Object.freeze({ key: 'bolting', element: 'thunder', travelMs: 400, impactMs: 680, tint: '#ddeaff', motion: 'bolt', stretch: 1.75 }),
   'wind-tome': Object.freeze({ key: 'wind', element: 'wind', travelMs: 500, impactMs: 300, tint: '#a2f5b2', motion: 'projectile' }),
   gale: Object.freeze({ key: 'gale', element: 'wind', travelMs: 420, impactMs: 300, tint: '#8de0a0', motion: 'projectile' }),
   tempest: Object.freeze({ key: 'tempest', element: 'wind', travelMs: 300, impactMs: 420, tint: '#7fd896', motion: 'bolt', stretch: 1.25 }),
+  'the-last-horizon': Object.freeze({ key: 'tempest', element: 'wind', travelMs: 460, impactMs: 660, tint: '#c5e5f5', motion: 'bolt', stretch: 1.6 }),
   'light-tome': Object.freeze({ key: 'light', element: 'holy', travelMs: 240, impactMs: 360, tint: '#fff3bb', motion: 'bolt' }),
   lumen: Object.freeze({ key: 'lumen', element: 'holy', travelMs: 220, impactMs: 380, tint: '#ffe9a1', motion: 'bolt', stretch: 1.125 }),
   aureole: Object.freeze({ key: 'aureole', element: 'holy', travelMs: 300, impactMs: 440, tint: '#fff8d6', motion: 'bolt', stretch: 1.25 }),
+  'last-benediction': Object.freeze({ key: 'last-benediction', element: 'holy', travelMs: 580, impactMs: 780, motion: 'judgment' }),
+  'dark-tome': Object.freeze({ key: 'dark', element: 'dark', travelMs: 320, impactMs: 400, tint: '#b464ed', motion: 'bolt' }),
+  luna: Object.freeze({ key: 'dark', element: 'dark', travelMs: 280, impactMs: 440, tint: '#b8a1ff', motion: 'bolt', stretch: 1.125 }),
+  nosferatu: Object.freeze({ key: 'dark', element: 'dark', travelMs: 360, impactMs: 480, tint: '#d761bd', motion: 'bolt', stretch: 1.125 }),
+  'last-testament': Object.freeze({ key: 'dark', element: 'dark', travelMs: 400, impactMs: 520, tint: '#9240d9', motion: 'bolt', stretch: 1.25 }),
 });
 
 // Arrows share the spell timeline (release, flight, contact) but are physical shots.
@@ -84,7 +92,7 @@ export function spellEffectPose(clip, spell, elapsed, actorX, targetX, origin) {
   const start = origin ?? { x: actorX + direction * 38, y: 150 };
   const afterImpact = Math.max(0, sinceRelease - spell.travelMs);
   return {
-    x: spell.motion === 'bolt' ? targetX : start.x + (targetX - start.x) * progress,
+    x: ['bolt', 'pyre', 'judgment'].includes(spell.motion) ? targetX : start.x + (targetX - start.x) * progress,
     y: start.y + (150 - start.y) * progress - (spell.motion === 'projectile' ? Math.sin(progress * Math.PI) * 12 :
       spell.motion === 'arrow' ? Math.sin(progress * Math.PI) * 6 : 0),
     progress, afterImpact, sinceRelease,

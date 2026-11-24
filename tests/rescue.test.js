@@ -11,6 +11,7 @@ let level;
 let grid;
 let tiles;
 let classes;
+let legacyLevel;
 
 before(async () => {
   server = await createServer({ server: { middlewareMode: true, hmr: false, watch: null }, appType: 'custom' });
@@ -23,17 +24,30 @@ before(async () => {
   const map = JSON.parse(await readFile(new URL('../data/levels/map_09_last_crossing.json', import.meta.url), 'utf8'));
   level = { ...map, tileIds: map.tiles };
   level.rescue = rescue.validateRescueRules(map.rescue, level);
+  legacyLevel = {
+    ...level,
+    players: level.players.filter((unit) => !['linus', 'leon'].includes(unit.id)),
+    rescue: { ...level.rescue, recruit: { ...level.rescue.recruit, hp: 28 } },
+  };
 });
 
 after(async () => { await server?.close(); });
 
-test('three villagers start sheltered and Linus starts wounded, unrecruited', () => {
+test('three villagers start sheltered and Linus and Leon are immediately allied defenders', () => {
   const state = rescue.freshRescueState(level);
   assert.equal(state.villagers.length, 3);
   assert.ok(state.villagers.every((unit) => unit.status === 'sheltered' && unit.hp === 26));
+  assert.equal(state.linus.hp, 40);
+  assert.equal(state.recruited, true);
+  assert.ok(level.players.some((unit) => unit.id === 'leon'));
+  assert.equal(state.rewardsClaimed, false);
+});
+
+test('legacy embedded maps retain wounded Linus and Talk recruitment', () => {
+  const state = rescue.freshRescueState(legacyLevel);
   assert.equal(state.linus.hp, 28);
   assert.equal(state.recruited, false);
-  assert.equal(state.rewardsClaimed, false);
+  assert.deepEqual(rescue.validateRescueState(state, legacyLevel, new Set(), []), state);
 });
 
 test('Linus is a balanced cavalry unit carrying a Steel Lance and Potion', () => {
@@ -102,7 +116,7 @@ test('rescue rewards are cumulative for zero through three survivors', () => {
 });
 
 test('only adjacent Maria can recruit living, unrecruited Linus', () => {
-  const state = rescue.freshRescueState(level);
+  const state = rescue.freshRescueState(legacyLevel);
   const linus = { ...state.linus };
   const maria = { id: 'maria', hp: 24, x: linus.x - 1, z: linus.z };
   assert.ok(rescue.canRecruitLinus(maria, linus, state));
@@ -163,8 +177,8 @@ test('leadership stars cost more and refund exactly what was paid, including old
 });
 
 test('rescue save state round-trips and rejects negative HP, overlaps and duplicate villagers', () => {
-  const state = rescue.freshRescueState(level);
-  assert.deepEqual(rescue.validateRescueState(state, level, new Set(), []), state);
+  const state = rescue.freshRescueState(legacyLevel);
+  assert.deepEqual(rescue.validateRescueState(state, legacyLevel, new Set(), []), state);
   const negative = structuredClone(state);
   negative.villagers[0].hp = -1;
   assert.throws(() => rescue.validateRescueState(negative, level, new Set(), []), /villager state/);
@@ -232,7 +246,7 @@ test('opening hunting pack and four alternating waves sustain finite pressure', 
   assert.equal(beasts.filter((unit) => unit.id === 'root-warden').length, 1);
   assert.ok(beasts.every((unit) => unit.ai === 'mobile'));
   assert.deepEqual(level.reinforcements.map((wave) => wave.turn), [2, 4, 6, 8]);
-  assert.deepEqual(level.reinforcements.map((wave) => wave.units.length), [2, 2, 3, 3]);
+  assert.deepEqual(level.reinforcements.map((wave) => wave.units.length), [3, 3, 4, 4]);
   for (const [i, wave] of level.reinforcements.entries()) {
     assert.ok(wave.units.every((unit) => unit.x === (i % 2 === 0 ? 9 : 24)));
     assert.equal(new Set(wave.units.map((unit) => grid.tileKey(unit.x, unit.z))).size, wave.units.length);

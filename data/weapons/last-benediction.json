@@ -1,0 +1,7 @@
+{
+  "id": "last-benediction", "name": "Last Benediction", "type": "Light", "damageType": "magical",
+  "might": 16, "weight": 11, "hit": 85, "critical": 10, "maxUses": 8,
+  "minRange": 1, "maxRange": 2, "requiredRank": "S", "effect": ["undead"], "sound": "magic",
+  "sprite": "assets/weapons/light_tome/rotations/light_tome.png",
+  "lore": "Voss kept the Church's final benediction sealed until there was no congregation left to hear it."
+}

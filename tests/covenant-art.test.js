@@ -74,6 +74,12 @@ test('Covenant package enables both classes using the approved art without repla
     assert.ok(classes.classes.some((entry) => entry.id === id), `${id} is a playable class`);
     const active = runtime.fighters[`${fighter.unitId}-${id}`];
     assert.ok(active);
+    if (id === 'veilstalker') {
+      assert.equal(`assets/battle/${active.idle}`, fighter.map.battleReference);
+      for (const kind of ['attack', 'critical'])
+        assert.notEqual(active[kind].file, `../covenant/${fighter.battle[kind].file}`);
+      continue;
+    }
     assert.equal(active.idle, `../covenant/${fighter.battle.idle}`);
     for (const kind of ['attack', 'critical']) {
       assert.equal(active[kind].file, `../covenant/${fighter.battle[kind].file}`);
@@ -86,14 +92,21 @@ test('Covenant package enables both classes using the approved art without repla
 });
 
 for (const [id, fighter] of Object.entries(manifest.fighters)) {
-  test(`${id} has PixelLab-edited roster facings and complete original-length walking loops`, () => {
+  test(`${id} has roster-scaled PixelLab facings and complete walking loops`, () => {
     const map = fighter.map;
     assert.deepEqual(map.directions, directions);
     assert.deepEqual(Object.keys(map.rotations).sort(), [...directions].sort());
     assert.deepEqual(Object.keys(map.animations.Walking).sort(), [...directions].sort());
     assert.equal(map.generator, 'PixelLab');
-    assert.equal(map.method, 'edit_image + transfer_outfit');
-    assert.ok(map.rotationJob && map.walkingJobs.length);
+    if (id === 'bloodsworn') {
+      assert.equal(map.method, 'edit_image + transfer_outfit');
+      assert.ok(map.rotationJob);
+    } else {
+      assert.ok(map.characterId && map.walkingGroupId && map.attackGroupId);
+      assert.equal(map.styleReference, 'assets/character/Maria/Idle/rotations/south.png');
+      assert.ok(map.sourceImageJob);
+    }
+    assert.ok(map.walkingJobs.length);
     assert.equal(map.sourceSpriteFolder, `assets/character/${id === 'bloodsworn' ? 'Linus' : 'Stark'}`);
     assert.deepEqual(map.size, { width: 48, height: 48 });
     const repository = new URL('../', import.meta.url);
@@ -106,21 +119,25 @@ for (const [id, fighter] of Object.entries(manifest.fighters)) {
       assert.equal(rotation.height, source.height);
       visibleFrame(rotation, rotation.width);
       const actual = bounds(rotation), original = bounds(source);
-      assert.ok(Math.abs(actual.width - original.width) <= 8, `${direction}: retain roster silhouette width`);
-      assert.ok(Math.abs(actual.height - original.height) <= 8, `${direction}: retain roster silhouette height`);
+      if (!map.archived) {
+        assert.ok(Math.abs(actual.width - original.width) <= 8, `${direction}: retain roster silhouette width`);
+        assert.ok(Math.abs(actual.height - original.height) <= 8, `${direction}: retain roster silhouette height`);
+      }
       const frames = map.animations.Walking[direction];
       const sourceDirectory = `${map.sourceSpriteFolder}/animations/Walking/${direction}/`;
-      const originalFrames = readdirSync(new URL(sourceDirectory, repository)).filter(file => file.endsWith('.png')).sort();
-      assert.equal(frames.length, originalFrames.length, 'retain every original walking pose');
+      const originalFrames = map.archived ? [] : readdirSync(new URL(sourceDirectory, repository)).filter(file => file.endsWith('.png')).sort();
+      if (!map.archived) assert.equal(frames.length, originalFrames.length, 'retain every original walking pose');
       assert.equal(frames.length, map.walkingFrames);
       const unique = new Set();
       for (const [index, file] of frames.entries()) {
         const png = image(file);
-        const sourceFrame = image(sourceDirectory + originalFrames[index], repository);
         assert.equal(png.width, map.walkingSize.width);
         assert.equal(png.height, map.walkingSize.height);
-        assert.equal(png.width, sourceFrame.width, 'restore source padding without resampling');
-        assert.equal(png.height, sourceFrame.height);
+        if (!map.archived) {
+          const sourceFrame = image(sourceDirectory + originalFrames[index], repository);
+          assert.equal(png.width, sourceFrame.width, 'restore source padding without resampling');
+          assert.equal(png.height, sourceFrame.height);
+        }
         visibleFrame(png, png.width);
         unique.add(png.pixels.toString('base64'));
       }

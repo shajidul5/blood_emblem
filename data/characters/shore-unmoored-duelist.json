@@ -1,0 +1,8 @@
+{
+  "id": "shore-unmoored-duelist", "name": "Unmoored Duelist", "classId": "hero", "type": "infantry",
+  "spriteSet": "shoreUnmooredDuelist", "sprite": "assets/character/Shore_Unmoored_Duelist/rotations/south.png",
+  "scale": 1, "level": 28, "experience": 0, "weaponId": "starless-edge", "weaponExp": { "Sword": 300 }, "ai": "guard",
+  "baseStats": { "hp": 76, "strength": 34, "magic": 0, "dexterity": 42, "speed": 30, "luck": 18, "defense": 22, "resistance": 22, "movement": 6, "build": 12 },
+  "currentStats": { "hp": 76, "strength": 34, "magic": 0, "dexterity": 42, "speed": 30, "luck": 18, "defense": 22, "resistance": 22, "movement": 6, "build": 12 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

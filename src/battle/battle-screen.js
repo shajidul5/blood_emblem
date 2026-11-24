@@ -1,11 +1,14 @@
 import art from '../../assets/battle/manifest.json';
 import { afterimageTrail, battleBackdrop, battleHpSegments, battleImpactShake, battleSpriteKey, battleThrow,
   createImpactGate, displayedBattleHp, animationFrameAt, idleFrameAt, battleImpactTime, battleStrikePose, flurryPose,
-  flurryTimeline, staffBattleKey, strikePose, supportsBattleScene, supportsStaffScene,
+  battleIdleKey, flurryTimeline, staffBattleKey, strikePose, supportsBattleScene, supportsStaffScene,
   thrownReturnMs } from './battle-animation.js';
 import { STAFF_EFFECTS, rangedEffectFor, spellEffectFor, spellEffectPose, staffEffectFor,
   thrownWeaponPose } from './spell-animation.js';
 import { drawHpDigits } from './hp-digits.js';
+import { battleActorScale, scaledBattleClip } from './battle-sizing.js';
+import { drawCinderVigil, drawHeavyStrike, drawLastBenediction, drawLethality,
+  LETHALITY_HITSTOP_MS, LETHALITY_IMPACT_MS } from './battle-effects.js';
 import { playHitImpact, playHpDrainTick, playMissWhiff, playSpellImpact, playSpellRelease,
   playWeaponSwing } from '../audio/combat-sounds.js';
 import './battle-screen.css';
@@ -92,6 +95,7 @@ export function createBattleScreen() {
     ctx.save();
     ctx.globalAlpha = alpha;
     if (ghost) ctx.filter = 'sepia(1) saturate(5) hue-rotate(-45deg) brightness(.9)';
+    else if (actor.art.filter) ctx.filter = actor.art.filter;
     ctx.translate(Math.round(x), Math.round(BASELINE + lift));
     ctx.scale(facing * SCALE * actor.scale, SCALE * actor.scale);
     ctx.drawImage(image, frameIndex * actor.art.size, 0, actor.art.size, actor.art.size,
@@ -100,6 +104,10 @@ export function createBattleScreen() {
   }
 
   function strikeState(elapsed) {
+    if (strike.result.lethality && !state.reducedMotion) {
+      const contact = battleImpactTime(strike.clip, strike.spell);
+      elapsed -= Math.min(LETHALITY_HITSTOP_MS, Math.max(0, elapsed - contact));
+    }
     return strike.flurry ? flurryPose(state.actors[strike.actor].art, strike.flurry, elapsed) :
       battleStrikePose(strike.clip, elapsed, strike.spell);
   }
@@ -162,7 +170,7 @@ export function createBattleScreen() {
     ctx.textAlign = 'left';
     ctx.font = '9px Georgia';
     ctx.fillStyle = '#fff1c8';
-    ctx.fillText(actor.weaponName ?? actor.unit.weapon.name, x + 7, 49 + extraRows);
+    ctx.fillText(actor.weaponName ?? actor.unit.weapon?.name ?? 'Unarmed', x + 7, 49 + extraRows);
   }
 
   function draw(now) {
@@ -190,7 +198,7 @@ export function createBattleScreen() {
       ctx.fillStyle = '#efc77c';
       ctx.font = 'bold 13px Georgia';
       ctx.textAlign = 'center';
-      ctx.fillText('CRITICAL', WIDTH / 2, 77);
+      ctx.fillText(strike.result.lethality ? 'LETHALITY' : 'CRITICAL', WIDTH / 2, 77);
     }
     for (let index = 0; index < 2; index++) {
       const attacking = strike?.actor === index;
@@ -223,6 +231,12 @@ export function createBattleScreen() {
       if (afterImpact >= 0) drawSlash(x, 160, Math.PI / 2 - .2 * direction, afterImpact, true);
     }
     if (strike?.spell) drawSpell(elapsed);
+    if (strike?.result.hit && !strike.spell && afterImpact >= 0 && afterImpact < 220) {
+      const style = state.actors[strike.actor].art.strikeEffect;
+      const target = state.actors[1 - strike.actor];
+      if (style) drawHeavyStrike(ctx, style, target.x, BASELINE - 66, strike.actor === 0 ? 1 : -1,
+        afterImpact / 220, strike.result.critical);
+    }
     if (strike?.result.hit && !strike.spell && !strike.flurry && afterImpact >= 0 && afterImpact < 140) {
       const actor = state.actors[strike.actor];
       const direction = strike.actor === 0 ? 1 : -1;
@@ -241,20 +255,32 @@ export function createBattleScreen() {
         ctx.stroke();
       }
     }
+    if (strike?.result.lethality && strike.result.hit) {
+      const target = state.actors[1 - strike.actor];
+      drawLethality(ctx, { x: target.x, y: BASELINE - 66, elapsed: afterImpact,
+        width: WIDTH, height: HEIGHT, reducedMotion: state.reducedMotion });
+      if (afterImpact >= 0 && afterImpact < LETHALITY_IMPACT_MS) {
+        ctx.fillStyle = '#ffb9cf';
+        ctx.font = 'bold 22px Georgia';
+        ctx.textAlign = 'center';
+        ctx.fillText('LETHALITY', WIDTH / 2, 80);
+      }
+    }
     ctx.restore();
     state.actors.forEach((actor, index) => drawHud(actor, index, now));
     labels = labels.filter((label) => now - label.born < 650);
     for (const label of labels) {
       const age = now - label.born;
       ctx.globalAlpha = Math.min(1, (650 - age) / 150);
-      ctx.font = `bold ${label.type === 'critical' ? 21 : 17}px Georgia`;
+      ctx.font = `bold ${label.type === 'critical' || label.type === 'lethality' ? 21 : 17}px Georgia`;
       ctx.textAlign = 'center';
       ctx.lineWidth = 3;
       ctx.strokeStyle = '#160e18';
       const x = state.actors[label.actor].x;
       const y = 110 - Math.round(age / 55);
       ctx.strokeText(label.text, x, y);
-      ctx.fillStyle = label.type === 'heal' ? '#9aeb9a' : label.type === 'critical' ? '#ffb46e' : '#fff0c3';
+      ctx.fillStyle = label.type === 'heal' ? '#9aeb9a' : label.type === 'lethality' ? '#ff9dbe' :
+        label.type === 'critical' ? '#ffb46e' : '#fff0c3';
       ctx.fillText(label.text, x, y);
       ctx.globalAlpha = 1;
     }
@@ -277,6 +303,15 @@ export function createBattleScreen() {
     }
     const effect = spellEffectPose(strike.clip, strike.spell, elapsed, caster.x, targetX, origin);
     if (!effect) return;
+    if (strike.spell.motion === 'judgment') {
+      drawLastBenediction(ctx, effect, BASELINE, HEIGHT, strike.result.critical, state.reducedMotion);
+      return;
+    }
+    if (strike.spell.motion === 'pyre') {
+      drawCinderVigil(ctx, effect, { width: WIDTH, height: HEIGHT, floor: BASELINE,
+        critical: strike.result.critical, reducedMotion: state.reducedMotion });
+      return;
+    }
     if (strike.spell.motion === 'arrow') {
       drawArrow(effect, direction);
       return;
@@ -432,7 +467,9 @@ export function createBattleScreen() {
         }
         if (pose.contact || skipped) strike.impact();
         const hpFinished = state.actors.every((actor) => displayedBattleHp(actor.health, now) === actor.health.to);
-        if ((pose.done && hpFinished) || skipped) {
+        const lethalFinished = !strike.result.lethality ||
+          now - strike.started >= battleImpactTime(strike.clip, strike.spell) + LETHALITY_IMPACT_MS;
+        if ((pose.done && hpFinished && lethalFinished) || skipped) {
           const finished = strike;
           strike = null;
           finished.resolve();
@@ -476,27 +513,28 @@ export function createBattleScreen() {
       const staffEffect = staff ? staffEffectFor(staff) : null;
       const actors = await Promise.all([left, right].map(async (unit, index) => {
         const casting = staff && index === 0;
-        const base = art.fighters[casting ? staffBattleKey(unit, staff) : battleSpriteKey(unit)];
+        const base = art.fighters[casting ? staffBattleKey(unit, staff) : battleIdleKey(unit)];
+        const staffIdle = casting || staffBattleKey(unit, unit.weapon);
+        const ready = staffIdle ? { ...base, idle: base.staff.idle, idleLoop: base.staff.idleLoop } : base;
         // A staff caster swaps in the staff idle and cast clip; the cast never crits.
-        const spec = casting ? { ...base, casting: true, idle: base.staff.idle, attack: base.staff.cast,
-          critical: base.staff.cast } : base;
+        const spec = casting ? { ...ready, casting: true, attack: base.staff.cast,
+          critical: base.staff.cast } : ready;
         const [idle, attack, critical] = await Promise.all(
-          [spec.idle, spec.attack.file, spec.critical.file].map(loadImage));
+          [spec.idle, spec.attack?.file, spec.critical?.file].map(file => file ? loadImage(file) : null));
         const idleLoop = spec.idleLoop ? await loadImage(spec.idleLoop.file) : null;
         const thrown = !staff && battleThrow(unit, distance) && spec.thrown ? Object.fromEntries(await Promise.all(
           ['attack', 'critical'].map(async (kind) => [kind, await loadImage(spec.thrown[kind].file)]))) : null;
         const flurry = !staff && spec.flurry ? Object.fromEntries(await Promise.all(
           ['back', 'plunge'].map(async (kind) => [kind, await loadImage(spec.flurry[kind].file)]))) : null;
         return { unit, art: spec, idle, idleLoop, attack, critical, thrown, flurry, x: index === 0 ? 130 : 350,
-          scale: (spec.scale ?? 1) *
-            (['merfolk', 'deep-merfolk', 'generic-knight'].includes(battleSpriteKey(unit)) && unit.isBoss ? 1.12 : 1),
+          scale: battleActorScale(spec, unit),
           friendly: index === 0 || staffEffect === STAFF_EFFECTS.heal || staffEffect === STAFF_EFFECTS.bloodOath,
           weaponName: casting ? staff.name : null,
           segments: battleHpSegments(unit.maxHp),
           health: { from: unit.hp, to: unit.hp, last: unit.hp, changed: performance.now() } };
       }));
-      const effectKeys = [...new Set([...[left, right].map((unit) => spellEffectFor(unit.weapon)?.key),
-        staffEffect?.key].filter(Boolean))];
+      const effectKeys = [...new Set([...[left, right].map((unit) => spellEffectFor(unit.weapon)),
+        staffEffect].filter((effect) => effect && art.spells[effect.key]).map(({ key }) => key))];
       const effects = Object.fromEntries(await Promise.all(effectKeys.map(async (key) =>
         [key, await loadImage(art.spells[key].file)])));
       const background = await loadImage(art.backgrounds[battleBackdrop(chapter)]);
@@ -516,6 +554,9 @@ export function createBattleScreen() {
       const actor = state.actors.findIndex((entry) => entry.unit === attacker);
       if (actor < 0) throw new Error('The attacker is not in this battle scene.');
       const entry = state.actors[actor];
+      if ((!battleSpriteKey(attacker) && !(state.staffEffect && actor === 0)) ||
+          !entry.art.attack || !entry.art.critical)
+        throw new Error(`${attacker.name} has no offensive battle animation.`);
       const thrown = entry.thrown ? battleThrow(attacker, 2) : null;
       const projectile = state.staffEffect && actor === 0 ? state.staffEffect : thrown ?? rangedEffectFor(attacker.weapon);
       const impact = createImpactGate(() => {
@@ -526,7 +567,7 @@ export function createBattleScreen() {
         applyImpact();
         state.actors.forEach((entry) => { entry.health.to = entry.unit.hp; });
         status.textContent = state.staffEffect ? `${attacker.name}: ${result.hit ? 'cast complete' : 'resisted'}` :
-          `${attacker.name}: ${result.hit ? result.critical ? 'critical hit' : 'hit' : 'miss'}`;
+          `${attacker.name}: ${result.hit ? result.lethality ? 'Lethality - lethal blow' : result.critical ? 'critical hit' : 'hit' : 'miss'}`;
       });
       if (skipped) {
         impact();
@@ -534,10 +575,11 @@ export function createBattleScreen() {
       }
       const kind = result.critical ? 'critical' : 'attack';
       const source = thrown ? entry.art.thrown[kind] : entry.art[kind];
-      const clip = entry.scale === 1 || projectile ? source : { ...source,
-        advance: source.advance - (source.contact.x - entry.art.anchorX) * SCALE * (entry.scale - 1) };
-      const flurry = result.critical && result.hit && entry.flurry && !projectile ? flurryTimeline(entry.art, {
-        home: entry.x, target: state.actors[1 - actor].x, direction: actor === 0 ? 1 : -1, scale: SCALE }) : null;
+      const clip = projectile ? source : scaledBattleClip(entry.art, source, entry.scale);
+      const flurryArt = { ...entry.art, critical: clip };
+      const flurry = result.critical && result.hit && entry.flurry && !projectile ? flurryTimeline(flurryArt, {
+        home: entry.x, target: state.actors[1 - actor].x, direction: actor === 0 ? 1 : -1,
+        scale: SCALE * entry.scale }) : null;
       await new Promise((resolve, reject) => {
         strike = { actor, result, clip, image: thrown ? entry.thrown[kind] : entry[kind], weapon: attacker.weapon,
           spell: projectile, returnMs: thrown ? thrownReturnMs(clip, thrown) : 0, released: false,
@@ -552,7 +594,7 @@ export function createBattleScreen() {
         if (strike?.spell?.support) playSpellImpact(strike.spell.element);
       } else {
         if (strike?.spell && !strike.spell.physical) playSpellImpact(strike.spell.element ?? strike.spell.key, { critical: type === 'critical' });
-        else playHitImpact({ critical: type === 'critical' });
+        else playHitImpact({ critical: type === 'critical' || type === 'lethality', lethality: type === 'lethality' });
       }
       if (actor >= 0) labels.push({ actor, text, type, born: performance.now() });
     },

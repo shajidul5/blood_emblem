@@ -8,100 +8,127 @@
   "lighting": "dusk",
   "extendEdges": false,
   "noFence": true,
-  "spawn": { "x": 12, "z": 27 },
-  "exit": { "x": 12, "z": 3 },
+  "villageScene": { "version": 1, "layout": "courtyard", "artwork": "redrawn" },
+  "spawn": { "x": 12, "z": 24 },
+  "exit": { "x": 12, "z": 5 },
   "startingItems": [],
   "players": [
-    { "id": "rictor", "x": 12, "z": 27 },
-    { "id": "lena", "x": 11, "z": 28 },
-    { "id": "arlan", "x": 13, "z": 28 },
-    { "id": "troy", "x": 14, "z": 27 }
+    { "id": "rictor", "x": 12, "z": 24 },
+    { "id": "lena", "x": 11, "z": 24 },
+    { "id": "arlan", "x": 13, "z": 24 },
+    { "id": "troy", "x": 14, "z": 24 }
   ],
   "enemies": [
-    { "id": "golden-cavalier", "level": 18, "x": 8, "z": 23, "ai": "mobile" },
-    { "id": "golden-cavalier", "level": 18, "x": 17, "z": 22, "ai": "mobile" },
-    { "id": "golden-cavalier", "level": 19, "x": 9, "z": 19, "ai": "mobile" },
-    { "id": "golden-cavalier", "level": 19, "x": 17, "z": 18, "ai": "mobile" },
-    { "id": "golden-cavalier", "level": 20, "x": 8, "z": 13, "ai": "mobile" },
-    { "id": "golden-cavalier", "level": 20, "x": 16, "z": 10, "ai": "mobile" },
-    { "id": "ward-knight", "level": 14, "x": 16, "z": 16, "ai": "guard" },
-    { "id": "ward-knight", "level": 15, "x": 10, "z": 12, "ai": "guard" },
-    { "id": "ward-knight", "level": 15, "x": 16, "z": 8, "ai": "guard" },
-    { "id": "ward-knight", "level": 16, "x": 9, "z": 7, "ai": "guard" },
+    { "id": "golden-cavalier", "level": 18, "x": 9, "z": 16, "ai": "mobile" },
+    { "id": "golden-cavalier", "level": 18, "x": 17, "z": 16, "ai": "mobile" },
+    { "id": "golden-cavalier", "level": 20, "x": 8, "z": 8, "ai": "guard" },
+    { "id": "golden-cavalier", "level": 20, "x": 17, "z": 8, "ai": "guard" },
+    { "id": "ward-knight", "level": 14, "x": 12, "z": 18, "ai": "guard" },
+    { "id": "ward-knight", "level": 15, "x": 8, "z": 9, "ai": "guard" },
+    { "id": "ward-knight", "level": 15, "x": 17, "z": 10, "ai": "guard" },
+    { "id": "ward-knight", "level": 16, "x": 11, "z": 7, "ai": "guard" },
     { "id": "ward-knight", "level": 16, "x": 14, "z": 6, "ai": "guard" },
-    { "id": "golden-mage", "level": 18, "x": 15, "z": 20, "ai": "guard" },
-    { "id": "golden-mage", "level": 18, "x": 10, "z": 13, "ai": "guard" },
-    { "id": "golden-mage", "level": 18, "x": 15, "z": 9, "ai": "guard" },
-    { "id": "golden-mage", "level": 18, "x": 10, "z": 5, "ai": "guard" },
-    { "id": "church-sage", "level": 20, "x": 10, "z": 8, "ai": "guard", "weaponId": "inferno" },
-    { "id": "church-sage", "level": 20, "x": 15, "z": 11, "ai": "guard", "weaponId": "inferno" },
-    { "id": "church-freezer", "level": 16, "x": 9, "z": 6, "ai": "stationary" },
-    { "id": "church-healer", "level": 16, "x": 13, "z": 4, "ai": "stationary" },
-    { "id": "corvis", "level": 17, "x": 5, "z": 17, "ai": "guard" },
-    { "id": "severin", "level": 20, "x": 12, "z": 4, "ai": "stationary" }
+    { "id": "golden-mage", "level": 18, "x": 13, "z": 16, "ai": "guard", "drop": "wind-tome" },
+    { "id": "golden-mage", "level": 18, "x": 16, "z": 5, "ai": "guard" },
+    { "id": "church-sage", "level": 20, "x": 7, "z": 12, "ai": "guard", "weaponId": "inferno", "stealable": ["giants-marrow"] },
+    { "id": "church-sage", "level": 20, "x": 10, "z": 6, "ai": "guard", "weaponId": "inferno" },
+    { "id": "church-freezer", "level": 16, "x": 9, "z": 5, "ai": "stationary" },
+    { "id": "church-healer", "level": 16, "x": 13, "z": 5, "ai": "stationary" },
+    { "id": "corvis", "level": 17, "x": 5, "z": 14, "ai": "guard" },
+    { "id": "severin", "level": 20, "x": 12, "z": 5, "ai": "stationary", "weaponId": "spear", "drop": "spear" }
   ],
   "courtyard": {
     "bossId": "severin",
     "recruit": { "id": "corvis", "name": "Corvis", "recruiterId": "eveline", "recruited": false, "dead": false },
+    "tactics": {
+      "formations": [{
+        "id": "fountain-reserve", "thresholdZ": 14, "active": false,
+        "members": [
+          { "id": "golden-cavalier", "x": 8, "z": 8 },
+          { "id": "golden-cavalier", "x": 17, "z": 8 }
+        ]
+      }],
+      "deliveryCourt": { "minX": 18, "maxX": 22, "minZ": 8, "maxZ": 14 },
+      "ravenReinforcements": {
+        "arrivalTurn": null,
+        "waves": ["courtyard-ravens-2", "courtyard-ravens-3"]
+      }
+    },
     "triggers": [
-      { "id": "courtyard-cavalry", "thresholdZ": 15, "warnedTurn": null },
-      { "id": "courtyard-ravens", "thresholdZ": 8, "warnedTurn": null }
+      { "id": "courtyard-cavalry", "thresholdZ": 13, "delay": 2, "warnedTurn": null },
+      { "id": "courtyard-ravens", "thresholdZ": 10, "delay": 1, "warnedTurn": null }
     ]
   },
   "reinforcements": [
     {
       "entranceId": "courtyard-cavalry", "turn": 999, "spawned": false, "spawnedCount": 0,
       "units": [
-        { "id": "golden-cavalier", "level": 20, "x": 11, "z": 29, "ai": "mobile" },
         { "id": "golden-cavalier", "level": 20, "x": 12, "z": 29, "ai": "mobile" },
-        { "id": "golden-cavalier", "level": 20, "x": 14, "z": 29, "ai": "mobile" }
+        { "id": "golden-cavalier", "level": 20, "x": 12, "z": 27, "ai": "mobile" },
+        { "id": "golden-cavalier", "level": 20, "x": 12, "z": 28, "ai": "mobile" }
       ]
     },
     {
       "entranceId": "courtyard-ravens", "turn": 999, "spawned": false, "spawnedCount": 0,
       "units": [
-        { "id": "raven", "level": 18, "x": 1, "z": 3, "ai": "mobile" },
-        { "id": "raven", "level": 18, "x": 2, "z": 3, "ai": "mobile" },
-        { "id": "raven", "level": 18, "x": 23, "z": 3, "ai": "mobile" },
-        { "id": "raven", "level": 18, "x": 24, "z": 3, "ai": "mobile" }
+        { "id": "bell-envoy", "level": 20, "x": 20, "z": 12, "ai": "stationary", "drop": "covenant-emblem" },
+        { "id": "envoy-raven", "level": 18, "x": 20, "z": 11, "ai": "mobile" },
+        { "id": "envoy-raven", "level": 18, "x": 21, "z": 12, "ai": "mobile" }
+      ]
+    },
+    {
+      "entranceId": "courtyard-ravens-2", "turn": 999, "spawned": false, "spawnedCount": 0,
+      "units": [
+        { "id": "envoy-raven", "level": 18, "x": 20, "z": 11, "ai": "mobile" },
+        { "id": "envoy-raven", "level": 18, "x": 21, "z": 12, "ai": "mobile" }
+      ]
+    },
+    {
+      "entranceId": "courtyard-ravens-3", "turn": 999, "spawned": false, "spawnedCount": 0,
+      "units": [
+        { "id": "envoy-raven", "level": 18, "x": 20, "z": 11, "ai": "mobile" },
+        { "id": "envoy-raven", "level": 18, "x": 21, "z": 12, "ai": "mobile" }
       ]
     }
   ],
   "houses": [],
   "decorativeHouses": [],
-  "chests": [],
+  "chests": [
+    { "id": "courtyard-light-chest", "name": "Consecrated Supply Chest", "x": 20, "z": 9, "rewardId": "light-tome", "opened": false },
+    { "id": "courtyard-emblem-chest", "name": "Officer's Supply Chest", "x": 21, "z": 11, "rewardId": "master-emblem", "opened": false }
+  ],
   "objects": [],
   "trees": [],
   "tiles": [
     "DDDDDDDDDDDDDDDDDDDDDDDDDD",
-    "WPPPPPPPPPDDDDDDPPPPPPPPPW",
-    "WPPPPPPPPPDDDDDDPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPHHHHHHPPPPPPPPHHHHHHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHHPPHHPPPPPPPPHHPPHHPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPHHHHHHPPPPPPPPHHHHHHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHHPPHHPPPPPPPPHHPPHHPPW",
-    "WPPPPPPPPPPFFFFPPPPPPPPPPW",
-    "WPPPPPPPPPPFFFFPPPPPPPPPPW",
-    "WPPPPPPPPPPFFFFPPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPHHHHHHPPPPPPPPHHHHHHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHAAAAPPPPPPPPPPAAAAHPPW",
-    "WPPHHPPHHPPPPPPPPHHPPHHPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WPPPPPPPPPPPPPPPPPPPPPPPPW",
-    "WWWWWWWWWWPPPPPPWWWWWWWWWW"
+    "DDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "DDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "WWWWWWWWPPPPPPPPPPWWWWWWWW",
+    "WWHHHHHHPPPPPPPPPPHHHHHPWW",
+    "WWHAHHHHPHHPPPPHHPHHHHHPWW",
+    "WWHPHHHHPHHPPPPHHPHHHHHPWW",
+    "WWPPPPPPPHHPPPPHHPHHPPHPWW",
+    "WWPHHHHHPHPPPPPPHPHHPPHPWW",
+    "WWPHHHHHPHPFFFFPHPHHPPPPWW",
+    "WWPPPPPPPPPFFFFPPPHHPPHPWW",
+    "WWPHHHHHPHPFFFFPHPHHPHHPWW",
+    "WWPHHAHHPHPPPPPPHPHHPHHPWW",
+    "WWPHHPHHPHHPPPPHHPPPPPPPWW",
+    "WWPPPPPPPPPPPPPPPPPPPPPPWW",
+    "WWWWPPHHHPPPPPPPPHHHPPWWWW",
+    "WWWWPPHHHPPPPPPPPHHHPPWWWW",
+    "WWWWPPPPPPPPPPPPPPPPPPWWWW",
+    "WWWWPPHHHPPPPPPPPHHHPPWWWW",
+    "WWWWPPHHHPPPPPPPPHHHPPWWWW",
+    "WWWWPPPPPPPPPPPPPPPHPPWWWW",
+    "WWWWWHHHHPPPPPPPPHHHHWWWWW",
+    "WWWWWHHHHPPPPPPPPHHHHWWWWW",
+    "WWWWWWWWWWWWPWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWPWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWPWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWPWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWPWWWWWWWWWWWWW"
   ]
 }

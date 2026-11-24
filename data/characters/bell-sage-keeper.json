@@ -1,0 +1,10 @@
+{
+  "id": "bell-sage-keeper", "name": "Halloran, Sage of the Last Flame", "classId": "sage", "type": "infantry",
+  "spriteSet": "genericSage", "sprite": "assets/character/Generic_Sage/rotations/south.png", "scale": 1.25,
+  "level": 27, "experience": 0, "weaponId": "cinder-vigil", "weaponExp": { "Anima": 250 },
+  "inventory": ["cinder-vigil"],
+  "isBoss": true, "ai": "stationary",
+  "baseStats": { "hp": 74, "strength": 2, "magic": 28, "dexterity": 29, "speed": 19, "luck": 9, "defense": 16, "resistance": 26, "movement": 5, "build": 12 },
+  "currentStats": { "hp": 74, "strength": 2, "magic": 28, "dexterity": 29, "speed": 19, "luck": 9, "defense": 16, "resistance": 26, "movement": 5, "build": 12 },
+  "growthRates": {}
+}

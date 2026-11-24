@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { attachMapDrag } from './game/map-drag.js';
 import { createBattleScreen } from './battle/battle-screen.js';
+import { drawLethality } from './battle/battle-effects.js';
 import { readCombatAnimations, writeCombatAnimations } from './battle/battle-animation.js';
 import {
   getAttackCount,
@@ -17,9 +18,11 @@ import {
   getCombatDamage,
   getHitRate,
   getTriangleAdvantage,
+  enemyAttackWeapons,
+  bestEnemyWeapon,
   isInWeaponRange,
   isWeaponEffective,
-  rollCritical,
+  rollStrikeResult,
   rollHit,
   weaponRangeLabel,
 } from './battle/combat.js';
@@ -35,14 +38,14 @@ import {
   terrainMoveCost,
   tileKey,
 } from './battle/grid.js';
-import { createArlanAlly, createBartzAlly, createCorvisAlly, createCypherAlly, createEnemyUnit, createEvelineAlly, createLenaAlly, createLinusAlly, createMaria, createRictorAlly, createSeymourAlly, createStarkAlly, createTroyAlly, createVillager, isBossEnemy } from './characters/characters.js';
+import { createArlanAlly, createBartzAlly, createCorvisAlly, createCypherAlly, createEnemyUnit, createEvelineAlly, createLenaAlly, createLeonAlly, createLinusAlly, createMaria, createRictorAlly, createSerraAlly, createSeymourAlly, createStarkAlly, createTroyAlly, createVillager, isBossEnemy } from './characters/characters.js';
 import { enemyDropIds, enemyMovementType } from './characters/characters.js';
 import { createExperienceDisplay } from './characters/experience-display.js';
 import { applyClass, canEquipWeapon, equipBlockReason, promotionBlockReason, getClassAbilities, promoteUnit, getUsesMultiplier, getStaffRangeBonus, weaponSpriteSet } from './characters/classes.js';
 import { applyBloodOath, applyCombatDamage, BLOOD_OATH, BLOOD_OATH_COST, bloodOathBlockReason,
-  bloodOathTargets, clearCovenantState, endCovenantPlayerPhase, movementAllowance, protectedCombatDamage,
+  bloodOathTargets, bloodTrailBonus, clearCovenantState, movementAllowance, protectedCombatDamage,
   startCovenantPlayerPhase } from './game/covenant.js';
-import { awardWeaponExp } from './characters/weapon-levels.js';
+import { awardWeaponExp, weaponTypeLabel } from './characters/weapon-levels.js';
 import { applyBooster, boosterBlockReason, isBooster } from './characters/boosters.js';
 import { createLevelUpDialog } from './characters/level-up-dialog.js';
 import { createRankUpDialog } from './characters/rank-up-dialog.js';
@@ -54,7 +57,7 @@ import { createProfileDialog, portraitUrl } from './characters/profile-dialog.js
 import { initializeUiSounds } from './audio/ui-sounds.js';
 import { playDistantGateShriek } from './audio/gate-audio.js';
 import { playBloodBeastRoar, playCrowOmen, playDoorCreak, playGateRumble, playHitImpact, playMissWhiff, playWeaponSwing } from './audio/combat-sounds.js';
-import { isForestLayout } from './levels/village-scene.js';
+import { isForestLayout, villageLayout } from './levels/village-scene.js';
 import {
   attackWeapons, equipAttackWeapon, bookOf, carriedWeapons, convoy, copyEntry, findWeaponEntry, grantItem, INVENTORY_ITEMS, isSpellUnlocked, MAX_INVENTORY_SIZE, maxUsesFor, refreshMagicUses,
   rescaleMagicUses, restoreMariaInventory, setConvoy, spellUses, spendWeaponUse, syncSpellbooks, unlockedSpellsOf, weaponUseBlockReason,
@@ -68,19 +71,25 @@ import { createPrepMenu } from './game/prep-menu.js';
 import { constrainCityCamera, constrainInteriorCamera, constrainStreetCamera, LONE_SHIP_OCEAN_MARGIN, MANOR_CAMERA_MARGIN, TACTICAL_FOV } from './game/camera-bounds.js';
 import { renderInsightLabel } from './game/insight-display.js';
 import { activateBridgeSquads, beginGateBeastPressure, gateVictoryReady, planGateRavens, shouldSpawnGateBeast } from './game/gate-encounter.js';
-import { claimInfirmaryCompletion, finishInfirmaryEnemyPhase, freshInfirmary, infirmaryActions, infirmaryApproachTarget, infirmaryBreached, infirmarySpawnTile, infirmaryVictoryReady, infirmaryWarning, infirmaryWaveSealed, performInfirmaryAction } from './game/infirmary.js';
+import { claimInfirmaryCompletion, finishInfirmaryEnemyPhase, freshInfirmary, infirmaryActions, infirmaryApproachTarget, infirmaryBreached, infirmaryLedgerSecured, infirmarySpawnTile, infirmaryVictoryReady, infirmaryWarning, infirmaryWaveSealed, performInfirmaryAction, resolveInfirmaryPatients } from './game/infirmary.js';
 import { advanceRescueGuards, canRecruitLinus, escortPath, freshRescueState, isActiveVillager, rescueProgress, rescueRewardIds, rescueWarnings } from './game/rescue.js';
-import { canRecruitEveline, recruitEveline, freshStreets, streetWarning, streetsVictoryReady } from './game/streets.js';
+import { canRecruitEveline, recruitEveline, freshStreets, streetWarning, streetsVictoryReady,
+  streetWaveEnabled, updateStreetPressure, houseHasReward, streetRaiderTarget, destroyStreetHouse } from './game/streets.js';
 import { canSteal, stealableItems, stealItem } from './game/stealing.js';
-import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled } from './game/courtyard.js';
+import { planPursuit } from './battle/pursuit.js';
+import { canRecruitCorvis, recruitCorvis, courtyardVictoryReady, freshCourtyard, triggerProgressWaves, courtyardWaveEnabled,
+  activateCourtyardFormations, courtyardDeliveryCourt, insideDeliveryCourt, courtyardPatrolBlockers } from './game/courtyard.js';
 import { advanceCathedralStory, CATHEDRAL_ELEVATIONS, cathedralWaveEnabled, freshCathedral } from './game/cathedral.js';
-import { advanceBellYardStory, bellYardVictoryReady, canReunite, dueDepartures, freshBellYard, planWagonMove } from './game/bell-yard.js';
-import { availableBeacon, extinguishBeacon, freshShore, shoreVictoryReady } from './game/starless-shore.js';
+import { advanceBellYardStory, availableBellLock, bellYardUnlocked, bellYardVictoryReady, canReunite,
+  dueDepartures, freshBellYard, openBellLock, planWagonMove } from './game/bell-yard.js';
+import { activateShoreTrial, availableBeacon, availableShoreTrial, extinguishBeacon, freshShore,
+  shoreVictoryReady, shoreWarning, shoreWaveEnabled } from './game/starless-shore.js';
 import { activateMechanism, availableMechanism, cityTideWarning, freshWaitingCity, prepareCityPulse, resolveCityPulse, waitingCityVictoryReady } from './game/waiting-city.js';
 import { advanceThroneStory, freshAbyssalThrone, isBenedictionTurn, performBenediction,
   prepareForetoldRuin, resolveForetoldRuin } from './game/abyssal-throne.js';
 import { chooseEnemyStaffAction, freezeHitRate, freezeRange, healStaffRange, useEnemyStaff } from './game/enemy-staves.js';
 import { loadCharacterSprites } from './characters/animation-loader.js';
+import { buildWithAssets, nextPaint, prepareMotion, warmTextures } from './game/chapter-loading.js';
 import { unitSpriteScale } from './characters/sprite-size.js';
 import { throneFloorElevations } from './levels/throne-terraces.js';
 import {
@@ -105,6 +114,10 @@ import {
   setOceanAmbienceGain,
   setForestAmbienceActive,
   setShipAmbienceActive,
+  setCityAmbienceActive,
+  setCathedralAmbienceActive,
+  setShoreAmbienceActive,
+  playCityPursuitWarning,
 } from './audio/ocean.js';
 
 initializeAnimatedMenu();
@@ -144,7 +157,6 @@ function gainInsight(amount, source) {
   setMessage(`Insight +${amount} (${source}).`);
 }
 
-// Reading an Insight item (Orsen's Journal) consumes it and pays out its Insight.
 function readInsightItem(unit, entry) {
   const item = INVENTORY_ITEMS.get(entry.id);
   const holder = unit ? unit.inventory : convoy;
@@ -153,6 +165,7 @@ function readInsightItem(unit, entry) {
   holder.splice(index, 1);
   gainInsight(item.insight, item.name);
   saveCurrentGame();
+  void itemPopup.showRead(item, getInsight());
 }
 
 async function useInsightFromInventory(entry) {
@@ -185,6 +198,9 @@ async function visitHouse() {
   const receipts = Array.from({ length: house.rewardCount ?? 1 }, () => ({ unit: player, ...grantItem(player, house.rewardId) }));
   const { item } = receipts[0];
   const sentToConvoy = receipts.filter((receipt) => receipt.toConvoy).length;
+  if (house.id === 'ward-equipment-rack' && player.id === 'rictor' && !player.weapon && !sentToConvoy) {
+    equipAttackWeapon(player, item);
+  }
   house.visited = true;
   player.acted = true;
   setMessage(`${player.name} visited ${house.name} and received ${receipts.length > 1 ? `${receipts.length}x ` : ''}${item.name}.${
@@ -329,7 +345,12 @@ duskBackdrop.visible = false;
 let activeBackdrop = nightBackdrop;
 
 // Picks the floor point under the pointer, preferring raised tiles (quarterdeck, stairs) that sit above the main deck.
-function pickFloorPoint(ray) {
+function pickFloorPoint(raycaster) {
+  if (activeLevel?.cathedral?.artwork === 'illustrated') {
+    const surface = levelGroup.getObjectByName('cathedral-illustrated-interior');
+    return raycaster.intersectObject(surface, false)[0]?.point ?? null;
+  }
+  const { ray } = raycaster;
   const elevations = activeLevel?.abyssalThrone ? throneFloorElevations(activeLevel)
     : activeLevel?.cathedral ? CATHEDRAL_ELEVATIONS : [0.5, 0.25];
   for (const elevation of elevations) {
@@ -367,6 +388,9 @@ function applyLevelLighting() {
   setShipAmbienceActive(Boolean(activeLevel.shipScene) ||
     ['Map 01 - Between Two Ships', 'Map 02 - Boarders from the Deep'].includes(activeLevel.name));
   setForestAmbienceActive(isForestLayout(activeLevel.villageScene?.layout) || Boolean(activeLevel.forestEdges));
+  setCityAmbienceActive(Boolean(activeLevel.streets || activeLevel.courtyard));
+  setCathedralAmbienceActive(Boolean(activeLevel.cathedral));
+  setShoreAmbienceActive(Boolean(activeLevel.shore), activeLevel.shore?.beacons.map((beacon) => !beacon.extinguished));
   const dusk = activeLevel.lighting === 'dusk';
   const sunset = dusk || activeLevel.lighting === 'sunset';
   ambient.color.setHex(dusk ? 0xc59da2 : sunset ? 0xffdfbb : 0x4a3a66);
@@ -470,13 +494,21 @@ async function runTutorials() {
       if (intro === 'goldenBridge') {
         void playDistantGateShriek().catch((error) => console.error('Could not play the distant gate shriek:', error));
       }
-      await tutorialPopup.show(intro, TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral', 'bellYard', 'shore', 'waitingCity', 'abyssalThrone'].includes(intro) });
+      const introKey = intro === 'bellYard' && activeLevel.bellYard?.locks ? 'bellYard-split'
+        : intro !== 'courtyard' ? intro : !activeLevel.courtyard.tactics ? 'courtyardLegacy'
+        : activeLevel.courtyard.tactics.ravenReinforcements ? 'courtyard' : 'courtyardGuard';
+      await tutorialPopup.show(introKey,
+        TRIANGLE_EFFECTS, { force: ['goldenBridge', 'ward', 'infirmary', 'courtyard', 'cathedral', 'bellYard', 'shore', 'waitingCity', 'abyssalThrone'].includes(intro) });
       if (intro === 'goldenBridge') await showGateRavens(enemies);
     }
     if (tutorialProgress.rescueWarningTurn !== gameState.turn) {
       tutorialProgress.rescueWarningTurn = gameState.turn;
       const warnings = rescueWarnings(activeLevel, enemies, gameState.turn);
       if (warnings.length) await tutorialPopup.show('crossingWarning', { warning: warnings.join(' ') }, { force: true });
+      if (activeLevel.infirmary && activeLevel.reinforcements.some((wave) =>
+        !wave.spawned && !infirmaryWaveSealed(activeLevel, wave) && wave.turn === gameState.turn + 1)) {
+        await tutorialPopup.show('infirmaryWarning', { warning: infirmaryWarning(activeLevel, gameState.turn) }, { force: true });
+      }
     }
     await showCathedralStory();
     if (activeLevel.bellYard) await showBellYardStory();
@@ -522,6 +554,9 @@ let pendingPrep = false;
 let prepMenu = null;
 let mapViewActive = false;
 const MAX_DEPLOYED = 12;
+function maximumDeployed() {
+  return activeLevel.shore?.trials ? activeLevel.players.length : MAX_DEPLOYED;
+}
 // Every unit available this chapter; playerTeam holds only the ones deployed to fight.
 let fullTeam = [];
 const MAP_VIEW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyI', 'KeyR']);
@@ -531,7 +566,7 @@ function isDeployed(unit) {
 }
 
 function setDeployed(unit, on) {
-  if (isRequiredUnit(unit) || on === isDeployed(unit) || (on && playerTeam.length >= MAX_DEPLOYED)) return;
+  if (isRequiredUnit(unit) || on === isDeployed(unit) || (on && playerTeam.length >= maximumDeployed())) return;
   const next = fullTeam.filter((member) => (member === unit ? on : isDeployed(member)));
   playerTeam.length = 0;
   playerTeam.push(...next);
@@ -563,6 +598,7 @@ async function openPrepMenu() {
     readInsight: readInsightItem,
     maxSize: MAX_INVENTORY_SIZE,
     maxDeployed: MAX_DEPLOYED,
+    getMaxDeployed: maximumDeployed,
     settle: settleTradedWeapons,
     isDeployed,
     setDeployed,
@@ -590,12 +626,17 @@ async function openPrepMenu() {
   renderTacticalUi();
 }
 
-// Hands the level's starting items to every unit and announces each pickup in turn.
+// Prepared restart snapshots already include these supplies.
 function grantStartingItems(team) {
   const receipts = [];
   for (const itemId of activeLevel.startingItems) {
     for (const unit of team) receipts.push({ unit, ...grantItem(unit, itemId) });
   }
+  for (const unit of team) {
+    const placement = activeLevel.players.find((entry) => entry.id === unit.id);
+    for (const itemId of placement?.startingItems ?? []) receipts.push({ unit, ...grantItem(unit, itemId) });
+  }
+  if (receipts.length) saveCurrentGame();
   window.setTimeout(async () => {
     if (pendingPrep) {
       pendingPrep = false;
@@ -615,6 +656,8 @@ const cypher = createCypherAlly();
 const seymour = createSeymourAlly();
 const stark = createStarkAlly();
 const linus = createLinusAlly();
+const leon = createLeonAlly();
+const serra = createSerraAlly();
 const rictor = createRictorAlly();
 const lena = createLenaAlly();
 const arlan = createArlanAlly();
@@ -627,6 +670,8 @@ experienceDisplay.reset(player.level, player.experience);
 let activeLevel;
 let rescueState = null;
 let sessionStarted = false;
+let chapterLoading = false;
+let chapterLoadGeneration = 0;
 let levelGroup = new THREE.Group();
 const tacticalOverlay = new THREE.Group();
 scene.add(levelGroup);
@@ -677,16 +722,20 @@ function setLevelStatus(message, isError = false) {
   levelStatus.style.color = isError ? '#ed9292' : '#e8d9d9';
 }
 
-const initialLevel = await loadInitialLevel(setLevelStatus);
-activeLevel = buildLevel(THREE, levelGroup, initialLevel);
-applyLevelLighting();
-player.x = initialLevel.spawn.x;
-player.z = initialLevel.spawn.z;
-cursor.x = player.x;
-cursor.z = player.z;
-
 // Player
-const characterSprites = await loadCharacterSprites();
+menuStatus.textContent = 'Loading character sprites...';
+const startupProgress = document.getElementById('startup-progress');
+const startupPercent = document.getElementById('startup-percent');
+const characterSprites = await loadCharacterSprites((loaded, total) => {
+  startupProgress.max = total;
+  startupProgress.value = loaded;
+  startupProgress.setAttribute('aria-valuetext', `${loaded} of ${total} sprite sets ready`);
+  startupPercent.textContent = `${Math.floor(loaded / total * 100)}%`;
+}).catch((error) => {
+  document.getElementById('startup-loading').hidden = true;
+  menuStatus.textContent = 'Could not load character sprites. Refresh the page to try again.';
+  throw error;
+});
 const unitGeometry = createUnitSpriteGeometry();
 const HERO_DECK_HEIGHT = 0.12;
 function unitSpriteHeightAt(x, z, unit) {
@@ -698,7 +747,7 @@ function unitSpriteHeightAt(x, z, unit) {
 function unitTextures(unit) {
   const set = weaponSpriteSet(unit);
   return {
-    idle: set === 'highCantorVael' && activeLevel.abyssalThrone && !activeLevel.abyssalThrone.awakened
+    idle: set === 'highCantorVael' && activeLevel?.abyssalThrone && !activeLevel.abyssalThrone.awakened
       ? characterSprites.highCantorVaelSeated : characterSprites[set],
     walking: characterSprites[`${set}WalkingFrames`],
     attack: characterSprites[`${set}AttackFrames`],
@@ -728,6 +777,24 @@ function setUnitSprite(unit, texture) {
 
 function setIdleSprite(unit, direction = unit.facing) {
   setUnitSprite(unit, unitTextures(unit).idle[direction]);
+}
+
+const warmingMotion = new WeakMap();
+function warmUnitMotion(unit) {
+  const set = weaponSpriteSet(unit);
+  const mesh = unit.mesh;
+  if (warmingMotion.get(mesh) === set) return;
+  warmingMotion.set(mesh, set);
+  void characterSprites.loadMotion(set).then(() => {
+    if (unit.mesh === mesh && mesh.parent && weaponSpriteSet(unit) === set &&
+        !unit.attackAnimation && enemyMovement?.enemy !== unit && !(unit === player && playerMovement)) {
+      setIdleSprite(unit);
+    }
+  }).catch(error => {
+    warmingMotion.delete(mesh);
+    console.error('Could not prepare unit animations:', error);
+    setLevelStatus(`Could not prepare ${unit.name}'s animations: ${error.message}`, true);
+  });
 }
 
 function createUnitMesh(unit, renderOrder = 2) {
@@ -813,19 +880,7 @@ function addUnitHealthBar(mesh, unit) {
   };
 }
 
-createUnitMesh(maria, 0);
 const bartz = createBartzAlly();
-createUnitMesh(bartz, 0);
-createUnitMesh(cypher, 0);
-createUnitMesh(seymour, 0);
-createUnitMesh(stark, 0);
-createUnitMesh(linus, 0);
-createUnitMesh(rictor, 0);
-createUnitMesh(lena, 0);
-createUnitMesh(arlan, 0);
-createUnitMesh(troy, 0);
-createUnitMesh(eveline, 0);
-createUnitMesh(corvis, 0);
 let currentChapter = 0;
 let chapterStart = null;
 const cursorPlaneGeometry = new THREE.PlaneGeometry(1, 1);
@@ -1016,10 +1071,8 @@ function showPhaseBanner(phase, turn) {
   }, 1200);
 }
 
-resetEnemies();
-
 function saveCurrentGame() {
-  if (!sessionStarted) return false;
+  if (!sessionStarted || chapterLoading) return false;
   try {
     writeSave(createSaveData(
       activeLevel,
@@ -1137,14 +1190,18 @@ function objectiveDescription(level = activeLevel) {
   }
   if (level.shore) {
     const lit = level.shore.beacons.filter((beacon) => !beacon.extinguished).length;
-    const waves = level.reinforcements.filter((wave) => !wave.spawned);
-    const next = waves.length ? Math.min(...waves.map((wave) => wave.turn)) : null;
     return [`Beacons extinguished ${3 - lit}/3`, 'Then Maria AND Rictor reach the northern sea gate',
-      next === null ? 'No further summons' : `Summons ${next <= gameState.turn ? 'queued at marked shores' : `on turn ${next}`} (final turn 9)`].join(' · ');
+      ...(level.shore.beacons.some((beacon) => beacon.guardians) ? ['Defeat each flame\'s named guardians first'] : []),
+      shoreWarning(level, gameState.turn),
+      ...(level.shore.trials ? [`Optional trials ${level.shore.trials.filter((trial) => trial.activated).length}/2 awakened`] : [])].join(' · ');
   }
   if (level.bellYard) {
     const rules = level.bellYard;
     const keeper = enemies.some((enemy) => enemy.id === rules.bossId) ? 'Defeat the Lift-Keeper' : 'Lift-Keeper defeated';
+    if (rules.locks) return [
+      `West winch: ${rules.locks[0].opened ? 'open' : 'locked'}`, `East brake: ${rules.locks[1].opened ? 'released' : 'locked'}`,
+      bellYardUnlocked(level) ? `${keeper}, then Maria and Rictor board the Bell Lift` : 'Complete both controls to reunite',
+    ].join(' · ');
     return [keeper, 'then Maria and Rictor board the Bell Lift',
       rules.reunited ? 'Parties reunited' : 'Maria and Rictor: Talk to reunite',
       `Wagons escaped ${rules.escaped}`].join(' · ');
@@ -1157,11 +1214,14 @@ function objectiveDescription(level = activeLevel) {
   if (level.courtyard) return 'Defeat General Severin to enter the Cathedral';
   if (level.streets) {
     const recruit = level.streets.recruit;
-    return `Rictor must seize the gate controls after Marshal Veyr falls · Eveline ${recruit.recruited ? 'recruited' : recruit.dead ? 'lost' : 'awaits Rictor'} · Houses ${level.houses.filter((house) => house.visited).length}/3`;
+    return `Rictor must seize the gate controls after Marshal Veyr falls · Eveline ${recruit.recruited ? 'recruited' : recruit.dead ? 'lost' : 'awaits Rictor'} · Houses ${level.houses.filter((house) => house.visited).length}/${level.houses.length}${level.streets.raiders ? ` · Raided ${level.houses.filter((house) => house.destroyed).length}` : ''}`;
   }
   if (level.infirmary) {
     const rules = level.infirmary;
-    return `Defend the evacuation door: ${rules.survivedTurns}/${rules.defendTurns} enemy phases held · Patients ${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} · Ledger ${rules.ledger.collected ? 'secured' : 'missing'}`;
+    const optional = rules.patients.length
+      ? `Patients ${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} rescued${rules.patientsVulnerable ? `, ${rules.patients.filter((patient) => patient.lost).length} lost` : ''}`
+      : `Chests ${level.chests.filter((chest) => chest.opened).length}/${level.chests.length}`;
+    return `Defend the evacuation route: ${rules.survivedTurns}/${rules.defendTurns} enemy phases held · ${optional} · Ledger ${infirmaryLedgerSecured(level) ? 'secured' : 'missing'}`;
   }
   if (level.objective === 'defend') return `Defend for ${level.defendTurns} turns · Turn ${Math.min(gameState.turn, level.defendTurns)}/${level.defendTurns}`;
   if (level.objective === 'seize-gate') {
@@ -1302,11 +1362,18 @@ async function showThroneStory() {
 async function showBellYardStory() {
   for (const id of advanceBellYardStory(activeLevel, playerTeam, gameState.turn)) {
     saveCurrentGame();
-    await tutorialPopup.show(`bellYard-${id}`, {}, { force: true });
+    await tutorialPopup.show(`bellYard-${activeLevel.bellYard.locks ? 'split-' : ''}${id}`, {}, { force: true });
   }
 }
 
 async function showBellYardEnding() {
+  if (activeLevel.bellYard.locks) {
+    await tutorialPopup.show('bellYard-split-ending', {
+      omen: enemies.some((enemy) => enemy.id === 'crowman' && enemy.hp > 0)
+        ? 'At the edge of the shaft, the Omen watches Maria, not the descending platform.' : '',
+    }, { force: true });
+    return;
+  }
   const escaped = activeLevel.bellYard.escaped;
   await tutorialPopup.show('bellYard-ending', {
     cargo: escaped === 0 ? 'Not one treatment wagon reached the lift. Whatever waits below will be hungry.'
@@ -1480,7 +1547,7 @@ function checkCourtyardObjective() {
   if (gameState.phase === 'victory') return true;
   if (!courtyardVictoryReady(activeLevel, enemies, partyLeader())) return false;
   completeVictory('General Severin falls. The Cathedral doors open; the Bishop waits within.');
-  void tutorialPopup.show('courtyardEnding', {}, { force: true });
+  void tutorialPopup.show(activeLevel.courtyard.tactics ? 'courtyardEnding' : 'courtyardLegacyEnding', {}, { force: true });
   return true;
 }
 
@@ -1593,7 +1660,101 @@ function applyUnitSnapshot(unit, snapshot) {
   unit.hp = unit.maxHp;
 }
 
-const roster = { maria, bartz, cypher, seymour, stark, linus, rictor, lena, arlan, troy, eveline, corvis };
+const roster = { maria, bartz, cypher, seymour, stark, linus, leon, rictor, lena, arlan, serra, troy, eveline, corvis };
+
+function ensureRosterMeshes() {
+  for (const unit of Object.values(roster)) {
+    if (!unit.mesh) createUnitMesh(unit, 0);
+  }
+}
+
+const chapterLoadingDialog = document.querySelector('#chapter-loading-dialog');
+chapterLoadingDialog.addEventListener('cancel', event => event.preventDefault());
+
+function chapterLoadingProgress(stage, completed, total, start, end) {
+  const percent = Math.floor(start + (total ? completed / total : 1) * (end - start));
+  document.querySelector('#chapter-loading-status').textContent = stage;
+  const progress = document.querySelector('#chapter-loading-progress');
+  progress.value = percent;
+  progress.setAttribute('aria-valuetext', `${stage}: ${percent}%`);
+  document.querySelector('#chapter-loading-percent').textContent = `${percent}%`;
+}
+
+function motionTextures(sets) {
+  return sets.flatMap(set => ['', 'WalkingFrames', 'AttackFrames', 'StaffFrames', 'FirearmFrames']
+    .flatMap(suffix => Object.values(characterSprites[`${set}${suffix}`] ?? {}).flat()));
+}
+
+async function loadChapterScene(build) {
+  if (chapterLoading) return false;
+  chapterLoading = true;
+  const generation = ++chapterLoadGeneration;
+  chapterLoadingProgress('Preparing map and restoring units...', 0, 1, 0, 20);
+  chapterLoadingDialog.showModal();
+  try {
+    await nextPaint();
+    const ready = await buildWithAssets(THREE.DefaultLoadingManager, build,
+      (completed, total) => chapterLoadingProgress('Preparing chapter artwork...', completed, total, 5, 20));
+    const units = [...playerTeam, ...neutralUnits(), ...enemies].filter(unit => unit.hp > 0);
+    const sets = [...new Set(units.map(weaponSpriteSet))];
+    await prepareMotion(characterSprites, sets,
+      (completed, total) => chapterLoadingProgress('Preparing unit animations...', completed, total, 20, 70));
+    for (const unit of units) {
+      warmingMotion.set(unit.mesh, weaponSpriteSet(unit));
+      setIdleSprite(unit);
+    }
+    manualCameraTarget = null;
+    camera.position.set(worldX(player.x), 0.8, worldZ(player.z))
+      .add(CAM_OFFSET.clone().multiplyScalar(tacticalCameraScale()));
+    update(0, clock.elapsedTime);
+    const textures = motionTextures(sets);
+    scene.traverse(object => {
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        if (!material) continue;
+        for (const value of Object.values(material)) if (value?.isTexture) textures.push(value);
+      }
+    });
+    await warmTextures(renderer, textures,
+      (completed, total) => chapterLoadingProgress('Preparing rendering...', completed, total, 70, 95));
+    await renderer.compileAsync(scene, camera);
+    renderer.render(scene, camera);
+    chapterLoadingProgress('Chapter ready', 1, 1, 95, 100);
+    await nextPaint();
+    clock.getDelta();
+    chapterLoadingDialog.close();
+    chapterLoading = false;
+    ready();
+    window.setTimeout(() => {
+      if (generation !== chapterLoadGeneration || !sessionStarted) return;
+      const upcoming = activeLevel.reinforcements.filter(wave => !wave.spawned)
+        .flatMap(wave => wave.units.map(placement =>
+          weaponSpriteSet(createEnemyUnit(placement.id, placement.x, placement.z, { ...placement, chapter: currentChapter }))));
+      void (async () => {
+        for (const set of new Set(upcoming)) {
+          if (generation !== chapterLoadGeneration || !sessionStarted || chapterLoading) return;
+          await prepareMotion(characterSprites, [set]);
+          if (generation !== chapterLoadGeneration || !sessionStarted || chapterLoading) return;
+          await warmTextures(renderer, motionTextures([set]));
+        }
+      })().catch(error => {
+        console.error('Could not prepare reinforcement animations:', error);
+        setLevelStatus(`Could not prepare reinforcement animations: ${error.message}`, true);
+      });
+    }, 1000);
+    return true;
+  } catch (error) {
+    console.error('Could not prepare chapter:', error);
+    sessionStarted = false;
+    mainMenu.hidden = false;
+    document.body.classList.add('title-screen');
+    setLevelStatus(`Could not prepare chapter: ${error.message}`, true);
+    menuStatus.textContent = `Could not prepare chapter: ${error.message}. Your saved game has not been changed. Please try again.`;
+    return false;
+  } finally {
+    chapterLoadingDialog.close();
+    chapterLoading = false;
+  }
+}
 
 const partyOf = (unit) => unit.party ?? 'maria';
 const partyLeader = () => roster[activeLevel?.leader ?? 'maria'];
@@ -1632,8 +1793,22 @@ async function recruitStreetHealer() {
   setMessage('Eveline joins! Her wounds remain, but her Heal staff is ready to help.');
   renderTacticalUi();
   await tutorialPopup.show('eveline', {}, { force: true });
+  await showStreetPressure();
   gameState.mode = 'unit';
   finishUnit();
+}
+
+async function showStreetPressure(events = updateStreetPressure(activeLevel, gameState.turn, enemies)) {
+  if (!events.length) return;
+  renderTacticalUi();
+  saveCurrentGame();
+  for (const event of events) {
+    if (event === 'streetPursuitWarning' || event === 'streetOfficerWarning') playCityPursuitWarning();
+    await tutorialPopup.show(event, {
+      arrival: event === 'streetRaiderWarning' ? 7 :
+        activeLevel.streets.pressure.triggeredTurn + (event === 'streetOfficerWarning' ? 5 : 2),
+    }, { force: true });
+  }
 }
 
 async function recruitCourtyardShaman() {
@@ -1767,7 +1942,8 @@ function checkRescueVictory() {
 function deployTeam(level, carry = null) {
   const carried = new Set((carry?.allies ?? []).map((ally) => ally.id));
   // The reunion map lists both full parties; units never recruited (or left behind) stay off the field.
-  const listed = (level.bellYard || level.shore || level.waitingCity || level.abyssalThrone) && Array.isArray(carry?.allies)
+  const combinedParties = level.bellYard || level.shore || level.waitingCity || level.abyssalThrone;
+  const listed = combinedParties && Array.isArray(carry?.allies)
     ? level.players.filter((placement) => level.requiredUnits.includes(placement.id) || carried.has(placement.id))
     : level.players;
   const placements = [...(listed.length
@@ -1778,13 +1954,16 @@ function deployTeam(level, carry = null) {
   const party = partyOf(roster[origin.id] ?? maria);
   // Carried-over allies the map doesn't list (e.g. recruited mid-game) still join their own party, beside the first unit.
   for (const saved of carry?.allies ?? []) {
-    if (roster[saved.id] && partyOf(roster[saved.id]) !== party) continue;
+    if (!combinedParties && roster[saved.id] && partyOf(roster[saved.id]) !== party) continue;
     if (!roster[saved.id] || placements.some((placement) => placement.id === saved.id)) continue;
+    const deploymentOrigin = level.bellYard?.locks
+      ? placements.find(({ id }) => id === partyOf(roster[saved.id])) ?? origin
+      : origin;
     let best = null;
     for (let z = 0; z < level.height; z++) {
       for (let x = 0; x < level.width; x++) {
         if (!isWalkable(level, x, z) || taken.has(tileKey(x, z))) continue;
-        const distance = distanceBetween(origin.x, origin.z, x, z);
+        const distance = distanceBetween(deploymentOrigin.x, deploymentOrigin.z, x, z);
         if (!best || distance < best.distance) best = { x, z, distance };
       }
     }
@@ -1820,8 +1999,14 @@ function serializeCarry() {
   return { ...serializeUnit(maria), allies: [...allies.values()], convoy: convoy.map(copyEntry), insight: snapshotInsight() };
 }
 
-function startLevel(level, { chapter = null, carry = null } = {}) {
+function startLevel(level, options = {}) {
+  return loadChapterScene(async () => buildChapter(await (typeof level === 'function' ? level() : level), options));
+}
+
+function buildChapter(level, { chapter = null, carry = null } = {}) {
   const validatedLevel = validateLevel(level);
+  activeLevel = buildLevel(THREE, levelGroup, validatedLevel);
+  ensureRosterMeshes();
   hideTerminalScreen();
   currentChapter = chapter;
   chapterStart = carry;
@@ -1833,6 +2018,8 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   Object.assign(seymour, createSeymourAlly());
   Object.assign(stark, createStarkAlly());
   Object.assign(linus, createLinusAlly());
+  Object.assign(leon, createLeonAlly());
+  Object.assign(serra, createSerraAlly());
   Object.assign(rictor, createRictorAlly());
   Object.assign(lena, createLenaAlly());
   Object.assign(arlan, createArlanAlly());
@@ -1842,12 +2029,16 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   setConvoy(carry?.convoy);
   restoreInsight(carry?.insight);
   refreshInsightLabel();
-  pendingPrep = chapter !== null && chapter >= FIRST_PREP_CHAPTER;
+  pendingPrep = chapter !== null && chapter >= FIRST_PREP_CHAPTER && validatedLevel.villageScene?.layout !== 'ward';
   if (carry) {
     applyUnitSnapshot(maria, carry);
     for (const savedAlly of carry.allies ?? []) {
       if (roster[savedAlly.id] && roster[savedAlly.id] !== maria) applyUnitSnapshot(roster[savedAlly.id], savedAlly);
     }
+  }
+  if (validatedLevel.villageScene?.layout === 'ward') {
+    rictor.inventory = rictor.inventory.filter((entry) => entry.id !== 'vigil-lance');
+    if (rictor.weapon?.id === 'vigil-lance') rictor.weapon = null;
   }
   for (const unit of Object.values(roster)) {
     clearCovenantState([unit]);
@@ -1856,7 +2047,6 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
     unit.mesh.material.color.set(0xffffff);
   }
   refreshMagicUses(convoy);
-  activeLevel = buildLevel(THREE, levelGroup, validatedLevel);
   applyLevelLighting();
   refreshPrisonerSilhouettes();
   const team = deployTeam(activeLevel, carry);
@@ -1892,37 +2082,39 @@ function startLevel(level, { chapter = null, carry = null } = {}) {
   experienceDisplay.reset(player.level, player.experience);
   setLevelStatus(`Level: ${activeLevel.name}`);
   setMessage(`${activeLevel.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
-  sessionStarted = true;
-  hideMainMenu();
-  showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
-  // A prepared snapshot already holds this chapter's starting items.
-  grantStartingItems(carry?.prepared ? [] : team);
+  return () => {
+    sessionStarted = true;
+    hideMainMenu();
+    showPhaseBanner('Player', gameState.turn);
+    // A prepared snapshot already holds this chapter's starting items.
+    grantStartingItems(carry?.prepared ? [] : team);
+  };
 }
 
 function newGame() {
-  startLevel(initialLevel, { chapter: 0 });
+  return startLevel(() => loadInitialLevel(setLevelStatus), { chapter: 0 });
 }
 
 async function restartLevel() {
-  // Illustrated village chapters reload authored data so revised layouts replace stale embedded saves.
+  // Illustrated chapters reload authored data so revised layouts replace stale embedded saves.
   if ((currentChapter === 2 && activeLevel.villageScene?.layout === 'harbor') ||
       (currentChapter === 3 && activeLevel.villageScene?.layout === 'mansion') ||
       (currentChapter === 4 && activeLevel.villageScene?.layout === 'village') ||
-      currentChapter === 5 || currentChapter === 8 || currentChapter === 9) {
+      currentChapter === 5 || currentChapter === 8 || currentChapter === 9 || currentChapter === 10 || currentChapter === 11 ||
+      currentChapter === 12 || currentChapter === 13 || currentChapter === 14 || currentChapter === 15 || currentChapter === 16) {
     try {
-      const level = await loadChapterLevel(currentChapter);
-      startLevel(level, { chapter: currentChapter, carry: chapterStart });
+      await startLevel(() => loadChapterLevel(currentChapter, { reuseLoaded: true }), { chapter: currentChapter, carry: chapterStart });
     } catch (error) {
       console.error('Unable to restart the illustrated chapter:', error);
       setLevelStatus(`Could not restart Chapter ${currentChapter + 1}: ${error.message}`, true);
     }
     return;
   }
-  startLevel({
+  await startLevel({
     ...activeLevel,
     gateEncounter: activeLevel.gateEncounter ? { ...activeLevel.gateEncounter, spawned: false, ravenStartTurn: null, ravenWavesSpawned: 0 } : null,
-    houses: activeLevel.houses.map((house) => ({ ...house, visited: false })),
+    houses: activeLevel.houses.map((house) => ({ ...house, visited: false, ...(house.destroyed === undefined ? {} : { destroyed: false }) })),
     chests: activeLevel.chests.map((chest) => ({ ...chest, opened: false })),
     cells: activeLevel.cells.map((cell) => ({ ...cell, opened: false })),
     infirmary: freshInfirmary(activeLevel.infirmary),
@@ -1935,7 +2127,8 @@ async function restartLevel() {
     abyssalThrone: freshAbyssalThrone(activeLevel.abyssalThrone),
     reinforcements: activeLevel.reinforcements.map((wave) => ({
       ...wave,
-      turn: activeLevel.cathedral ? 999 : wave.turn,
+      turn: activeLevel.cathedral || activeLevel.streets?.pressure &&
+        ['southern-pursuit', 'southern-officer'].includes(wave.entranceId) ? 999 : wave.turn,
       spawned: false,
       spawnedCount: 0,
     })),
@@ -1946,8 +2139,7 @@ async function startNextChapter() {
   const next = (currentChapter ?? -1) + 1;
   if (next >= CHAPTER_COUNT) return;
   try {
-    const level = await loadChapterLevel(next);
-    startLevel(level, { chapter: next, carry: serializeCarry() });
+    await startLevel(() => loadChapterLevel(next), { chapter: next, carry: serializeCarry() });
   } catch (error) {
     console.error('Unable to start next chapter:', error);
     setLevelStatus(`Could not start next chapter: ${error.message}`, true);
@@ -1962,11 +2154,16 @@ function hasNextChapter() {
 function continueGame() {
   const save = refreshContinueButton();
   if (!save) return;
+  return loadChapterScene(() => restoreGame(save));
+}
+
+function restoreGame(save) {
   if (save.chapter === 2 && save.level.villageScene?.layout === 'harbor' &&
       save.level.objective === 'defeat-all-enemies') {
     save.level = { ...save.level, objective: 'defend', defendTurns: 10 };
   }
   activeLevel = buildLevel(THREE, levelGroup, save.level);
+  ensureRosterMeshes();
   applyLevelLighting();
   refreshPrisonerSilhouettes();
   const restoreUnit = (unit, saved) => {
@@ -1982,7 +2179,6 @@ function continueGame() {
       frozen: saved.frozen ?? false,
       ravaging: saved.ravaging === true,
       bloodOath: saved.bloodOath === true,
-      bloodTrailBonus: saved.bloodTrailBonus,
     });
     if (saved.weaponExp) unit.weaponExp = { ...saved.weaponExp };
     if (saved.classId) applyClass(unit, saved.classId);
@@ -1995,6 +2191,8 @@ function continueGame() {
   Object.assign(seymour, createSeymourAlly());
   Object.assign(stark, createStarkAlly());
   Object.assign(linus, createLinusAlly());
+  Object.assign(leon, createLeonAlly());
+  Object.assign(serra, createSerraAlly());
   Object.assign(rictor, createRictorAlly());
   Object.assign(lena, createLenaAlly());
   Object.assign(arlan, createArlanAlly());
@@ -2037,6 +2235,12 @@ function continueGame() {
         const fresh = authored?.find((candidate) => candidate.id === entry.id && candidate.spells);
         if (fresh && !entry.spells) entry.spells = { ...fresh.spells };
       }
+      // An in-progress Cathedral save keeps Voss's original tome and remaining casts.
+      if (enemy.id === 'voss' && enemy.inventory.some(({ id }) => id === 'light-tome') &&
+          !enemy.inventory.some(({ id }) => id === 'last-benediction')) {
+        const book = enemy.inventory.find(({ id }) => id === 'light-tome');
+        enemy.weapon = INVENTORY_ITEMS.get(book.spells?.aureole === undefined ? 'light-tome' : 'aureole');
+      }
       if (!enemy.inventory.some((entry) => entry.id === bookOf(enemy.weapon))) enemy.weapon = null;
     }
     if (savedEnemy.frozen) setEnemyFrozen(enemy, savedEnemy.frozen === true ? 1 : savedEnemy.frozen);
@@ -2066,29 +2270,34 @@ function continueGame() {
   setMessage(gameState.defeated
     ? `${player.name} was defeated. Start a new game to try again.`
     : `Game continued. Select ${player.name} to resume.`);
-  sessionStarted = true;
-  hideMainMenu();
-  if (!gameState.defeated && partyDefeated()) {
-    completeGameOver();
-    return;
-  }
-  if (gameState.phase === 'player' && checkDefenseVictory(gameState.turn - 1)) return;
-  if (gameState.phase === 'player') showPhaseBanner('Player', gameState.turn);
-  if (gameState.phase === 'player' && !gameState.defeated) {
-    void showGateRavens(spawnGateRavens()).catch((error) => console.error('Could not reveal gate ravens:', error));
-  }
   renderTacticalUi();
-  if (gameState.defeated) {
-    showTerminalScreen('game-over', gameOverMessage());
-  } else if (gameState.phase === 'victory') {
-    showTerminalScreen('victory', 'The objective is complete.');
-  }
-  if (activeLevel.rescue && gameState.phase === 'player' && !gameState.defeated) {
-    window.setTimeout(() => void runTutorials(), 1300);
-  }
+  return () => {
+    sessionStarted = true;
+    hideMainMenu();
+    if (!gameState.defeated && partyDefeated()) {
+      completeGameOver();
+      return;
+    }
+    if (gameState.phase === 'player' && checkDefenseVictory(gameState.turn - 1)) return;
+    if (gameState.phase === 'player') showPhaseBanner('Player', gameState.turn);
+    if (gameState.phase === 'player' && !gameState.defeated) {
+      void showGateRavens(spawnGateRavens()).catch((error) => console.error('Could not reveal gate ravens:', error));
+    }
+    renderTacticalUi();
+    if (gameState.defeated) {
+      showTerminalScreen('game-over', gameOverMessage());
+    } else if (gameState.phase === 'victory') {
+      showTerminalScreen('victory', 'The objective is complete.');
+    }
+    if (activeLevel.rescue && gameState.phase === 'player' && !gameState.defeated) {
+      window.setTimeout(() => void runTutorials(), 1300);
+    }
+  };
 }
 
 function returnToMainMenu() {
+  chapterLoadGeneration++;
+  setShoreAmbienceActive(false);
   setOceanAmbienceGain(1);
   if (!sessionStarted && !mainMenu.hidden) {
     optionsDialog.close();
@@ -2301,31 +2510,36 @@ levelFile.addEventListener('change', async () => {
   if (!file) return;
   try {
     const level = validateLevel(JSON.parse(await file.text()));
-    activeLevel = buildLevel(THREE, levelGroup, level);
-    applyLevelLighting();
-    refreshPrisonerSilhouettes();
-    currentChapter = null;
-    chapterStart = null;
-    const team = deployTeam(activeLevel);
-    playerMovement = undefined;
-    cursor.x = player.x;
-    cursor.z = player.z;
-    gameState.mode = 'cursor';
-    gameState.phase = 'player';
-    gameState.turn = 1;
-    gameState.selected = false;
-    gameState.defeated = false;
-    movementRange.clear();
-    resetEnemies();
-    clearCovenantState(Object.values(roster));
-    startCovenantPlayerPhase(playerTeam, enemies);
-    hideTerminalScreen();
-    sessionStarted = true;
-    hideMainMenu();
-    setLevelStatus(`Loaded ${level.name}`);
-    setMessage(`${level.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
-    renderTacticalUi();
-    grantStartingItems(team);
+    await loadChapterScene(() => {
+      activeLevel = buildLevel(THREE, levelGroup, level);
+      ensureRosterMeshes();
+      applyLevelLighting();
+      refreshPrisonerSilhouettes();
+      currentChapter = null;
+      chapterStart = null;
+      const team = deployTeam(activeLevel);
+      playerMovement = undefined;
+      cursor.x = player.x;
+      cursor.z = player.z;
+      gameState.mode = 'cursor';
+      gameState.phase = 'player';
+      gameState.turn = 1;
+      gameState.selected = false;
+      gameState.defeated = false;
+      movementRange.clear();
+      resetEnemies();
+      clearCovenantState(Object.values(roster));
+      startCovenantPlayerPhase(playerTeam, enemies);
+      hideTerminalScreen();
+      setLevelStatus(`Loaded ${level.name}`);
+      setMessage(`${level.name} · Objective: ${objectiveDescription()}. Select ${player.name} to begin.`);
+      renderTacticalUi();
+      return () => {
+        sessionStarted = true;
+        hideMainMenu();
+        grantStartingItems(team);
+      };
+    });
   } catch (error) {
     console.error('Unable to import level:', error);
     setLevelStatus(`Could not import level: ${error.message}`, true);
@@ -2333,7 +2547,7 @@ levelFile.addEventListener('change', async () => {
     levelFile.value = '';
   }
 });
-setLevelStatus(`Level: ${activeLevel.name}`);
+setLevelStatus('Choose New Game or Continue to load a chapter.');
 
 // ---------- Tactical turns ----------
 
@@ -2565,6 +2779,31 @@ function spawnHitEffect(unit, critical) {
   cameraShake = { until: born + (critical ? 0.32 : 0.18), strength: critical ? 0.2 : 0.09 };
 }
 
+let lethalityTexture;
+function spawnLethalityEffect(unit) {
+  if (!lethalityTexture) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 128;
+    drawLethality(canvas.getContext('2d'), { x: 64, y: 64, elapsed: 150,
+      width: 128, height: 128, reducedMotion: true, backdrop: false });
+    lethalityTexture = new THREE.CanvasTexture(canvas);
+  }
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const material = new THREE.SpriteMaterial({
+    map: lethalityTexture, transparent: true, depthTest: false, depthWrite: false,
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.position.copy(unit.mesh.position);
+  sprite.position.y += .5;
+  sprite.scale.setScalar(2.6);
+  sprite.renderOrder = 12;
+  scene.add(sprite);
+  hitEffects.push({ sprite, material, born: clock.elapsedTime, life: .65,
+    pulse: progress => reducedMotion ? 2.6 : 2.6 + Math.sin(progress * Math.PI) * .8,
+    opacity: progress => Math.min(1, (1 - progress) * 3) });
+  if (!reducedMotion) cameraShake = { until: clock.elapsedTime + .32, strength: .24 };
+}
+
 function showCombatResult(unit, text, type) {
   if (battleScreen.active) {
     if (!battleScreen.skipped) {
@@ -2576,22 +2815,25 @@ function showCombatResult(unit, text, type) {
     playMissWhiff();
   } else {
     if (type !== 'heal' && type !== 'freeze') {
-      playHitImpact({ critical: type === 'critical' });
-      spawnHitEffect(unit, type === 'critical');
+      playHitImpact({ critical: type === 'critical' || type === 'lethality', lethality: type === 'lethality' });
+      if (type === 'lethality') spawnLethalityEffect(unit);
+      else spawnHitEffect(unit, type === 'critical');
     }
   }
   const canvas = document.createElement('canvas');
-  canvas.width = 192;
+  const lethal = type === 'lethality';
+  canvas.width = lethal ? 320 : 192;
   canvas.height = 64;
   const context = canvas.getContext('2d');
-  context.font = `bold ${type === 'critical' ? 46 : 40}px sans-serif`;
+  context.font = `bold ${lethal ? 38 : type === 'critical' ? 46 : 40}px sans-serif`;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.lineWidth = 7;
   context.strokeStyle = 'rgba(20, 12, 16, 0.9)';
-  context.strokeText(text, 96, 32);
-  context.fillStyle = type === 'heal' ? '#5dff8a' : type === 'freeze' ? '#8fdcff' : type === 'critical' ? '#72101d' : type === 'miss' ? '#ffffff' : '#ffe14a';
-  context.fillText(text, 96, 32);
+  const label = lethal ? `LETHALITY ${text}` : text;
+  context.strokeText(label, canvas.width / 2, 32);
+  context.fillStyle = lethal ? '#ff9dbe' : type === 'heal' ? '#5dff8a' : type === 'freeze' ? '#8fdcff' : type === 'critical' ? '#72101d' : type === 'miss' ? '#ffffff' : '#ffe14a';
+  context.fillText(label, canvas.width / 2, 32);
   const texture = new THREE.CanvasTexture(canvas);
   const material = new THREE.SpriteMaterial({
     map: texture,
@@ -2602,7 +2844,7 @@ function showCombatResult(unit, text, type) {
   const sprite = new THREE.Sprite(material);
   const unitPosition = unit.mesh.position;
   sprite.position.set(unitPosition.x, unitPosition.y + 1.4, unitPosition.z);
-  sprite.scale.set(type === 'critical' ? 1.6 : 1.25, type === 'critical' ? 0.55 : 0.44, 1);
+  sprite.scale.set(lethal ? 2.8 : type === 'critical' ? 1.6 : 1.25, type === 'critical' || lethal ? 0.55 : 0.44, 1);
   sprite.renderOrder = 10;
   scene.add(sprite);
   floatingCombatTexts.push({ sprite, material, texture, startedAt: clock.elapsedTime });
@@ -2616,6 +2858,7 @@ function openUnitProfile(unit, opponent) {
     terrain,
     opponent ? getTerrain(activeLevel, opponent.x, opponent.z) : terrain,
     profileInventory(unit),
+    enemies,
   );
 }
 
@@ -2687,14 +2930,14 @@ function itemInfoElement(entry, showLore = true, showSpells = true, owner = play
   const description = document.createElement('span');
   if (item.itemType === 'weapon') {
     description.textContent =
-      `${item.type} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}` +
+      `${weaponTypeLabel(item.type)} · Might ${item.might} · Hit ${item.hit} · Crit ${item.critical} · Weight ${item.weight}` +
       (item.maxRange > 1 ? ` · Range ${item.minRange}-${item.maxRange}` : '');
     if (item.heal) description.textContent = `${item.type} · Heals ${item.heal} + Magic HP · Range ${item.minRange}-${staffMaxRange(owner, item)}`;
     if (item.freeze) {
       const turns = item.freezeTurns ?? 1;
       description.textContent = `${item.type} · Freezes a foe for ${turns === 1 ? 'a turn' : `${turns} turns`} · Range 1-Magic · Hit ${item.hit} + Magic vs Resistance`;
     }
-    if (item.requiredRank) description.textContent += ` · Requires ${item.type} rank ${item.requiredRank}`;
+    if (item.requiredRank) description.textContent += ` · Requires ${weaponTypeLabel(item.type)} rank ${item.requiredRank}`;
     if (item.maxUses && Number.isInteger(entry.uses)) description.textContent += ` · ${entry.uses}/${maxUsesFor(item, owner)} uses`;
   } else if (item.id === 'blood-emblem') {
     description.textContent = bloodEmblemDescription();
@@ -2726,7 +2969,7 @@ function itemInfoElement(entry, showLore = true, showSpells = true, owner = play
   if (item.reaves?.length) {
     const reaves = document.createElement('span');
     reaves.className = 'item-effect';
-    reaves.textContent = `Reverses and doubles triangle: strong vs ${item.reaves.join(', ')}, weak vs ${item.type === 'Spear' ? 'Sword' : 'Axe'}`;
+    reaves.textContent = `Reverses and doubles triangle: strong vs ${item.reaves.map(weaponTypeLabel).join(', ')}, weak vs ${item.type === 'Spear' ? 'Sword' : 'Axe'}`;
     details.append(reaves);
   }
   if (showLore && item.lore) {
@@ -2946,7 +3189,7 @@ function openTrade() {
 function tradeSlotDescription(item) {
   if (item.itemType === 'weapon') {
     const stats = item.type === 'Staff' ? [] : [`Mt ${item.might ?? 0}`, `Hit ${item.hit ?? 0}`];
-    return [item.type, ...stats].join(' \u00b7 ');
+    return [weaponTypeLabel(item.type), ...stats].join(' \u00b7 ');
   }
   if (item.heal) return `Heals ${item.heal} HP`;
   return (item.description ?? '').split(/(?<=\.)\s/)[0];
@@ -3355,6 +3598,7 @@ function showFreezeTargets(staff) {
 async function useFreezeStaff(target, staff) {
   if (!castableStaffSpells(player, 'freeze').includes(staff) || !freezeTargets(player, staff).includes(target)) return;
   activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn, { attacked: target });
+  activateCourtyardFormations(activeLevel, enemies, playerTeam, { attacked: target });
   if (healDialog.open) healDialog.close();
   gameState.mode = 'combat';
   combatants.add(player);
@@ -3397,7 +3641,7 @@ function equipInventoryWeapon(itemId) {
     throw new Error(`Cannot equip ${itemId}: weapon is not in ${player.name}'s inventory.`);
   }
   if (!canEquipWeapon(player, weapon)) {
-    throw new Error(`${player.class} cannot equip ${weapon.type} weapons.`);
+    throw new Error(`${player.class} cannot equip ${weaponTypeLabel(weapon.type)} weapons.`);
   }
   player.weapon = weapon;
   closeInventory();
@@ -3457,7 +3701,7 @@ function playerUnitAt(x, z) {
 
 function houseAvailableToVisit(unit) {
   return activeLevel.houses.find((house) =>
-    !house.visited &&
+    houseHasReward(house) &&
     (house.villagerId
       ? rescueState?.villagers.some((villager) => villager.id === house.villagerId && villager.status === 'sheltered' && villager.hp > 0) &&
         distanceBetween(unit.x, unit.z, house.door.x, house.door.z) <= 1
@@ -3559,11 +3803,14 @@ async function completeInfirmaryDefense() {
   const rules = activeLevel.infirmary;
   if (!infirmaryVictoryReady(activeLevel)) return false;
   const rewards = claimInfirmaryCompletion(activeLevel, playerTeam);
-  const message = `The ward held for ${rules.defendTurns} turns. ${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} stranded patients rescued. ${rules.ledger.collected ? 'The treatment ledger is secured.' : 'The ledger is lost in the flames.'} Each surviving deployed ally earns ${rules.completionExp} EXP.`;
+  const optional = rules.patients.length
+    ? `${rules.patients.filter((patient) => patient.rescued).length}/${rules.patients.length} stranded patients rescued.`
+    : `${activeLevel.chests.filter((chest) => chest.opened).length}/${activeLevel.chests.length} optional chests recovered.`;
+  const message = `The ward held for ${rules.defendTurns} turns. ${optional} ${infirmaryLedgerSecured(activeLevel) ? 'The treatment ledger is secured.' : 'The ledger is lost in the flames.'} Each surviving deployed ally earns ${rules.completionExp} EXP.`;
   completeVictory(message);
   hideTerminalScreen();
   for (const reward of rewards) await showExperienceProgression(reward.progression, rules.completionExp, reward.unit);
-  await tutorialPopup.show('infirmaryEnding', { evidence: rules.ledger.collected ? 'The ledger names a crimson emblem used to stabilize the treatment. Rictor recognizes the crest he gave Maria.' : 'Without the ledger, Rictor has only what he witnessed: the Church sealed living patients inside with the dead.' }, { force: true });
+  await tutorialPopup.show('infirmaryEnding', { evidence: infirmaryLedgerSecured(activeLevel) ? rules.ledgerChestId ? 'The Treatment Ledger is safe. Read it from an ally inventory or the convoy to uncover the Church experiments and gain 10 Insight.' : 'The ledger names a crimson emblem used to stabilize the treatment. Rictor recognizes the crest he gave Maria.' : 'Without the ledger, Rictor has only what he witnessed: the Church sealed living patients inside with the dead.' }, { force: true });
   experienceDisplay.reset(player.level, player.experience);
   showTerminalScreen('victory', message);
   return true;
@@ -3825,10 +4072,11 @@ async function collectEnemyDrop(enemy, recipient) {
     enemies.push(gateBeast);
   }
   const receipts = enemyDropIds(enemy).map((id) => ({ unit: recipient, ...grantItem(recipient, id) }));
-  if (enemy.isBoss) gainInsight(BOSS_INSIGHT, `${enemy.name} defeated`);
+  const insight = enemy.id === 'bell-envoy' ? 5 : enemy.isBoss ? BOSS_INSIGHT : 0;
+  if (insight) gainInsight(insight, `${enemy.name} defeated`);
   // Persist both rewards before waiting so reloading the notification cannot lose the drop.
-  if (enemy.isBoss || receipts.length) saveCurrentGame();
-  if (enemy.isBoss) await itemPopup.showInsight(enemy.name, BOSS_INSIGHT, getInsight());
+  if (insight || receipts.length) saveCurrentGame();
+  if (insight) await itemPopup.showInsight(enemy.name, insight, getInsight());
   if (receipts.length) await itemPopup.show(receipts);
   if (gateBeast) await revealGateBeast(gateBeast);
 }
@@ -3937,11 +4185,12 @@ function updateUnitHoverCard() {
     note.textContent = 'Frozen: movement blocked this player phase; actions available.';
     weapon.append(note);
   }
-  if (unit.bloodOath || unit.bloodTrailBonus) {
+  const trail = bloodTrailBonus(unit, enemies);
+  if (unit.bloodOath || trail) {
     const note = document.createElement('small');
     note.textContent = [
       unit.bloodOath ? 'Blood Oath: next damaging combat hit halved (round up).' : '',
-      unit.bloodTrailBonus ? 'Blood Trail: +2 Movement this player phase.' : '',
+      trail ? `Blood Trail: +${trail} Movement while wounded prey is nearby.` : '',
     ].filter(Boolean).join(' ');
     weapon.append(note);
   }
@@ -3952,7 +4201,7 @@ function updateUnitHoverCard() {
   }
   if (unit.weapon?.reaves?.length) {
     const reaves = document.createElement('small');
-    reaves.textContent = `Double triangle: strong vs ${unit.weapon.reaves.join(', ')}, weak vs ${unit.weapon.type === 'Spear' ? 'Sword' : 'Axe'}`;
+    reaves.textContent = `Double triangle: strong vs ${unit.weapon.reaves.map(weaponTypeLabel).join(', ')}, weak vs ${unit.weapon.type === 'Spear' ? 'Sword' : 'Axe'}`;
     weapon.append(reaves);
   }
   if (unit.drop) {
@@ -4021,7 +4270,7 @@ function renderUnitList() {
       unit.weapon?.name ?? 'None',
       unit.level,
       `${unit.hp}/${unit.maxHp}`,
-      ...UNIT_LIST_STATS.map((stat) => stat === 'movement' ? movementAllowance(unit) : unit[stat]),
+      ...UNIT_LIST_STATS.map((stat) => stat === 'movement' ? movementAllowance(unit, enemies) : unit[stat]),
     ];
     row.append(spriteCell, ...cells.map((value) => {
       const cell = document.createElement('td');
@@ -4039,7 +4288,9 @@ function openUnitList() {
 }
 
 function renderTacticalUi() {
+  if (!activeLevel) return;
   activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn);
+  activateCourtyardFormations(activeLevel, enemies, playerTeam);
   for (const { squad, marker } of levelGroup.userData.bridgeSquadMarkers ?? []) marker.visible = !squad.active;
   if (activeLevel.courtyard && !activeLevel.courtyard.recruit.recruited &&
     !enemies.some((enemy) => enemy.id === 'corvis' && enemy.hp > 0)) {
@@ -4073,7 +4324,13 @@ function renderTacticalUi() {
   if (activeLevel.infirmary) {
     rescueStatus.textContent = infirmaryWarning(activeLevel, gameState.turn);
     rescueDestination.hidden = false;
-    rescueDestination.textContent = 'DEFEND: the marked service door. Adjacent Ward Objectives seal gates, rescue patients, and recover the ledger. Each can be completed once.';
+    rescueDestination.textContent = activeLevel.infirmary.gates.length
+      ? 'DEFEND: the marked service door. Adjacent Ward Objectives seal gates, rescue patients, and recover the ledger. Each can be completed once.'
+      : !activeLevel.infirmary.patients.length
+        ? 'DEFEND: eight enemy phases. Optional northern supply chests cannot be destroyed by enemies; open them with a Chest Key or Lena’s Lockpick. Arlan and Rictor receive a key each during preparations. No waves on turns 2 or 4; west arrives turn 3, east turn 5, southern undead turn 6, the Rotten alone turn 7, and a final southern pair turn 8. Read the Treatment Ledger for lore and 10 Insight.'
+        : activeLevel.infirmary.patientsVulnerable
+        ? 'DEFEND: eight enemy phases. Push into the northern outer wards and use Ward Objective beside patients before undead reach them. Lost patients forfeit their rewards, not the defense. Open the western records chest (Lockpick or Chest Key); Read the Treatment Ledger later for lore and 10 Insight. Southern undead arrive from turn 5.'
+        : 'DEFEND: the green evacuation tile in the central hall. Adjacent Ward Objectives rescue patients and recover the ledger. Each can be completed once. Fall back for the late southern waves.';
   }
   if (activeLevel.streets) {
     rescueStatus.hidden = false;
@@ -4085,11 +4342,33 @@ function renderTacticalUi() {
     rescueStatus.hidden = false;
     rescueStatus.textContent = activeLevel.courtyard.triggers.map((trigger) => {
       const wave = activeLevel.reinforcements.find((entry) => entry.entranceId === trigger.id);
-      const name = trigger.id === 'courtyard-ravens' ? 'Ravens' : 'Cavalry';
+      const name = trigger.id === 'courtyard-ravens' ? activeLevel.courtyard.tactics ? 'Optional Envoy' : 'Ravens' : 'Rear cavalry';
       return `${name}: ${wave.spawned ? 'arrived' : trigger.warnedTurn === null ? 'not signaled' : `WARNING: turn ${wave.turn}`}`;
     }).join(' · ');
+    const ravenReinforcements = activeLevel.courtyard.tactics?.ravenReinforcements;
+    if (ravenReinforcements) {
+      rescueStatus.textContent += ' · ' + ravenReinforcements.waves.map((id, index) => {
+        const wave = activeLevel.reinforcements.find((entry) => entry.entranceId === id);
+        return `Raven pair ${index + 2}/3: ${wave.spawned ? 'arrived' :
+          ravenReinforcements.arrivalTurn === null ? 'awaiting Envoy' : `turn ${wave.turn}`}`;
+      }).join(' · ');
+    }
+    if (activeLevel.courtyard.tactics) {
+      rescueDestination.hidden = false;
+      const envoyDrop = activeLevel.reinforcements.find((wave) => wave.entranceId === 'courtyard-ravens')?.units[0]?.drop;
+      rescueDestination.textContent = 'OPTIONAL: Eveline can Talk to Corvis via the western garden. Lena can steal Giant’s Marrow from the western Sage. ';
+      rescueDestination.textContent += ravenReinforcements
+        ? 'The Envoy stays planted in the eastern court; three pairs of pursuing Ravens arrive with it, then two and four turns later. Mages and Sages engage from guard mode. '
+        : 'The Envoy guards only the eastern delivery court. ';
+      rescueDestination.textContent += envoyDrop === 'covenant-emblem'
+        ? `Defeat the clawed Envoy for a Covenant Emblem and 5 Insight. The opening Mage drops Wind. Defeating Severin ends the chapter and awards his ${INVENTORY_ITEMS.get(activeLevel.enemies.find((unit) => unit.id === 'severin')?.drop)?.name ?? 'carried treasure'}.`
+        : 'Defeat the Envoy for 5 Insight; its tag can also be Read for 10 Insight. Defeating Severin ends the chapter and awards a Covenant Emblem.';
+      if (activeLevel.chests.some((chest) => chest.id === 'courtyard-light-chest')) {
+        rescueDestination.textContent += ' Eastern court treasure: Light tome and Orders Emblem. Open chests with Lena’s Lockpick or a Chest Key.';
+      }
+    }
   }
-  const availableMovement = movementAllowance(player);
+  const availableMovement = movementAllowance(player, enemies);
   const movementUnit = availableMovement === 1 ? 'tile' : 'tiles';
   const rangeText = weaponRangeLabel(player.weapon);
   updateUnitHoverCard();
@@ -4101,10 +4380,12 @@ function renderTacticalUi() {
   document.querySelector('#attack-action').disabled = player.acted || !attackWeapons(player).some((weapon) => !weaponUseBlockReason(player, weapon));
   const house = houseAvailableToVisit(player);
   visitActionButton.hidden = !house;
-  visitActionButton.textContent = house?.villagerId ? 'Rescue Villager' : 'Visit';
+  visitActionButton.textContent = house?.id === 'ward-equipment-rack' ? 'Recover Equipment'
+    : house?.villagerId ? 'Rescue Villager' : 'Visit';
   visitActionButton.title = house?.villagerId
     ? 'Begin this villager\'s automatic escort to the western refuge. Uses this unit\'s action.'
-    : 'Visit this house.';
+    : house?.id === 'ward-equipment-rack' ? 'Recover the confiscated Vigil Lance. Uses this unit\'s action.'
+      : 'Visit this house.';
   const streetTalk = canRecruitEveline(activeLevel, player, eveline);
   const corvisTalk = canRecruitCorvis(activeLevel, player, enemies.find((enemy) => enemy.id === 'corvis'));
   const reunionTalk = canReunite(activeLevel, player, player === maria ? rictor : maria);
@@ -4118,8 +4399,15 @@ function renderTacticalUi() {
   unlockButton.textContent = hasLockpick(player) ? 'Pick Lock' : 'Unlock Cell (Key)';
   document.querySelector('#steal-action').hidden = !gameState.selected || stealTargets(player).length === 0;
   document.querySelector('#infirmary-action').hidden = !gameState.selected || infirmaryActions(activeLevel, player, [...playerTeam, ...enemies]).length === 0;
-  document.querySelector('#beacon-action').hidden = !gameState.selected || !availableBeacon(activeLevel, player);
-  document.querySelector('#mechanism-action').hidden = !gameState.selected || !availableMechanism(activeLevel, player);
+  document.querySelector('#beacon-action').hidden = !gameState.selected || !availableBeacon(activeLevel, player, enemies);
+  const shoreTrial = availableShoreTrial(activeLevel, player);
+  const trialButton = document.querySelector('#shore-trial-action');
+  trialButton.hidden = !gameState.selected || !shoreTrial;
+  trialButton.textContent = shoreTrial?.kind === 'bell' ? 'Ring the Drowned Bell' : 'Align the Observatory';
+  const mechanism = document.querySelector('#mechanism-action');
+  const bellLock = availableBellLock(activeLevel, player, enemies);
+  mechanism.hidden = !gameState.selected || (!bellLock && !availableMechanism(activeLevel, player));
+  mechanism.textContent = bellLock ? (bellLock.id === 'winch' ? 'Turn Gate Winch' : 'Release Platform Brake') : 'Activate Mechanism';
   document.querySelector('#trade-action').hidden = !gameState.selected || adjacentAllies(player).length === 0;
   document.querySelector('#convoy-action').hidden = !gameState.selected || player.acted || !canAccessConvoy(player);
   document.querySelector('#heal-action').hidden = !gameState.selected || healTargets(player).length === 0;
@@ -4234,6 +4522,7 @@ const AI_LABELS = {
 };
 
 function setCursor(x, z) {
+  if (draggingMap) cancelMapDrag();
   manualCameraTarget = null;
   const width = activeLevel.villageScene?.playableWidth ?? activeLevel.width;
   const [minX, minZ, maxX, maxZ] = activeLevel.villageScene?.cursorBounds ?? [0, 0, width - 1, activeLevel.height - 1];
@@ -4246,7 +4535,8 @@ function setCursor(x, z) {
   const enemy = findEnemyAt(enemies, cursor.x, cursor.z);
   if (gameState.mode === 'cursor') refreshHighlights();
   if (enemy && gameState.mode === 'cursor') {
-    setMessage(`${enemy.name} · ${enemy.hp}/${enemy.maxHp} HP · ${AI_LABELS[enemy.ai]}`);
+    setMessage(`${enemy.name} · ${enemy.hp}/${enemy.maxHp} HP · ${courtyardDeliveryCourt(activeLevel, enemy)
+      ? 'Optional · Guards the delivery court only' : AI_LABELS[enemy.ai]}`);
   } else if (enemy && gameState.mode === 'attack') {
     const terrain = getTerrain(activeLevel, enemy.x, enemy.z);
     const hitRate = getHitRate(player, enemy, terrain);
@@ -4259,15 +4549,48 @@ function setCursor(x, z) {
 }
 
 function showTileInspection(x, z) {
-  if (x < 0 || x >= activeLevel.width || z < 0 || z >= activeLevel.height) {
+  if (!activeLevel || x < 0 || x >= activeLevel.width || z < 0 || z >= activeLevel.height) {
     tileInspection.hidden = true;
     return;
   }
   const terrain = getTerrain(activeLevel, x, z);
+  const bellLock = activeLevel.bellYard?.locks?.find((lock) => lock.x === x && lock.z === z);
   document.querySelector('#tile-inspection-name').textContent =
-    `${terrain.name} · Tile ${x + 1}, ${z + 1}`;
+    `${bellLock ? (bellLock.id === 'winch' ? 'West Gate Winch' : 'East Platform Brake') : terrain.name} · Tile ${x + 1}, ${z + 1}`;
   document.querySelector('#tile-inspection-details').textContent =
-    `${terrain.walkable ? 'Walkable' : 'Impassable'} · ${terrain.bonus}`;
+    bellLock ? (bellLock.opened ? 'Released' : enemies.some((enemy) => enemy.id === bellLock.guardId && enemy.hp > 0)
+      ? 'Defeat its guard before operating this control.' : 'Stand here and operate the control.')
+      : `${(activeLevel.bellYard?.locks ? isWalkable(activeLevel, x, z, player) : terrain.walkable) ? 'Walkable' : 'Impassable'} · ${terrain.bonus}`;
+  const house = activeLevel.houses.find((entry) => entry.door.x === x && entry.door.z === z);
+  if (house) {
+    document.querySelector('#tile-inspection-name').textContent = house.name;
+    document.querySelector('#tile-inspection-details').textContent = house.destroyed
+      ? 'Raided entrance · Reward permanently lost · Street remains walkable'
+      : house.visited ? 'Visited · Reward secured' : 'Stand at this entrance and Visit to claim the reward.';
+  }
+  if (activeLevel.shore) {
+    const beacon = activeLevel.shore.beacons.find((entry) => entry.x === x && entry.z === z);
+    const trial = activeLevel.shore.trials?.find((entry) => entry.x === x && entry.z === z);
+    const arrivals = activeLevel.reinforcements.filter((wave) => !wave.spawned &&
+      wave.units.slice(wave.spawnedCount).some((entry) => entry.x === x && entry.z === z));
+    if (beacon) {
+      const guards = enemies.filter((enemy) => enemy.hp > 0 && beacon.guardians?.includes(enemy.id));
+      document.querySelector('#tile-inspection-details').textContent = beacon.extinguished ? 'Flame extinguished; no future summons.'
+        : guards.length ? `Defeat ${guards.map((enemy) => enemy.name).join(' and ')} to unlock this flame.`
+          : 'Stand adjacent and Extinguish Beacon. Uses an action; stops its future waves.';
+    } else if (trial) {
+      document.querySelector('#tile-inspection-name').textContent = trial.name;
+      document.querySelector('#tile-inspection-details').textContent = trial.activated
+        ? 'Trial awakened. Defeat its keeper to claim the S-rank tome.'
+        : 'Optional: stand adjacent to awaken a keeper and two escorts next player turn. No deadline.';
+    } else if (arrivals.length) {
+      document.querySelector('#tile-inspection-name').textContent = 'Ancient Arrival';
+      const due = arrivals.filter((wave) => shoreWaveEnabled(activeLevel, wave));
+      document.querySelector('#tile-inspection-details').textContent = due.length
+        ? `Finite arrivals on turn${due.length > 1 ? 's' : ''} ${due.map((wave) => wave.turn).join(', ')}. Occupied cells queue.`
+        : 'Dormant trial arrival; activates only after using its instrument.';
+    }
+  }
   if (activeLevel.rescue) {
     const here = (tile) => tile.x === x && tile.z === z;
     if (activeLevel.rescue.refuge.some(here)) {
@@ -4356,7 +4679,7 @@ function openMariaActions() {
 
 function startMove() {
   if (!gameState.selected || player.moved || player.acted || player.frozen) return;
-  movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam);
+  movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam, enemies);
   gameState.mode = 'move';
   setCursor(player.x, player.z);
   setMessage('Blue tiles are reachable; the thick blue line previews the route. Select a destination or press Escape.');
@@ -4400,7 +4723,7 @@ function undoMove() {
   playerMovement = undefined;
   cursor.x = player.x;
   cursor.z = player.z;
-  movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam);
+  movementRange = getMovementRange(player, activeLevel, movementObstacles(), playerTeam, enemies);
   gameState.mode = 'move';
   setMessage('Move undone. Choose a different destination or press Escape for actions.');
   renderTacticalUi();
@@ -4589,7 +4912,8 @@ function wait(milliseconds) {
 
 async function playAttackAnimation(unit, direction, followUp = false, staff = false) {
   if (followUp) await wait(1000);
-  
+  await characterSprites.loadMotion(weaponSpriteSet(unit));
+
   const textures = unitTextures(unit);
   const firearm = !staff && unit.weapon?.type === 'Gun' && textures.firearm?.[direction]?.length > 0;
   const kind = staff ? 'staff' : firearm ? 'firearm' : 'attack';
@@ -4653,6 +4977,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     return;
   }
   activateBridgeSquads(activeLevel, enemies, playerTeam, gameState.turn, { attacked: target });
+  activateCourtyardFormations(activeLevel, enemies, playerTeam, { attacked: target });
   player.facing = getFacing(target.x - player.x, target.z - player.z);
   player.moveOrigin = null;
   gameState.mode = 'combat';
@@ -4670,10 +4995,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
   const criticalRate = getCriticalRate(player, target);
   // Spend the use only after the forecast is locked in, so a tome's final use still strikes.
   if (player.weapon.type !== 'Gun') spendWeaponUse(player);
-  const playerStrikeResults = Array.from({ length: playerAttackCount }, () => {
-    const hit = rollHit(hitRate);
-    return { hit, critical: hit && rollCritical(criticalRate) };
-  });
+  const playerStrikeResults = Array.from({ length: playerAttackCount },
+    () => rollStrikeResult(player, hitRate, criticalRate));
   let playerHits = 0;
   let playerCriticalHits = 0;
   let playerTotalDamage = 0;
@@ -4696,10 +5019,8 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
     counterAttackCount = getAvailableStrikeCount(target, counterVolleys * getStrikesPerAttack(target));
     const counterHitRate = getHitRate(target, player, counterTerrain);
     const counterCriticalRate = getCriticalRate(target, player);
-    counterResults = Array.from({ length: counterAttackCount }, () => {
-      const hit = rollHit(counterHitRate);
-      return { hit, critical: hit && rollCritical(counterCriticalRate) };
-    });
+    counterResults = Array.from({ length: counterAttackCount },
+      () => rollStrikeResult(target, counterHitRate, counterCriticalRate));
     if (target.weapon.type !== 'Gun') spendWeaponUse(target);
   }
 
@@ -4723,11 +5044,11 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
             playerHits++;
             recordWeaponHit(player, rankUps);
             if (result.critical) playerCriticalHits++;
-            const strikeDamage = applyCombatDamage(target, result.critical ? criticalDamage : damage);
+            const strikeDamage = applyCombatDamage(target, result.critical ? criticalDamage : damage, { lethal: result.lethality });
             const drained = healDamageDealt(player, strikeDamage);
             if (drained > 0) showCombatResult(player, `+${drained}`, 'heal');
             playerTotalDamage += strikeDamage;
-            showCombatResult(target, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+            showCombatResult(target, `-${strikeDamage}`, result.lethality ? 'lethality' : result.critical ? 'critical' : 'hit');
           } else {
             showCombatResult(target, 'MISS', 'miss');
           }
@@ -4743,11 +5064,11 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
         const result = counterResults[round];
         await playCombatStrike(target, result, round > 0, () => {
           if (result.hit) {
-            const strikeDamage = applyCombatDamage(player, result.critical ? counterCriticalDamage : counterDamage);
+            const strikeDamage = applyCombatDamage(player, result.critical ? counterCriticalDamage : counterDamage, { lethal: result.lethality });
             refreshUnitTint(player);
             const drained = healDamageDealt(target, strikeDamage);
             if (drained > 0) showCombatResult(target, `+${drained}`, 'heal');
-            showCombatResult(player, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+            showCombatResult(player, `-${strikeDamage}`, result.lethality ? 'lethality' : result.critical ? 'critical' : 'hit');
           } else {
             showCombatResult(player, 'MISS', 'miss');
           }
@@ -4803,7 +5124,7 @@ async function attackRaider(target = findEnemyAt(enemies, cursor.x, cursor.z)) {
 function recordRankUp(unit, weapon, rankUps) {
   const rank = awardWeaponExp(unit, weapon);
   if (!rank) return;
-  rankUps.push(`${unit.name}'s ${weapon.type} level rose to ${rank.id}!`);
+  rankUps.push(`${unit.name}'s ${weaponTypeLabel(weapon.type)} level rose to ${rank.id}!`);
   pendingRankUps.push({ unit, type: weapon.type, rank });
 }
 
@@ -4821,14 +5142,21 @@ function getEnemyReach(enemy) {
   return getMovementRange(
     enemy,
     activeLevel,
-    defendingUnits(),
+    [...defendingUnits(), ...courtyardPatrolBlockers(activeLevel, enemy)],
     enemies.filter((other) => other !== enemy),
   );
 }
 
 // Walkable tiles the enemy could hit from any reachable tile, excluding the reachable tiles themselves.
 function getEnemyThreatTiles(enemy, reach) {
+  const weapons = enemyAttackWeapons(enemy);
+  if (weapons.length > 1) {
+    const tiles = new Map(weapons.flatMap((weapon) =>
+      getEnemyThreatTiles({ ...enemy, weapon, inventory: undefined }, reach).map((point) => [tileKey(point.x, point.z), point])));
+    return [...tiles.values()];
+  }
   const threat = new Map();
+  const court = courtyardDeliveryCourt(activeLevel, enemy);
   if (!enemy.weapon || enemy.weapon.type === 'Staff' && !enemy.weapon.freeze) return [];
   if (enemy.weapon.freeze && !enemy.inventory?.some((entry) => entry.id === enemy.weapon.id && entry.uses > 0)) return [];
   const maxRange = enemy.weapon.freeze ? freezeRange(enemy) : enemy.weapon.maxRange;
@@ -4839,6 +5167,7 @@ function getEnemyThreatTiles(enemy, reach) {
         const tile = tileKey(x, z);
         if (
           !reach.has(tile) && !threat.has(tile) &&
+          (!court || insideDeliveryCourt(court, { x, z })) &&
           isWalkable(activeLevel, x, z, enemy) &&
           (enemy.weapon.freeze
             ? distanceBetween(originX, originZ, x, z) >= 1 && distanceBetween(originX, originZ, x, z) <= maxRange
@@ -4851,13 +5180,16 @@ function getEnemyThreatTiles(enemy, reach) {
 }
 
 // Picks who an enemy attacks this turn; null means it holds position.
-function chooseEnemyTarget(enemy, livingTeam) {
+function chooseEnemyTarget(enemy, livingTeam, attackOnly = false) {
+  const court = courtyardDeliveryCourt(activeLevel, enemy);
+  if (court) livingTeam = livingTeam.filter((unit) => insideDeliveryCourt(court, unit));
+  if (!livingTeam.length) return null;
   const reach = [...getEnemyReach(enemy).keys()].map((key) => key.split(',').map(Number));
   const attackable = livingTeam.filter((unit) =>
-    reach.some(([x, z]) => isInWeaponRange(enemy, unit, distanceBetween(x, z, unit.x, unit.z))));
-  // Hunters (the Crowman) ignore everyone else whenever their quarry is alive.
+    reach.some(([x, z]) => enemyAttackWeapons(enemy).some((weapon) =>
+      isInWeaponRange({ ...enemy, weapon }, unit, distanceBetween(x, z, unit.x, unit.z)))));
   const quarry = enemy.hunts ? livingTeam.find((unit) => unit.id === enemy.hunts) : null;
-  if (quarry && (attackable.includes(quarry) || enemy.ai === 'mobile' && !enemy.frozen)) return quarry;
+  if (quarry && attackable.includes(quarry)) return quarry;
   if (attackable.length) {
     const damageTo = (unit) => protectedCombatDamage(unit, getCombatDamage(enemy, unit, getTerrain(activeLevel, unit.x, unit.z)));
     return attackable.reduce((best, unit) => {
@@ -4866,7 +5198,8 @@ function chooseEnemyTarget(enemy, livingTeam) {
       return unit.hp < best.hp ? unit : best;
     });
   }
-  if (enemy.ai !== 'mobile' || enemy.frozen) return null;
+  if (attackOnly || enemy.ai !== 'mobile' || enemy.frozen) return null;
+  if (quarry) return quarry;
   if (activeLevel.infirmary) return infirmaryApproachTarget(activeLevel, enemy, livingTeam);
   if (enemy.id === 'street-undead' && livingTeam.includes(eveline)) return eveline;
   return livingTeam.reduce((nearest, unit) =>
@@ -4901,7 +5234,6 @@ async function healWithBloodAura() {
 }
 
 async function enemyPhase() {
-  endCovenantPlayerPhase(playerTeam);
   gameState.phase = 'enemy';
   gameState.selected = false;
   gameState.mode = 'cursor';
@@ -4929,8 +5261,14 @@ async function enemyPhase() {
   await showCathedralStory();
   if (activeLevel.bellYard) await showBellYardStory();
   for (const id of triggerProgressWaves(activeLevel, playerTeam, gameState.turn)) {
-    await tutorialPopup.show(activeLevel.cathedral ? `cathedral-${id}` :
-      id === 'courtyard-ravens' ? 'courtyardRavenWarning' : 'courtyardCavalryWarning', {}, { force: true });
+    const warning = id === 'courtyard-ravens' ? 'RavenWarning' : 'CavalryWarning';
+    const savedCourtGuard = activeLevel.courtyard?.tactics && !activeLevel.courtyard.tactics.ravenReinforcements &&
+      id === 'courtyard-ravens';
+    const cathedralWave = activeLevel.cathedral && activeLevel.reinforcements.find((wave) => wave.entranceId === id);
+    const commanderIncoming = cathedralWave && cathedralWave.units.some((unit) => unit.id === 'cathedral-commander');
+    const arrivalTiles = cathedralWave ? cathedralWave.units.map(({ x, z }) => `(${x + 1},${z + 1})`).join(', ') : '';
+    await tutorialPopup.show(activeLevel.cathedral ? (commanderIncoming ? 'cathedral-commander-warning' : `cathedral-${id}`) :
+      `courtyard${savedCourtGuard ? 'Guard' : activeLevel.courtyard.tactics ? '' : 'Legacy'}${warning}`, { arrivalTiles }, { force: true });
     saveCurrentGame();
   }
   if (activeLevel.streets && gameState.turn === 5) {
@@ -4956,6 +5294,9 @@ async function enemyPhase() {
       return playerTeam.some((unit) => unit.hp > 0 && reach.some(([x, z]) =>
         isInWeaponRange(enemy, unit, distanceBetween(x, z, unit.x, unit.z))));
     },
+  });
+  activateCourtyardFormations(activeLevel, enemies, playerTeam, {
+    canEngage: (enemy) => chooseEnemyTarget(enemy, playerTeam.filter((unit) => unit.hp > 0)) !== null,
   });
   const frozenEnemies = [];
   for (const enemy of [...enemies]) {
@@ -5008,13 +5349,29 @@ async function enemyPhase() {
       }
       if (action || enemy.weapon?.type === 'Staff') continue;
     }
-    const foe = chooseEnemyTarget(enemy, livingTeam);
+    const bellPursuer = activeLevel.bellYard && ['crowman', 'bell-raven'].includes(enemy.id);
+    const immediateTarget = streetRaiderTarget(activeLevel, enemy, livingTeam) ??
+      chooseEnemyTarget(enemy, livingTeam, bellPursuer);
+    const pursuit = bellPursuer && enemy.ai === 'mobile' && !enemy.frozen &&
+      (!immediateTarget || !isInWeaponRange(enemy, immediateTarget, distanceBetween(enemy.x, enemy.z, immediateTarget.x, immediateTarget.z)))
+      ? planPursuit(enemy, immediateTarget ? [immediateTarget] : livingTeam, activeLevel, defendingUnits(), enemies)
+      : null;
+    const foe = immediateTarget ?? pursuit?.target;
     if (!foe) continue;
+    const weapon = enemyAttackWeapons(enemy).length > 1
+      ? bestEnemyWeapon(enemy, foe, distanceBetween(enemy.x, enemy.z, foe.x, foe.z), getTerrain(activeLevel, foe.x, foe.z))
+      : null;
+    if (weapon && weapon.id !== enemy.weapon?.id) {
+      enemy.weapon = weapon;
+      enemy.weaponId = weapon.id;
+      setIdleSprite(enemy);
+    }
     cameraFollowTarget = enemy.mesh.position;
     await wait(500);
     if (enemy.ai !== 'stationary' && !enemy.frozen &&
         (foe.objectiveTarget || !isInWeaponRange(enemy, foe, distanceBetween(enemy.x, enemy.z, foe.x, foe.z)))) {
       const blocked = new Set(defendingUnits().map((other) => tileKey(other.x, other.z)));
+      for (const point of courtyardPatrolBlockers(activeLevel, enemy)) blocked.add(tileKey(point.x, point.z));
       const occupied = new Set(enemies
         .filter((other) => other !== enemy)
         .map((other) => tileKey(other.x, other.z)));
@@ -5035,7 +5392,7 @@ async function enemyPhase() {
           }
         }
       }
-      const path = findPath(enemy, attackPositions, blocked, activeLevel);
+      const path = pursuit?.path ?? findPath(enemy, attackPositions, blocked, activeLevel);
       if (path.length > 1) {
         let stop = 0;
         for (let spent = 0; stop < path.length - 1; stop++) {
@@ -5065,6 +5422,21 @@ async function enemyPhase() {
         }
       }
     }
+    const raidedHouse = destroyStreetHouse(activeLevel, enemy);
+    if (raidedHouse) {
+      showCombatResult(enemy, 'RAIDED', 'hit');
+      setMessage(`${enemy.name} smashes the entrance to ${raidedHouse.name}. Its reward is permanently lost.`);
+      renderTacticalUi();
+      await wait(900);
+      continue;
+    }
+    const lostPatients = resolveInfirmaryPatients(activeLevel, enemies);
+    if (lostPatients.length) {
+      for (const patient of lostPatients) if (patient.mesh) patient.mesh.visible = false;
+      setMessage(`${lostPatients.map((patient) => patient.name).join(' and ')} could not be saved. Their rescue reward is lost. Keep the evacuation route secure.`);
+      renderTacticalUi();
+      await wait(900);
+    }
     const range = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
     if (infirmaryBreached(activeLevel, enemies)) {
       activeLevel.infirmary.breached = true;
@@ -5090,10 +5462,8 @@ async function enemyPhase() {
       let hits = 0;
       let criticalHits = 0;
       let totalDamage = 0;
-      const strikeResults = Array.from({ length: attacks }, () => {
-        const hit = rollHit(hitRate);
-        return { hit, critical: hit && rollCritical(criticalRate) };
-      });
+      const strikeResults = Array.from({ length: attacks },
+        () => rollStrikeResult(enemy, hitRate, criticalRate));
       
       // Brave volleys stay consecutive, with gunshots capped to the loaded rounds.
       const counterRange = distanceBetween(enemy.x, enemy.z, foe.x, foe.z);
@@ -5109,10 +5479,8 @@ async function enemyPhase() {
         foe.facing = getFacing(enemy.x - foe.x, enemy.z - foe.z);
         if (foe.weapon.type !== 'Gun') spendWeaponUse(foe);
       }
-      const counterResults = Array.from({ length: counterAttacks }, () => {
-        const hit = rollHit(counterHitRate);
-        return { hit, critical: hit && rollCritical(counterCriticalRate) };
-      });
+      const counterResults = Array.from({ length: counterAttacks },
+        () => rollStrikeResult(foe, counterHitRate, counterCriticalRate));
       let counterHitCount = 0;
       let counterCriticalCount = 0;
       let counterTotalDamage = 0;
@@ -5136,12 +5504,12 @@ async function enemyPhase() {
               if (result.hit) {
                 hits++;
                 if (result.critical) criticalHits++;
-                const strikeDamage = applyCombatDamage(foe, result.critical ? criticalDamage : damage);
+                const strikeDamage = applyCombatDamage(foe, result.critical ? criticalDamage : damage, { lethal: result.lethality });
                 refreshUnitTint(foe);
                 const drained = healDamageDealt(enemy, strikeDamage);
                 if (drained > 0) showCombatResult(enemy, `+${drained}`, 'heal');
                 totalDamage += strikeDamage;
-                showCombatResult(foe, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+                showCombatResult(foe, `-${strikeDamage}`, result.lethality ? 'lethality' : result.critical ? 'critical' : 'hit');
               } else {
                 showCombatResult(foe, 'MISS', 'miss');
               }
@@ -5161,11 +5529,11 @@ async function enemyPhase() {
                 counterHitCount++;
                 if (playerTeam.includes(foe)) recordWeaponHit(foe, rankUps);
                 if (result.critical) counterCriticalCount++;
-                const strikeDamage = applyCombatDamage(enemy, result.critical ? counterCriticalDamage : counterDamage);
+                const strikeDamage = applyCombatDamage(enemy, result.critical ? counterCriticalDamage : counterDamage, { lethal: result.lethality });
                 const drained = healDamageDealt(foe, strikeDamage);
                 if (drained > 0) showCombatResult(foe, `+${drained}`, 'heal');
                 counterTotalDamage += strikeDamage;
-                showCombatResult(enemy, `-${strikeDamage}`, result.critical ? 'critical' : 'hit');
+                showCombatResult(enemy, `-${strikeDamage}`, result.lethality ? 'lethality' : result.critical ? 'critical' : 'hit');
               } else {
                 showCombatResult(enemy, 'MISS', 'miss');
               }
@@ -5230,7 +5598,7 @@ async function enemyPhase() {
       gameState.mode = 'cursor';
       renderTacticalUi();
     } else {
-      setMessage(`${enemy.name} advances${activeLevel.infirmary ? ' toward the evacuation door' : activeLevel.streets ? ' through the city streets' : ' across the ships'}.`);
+      setMessage(`${enemy.name} advances${activeLevel.infirmary ? ' toward the evacuation route' : activeLevel.streets ? ' through the city streets' : ' across the ships'}.`);
     }
   }
   for (const enemy of frozenEnemies) setEnemyFrozen(enemy, enemy.frozen - 1);
@@ -5264,6 +5632,7 @@ async function enemyPhase() {
   setCursor(player.x, player.z);
   const gateRavens = spawnGateRavens();
   const departedWagons = departTreatmentWagons();
+  const streetEvents = updateStreetPressure(activeLevel, gameState.turn, enemies);
   const reinforcementResult = spawnTurnReinforcements();
   const advancingGuards = advanceRescueGuards(activeLevel, enemies, gameState.turn);
   if (reinforcementResult.error) {
@@ -5271,8 +5640,11 @@ async function enemyPhase() {
     setLevelStatus(`Could not spawn reinforcements: ${reinforcementResult.error.message}`, true);
     setMessage(reinforcementResult.error.message);
   } else if (reinforcementResult.units.length) {
+    const commander = reinforcementResult.units.find((unit) => unit.id === 'cathedral-commander');
     const boss = reinforcementResult.units.find((unit) => unit.isBoss);
-    setMessage(boss
+    setMessage(commander
+      ? `${commander.name} of the Golden Order has arrived on the east flank!`
+      : boss
       ? `${boss.name} has arrived with reinforcements!`
       : activeLevel.waitingCity
         ? `${reinforcementResult.units.length} ${reinforcementResult.units.length === 1 ? 'creature climbs' : 'creatures climb'} from the black water at the glowing shores!`
@@ -5288,6 +5660,7 @@ async function enemyPhase() {
   if (isBenedictionTurn(activeLevel, gameState.turn)) setMessage('Vael begins Profane Benediction. This enemy phase he heals a nearby cultist instead of attacking. Press the opening!');
   showPhaseBanner('Player', gameState.turn);
   renderTacticalUi();
+  await showStreetPressure(streetEvents);
   await showGateRavens([...gateRavens, ...reinforcementResult.units]);
   await healOnRestorativeTiles(playerTeam);
   await healWithBloodAura();
@@ -5326,13 +5699,17 @@ function spawnTurnReinforcements() {
       wave.spawned = true;
       continue;
     }
-    if (wave.turn > gameState.turn || wave.spawned || !courtyardWaveEnabled(activeLevel, wave) ||
-        !cathedralWaveEnabled(activeLevel, wave)) continue;
+    if (wave.turn > gameState.turn || wave.spawned || !streetWaveEnabled(activeLevel, wave) || !courtyardWaveEnabled(activeLevel, wave) ||
+        !cathedralWaveEnabled(activeLevel, wave) || activeLevel.shore && !shoreWaveEnabled(activeLevel, wave)) continue;
     while (wave.spawnedCount < wave.units.length) {
       const placement = wave.units[wave.spawnedCount];
       const candidates = [];
       const flying = enemyMovementType(placement.id) === 'flying';
-      for (let z = 0; z < activeLevel.height; z++) {
+      const fixedEntrance = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard ||
+        activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity ||
+        activeLevel.villageScene?.layout === 'harbor' || activeLevel.rescue?.bridgeAdvance ||
+        activeLevel.gateEncounter?.pressure;
+      if (!fixedEntrance) for (let z = 0; z < activeLevel.height; z++) {
         for (let x = 0; x < activeLevel.width; x++) {
           if (isWalkable(activeLevel, x, z, { type: flying ? 'flying' : undefined }) && !occupied.has(tileKey(x, z))) {
             candidates.push({ x, z });
@@ -5342,10 +5719,6 @@ function spawnTurnReinforcements() {
       candidates.sort((first, second) =>
         distanceBetween(first.x, first.z, placement.x, placement.z) -
         distanceBetween(second.x, second.z, placement.x, placement.z));
-      const fixedEntrance = activeLevel.infirmary || activeLevel.streets || activeLevel.courtyard ||
-        activeLevel.cathedral || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity ||
-        activeLevel.villageScene?.layout === 'harbor' || activeLevel.rescue?.bridgeAdvance ||
-        activeLevel.gateEncounter?.pressure;
       const spawnTile = fixedEntrance
         ? infirmarySpawnTile(activeLevel, { ...placement, type: flying ? 'flying' : undefined }, [...defendingUnits(), ...enemies])
         : candidates[0];
@@ -5358,6 +5731,13 @@ function spawnTurnReinforcements() {
       }
       const unit = createEnemy(spawnTile.x, spawnTile.z, placement.id, placement);
       enemies.push(unit);
+      const ravenReinforcements = activeLevel.courtyard?.tactics?.ravenReinforcements;
+      if (unit.id === 'bell-envoy' && ravenReinforcements && ravenReinforcements.arrivalTurn === null) {
+        ravenReinforcements.arrivalTurn = gameState.turn;
+        ravenReinforcements.waves.forEach((id, index) => {
+          activeLevel.reinforcements.find((entry) => entry.entranceId === id).turn = gameState.turn + 2 * (index + 1);
+        });
+      }
       occupied.add(tileKey(unit.x, unit.z));
       wave.spawnedCount++;
       createdUnits.push(unit);
@@ -5489,7 +5869,7 @@ function clickBattlefield(event) {
   ).find((hit) => hit.uv && hit.uv.x > 0.3 && hit.uv.x < 0.7 && hit.uv.y < 0.9);
   const point = spriteHit
     ? spriteHit.object.position
-    : pickFloorPoint(pointerRaycaster.ray);
+    : pickFloorPoint(pointerRaycaster);
   if (!point) return;
   const hitUnit = spriteHit ? unitForMesh(spriteHit.object) : null;
   const x = hitUnit ? hitUnit.x : Math.floor(point.x + activeLevel.width / 2);
@@ -5550,20 +5930,44 @@ document.querySelector('#steal-action').addEventListener('click', openSteal);
 document.querySelector('#infirmary-action').addEventListener('click', openInfirmaryActions);
 document.querySelector('#beacon-action').addEventListener('click', () => {
   if (gameState.phase !== 'player' || gameState.mode !== 'unit' || !gameState.selected ||
-      !availableBeacon(activeLevel, player)) return;
-  const beacon = extinguishBeacon(activeLevel, player);
+      !availableBeacon(activeLevel, player, enemies)) return;
+  const beacon = extinguishBeacon(activeLevel, player, enemies);
   const mesh = levelGroup.userData.shore?.beacons.get(beacon.id);
   if (mesh) {
     mesh.material.map = levelGroup.userData.shore.unlitBeacon;
     mesh.material.needsUpdate = true;
   }
   setMessage(`${player.name} extinguishes the offering beacon. Its remaining summons are silenced.`);
+  setShoreAmbienceActive(true, activeLevel.shore.beacons.map((entry) => !entry.extinguished));
   saveCurrentGame();
   finishUnit();
 });
+document.querySelector('#shore-trial-action').addEventListener('click', () => {
+  if (gameState.phase !== 'player' || gameState.mode !== 'unit' || !gameState.selected) return;
+  const trial = availableShoreTrial(activeLevel, player);
+  if (!trial) return;
+  const reward = trial.kind === 'bell' ? 'Heavenfall (S-rank Thunder)' : 'The Last Horizon (S-rank Wind)';
+  if (!window.confirm(`Awaken ${trial.name}? Its keeper and two escorts arrive at the marked tiles next player turn. ` +
+      `You will have a full player phase to respond before they attack. Defeat the keeper for ${reward}. This uses ${player.name}'s action.`)) return;
+  activateShoreTrial(activeLevel, player, gameState.turn);
+  levelGroup.userData.shore?.syncTrials?.();
+  setMessage(`${player.name} awakens ${trial.name}. Its ancient keeper answers next turn; prepare for the trial.`);
+  finishUnit();
+  saveCurrentGame();
+  void tutorialPopup.show(trial.kind === 'bell' ? 'shore-storm-trial' : 'shore-horizon-trial', {}, { force: true });
+});
 document.querySelector('#mechanism-action').addEventListener('click', () => {
-  if (gameState.phase !== 'player' || gameState.mode !== 'unit' || !gameState.selected ||
-      !availableMechanism(activeLevel, player)) return;
+  if (gameState.phase !== 'player' || gameState.mode !== 'unit' || !gameState.selected) return;
+  if (openBellLock(activeLevel, player, enemies)) {
+    levelGroup.userData.bellYard.sync();
+    setMessage(bellYardUnlocked(activeLevel)
+      ? 'Both locks are released. The crossings and lift approach open!'
+      : 'One lock is released. The crossings remain closed until the other is ready.');
+    finishUnit();
+    saveCurrentGame();
+    return;
+  }
+  if (!availableMechanism(activeLevel, player)) return;
   activateMechanism(activeLevel, player, gameState.turn);
   levelGroup.userData.waitingCity?.sync();
   setMessage(activeLevel.waitingCity.opened
@@ -5691,10 +6095,15 @@ function panPoint(x, y) {
   return panRaycaster.ray.intersectPlane(panPlane, new THREE.Vector3());
 }
 
+function tacticalCameraScale() {
+  const compact = ['ward', 'infirmary'].includes(activeLevel.villageScene?.layout) && activeLevel.villageScene.artwork === 'compact';
+  return Math.max(activeLevel.infirmary && !compact ? 1.45 : .55, activeLevel.width / 21, activeLevel.height / 19) * (compact ? .88 : 1);
+}
+
 const cancelMapDrag = attachMapDrag(renderer.domElement, {
   canPan: canUseMapControls,
   onStart() {
-    const scale = Math.max(activeLevel.infirmary ? 1.45 : .55, activeLevel.width / 21, activeLevel.height / 19);
+    const scale = tacticalCameraScale();
     manualCameraTarget = camera.position.clone().sub(cameraShakeOffset).sub(CAM_OFFSET.clone().multiplyScalar(scale));
     manualCameraTarget.y = .8;
     draggingMap = true;
@@ -5729,7 +6138,7 @@ renderer.domElement.addEventListener('pointermove', (event) => {
     ? unitForMesh(unitHit.object)
     : null;
   updateUnitHoverCard();
-  const point = pickFloorPoint(pointerRaycaster.ray);
+  const point = pickFloorPoint(pointerRaycaster);
   if (!point) {
     tileInspection.hidden = true;
     return;
@@ -5819,11 +6228,12 @@ function goBack() {
 }
 
 window.addEventListener('contextmenu', (event) => {
-  if (!sessionStarted) return;
+  if (!sessionStarted || chapterLoading) return;
   event.preventDefault();
   goBack();
 });
 window.addEventListener('keyup', (event) => {
+  if (chapterLoading) return;
   if ((event.code === 'ControlLeft' || event.code === 'ControlRight') && backCtrlPending) {
     backCtrlPending = false;
     goBack();
@@ -5831,6 +6241,10 @@ window.addEventListener('keyup', (event) => {
 });
 
 window.addEventListener('keydown', (event) => {
+  if (chapterLoading) {
+    event.preventDefault();
+    return;
+  }
   if (event.code !== 'ControlLeft' && event.code !== 'ControlRight') backCtrlPending = false;
   else if (!event.repeat) backCtrlPending = true;
   if (event.repeat) return;
@@ -5977,8 +6391,11 @@ function update(dt, t) {
   }
   for (const marker of levelGroup.userData.houseMarkers ?? []) {
     const house = activeLevel.houses.find((entry) => entry.id === marker.userData.houseId);
-    marker.visible = Boolean(house) && !house.visited;
+    marker.visible = Boolean(house) && houseHasReward(house);
     marker.material.opacity = 0.75 + 0.2 * Math.sin(t * 3);
+  }
+  for (const ruin of levelGroup.userData.houseRuins ?? []) {
+    ruin.visible = Boolean(activeLevel.houses.find((house) => house.id === ruin.userData.houseId)?.destroyed);
   }
   let playerWorldX = worldX(player.x);
   let playerWorldZ = worldZ(player.z);
@@ -6035,6 +6452,7 @@ function update(dt, t) {
     );
   }
   for (const unit of enemies) {
+    if (sessionStarted && unit.hp > 0) warmUnitMotion(unit);
     if (unit.attackAnimation) {
       const { direction, frameIndex, kind } = unit.attackAnimation;
       setUnitSprite(unit, unitTextures(unit)[kind]?.[direction]?.[frameIndex]);
@@ -6085,14 +6503,15 @@ function update(dt, t) {
     unit.mesh.visible = fielded;
     unit.blob.visible = fielded;
     if (!fielded) continue;
+    if (sessionStarted) warmUnitMotion(unit);
     const textures = unitTextures(unit);
     const unitMoving = unit === player && moving;
     let sprite = textures.idle[unit.facing];
     if (unit.attackAnimation) {
-      sprite = textures[unit.attackAnimation.kind][unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
+      sprite = textures[unit.attackAnimation.kind]?.[unit.attackAnimation.direction]?.[unit.attackAnimation.frameIndex] ?? sprite;
     } else if (unitMoving) {
-      const walkingFrames = textures.walking[unit.facing];
-      sprite = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];
+      const walkingFrames = textures.walking?.[unit.facing];
+      if (walkingFrames?.length) sprite = walkingFrames[Math.floor(walkingTime / 0.09) % walkingFrames.length];
     }
     const previousScale = unit.mesh.scale.x;
     setUnitSprite(unit, sprite);
@@ -6173,19 +6592,24 @@ function update(dt, t) {
     const limitZ = activeLevel.height / 2 - 3;
     target.z = THREE.MathUtils.clamp(target.z, -limitZ, limitZ);
   }
-  const cameraScale = Math.max(activeLevel.infirmary ? 1.45 : 0.55, activeLevel.width / 21, activeLevel.height / 19);
+  const compactWard = activeLevel.villageScene?.layout === 'ward' && activeLevel.villageScene.artwork === 'compact';
+  const cameraScale = tacticalCameraScale();
   const offset = CAM_OFFSET.clone().multiplyScalar(cameraScale);
   const cityBackdrop = levelGroup.userData.cityBackdrop;
   const northLimit = worldZ(activeLevel.exit.z);
   const illustratedMap = Boolean(activeLevel.villageScene || activeLevel.shipScene);
   const boundedInterior = activeLevel.infirmary || illustratedMap;
+  const streetCamera = !illustratedMap && (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone);
   const manorMap = activeLevel.villageScene?.layout === 'manor';
+  const nearInteriorWalls = manorMap || activeLevel.villageScene?.layout === 'infirmary' || compactWard;
+  const illustrationLayout = activeLevel.villageScene ? villageLayout(activeLevel) : null;
+  const illustrationNorth = illustrationLayout?.northCameraExtension ?? illustrationLayout?.northBackdrop ?? 0;
   const cameraWidth = activeLevel.width + (activeLevel.shipScene?.layout === 'lone-ship' ? LONE_SHIP_OCEAN_MARGIN * 2 : 0);
   const constrainMapCamera = illustratedMap
-    ? (point) => constrainInteriorCamera(point, offset, camera.aspect, cameraWidth, activeLevel.height, manorMap ? MANOR_CAMERA_MARGIN : 0, 0.01, manorMap)
+    ? (point) => constrainInteriorCamera(point, offset, camera.aspect, cameraWidth, activeLevel.height, manorMap ? MANOR_CAMERA_MARGIN : 0, 0.01, nearInteriorWalls, illustrationNorth)
     : (point) => constrainInteriorCamera(point, offset, camera.aspect, activeLevel.width, activeLevel.height);
-  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
-  else if (cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
+  if (streetCamera) constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
+  else if (!illustratedMap && cityBackdrop) constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
   if (boundedInterior) constrainMapCamera(target);
   if (manualCameraTarget) manualCameraTarget.copy(target);
   const desired = target.clone().add(offset);
@@ -6193,11 +6617,11 @@ function update(dt, t) {
   if (draggingMap && manualCameraTarget) camera.position.copy(desired);
   else camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
   let fov = TACTICAL_FOV;
-  if (activeLevel.streets || activeLevel.courtyard || activeLevel.bellYard || activeLevel.shore || activeLevel.waitingCity || activeLevel.abyssalThrone) {
+  if (streetCamera) {
     target.copy(camera.position).sub(offset);
     fov = constrainStreetCamera(target, cityBackdrop, offset, camera.aspect, activeLevel.width, activeLevel.height);
     camera.position.copy(target).add(offset);
-  } else if (cityBackdrop) {
+  } else if (!illustratedMap && cityBackdrop) {
     // Keep camera easing parallel to the skyline, including while following enemies or cutscenes.
     target.copy(camera.position).sub(offset);
     fov = constrainCityCamera(target, cityBackdrop, offset, camera.aspect, northLimit);
@@ -6241,20 +6665,26 @@ function update(dt, t) {
   activeBackdrop.scale.set(backdropHeight * camera.aspect, backdropHeight, 1);
 }
 
-setMessage(`WASD / Arrows move · Enter inspects enemies · Select ${player.name} · Click empty tiles for options`);
-renderTacticalUi();
+document.getElementById('startup-loading').hidden = true;
+for (const id of ['new-game', 'load-game', 'title-options']) document.getElementById(id).disabled = false;
 
 // ---------- Main loop ----------
 
 const clock = new THREE.Clock();
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
+  if (!activeLevel || chapterLoading || !sessionStarted) {
+    requestAnimationFrame(frame);
+    return;
+  }
   update(dt, clock.elapsedTime);
   levelGroup.userData.waitingCity?.occlusion.update(
     [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
   levelGroup.userData.abyssalThrone?.occlusion.update(
     [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
   levelGroup.userData.shipScene?.occlusion.update(
+    [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
+  levelGroup.userData.cellOcclusion?.update(
     [...defendingUnits(), ...enemies], gameState.selected ? player : null, camera);
   updateLevelAnimation(clock.elapsedTime);
   renderer.render(scene, camera);
@@ -6291,13 +6721,13 @@ if (Number.isInteger(requestedChapter) && requestedChapter >= 2 && requestedChap
       console.error('Could not load save for chapter shortcut:', error);
     }
   }
-  startLevel(await loadChapterLevel(requestedChapter - 1), {
+  await startLevel(() => loadChapterLevel(requestedChapter - 1), {
     chapter: requestedChapter - 1,
     carry,
   });
 } else if (resumeAfterDevReload) {
   try {
-    continueGame();
+    await continueGame();
   } catch (error) {
     console.error('Could not resume after dev reload:', error);
   }

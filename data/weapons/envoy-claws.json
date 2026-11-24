@@ -1,0 +1,16 @@
+{
+  "id": "envoy-claws",
+  "name": "Envoy Claws",
+  "lore": "Bare talons beneath ragged black plumage. No forged weapon marks the bell's feral messenger.",
+  "type": "Claw",
+  "damageType": "physical",
+  "might": 8,
+  "weight": 8,
+  "hit": 80,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "slash",
+  "sprite": "assets/weapons/Wolf_Claws/rotations/Wolf_Claws.png"
+}

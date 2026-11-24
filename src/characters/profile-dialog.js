@@ -1,7 +1,7 @@
 import { attackSpeed, getAvoid, getHitRate, weaponRangeLabel } from '../battle/combat.js';
 import { CLASSES, getClassAbilities } from './classes.js';
 import { INVENTORY_ITEMS } from './inventory.js';
-import { getWeaponExp, MAX_WEAPON_EXP, rankForExp, WEAPON_RANKS } from './weapon-levels.js';
+import { getWeaponExp, MAX_WEAPON_EXP, rankForExp, WEAPON_RANKS, weaponTypeLabel } from './weapon-levels.js';
 import { movementAllowance } from '../game/covenant.js';
 
 const EXP_PER_LEVEL = 100;
@@ -33,7 +33,7 @@ const STAT_ROWS = [
 
 // A common weapon of each type stands in as that type's icon.
 const TYPE_ICONS = {
-  Sword: 'iron-katana', Spear: 'iron-spear', Axe: 'iron-axe', Bow: 'iron-bow', Gun: 'hunter-pistol',
+  Sword: 'iron-sword', Spear: 'iron-spear', Axe: 'iron-axe', Bow: 'iron-bow', Gun: 'hunter-pistol',
   Anima: 'fire-tome', Light: 'light-tome', Dark: 'dark-tome', Staff: 'heal-staff', Claw: 'wolf-claws',
 };
 
@@ -153,11 +153,12 @@ export function createProfileDialog(dialog) {
     vitals.replaceChildren(hp, exp);
   }
 
-  function renderStats(unit, opponent, terrain, opponentTerrain) {
+  function renderStats(unit, opponent, terrain, opponentTerrain, enemies) {
+    const trail = movementAllowance(unit, enemies) - unit.movement;
     const grid = dialog.querySelector('#profile-stats');
     grid.replaceChildren(...STAT_ROWS.map(([label, key, ceiling]) => {
       const permanent = key === 'hp' ? unit.maxHp : unit[key];
-      const temporary = key === 'movement' ? movementAllowance(unit) - permanent : 0;
+      const temporary = key === 'movement' ? trail : 0;
       const value = permanent + temporary;
       const base = unit.baseStats?.[key];
       const gain = Number.isFinite(base) ? permanent - base : 0;
@@ -165,7 +166,7 @@ export function createProfileDialog(dialog) {
       const name = element('span', 'profile-stat-name', label);
       const number = element('span', 'profile-stat-value', String(value));
       if (gain > 0) number.title = `Base ${base} · +${gain} gained`;
-      if (temporary) number.title = `${number.title || `${permanent} permanent`} · +${temporary} Blood Trail (this phase)`;
+      if (temporary) number.title = `${number.title || `${permanent} permanent`} · +${temporary} Blood Trail`;
       const growth = element('span', 'profile-stat-growth', `${unit.growthRates?.[key] ?? 0}%`);
       growth.title = 'Growth rate';
       row.append(name, number, bar(value / ceiling), growth);
@@ -179,7 +180,7 @@ export function createProfileDialog(dialog) {
       ['Terrain Def', `+${terrain.defense}`],
     ];
     if (unit.bloodOath) combat.push(['Blood Oath', 'Next damaging combat hit halved (round up)']);
-    if (unit.bloodTrailBonus) combat.push(['Blood Trail active', '+2 Movement this player phase']);
+    if (trail) combat.push(['Blood Trail active', `+${trail} Movement`]);
     for (const ability of getClassAbilities(unit).filter((entry) => entry.bloodOath || entry.bloodTrail))
       combat.push([ability.name, ability.description]);
     if (opponent) combat.push([`Hit vs ${opponent.name}`, `${getHitRate(unit, opponent, opponentTerrain)}%`]);
@@ -192,7 +193,7 @@ export function createProfileDialog(dialog) {
     const title = element('div', 'profile-weapon-title');
     const name = element('div', 'profile-weapon-name');
     name.append(element('strong', '', weapon?.name ?? 'Unarmed'),
-      element('span', '', weapon ? `${weapon.type}${weapon.requiredRank ? ` · Rank ${weapon.requiredRank}` : ''}` : 'No weapon equipped'));
+      element('span', '', weapon ? `${weaponTypeLabel(weapon.type)}${weapon.requiredRank ? ` · Rank ${weapon.requiredRank}` : ''}` : 'No weapon equipped'));
     title.append(icon(weapon?.spriteUrl), name);
     const stats = element('dl', 'profile-weapon-stats');
     if (weapon) {
@@ -219,7 +220,7 @@ export function createProfileDialog(dialog) {
       item.classList.toggle('equipped', row.equipped);
       item.classList.toggle('unusable', !row.usable);
       const name = element('div', 'profile-weapon-level-name');
-      const title = element('strong', '', row.type);
+      const title = element('strong', '', weaponTypeLabel(row.type));
       if (row.equipped) title.append(element('em', 'profile-tag', 'Equipped'));
       name.append(title,
         element('span', '', row.usable ? `+${row.rank.hit} Hit · +${row.rank.avoid} Avoid` : 'Not usable by class'));
@@ -247,9 +248,9 @@ export function createProfileDialog(dialog) {
       : 'Enemies fight at a fixed weapon rank and do not gain weapon EXP.';
   }
 
-  function show(unit, opponent, terrain, opponentTerrain, inventory) {
+  function show(unit, opponent, terrain, opponentTerrain, inventory, enemies) {
     renderHeader(unit);
-    renderStats(unit, opponent, terrain, opponentTerrain);
+    renderStats(unit, opponent, terrain, opponentTerrain, enemies);
     renderInventory(unit, inventory);
     renderWeaponLevels(unit);
     selectTab(inventory?.focus ?? activeTab);

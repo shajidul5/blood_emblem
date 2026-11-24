@@ -1,0 +1,16 @@
+{
+  "id": "leon",
+  "name": "Leon",
+  "classId": "mercenary",
+  "type": "infantry",
+  "spriteSet": "leon",
+  "sprite": "assets/character/Leon/rotations/south.png",
+  "level": 9,
+  "experience": 0,
+  "weaponId": "steel-sword",
+  "weaponExp": { "Sword": 60 },
+  "inventory": ["steel-sword", "beast-killer", "potion"],
+  "baseStats": { "hp": 30, "strength": 12, "magic": 0, "dexterity": 13, "speed": 13, "luck": 7, "defense": 8, "resistance": 3, "movement": 5, "build": 9 },
+  "currentStats": { "hp": 30, "strength": 12, "magic": 0, "dexterity": 13, "speed": 13, "luck": 7, "defense": 8, "resistance": 3, "movement": 5, "build": 9 },
+  "growthRates": { "hp": 75, "strength": 65, "magic": 0, "dexterity": 65, "speed": 65, "luck": 40, "defense": 35, "resistance": 20, "movement": 0, "build": 5 }
+}

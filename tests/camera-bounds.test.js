@@ -165,19 +165,23 @@ test('artwork bounds constrain transitional and shaken camera positions immediat
     'keep the wider default view when it fits inside the artwork');
 });
 
-test('every walkable infirmary tile is fully visible when followed, including edge spawn tiles', async () => {
+for (const [label, file] of [['legacy', './fixtures/infirmary-legacy.json'], ['HD', '../data/levels/map_12_infirmary.json']])
+test(`every walkable ${label} infirmary tile is fully visible when followed, including edge spawn tiles`, async () => {
   const { readFile } = await import('node:fs/promises');
-  const map = JSON.parse(await readFile(new URL('../data/levels/map_12_infirmary.json', import.meta.url), 'utf8'));
-  const offset = { y: 14 * 1.45, z: 10 * 1.45 };
+  const map = JSON.parse(await readFile(new URL(file, import.meta.url), 'utf8'));
+  const scale = Math.max(1.45, map.width / 21, map.height / 19);
+  const offset = { y: 14 * scale, z: 10 * scale };
   const distance = Math.hypot(offset.y, offset.z);
   const ny = offset.y / distance;
   const nz = offset.z / distance;
   for (const aspect of [0.6, 1.26, 16 / 9, 21 / 9, 32 / 9]) {
     for (let z = 0; z < map.height; z++) {
       for (let x = 0; x < map.width; x++) {
-        if ('xy'.includes(map.tiles[z][x])) continue;
+        if (map.villageScene ? map.tiles[z][x] === 'infirmary_block' : 'xy'.includes(map.tiles[z][x])) continue;
         const target = { x: x - map.width / 2 + 0.5, y: 0.8, z: z - map.height / 2 + 0.5 };
-        const fov = constrainInteriorCamera(target, offset, aspect, map.width, map.height);
+        const fov = map.villageScene
+          ? constrainInteriorCamera(target, offset, aspect, map.width, map.height, 0, 0.01, true)
+          : constrainInteriorCamera(target, offset, aspect, map.width, map.height);
         const tangent = Math.tan(fov * Math.PI / 360);
         for (const dx of [0, 1]) {
           for (const dz of [0, 1]) {
@@ -206,6 +210,29 @@ const project = (point, target, offset, aspect, fov) => {
   const depth = distance - ny * dy - nz * dz;
   return { x: dx / (depth * tangent * aspect), y: (nz * dy - ny * dz) / (depth * tangent) };
 };
+
+test('Chapter 13 northern illustration stays bounded and reveals the distant clock face', () => {
+  const offset = { y: 14 * 28 / 19, z: 10 * 28 / 19 };
+  for (const aspect of [0.6, 1.26, 16 / 9, 21 / 9, 32 / 9]) {
+    for (const x of [-100, 0, 100]) {
+      for (const z of [-100, -13.5, 0, 100]) {
+        const target = { x, y: 0.8, z };
+        const fov = constrainInteriorCamera(target, offset, aspect, 28, 28, 0, 0.01, false, 6);
+        assertArtworkBounds({ ...target, z: target.z + 3 }, offset, aspect, 28, 34, fov);
+        const clamped = { ...target };
+        assert.equal(constrainInteriorCamera(target, offset, aspect, 28, 28, 0, 0.01, false, 6), fov);
+        assert.deepEqual(target, clamped, 'the northern extension does not introduce camera drift');
+      }
+    }
+    for (const z of aspect > 21 / 9 ? [-13.5] : [-13.5, -11.5]) {
+      const target = { x: -0.5, y: 0.8, z };
+      const fov = constrainInteriorCamera(target, offset, aspect, 28, 28, 0, 0.01, false, 6);
+      const clock = project({ x: 2.5, y: 0.01, z: -18 }, target, offset, aspect, fov);
+      assert.ok(Math.abs(clock.x) < 0.9 && Math.abs(clock.y) < 0.9,
+        `clock face is visible when following the northern gate: ${JSON.stringify(clock)}, aspect ${aspect}`);
+    }
+  }
+});
 
 test('Chapter 3 authored right-edge arrivals keep the normal bounded camera without edge zoom', async () => {
   const { readFile } = await import('node:fs/promises');

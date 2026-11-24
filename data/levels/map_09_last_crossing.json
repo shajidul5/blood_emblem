@@ -38,6 +38,16 @@
       "id": "stark",
       "x": 8,
       "z": 17
+    },
+    {
+      "id": "linus",
+      "x": 17,
+      "z": 18
+    },
+    {
+      "id": "leon",
+      "x": 17,
+      "z": 20
     }
   ],
   "enemies": [
@@ -142,7 +152,7 @@
       "id": "linus",
       "x": 17,
       "z": 18,
-      "hp": 28
+      "hp": 40
     },
     "refuge": [
       {
@@ -226,6 +236,13 @@
           "id": "feral-wolf",
           "level": 18,
           "x": 9,
+          "z": 27,
+          "ai": "mobile"
+        },
+        {
+          "id": "feral-wolf",
+          "level": 18,
+          "x": 9,
           "z": 28,
           "ai": "mobile"
         },
@@ -245,6 +262,13 @@
           "id": "feral-wolf",
           "level": 19,
           "x": 24,
+          "z": 27,
+          "ai": "mobile"
+        },
+        {
+          "id": "feral-wolf",
+          "level": 19,
+          "x": 24,
           "z": 28,
           "ai": "mobile"
         },
@@ -260,6 +284,13 @@
     {
       "turn": 6,
       "units": [
+        {
+          "id": "feral-wolf",
+          "level": 19,
+          "x": 9,
+          "z": 26,
+          "ai": "mobile"
+        },
         {
           "id": "feral-wolf",
           "level": 19,
@@ -286,6 +317,13 @@
     {
       "turn": 8,
       "units": [
+        {
+          "id": "feral-wolf",
+          "level": 19,
+          "x": 24,
+          "z": 26,
+          "ai": "mobile"
+        },
         {
           "id": "root-warden",
           "level": 16,

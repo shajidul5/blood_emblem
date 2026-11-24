@@ -23,10 +23,10 @@
       },
       {
         "kicker": "Tactics",
-        "title": "Axes Beat Spears",
+        "title": "Axes Beat Lances",
         "paragraphs": [
-          "The Merfolk fight with Spears, and Bartz wields an Axe. Axes beat Spears, so Bartz gains {hit} Hit and {avoid} Avoid and deals {damage} more damage against them.",
-          "Maria's Rapier is a Sword, and Spears beat Swords. Let Bartz take the Merfolk head-on, and keep Maria for finishing blows."
+          "The Merfolk fight with Lances, and Bartz wields an Axe. Axes beat Lances, so Bartz gains {hit} Hit and {avoid} Avoid and deals {damage} more damage against them.",
+          "Maria's Rapier is a Sword, and Lances beat Swords. Let Bartz take the Merfolk head-on, and keep Maria for finishing blows."
         ],
         "diagram": "weapon-triangle",
         "button": "To Arms"

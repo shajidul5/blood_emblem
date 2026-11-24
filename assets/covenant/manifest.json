@@ -3,7 +3,7 @@
   "generator": "PixelLab",
   "status": "implemented",
   "runtimeEnabled": true,
-  "description": "PixelLab Covenant promotion artwork for playable Bloodsworn Linus and Veilstalker Stark. Original roster sprites remain unchanged.",
+  "description": "PixelLab Covenant promotion artwork for Bloodsworn Linus and hooded Veilstalker Stark. The original Veilstalker battle art is archived here; the live battle art is in the battle manifest. Archer and Sniper use separate roster artwork.",
   "fighters": {
     "bloodsworn": {
       "unitId": "linus",
@@ -234,18 +234,27 @@
     "veilstalker": {
       "unitId": "stark",
       "classId": "veilstalker",
+      "activeMapRoot": "assets/character/Veilstalker_Stark",
       "map": {
+        "archived": true,
         "generator": "PixelLab",
-        "method": "edit_image + transfer_outfit",
+        "method": "Pro Flash rotations, template walking, and custom bow animation, based on the live battle outfit",
+        "characterId": "29748a1c-5aa4-40e9-bd65-b06ff6c1b940",
+        "styleReference": "assets/character/Maria/Idle/rotations/south.png",
+        "battleReference": "assets/battle/stark-veilstalker-night-idle.png",
         "sourceSpriteFolder": "assets/character/Stark",
-        "rotationJob": "bb3fb30c-4836-42ac-bb2b-6d07de4c2c47",
+        "walkingGroupId": "abca8aaa-7f3d-4627-8aa5-b87836879338",
+        "attackGroupId": "5ab33e2c-dde2-46cc-ac46-6b6dc4c72135",
         "walkingJobs": [
-          "d2cd966c-8636-45d6-bb5b-93b8724c489a",
-          "16513c46-1177-475e-82e4-cff72462b359",
-          "3e2355f0-f336-4309-818c-0be78e19fbf3",
-          "4df1c92e-7b1d-4eef-91a0-eb7849184d41"
+          "00ac8214-47d9-4a25-b691-042b7979978a",
+          "4e19d908-5884-49d0-852f-7c6089356e8b",
+          "e4a6b04e-d3d4-4c25-8330-42a621ba844b",
+          "6af66298-78c1-4a5e-8df9-6aa8dd36259b",
+          "ebd365a4-c2a0-40e7-add6-c1216393b836",
+          "a9a79e18-c432-4c87-8b3e-90d81905f6a0",
+          "e6dc70f8-11d3-4f6a-a58c-3b78a687a2ce",
+          "bc73698f-536a-4f7b-8b39-221b8c79e46c"
         ],
-        "seed": 9272,
         "size": {
           "width": 48,
           "height": 48
@@ -344,7 +353,8 @@
               "veilstalker-stark/map/animations/Walking/south-west/frame_005.png"
             ]
           }
-        }
+        },
+        "sourceImageJob": "371e92ff-863a-4fdb-8bee-da299e755ee6"
       },
       "battle": {
         "size": 128,
@@ -353,16 +363,16 @@
         "scale": 1,
         "facing": "east",
         "idle": "veilstalker-stark/battle/idle.png",
-        "idleJob": "cbd74a4f-77a3-4165-988f-8dd064c93fc4",
+        "idleJob": "7ddf2c46-cfdf-4c78-b89e-177c271a6ba4",
         "idleLoop": {
           "file": "veilstalker-stark/battle/idle-loop.png",
-          "job": "0fb890a4-88bb-4d94-a41c-f9eed6e9bf15",
+          "job": "52c4e2fe-454f-42b2-b9d9-9dc8aae9c395",
           "frames": 9,
           "frameMs": 120
         },
         "attack": {
           "file": "veilstalker-stark/battle/attack.png",
-          "job": "d36edf68-3370-4ed1-8eb8-99f6bb8b064d",
+          "job": "08e6ddd4-6512-46a7-b59b-2312c198d0b1",
           "frames": 25,
           "frameMs": 40,
           "impactFrame": 18,
@@ -375,10 +385,10 @@
         },
         "critical": {
           "file": "veilstalker-stark/battle/critical.png",
-          "job": "06374efb-eec2-4bdb-ae11-83afc51442d7",
+          "job": "744fb911-9fe6-4b35-8450-77afd6f53533",
           "frames": 33,
           "frameMs": 40,
-          "impactFrame": 25,
+          "impactFrame": 23,
           "holdMs": 100,
           "advance": 0,
           "contact": {

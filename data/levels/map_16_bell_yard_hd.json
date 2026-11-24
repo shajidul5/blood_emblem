@@ -1,0 +1,136 @@
+{
+  "name": "Chapter 16 - The Delivery Bell",
+  "width": 40, "height": 40,
+  "objective": "bell-lift", "leader": "maria", "requiredUnits": ["maria", "rictor"],
+  "lighting": "dusk", "noFence": true,
+  "spawn": { "x": 9, "z": 33 }, "exit": { "x": 19, "z": 2 },
+  "tiles": [
+    "MMMMMMMMMMMMMMMMMSSSSSSMMMMMMMMMMMMMMMMM",
+    "MMMMMMMMMMMMMMMMMSSSSSSMMMMMMMMMMMMMMMMM",
+    "MMMMMMMMMMMMMMMMMSSSSSSMMMMMMMMMMMMMMMMM",
+    "MMYYYYYYYYYYYYYMMSSSSSSMMMMMMMMMMMMMMMMM",
+    "MMYYYYYYYYYYYYYMM^^^^^^MMYYYYYYYYYYYYMMM",
+    "MMYYYYYYYYYYYYYYYYY^^YYYYYYYYYYYYYYYYMMM",
+    "MMYYYYYYYYYYYYYYYYY^^YYYYYYYYYYYYYYYYMMM",
+    "ZZZZZZJJZZZZZZZZZZ~~~~ZZZZZZZZZZJJZZZZZZ",
+    "ZZZZZZJJZZZZZZZZZZ~~~~ZZZZZZZZZZJJZZZZZZ",
+    "ZZZZZZJJZZZZZZZZZZ~~~~ZZZZZZZZZZJJZZZZZZ",
+    "ZZZZZZJJZZZZZZZZZZ~~~~ZZZZZZZZZZJJZZZZZZ",
+    "ZZZZZZJJZZZZZZZZZZ~~~~ZZZZZZZZZZJJZZZZZZ",
+    "ZZZZZZJJZZZZZZZZZZ~~~~ZZZZZZZZZZJJZZZZZZ",
+    "MMYYYYYYYYY333YYYYY^^YYYY33333YYYYYYMMMM",
+    "MMMMMYYYYYY333YYYYY^^YYYY33333YYYYYMMMMM",
+    "MMMMMYYYYYY333YYYYY^^YYYY33333YYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYY^^YYYYYYYYYYYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYYY=YYYYYYYYYYYYYYMMMMM",
+    "MMMMMMMMMMMMMMMMMMYY=MMMMMMMMMMMYYYMMMMM",
+    "MMYYYMMMMMMMMMMMMMYY=MMYYYYYMMMMYYYMMMMM",
+    "MMYYYMMMMMMMMMMMMMYY=MMYYYYYMMMMYYYMMMMM",
+    "MMYYYMMMMMMMMMMMMMYY=MMYYYYYYYYMYYYMMMMM",
+    "MMYYYMMMMMMMMMMMMMYY=MMYYYYYYYYMYYYMMMMM",
+    "MMYYYMMMMMMMMMMMMMYY=MMYYYYYYYYMYYYMMMMM",
+    "MMMYYMMMMMMMMMMMMMYY=MMYYYYYYYYYYYYMMMMM",
+    "MMMYYMMMMMMMMMMMMMYY=MMYYYYYYYYYYYYMMMMM",
+    "MMMYYMMMMMMMMMMMMMYY=MMYYYYYYYYYYYYMMMMM",
+    "MMMYYYYYYYYYYYYYYYYY=MMYYYYYYYYYYYYMMMMM",
+    "MMMYYYYYYYYYYYYYYYYY=MMYYYYYYYYYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYYY=MMMMMMMMMMYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMYYYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMMMYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMMMYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMMMYYYYYYYYYYYMZZMYYYYYYYYYYYYYMMMMM",
+    "MMMMMMMMMMMMMMMMMMMZZMMMMMMMMMMMMMMMMMMM",
+    "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+    "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+  ],
+  "players": [
+    { "id": "maria", "x": 9, "z": 33 },
+    { "id": "bartz", "x": 8, "z": 32 },
+    { "id": "cypher", "x": 10, "z": 33 },
+    { "id": "seymour", "x": 9, "z": 34 },
+    { "id": "stark", "x": 8, "z": 33 },
+    { "id": "linus", "x": 10, "z": 32 },
+    { "id": "leon", "x": 11, "z": 33 },
+    { "id": "rictor", "x": 30, "z": 33 },
+    { "id": "lena", "x": 31, "z": 32 },
+    { "id": "arlan", "x": 30, "z": 32 },
+    { "id": "troy", "x": 32, "z": 33 },
+    { "id": "eveline", "x": 29, "z": 33 },
+    { "id": "corvis", "x": 30, "z": 34 },
+    { "id": "serra", "x": 29, "z": 34 }
+  ],
+  "enemies": [
+    { "id": "bell-sage-keeper", "x": 19, "z": 2, "drop": "cinder-vigil" },
+    { "id": "bell-general", "x": 16, "z": 6 },
+    { "id": "bell-bishop", "x": 23, "z": 5 },
+    { "id": "bell-sage", "x": 12, "z": 5 },
+    { "id": "bell-sage", "x": 26, "z": 6 },
+    { "id": "bell-winch-guard", "x": 12, "z": 16 },
+    { "id": "bell-brake-guard", "x": 28, "z": 16 },
+    { "id": "bell-sage", "x": 15, "z": 14, "weaponId": "wind-tome", "drop": "wind-tome" },
+    { "id": "bell-sage", "x": 30, "z": 15 },
+    { "id": "bell-halberdier", "x": 7, "z": 13, "drop": "chest-key" },
+    { "id": "bell-halberdier", "x": 33, "z": 13, "drop": "chest-key" },
+    { "id": "bell-berserker", "x": 18, "z": 18, "weaponId": "killer-axe", "drop": "killer-axe" },
+    { "id": "bell-paladin", "x": 33, "z": 22 },
+    { "id": "bell-yard-rotten", "x": 12, "z": 28 },
+    { "id": "bell-undead", "x": 9, "z": 29, "drop": "chest-key" },
+    { "id": "bell-undead", "x": 15, "z": 28 },
+    { "id": "bell-yard-rotten", "x": 7, "z": 16 },
+    { "id": "bell-undead", "x": 6, "z": 15 },
+    { "id": "bell-undead", "x": 9, "z": 17 },
+    { "id": "bell-yard-rotten", "x": 33, "z": 27 },
+    { "id": "bell-undead", "x": 31, "z": 28, "drop": "chest-key" },
+    { "id": "bell-undead", "x": 33, "z": 30 },
+    { "id": "bell-yard-rotten", "x": 23, "z": 17 },
+    { "id": "bell-undead", "x": 22, "z": 16 },
+    { "id": "bell-undead", "x": 24, "z": 14 },
+    { "id": "bell-bolting", "x": 6, "z": 16 },
+    { "id": "bell-bolting", "x": 32, "z": 16 },
+    { "id": "bell-paladin", "x": 4, "z": 24, "ai": "mobile" },
+    { "id": "bell-paladin", "x": 26, "z": 21, "ai": "mobile" },
+    { "id": "bell-berserker", "x": 18, "z": 24, "ai": "mobile", "weaponId": "tomahawk" },
+    { "id": "bell-berserker", "x": 24, "z": 23, "ai": "mobile", "weaponId": "silver-axe" }
+  ],
+  "chests": [
+    { "id": "west-commission", "name": "Western Commission", "x": 4, "z": 5, "rewardId": "master-emblem" },
+    { "id": "east-commission", "name": "Officer's Armory", "x": 34, "z": 5, "rewardId": "silver-sword" },
+    { "id": "plaza-commission", "name": "Freight Guard Armory", "x": 5, "z": 5, "rewardId": "tomahawk" },
+    { "id": "yard-elixir", "name": "Amber Reliquary", "x": 6, "z": 5, "rewardId": "witchs-eye" },
+    { "id": "yard-seal", "name": "Pallbearer's Cache", "x": 35, "z": 5, "rewardId": "pallbearers-burden" }
+  ],
+  "reinforcements": [
+    { "turn": 4, "entranceId": "bell-yard-omen", "sound": "crow-omen", "message": "The Omen steps into the western yard. Crows follow.", "units": [
+      { "id": "crowman", "x": 5, "z": 31, "drop": ["covenant-emblem", "crow-greatsword"] },
+      { "id": "bell-raven", "x": 6, "z": 30 },
+      { "id": "bell-raven", "x": 8, "z": 31 }
+    ] },
+    { "turn": 7, "entranceId": "bell-yard-crows-east", "message": "Crows sweep in from the eastern freight road.", "units": [
+      { "id": "bell-raven", "x": 30, "z": 30 },
+      { "id": "bell-raven", "x": 33, "z": 31 }
+    ] },
+    { "turn": 10, "entranceId": "bell-yard-crows-west", "message": "Another pair of crows swoops over the western warehouses.", "units": [
+      { "id": "bell-raven", "x": 5, "z": 27 },
+      { "id": "bell-raven", "x": 6, "z": 28 }
+    ] },
+    { "turn": 13, "entranceId": "bell-yard-crows-final", "message": "Crows descend on both freight roads.", "units": [
+      { "id": "bell-raven", "x": 8, "z": 30 },
+      { "id": "bell-raven", "x": 34, "z": 28 }
+    ] }
+  ],
+  "bellYard": {
+    "bossId": "bell-sage-keeper",
+    "reunited": false,
+    "locks": [
+      { "id": "winch", "x": 11, "z": 16, "guardId": "bell-winch-guard", "opened": false },
+      { "id": "brake", "x": 29, "z": 16, "guardId": "bell-brake-guard", "opened": false }
+    ],
+    "beats": [
+      { "id": "bell", "turn": 3, "thresholdZ": null, "seen": false },
+      { "id": "lift", "turn": null, "thresholdZ": 6, "seen": false }
+    ]
+  }
+}

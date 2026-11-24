@@ -10,6 +10,7 @@
   "critical": 10,
   "minRange": 1,
   "maxRange": 1,
+  "requiredRank": "A",
   "sound": "slash",
   "sprite": "assets/weapons/Crow_Greatsword/rotations/Crow_Greatsword.png"
 }

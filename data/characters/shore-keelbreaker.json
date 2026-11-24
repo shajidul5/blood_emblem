@@ -1,0 +1,8 @@
+{
+  "id": "shore-keelbreaker", "name": "The Keelbreaker", "classId": "berserker", "type": "infantry",
+  "spriteSet": "shoreKeelbreaker", "sprite": "assets/character/Shore_Keelbreaker/rotations/south.png",
+  "scale": 1, "level": 28, "experience": 0, "weaponId": "keelbreaker", "weaponExp": { "Axe": 300 }, "ai": "guard",
+  "baseStats": { "hp": 94, "strength": 39, "magic": 0, "dexterity": 42, "speed": 22, "luck": 10, "defense": 25, "resistance": 16, "movement": 6, "build": 20 },
+  "currentStats": { "hp": 94, "strength": 39, "magic": 0, "dexterity": 42, "speed": 22, "luck": 10, "defense": 25, "resistance": 16, "movement": 6, "build": 20 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

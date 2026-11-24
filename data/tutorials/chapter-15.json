@@ -1,14 +1,7 @@
 {
   "cathedral": { "pages": [
     { "kicker": "Part Three - Chapter 15", "title": "Beneath the Sacred Blood", "paragraphs": [
-      "The Cathedral doors close behind the party. No congregation waits in the nave. Empty oak pews face a carpet without a footprint; above them, the Church's blood-drop banners hang beside the Golden Order's sun.",
-      "\"No bells for the dead,\" Lena says. Arlan looks toward the galleries. \"No graves, either.\" At the high altar, a figure in white watches them climb.",
-      "Defeat Bishop Aurel Voss. This is one continuous battle through the nave, archive galleries and high sanctuary. There is no free healing or supply refill between tiers. Rictor must survive. Eveline and Corvis accompany you only if previously recruited."
-    ] },
-    { "kicker": "The Cathedral Defenses", "title": "Climb Together", "paragraphs": [
-      "Promoted Generals seal the aisles, Paladins advance through the flanks, and Sages cover their approaches. The pew gaps reconnect the nave; twin stairways climb each tier. Stairs cost two movement points. Use their lower landings to regroup rather than splitting your party across both galleries.",
-      "Two stationary Storm Canons cast Bolting at range 3-10. Each has exactly four casts, with no close counterattack. Their fields overlap across the gallery, so bait out their casts or rush inside range 3 to strike them safely. Two Reliquary Priests cast Physic, mending injured defenders from up to seven tiles away, so strike priority targets hard or silence the priests first. Voss carries Aureole and six healing casts. He sits on the Bishop's Throne (+3 Defense, +20 Avoid, heals 5 HP every turn), so bring enough damage to finish him in one push.",
-      "Entering the galleries and then the sanctuary warns two finite Paladin waves from below. Arrivals occur at the start of the next player phase and cannot attack until you have acted. Occupied arrival tiles queue their riders. There are five optional chests: a Steel Axe, Killer Bow, Killing Edge and two Orders Emblems."
+      "The Cathedral doors close behind Rictor's party. Beyond the empty nave, the Golden Order guards the Church's archives, and Bishop Aurel Voss waits in the high sanctuary. Fight your way to the altar and defeat Voss. Rictor must survive."
     ], "button": "Enter the Nave" }
   ] },
   "cathedral-summons": { "pages": [
@@ -45,13 +38,19 @@
   ] },
   "cathedral-nave-paladins": { "pages": [
     { "kicker": "Reinforcement Warning", "title": "Hooves Behind the Doors", "paragraphs": [
-      "The nave entrance shudders. Three Golden Order Paladins are approaching the southern doors: west aisle (4,34), central aisle (12,34), east aisle (21,34).",
+      "The nave entrance shudders. Three Golden Order Paladins are approaching through the southern aisles. Arrival tiles: {arrivalTiles}.",
       "They arrive at the start of the next player phase. You will have that full phase before they attack. This is a single finite wave; an occupied arrival tile holds its rider outside."
+    ] }
+  ] },
+  "cathedral-commander-warning": { "pages": [
+    { "kicker": "Reinforcement Warning", "title": "The Golden Order Commander", "paragraphs": [
+      "Commander Aldren Cade approaches the east flank with a Silver Lance. Two Golden Order riders follow through the nave. Arrival tiles (commander first): {arrivalTiles}.",
+      "They arrive at the start of the next player phase, before they can attack. Cade carries an Orders Emblem, but defeating him is not required to reach Voss."
     ] }
   ] },
   "cathedral-gallery-paladins": { "pages": [
     { "kicker": "Final Reinforcement Warning", "title": "The Rear Guard Ascends", "paragraphs": [
-      "A last pair of Paladins enters the nave below the gallery stairways: west landing (5,25), east landing (20,25).",
+      "A last pair of Paladins enters the nave below the gallery stairways. Arrival tiles: {arrivalTiles}.",
       "They arrive at the start of the next player phase and cannot attack before you act. This is the final wave. Hold a stairway, face the rear guard, or commit to Voss; defeating him ends the battle without a rout."
     ] }
   ] },

@@ -1,11 +1,13 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { inflateSync } from 'node:zlib';
+import { runInNewContext } from 'node:vm';
 import { createServer } from 'vite';
 import * as THREE from 'three';
 import { STREET_CAMERA_PADDING } from '../src/game/camera-bounds.js';
 
-let server, levels, tiles, characters, rawMap, story;
+let server, levels, tiles, characters, rawMap, legacyMap, story;
 const profiles = new Map();
 const weapons = new Map();
 const previousImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
@@ -13,8 +15,8 @@ const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
 
 before(async () => {
   const buildingSizes = new Map(await Promise.all(
-    ['complete_townhouse', 'complete_shop', 'complete_apothecary'].map(async (name) => {
-      const png = await readFile(new URL(`../assets/tiles/Cathedral_Streets/${name}.png`, import.meta.url));
+    ['complete_townhouse.png', 'complete_shop.png', 'complete_apothecary.png'].map(async (name) => {
+      const png = await readFile(new URL(`../assets/tiles/Cathedral_Streets/${name}`, import.meta.url));
       return [name, { width: png.readUInt32BE(16), height: png.readUInt32BE(20) }];
     }),
   ));
@@ -26,6 +28,8 @@ before(async () => {
       this.height = value.includes('clocktower') ? 256 : value.includes('gothic_row_house') ? 161
         : value.includes('gothic_shuttered_shop') ? 169 : value.includes('gas_lamp') ? 80 : 112;
       if (size) Object.assign(this, size);
+      if (value.includes('/streets.png')) this.width = this.height = 1232;
+      if (value.includes('/streets-depth.png')) { this.width = 1232; this.height = 1496; }
       this.url = value;
       queueMicrotask(() => this.onload());
     }
@@ -35,8 +39,9 @@ before(async () => {
   tiles = await server.ssrLoadModule('/src/levels/tiles.js');
   characters = await server.ssrLoadModule('/src/characters/characters.js');
   rawMap = JSON.parse(await readFile(new URL('../data/levels/map_13_procession.json', import.meta.url), 'utf8'));
+  legacyMap = JSON.parse(await readFile(new URL('./fixtures/streets-legacy.json', import.meta.url), 'utf8'));
   story = JSON.parse(await readFile(new URL('../data/tutorials/chapter-13.json', import.meta.url), 'utf8'));
-  for (const id of new Set(rawMap.enemies.map((enemy) => enemy.id))) {
+  for (const id of new Set([...rawMap.enemies, ...rawMap.reinforcements.flatMap((wave) => wave.units)].map((enemy) => enemy.id))) {
     const profile = JSON.parse(await readFile(new URL(`../data/characters/${id}.json`, import.meta.url), 'utf8'));
     profiles.set(id, profile);
     weapons.set(profile.weaponId, JSON.parse(await readFile(new URL(`../data/weapons/${profile.weaponId}.json`, import.meta.url), 'utf8')));
@@ -52,6 +57,207 @@ after(async () => {
 });
 
 const fresh = () => levels.validateLevel(structuredClone(rawMap));
+test('dimensional HD artwork preserves authored terrain, footprints and initial placements', () => {
+  const map = structuredClone(rawMap);
+  assert.deepEqual(map.villageScene, { version: 1, layout: 'streets', artwork: 'depth' });
+  delete map.villageScene;
+  delete map.streets.pressure;
+  delete map.streets.raiders;
+  map.houses[2].rewardId = legacyMap.houses[2].rewardId;
+  map.houses[2].rewardCount = legacyMap.houses[2].rewardCount;
+  map.reinforcements = map.reinforcements.slice(0, 1);
+  assert.deepEqual(map, legacyMap);
+  const restored = levels.validateLevel(JSON.parse(JSON.stringify(fresh())));
+  assert.deepEqual(restored.villageScene, rawMap.villageScene);
+  assert.equal(levels.validateLevel(legacyMap).villageScene, undefined);
+});
+
+test('one native HD illustration has square cells and pixel-measured one-cell entrances', async () => {
+  const { villageLayout } = await server.ssrLoadModule('/src/levels/village-scene.js');
+  const manifest = JSON.parse(await readFile(new URL('../assets/maps/village/manifest.json', import.meta.url), 'utf8'));
+  const asset = manifest.images['streets-depth'];
+  const png = await readFile(new URL('../assets/maps/village/streets-depth.png', import.meta.url));
+  const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+  assert.deepEqual([width, height], [1232, 1496]);
+  assert.deepEqual(villageLayout(fresh()).crop, [0, 264, width, 1232]);
+  assert.deepEqual(manifest.layouts.streets.grid, [28, 28]);
+  assert.equal(width / rawMap.width, asset.pixelCellSize);
+  assert.equal((height - 264) / rawMap.height, 44);
+  assert.equal(png[24], 8);
+  assert.equal(png[25], 6);
+  const chunks = [];
+  for (let offset = 8; offset < png.length;) {
+    const length = png.readUInt32BE(offset);
+    if (png.toString('ascii', offset + 4, offset + 8) === 'IDAT')
+      chunks.push(png.subarray(offset + 8, offset + 8 + length));
+    offset += length + 12;
+  }
+  const rows = inflateSync(Buffer.concat(chunks)), stride = width * 4 + 1;
+  const brightness = (x, y) => {
+    assert.equal(rows[y * stride], 0);
+    const index = y * stride + 1 + x * 4;
+    return Math.max(...rows.subarray(index, index + 3));
+  };
+  for (const house of rawMap.houses) {
+    const [x, y, w, h] = asset.entrances[house.id];
+    assert.equal(w, 44);
+    assert.equal(x, house.door.x * 44);
+    assert.equal(x + w / 2, (house.door.x + .5) * 44);
+    assert.equal(y + h, 264 + (house.door.z + .5) * 44);
+    const crossSection = y + h - 25;
+    assert.ok(brightness(x - 1, crossSection) >= 40, 'left stone jamb');
+    assert.ok(brightness(x + w, crossSection) >= 40, 'right stone jamb');
+    for (let column = x; column < x + w; column++)
+      assert.ok(brightness(column, crossSection) < 40, '44 native dark doorway pixels');
+  }
+});
+
+test('HD streets draw the whole map once with live objectives and no duplicate building or lamp assets', () => {
+  const context = {
+    drawImage() {}, fillRect() {}, strokeRect() {}, fillText() {},
+    createRadialGradient() { return { addColorStop() {} }; },
+  };
+  globalThis.document = { createElement: () => ({ getContext: () => context }) };
+  const group = new THREE.Group(), level = levels.buildLevel(THREE, group, rawMap);
+  const art = group.getObjectByName('illustrated-streets');
+  assert.match(art.material.map.image.url, /\/maps\/village\/streets-depth.png/);
+  assert.deepEqual([art.geometry.parameters.width, art.geometry.parameters.height], [28, 34]);
+  assert.equal(art.position.z, -3, 'six skyline rows are north of, not inside, the tactical grid');
+  assert.equal(art.material.map.repeat.x, 1);
+  assert.equal(art.material.map.repeat.y, 1);
+  assert.equal(art.material.map.magFilter, THREE.NearestFilter);
+  assert.equal(art.material.map.minFilter, THREE.NearestFilter);
+  assert.equal(art.material.map.generateMipmaps, false);
+  assert.ok(group.getObjectByName('streets-dark-surround'));
+  assert.ok(group.getObjectByName('street-seize-controls'));
+  assert.ok(group.getObjectByName('western-quarantine-warning-marker'));
+  assert.ok(group.getObjectByName('southern-pursuit-warning-marker'));
+  assert.equal(group.userData.streetTown, undefined);
+  assert.equal(group.userData.streetLamps, undefined);
+  assert.equal(group.getObjectByName('street-clocktower'), undefined);
+  for (const house of level.houses) {
+    assert.equal(group.getObjectByName(`street-visitable-${house.id}`), undefined);
+    const marker = group.userData.houseMarkers.find((marker) => marker.userData.houseId === house.id);
+    assert.ok(marker, 'Visit remains a live marker over the painted doorway');
+    assert.equal(marker.position.x, house.door.x + .5 - level.width / 2);
+    assert.equal(marker.position.z, house.door.z + .5 - level.height / 2);
+    assert.equal(tiles.isLevelTileWalkable(level, house.door.x, house.door.z), true);
+  }
+  let illustrations = 0;
+  group.traverse((node) => {
+    assert.equal(Boolean(node.isPointLight), false);
+    assert.equal(node.userData.footprint, undefined);
+    assert.equal(Boolean(node.isInstancedMesh), false);
+    if (node.material?.map?.image?.url?.includes('/maps/village/streets-depth.png')) illustrations++;
+    assert.equal(Boolean(node.material?.map?.image?.url?.includes('/Cathedral_Streets/')), false);
+  });
+  assert.equal(illustrations, 1);
+});
+
+test('Restart Chapter reloads authored HD streets from either legacy or HD saves without losing chapter-start carry', async () => {
+  const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+  const source = main.slice(main.indexOf('async function restartLevel()'), main.indexOf('async function startNextChapter()'));
+  const raidedMap = structuredClone(rawMap);
+  raidedMap.houses[0].destroyed = true;
+  raidedMap.streets.raiders.warned = true;
+  raidedMap.reinforcements[3].spawnedCount = 1;
+  for (const activeLevel of [legacyMap, rawMap, raidedMap]) {
+    const chapterStart = { player: { id: 'rictor', level: 13 }, insight: 57, convoy: [{ id: 'potion' }] };
+    let started = 0;
+    const context = {
+      activeLevel, currentChapter: 12, chapterStart,
+      loadChapterLevel: async (chapter, options) => {
+        assert.equal(chapter, 12);
+        assert.equal(options.reuseLoaded, true);
+        return rawMap;
+      },
+      startLevel: (map, options) => {
+        started++;
+        assert.equal(map, rawMap);
+        assert.equal(options.chapter, 12);
+        assert.equal(options.carry, chapterStart);
+        assert.ok(map.houses.every((house) => !house.destroyed && !house.visited));
+        assert.equal(map.streets.raiders.warned, false);
+        assert.equal(map.reinforcements[3].spawnedCount, 0);
+      },
+    };
+    await runInNewContext(`${source}\nrestartLevel()`, context);
+    assert.equal(started, 1);
+    const error = new Error('test map unavailable');
+    context.loadChapterLevel = async () => { throw error; };
+    context.console = { error: (_message, actual) => assert.equal(actual, error) };
+    context.setLevelStatus = (message, failed) => {
+      assert.match(message, /Could not restart Chapter 13: test map unavailable/);
+      assert.equal(failed, true);
+    };
+    await runInNewContext('restartLevel()', context);
+    assert.equal(started, 1, 'a failed reload never starts or overwrites the active game');
+  }
+});
+
+test('the editor imports, edits and exports illustrated streets with encounter data intact', async () => {
+  const editor = await readFile(new URL('../src/map-editor.js', import.meta.url), 'utf8');
+  const { validateVillageScene, layoutTileIds } = await server.ssrLoadModule('/src/levels/village-scene.js');
+  const { validateShipScene } = await server.ssrLoadModule('/src/levels/ship-scene.js');
+  const legacyMapping = editor.slice(editor.indexOf('const LEGACY_ATLAS_TILES ='), editor.indexOf('const canvas ='));
+  const validators = editor.slice(editor.indexOf('function readCoordinate('), editor.indexOf('function setStatus('));
+  const atlas = new Map(layoutTileIds('streets').map((id) => [id, tiles.getTileDef(id)]));
+  const context = {
+    rawMap: structuredClone(rawMap), ATLAS_TILES: atlas,
+    SHIP_OBJECTS: new Map(), BLOCKING_OBJECTS: new Set(), shipTileset: { tileSize: 16 },
+    validateShipScene, validateVillageScene, isLevelTileWalkable: tiles.isLevelTileWalkable,
+    enemyMovementType: characters.enemyMovementType,
+  };
+  const edited = runInNewContext(`${legacyMapping}\n${validators}\nvalidateMap(rawMap)`, context);
+  assert.deepEqual(levels.validateLevel(edited).tileIds, fresh().tileIds);
+  assert.deepEqual(JSON.parse(JSON.stringify(edited.streets)), rawMap.streets);
+  assert.deepEqual(JSON.parse(JSON.stringify(edited.houses)), rawMap.houses);
+  assert.deepEqual(JSON.parse(JSON.stringify(edited.reinforcements)), rawMap.reinforcements);
+  assert.match(editor, /\['streets', streetsArtUrl\]/);
+  const html = await readFile(new URL('../map-editor.html', import.meta.url), 'utf8');
+  assert.match(html, /option value="seize-streets"/);
+  edited.tiles[15][6] = 'street_curb';
+  const restored = levels.validateLevel(JSON.parse(JSON.stringify(edited)));
+  assert.equal(restored.tileIds[15][6], 'street_curb');
+  assert.equal(restored.villageScene.layout, 'streets');
+  edited.houses[0].destroyed = true;
+  edited.streets.raiders.warned = true;
+  const raided = runInNewContext('validateMap(rawMap)', { ...context, rawMap: edited });
+  assert.equal(levels.validateLevel(JSON.parse(JSON.stringify(raided))).houses[0].destroyed, true);
+});
+
+test('raided entrances replace Visit markers with centered wreckage without changing terrain', () => {
+  const map = structuredClone(rawMap);
+  map.houses[0].destroyed = true;
+  map.streets.raiders.warned = true;
+  const group = new THREE.Group();
+  const level = levels.buildLevel(THREE, group, map);
+  assert.equal(group.userData.houseRuins.length, 3);
+  for (const [index, house] of level.houses.entries()) {
+    const ruin = group.getObjectByName(`house-ruin-${house.id}`);
+    const marker = group.userData.houseMarkers.find((item) => item.userData.houseId === house.id);
+    assert.equal(ruin.visible, index === 0);
+    assert.equal(marker.visible, index !== 0);
+    assert.equal(ruin.children.length, 6);
+    assert.equal(ruin.position.x, house.door.x + 0.5 - level.width / 2);
+    assert.equal(ruin.position.z, house.door.z + 0.5 - level.height / 2);
+    assert.ok(tiles.isLevelTileWalkable(level, house.door.x, house.door.z));
+  }
+  assert.ok(group.getObjectByName('street-raider-warning-3'));
+  assert.ok(group.getObjectByName('street-raider-warning-22'));
+  for (const mutate of [
+    (value) => { value.houses[0].destroyed = 'yes'; },
+    (value) => { value.houses[0].visited = true; },
+    (value) => { value.streets.raiders.warningTurn = 7; },
+    (value) => { value.reinforcements[3].turn = 6; },
+    (value) => { value.reinforcements[3].units.pop(); },
+  ]) {
+    const invalid = structuredClone(map);
+    mutate(invalid);
+    assert.throws(() => levels.validateLevel(invalid), /house|raider/i);
+  }
+});
+
 const keyOf = ({ x, z }) => `${x},${z}`;
 const adjacent = ({ x, z }) => [{ x: x - 1, z }, { x: x + 1, z }, { x, z: z - 1 }, { x, z: z + 1 }];
 const distance = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.z - b.z);
@@ -100,6 +306,8 @@ test('Chapter 13 registers four watch-route allies and a separate boss-then-seiz
   assert.deepEqual(level.requiredUnits, ['rictor', 'lena', 'arlan', 'troy']);
   assert.deepEqual(level.streets, {
     seizePoint: { x: 13, z: 2 }, bossId: 'veyr',
+    raiders: rawMap.streets.raiders,
+    pressure: rawMap.streets.pressure,
     recruit: { id: 'eveline', name: 'Eveline', x: 20, z: 16, recruiterId: 'rictor', recruited: false, dead: false, hp: 28 },
   });
   assert.equal(level.enemies.find(({ id }) => id === 'veyr').drop, 'master-emblem');
@@ -168,7 +376,7 @@ test('all roads, objectives, entrances and house doors share a single connected 
 test('three accessible south-facing houses offer exactly the authored supplies', () => {
   const level = fresh();
   assert.deepEqual(level.houses.map(({ id, rewardId, rewardCount }) => [id, rewardId, rewardCount ?? 1]), [
-    ['coachman', 'axereaver', 1], ['bellkeeper', 'armorslayer', 1], ['apothecary', 'potion', 2],
+    ['coachman', 'axereaver', 1], ['bellkeeper', 'armorslayer', 1], ['apothecary', 'silver-lance', 1],
   ]);
   assert.deepEqual(level.houses.map(({ x, z, width, height, door }) => [x, z, width, height, door]), [
     [5, 18, 4, 3, { x: 7, z: 21 }], [5, 11, 4, 3, { x: 7, z: 14 }], [19, 3, 4, 4, { x: 21, z: 7 }],
@@ -283,6 +491,9 @@ test('steal-only inventory and neutral HP, consumable uses and outcomes survive 
 
 test('street rules reject malformed recruitment, blocked coordinates and stealable inventories', () => {
   for (const mutate of [
+    (map) => { map.villageScene.layout = 'unknown'; },
+    (map) => { map.villageScene.artwork = 'unknown'; },
+    (map) => { map.tiles[14] = `.${map.tiles[14].slice(1)}`; },
     (map) => { delete map.streets; },
     (map) => { map.streets.seizePoint = { x: 0, z: 0 }; },
     (map) => { map.streets.recruit.x = 19; map.streets.recruit.z = 4; },
@@ -301,14 +512,15 @@ test('street rules reject malformed recruitment, blocked coordinates and stealab
   }
 });
 
-test('the warning names one finite, marked quarantine wave and all stories are registered', () => {
+test('the warnings name four finite, marked waves and all stories are registered', () => {
   const level = fresh();
-  assert.equal(level.reinforcements.length, 1);
+  assert.equal(level.reinforcements.length, 4);
   assert.equal(level.reinforcements[0].turn, 6);
   assert.equal(level.reinforcements[0].entranceId, 'western-quarantine');
   assert.equal(level.reinforcements[0].units.length, 3);
   assert.equal(level.reinforcements[0].spawned, false);
-  for (const id of ['streets', 'eveline', 'evelineLost', 'streetsWarning', 'streetsEnding', ...level.houses.map(({ id }) => id)]) {
+  for (const id of ['streets', 'eveline', 'evelineLost', 'streetsWarning', 'streetsEnding',
+    'streetPursuitWarning', 'streetPatrolAdvance', 'streetOfficerWarning', 'streetRaiderWarning', ...level.houses.map(({ id }) => id)]) {
     assert.ok(story[id]?.pages.length, id);
     assert.ok(story[id].pages.every(({ title, paragraphs }) => title && paragraphs?.length));
   }
@@ -322,7 +534,7 @@ test('dense streets use individual Gothic buildings, a blocked clocktower and cu
   };
   globalThis.document = { createElement() { return { width: 0, height: 0, getContext() { return context; } }; } };
   const group = new THREE.Group();
-  const level = levels.buildLevel(THREE, group, structuredClone(rawMap));
+  const level = levels.buildLevel(THREE, group, legacyMap);
   assert.equal(group.userData.cityBackdrop, undefined);
   assert.equal(group.getObjectByName('clocktower-cathedral-skyline'), undefined);
   const clocktower = group.getObjectByName('street-clocktower');

@@ -1,0 +1,8 @@
+{
+  "id": "bell-winch-guard", "name": "Winch Captain", "classId": "general", "type": "armor",
+  "spriteSet": "generalSeverin", "sprite": "assets/character/General_Severin/rotations/south.png",
+  "scale": 1.24, "level": 26, "weaponId": "silver-lance", "weaponExp": { "Spear": 180 }, "ai": "stationary",
+  "baseStats": { "hp": 68, "strength": 26, "magic": 0, "dexterity": 21, "speed": 10, "luck": 8, "defense": 24, "resistance": 13, "movement": 4, "build": 16 },
+  "currentStats": { "hp": 68, "strength": 26, "magic": 0, "dexterity": 21, "speed": 10, "luck": 8, "defense": 24, "resistance": 13, "movement": 4, "build": 16 },
+  "growthRates": {}
+}

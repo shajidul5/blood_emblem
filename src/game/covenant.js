@@ -32,15 +32,27 @@ export function protectedCombatDamage(target, damage) {
 }
 
 // Mitigate before capping to HP so a lethal hit cannot be halved after the cap.
-export function applyCombatDamage(target, damage) {
+export function applyCombatDamage(target, damage, { lethal = false } = {}) {
+  if (lethal) {
+    const dealt = Math.max(0, target.hp);
+    target.hp = 0;
+    delete target.bloodOath;
+    return dealt;
+  }
   const dealt = Math.min(target.hp, Math.max(0, protectedCombatDamage(target, damage)));
   if (damage > 0 && target.bloodOath) delete target.bloodOath;
   target.hp -= dealt;
   return dealt;
 }
 
-export function movementAllowance(unit) {
-  return unit.movement + (hasAbility(unit, 'bloodTrail') ? unit.bloodTrailBonus ?? 0 : 0);
+export function bloodTrailBonus(unit, enemies = []) {
+  return unit.hp > 0 && hasAbility(unit, 'bloodTrail') &&
+    enemies.some((enemy) => enemy.hp > 0 && enemy.hp < enemy.maxHp &&
+      Math.abs(unit.x - enemy.x) + Math.abs(unit.z - enemy.z) <= 10) ? 4 : 0;
+}
+
+export function movementAllowance(unit, enemies) {
+  return unit.movement + bloodTrailBonus(unit, enemies);
 }
 
 export function clearCovenantState(units) {
@@ -50,17 +62,8 @@ export function clearCovenantState(units) {
   }
 }
 
-export function startCovenantPlayerPhase(allies, enemies) {
+export function startCovenantPlayerPhase(allies) {
   clearCovenantState(allies);
-  for (const unit of allies) {
-    if (unit.hp <= 0 || !hasAbility(unit, 'bloodTrail')) continue;
-    unit.bloodTrailBonus = enemies.some((enemy) => enemy.hp > 0 && enemy.hp < enemy.maxHp &&
-      Math.abs(unit.x - enemy.x) + Math.abs(unit.z - enemy.z) <= 6) ? 2 : 0;
-  }
-}
-
-export function endCovenantPlayerPhase(allies) {
-  for (const unit of allies) delete unit.bloodTrailBonus;
 }
 
 export function validCovenantState(saved) {

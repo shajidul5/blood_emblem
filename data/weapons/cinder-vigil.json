@@ -1,0 +1,7 @@
+{
+  "id": "cinder-vigil", "name": "Cinder Vigil", "type": "Anima", "damageType": "magical",
+  "might": 17, "weight": 12, "hit": 80, "critical": 10, "maxUses": 8,
+  "minRange": 1, "maxRange": 2, "requiredRank": "S", "effect": ["beast"], "sound": "magic",
+  "sprite": "assets/weapons/Fire_tome/rotations/Fire_tome.png",
+  "lore": "The Church kept one flame burning below the bells. When the last attendant fled, Halloran took it with him."
+}

@@ -18,6 +18,7 @@ import chapterSeventeen from '../../data/tutorials/chapter-17.json';
 import chapterEighteen from '../../data/tutorials/chapter-18.json';
 import chapterNineteen from '../../data/tutorials/chapter-19.json';
 import triangle from '../../data/weapon-triangle.json';
+import { weaponTypeLabel } from '../characters/weapon-levels.js';
 
 const script = { ...chapterOne, ...chapterTwo, ...chapterThree, ...chapterFour, ...chapterFive, ...chapterSix, ...chapterSeven, ...chapterEight, ...chapterNine, ...chapterTen, ...chapterEleven, ...chapterTwelve, ...chapterThirteen, ...chapterFourteen };
 Object.assign(script, chapterFifteen, chapterSixteen, chapterSeventeen, chapterEighteen, chapterNineteen);
@@ -49,16 +50,18 @@ export function createTutorialPopup(dialog, { itemSprite = () => null } = {}) {
   function renderVisual(page) {
     visual.replaceChildren();
     visual.hidden = true;
-    if (page.diagram === 'weapon-triangle') {
-      for (const [winner, loser] of Object.entries(triangle.beats)) {
+    if (['weapon-triangle', 'magic-triangle'].includes(page.diagram)) {
+      const beats = page.diagram === 'magic-triangle' ? triangle.magicBeats : triangle.beats;
+      const label = (type) => type === 'Light' ? 'Holy (Light)' : weaponTypeLabel(type);
+      for (const [winner, loser] of Object.entries(beats)) {
         const row = document.createElement('div');
         row.className = 'tutorial-triangle-row';
         const left = document.createElement('span');
-        left.textContent = winner;
+        left.textContent = label(winner);
         const arrow = document.createElement('b');
         arrow.textContent = 'beats';
         const right = document.createElement('span');
-        right.textContent = loser;
+        right.textContent = label(loser);
         row.append(left, arrow, right);
         visual.append(row);
       }

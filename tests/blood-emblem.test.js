@@ -15,7 +15,7 @@ before(async () => {
   combat = await server.ssrLoadModule('/src/battle/combat.js');
   save = await server.ssrLoadModule('/src/game/save.js');
   const inventory = await server.ssrLoadModule('/src/characters/inventory.js');
-  sword = inventory.INVENTORY_ITEMS.get('iron-katana');
+  sword = inventory.INVENTORY_ITEMS.get('iron-sword');
 });
 
 after(async () => {
@@ -29,7 +29,7 @@ beforeEach(() => insight.restoreInsight(null));
 let sword;
 const maria = (overrides = {}) => ({
   id: 'maria', classId: 'hunter', x: 5, z: 5, hp: 30, maxHp: 40, strength: 10, magic: 0, defense: 5, resistance: 2,
-  dexterity: 8, speed: 8, luck: 5, weapon: sword, inventory: [{ id: 'iron-katana', uses: 40 }, { id: 'blood-emblem' }], ...overrides,
+  dexterity: 8, speed: 8, luck: 5, weapon: sword, inventory: [{ id: 'iron-sword', uses: 40 }, { id: 'blood-emblem' }], ...overrides,
 });
 const foe = () => ({ id: 'foe', classId: 'soldier', hp: 40, maxHp: 40, strength: 5, magic: 0, defense: 4, resistance: 0, weapon: null });
 

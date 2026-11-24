@@ -4,6 +4,7 @@ import { awardExperience } from '../characters/progression.js';
 
 const adjacent = (unit, point) => Math.abs(unit.x - point.x) + Math.abs(unit.z - point.z) <= 1;
 const lockpick = (unit) => getClassAbilities(unit).some((ability) => ability.lockpick);
+const isUndead = (unit) => unit.type === 'undead' || unit.id === 'undead' || unit.id === 'rotten';
 
 export function freshInfirmary(rules) {
   if (!rules) return null;
@@ -13,8 +14,9 @@ export function freshInfirmary(rules) {
     rewardsClaimed: false,
     breached: false,
     gates: rules.gates.map((gate) => ({ ...gate, closed: false })),
-    ledger: { ...rules.ledger, collected: false },
-    patients: rules.patients.map((patient) => ({ ...patient, rescued: false })),
+    ...(rules.ledger ? { ledger: { ...rules.ledger, collected: false } } : {}),
+    patients: rules.patients.map((patient) => ({ ...patient, rescued: false,
+      ...(patient.lost === undefined ? {} : { lost: false }) })),
   };
 }
 
@@ -31,11 +33,11 @@ export function infirmaryActions(level, unit, units) {
       blockedReason: blocked ? 'Clear the gate tiles first.' : !lockpick(unit) && !hasKey ? 'Needs Lockpick or a Chest Key.' : undefined,
     });
   }
-  if (!rules.ledger.collected && adjacent(unit, rules.ledger)) {
+  if (rules.ledger && !rules.ledger.collected && adjacent(unit, rules.ledger)) {
     actions.push({ id: rules.ledger.id, kind: 'ledger', target: rules.ledger, name: 'Recover Treatment Ledger', exp: rules.interactionExp, insight: 10 });
   }
   for (const patient of rules.patients) {
-    if (!patient.rescued && adjacent(unit, patient)) {
+    if (!patient.rescued && !patient.lost && adjacent(unit, patient)) {
       actions.push({ id: patient.id, kind: 'patient', target: patient, name: `Rescue ${patient.name}`, exp: 30 });
     }
   }
@@ -62,14 +64,38 @@ export function infirmaryBreached(level, enemies) {
 
 export function infirmaryApproachTarget(level, enemy, allies) {
   const point = level.infirmary.defensePoint;
-  const path = findPath(enemy, [point], new Set(), level);
+  let target = point;
+  let path = findPath(enemy, [point], new Set(), level);
+  if (level.infirmary.patientsVulnerable && isUndead(enemy)) {
+    for (const patient of level.infirmary.patients.filter((patient) => !patient.rescued && !patient.lost)) {
+      const route = findPath(enemy, [patient], new Set(), level, enemy);
+      if (route.length && (!path.length || route.length < path.length)) {
+        target = patient;
+        path = route;
+      }
+    }
+  }
   if (!path.length) return null;
   // Approach the first defender on the route, even before they enter attack reach.
   for (const tile of path) {
     const defender = allies.find((unit) => unit.hp > 0 && unit.x === tile.x && unit.z === tile.z);
     if (defender) return defender;
   }
-  return { ...point, objectiveTarget: true };
+  return { ...target, objectiveTarget: true };
+}
+
+export function resolveInfirmaryPatients(level, enemies) {
+  if (!level.infirmary?.patientsVulnerable) return [];
+  const lost = level.infirmary.patients.filter((patient) => !patient.rescued && !patient.lost &&
+    enemies.some((enemy) => enemy.hp > 0 && isUndead(enemy) && enemy.x === patient.x && enemy.z === patient.z));
+  for (const patient of lost) patient.lost = true;
+  return lost;
+}
+
+export function infirmaryLedgerSecured(level) {
+  const rules = level.infirmary;
+  return Boolean(rules?.ledger?.collected ||
+    rules?.ledgerChestId && level.chests.some((chest) => chest.id === rules.ledgerChestId && chest.opened));
 }
 
 export function infirmaryVictoryReady(level) {
@@ -109,7 +135,7 @@ export function infirmaryWarning(level, turn) {
   if (infirmaryVictoryReady(level)) return 'Evacuation complete.';
   const waves = level.reinforcements.filter((wave) => !wave.spawned && !infirmaryWaveSealed(level, wave) && wave.turn <= turn + 1);
   return waves.length
-    ? waves.map((wave) => `${wave.turn <= turn ? 'QUEUED' : 'WARNING'}: ${wave.entranceId} entrance, ${wave.turn <= turn ? 'waiting for space' : `turn ${wave.turn}`}`).join(' · ')
+    ? waves.map((wave) => `${wave.turn <= turn ? 'QUEUED' : 'WARNING'}: ${wave.entranceId} entrance, ${wave.turn <= turn ? 'waiting for space' : `turn ${wave.turn}`} (${wave.units.length} enemies${wave.units.some((unit) => unit.id === 'ward-knight') ? ', including an armored knight' : ''})`).join(' · ')
     : 'No incoming wave next turn.';
 }
 
@@ -125,4 +151,8 @@ export function validateInfirmaryState(level, enemies, phase, turn) {
   }
   const blocked = new Set(rules.gates.filter((gate) => gate.closed).flatMap((gate) => gate.blocks.map((tile) => tileKey(tile.x, tile.z))));
   if (enemies.some((enemy) => blocked.has(tileKey(enemy.x, enemy.z)))) throw new Error('An enemy is saved inside a sealed gate.');
+  if (rules.patientsVulnerable && rules.patients.some((patient) => !patient.rescued && !patient.lost &&
+      enemies.some((enemy) => enemy.hp > 0 && isUndead(enemy) && enemy.x === patient.x && enemy.z === patient.z))) {
+    throw new Error('Saved infirmary patient loss is unresolved.');
+  }
 }

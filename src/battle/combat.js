@@ -2,7 +2,7 @@ import triangle from '../../data/weapon-triangle.json';
 import { CLASSES, getClassAbilities } from '../characters/classes.js';
 import { getWeaponRank } from '../characters/weapon-levels.js';
 import { emblemDamageBonus, emblemLifeSteal, leadershipBonus } from '../game/insight.js';
-import { bookOf, findWeaponEntry, spellUses, weaponUseBlockReason } from '../characters/inventory.js';
+import { attackWeapons, bookOf, findWeaponEntry, spellUses, weaponUseBlockReason } from '../characters/inventory.js';
 
 function getClassCritBonus(unit) {
   return getClassAbilities(unit).reduce((total, ability) => total + (ability.critBonus ?? 0), 0);
@@ -15,6 +15,26 @@ export function canAttack(unit) {
   if (unit.inventory && weaponUseBlockReason(unit, unit.weapon)) return false;
   const uses = spellUses(findWeaponEntry(unit), unit.weapon);
   return !(Number.isInteger(uses) && uses <= 0);
+}
+
+export function enemyAttackWeapons(unit) {
+  if (!unit.inventory || unit.weapon?.damageType !== 'physical') return unit.weapon ? [unit.weapon] : [];
+  return attackWeapons(unit).filter((weapon) => weapon.damageType === 'physical' && canAttack({ ...unit, weapon }));
+}
+
+export function bestEnemyWeapon(unit, target, distance, terrain = {}) {
+  let best = null, damage = -1, hit = -1;
+  for (const weapon of enemyAttackWeapons(unit)) {
+    const attacker = { ...unit, weapon };
+    if (!isInWeaponRange(attacker, target, distance) || !canAttack(attacker)) continue;
+    const strikes = getAvailableStrikeCount(attacker, getAttackCount(attacker, target) * getStrikesPerAttack(attacker));
+    const total = getCombatDamage(attacker, target, terrain) * strikes;
+    const accuracy = getHitRate(attacker, target, terrain);
+    if (total > damage || total === damage && accuracy > hit) {
+      best = weapon; damage = total; hit = accuracy;
+    }
+  }
+  return best;
 }
 
 // Drain from the weapon (Nosferatu) and from Blood Feast never stack; the stronger one applies.
@@ -35,13 +55,15 @@ export function attackSpeed(unit) {
   return unit.speed - Math.max(0, (unit.weapon?.weight ?? 0) - (unit.build ?? 0));
 }
 
-// +1 when `weapon` beats `opposing`, -1 when it loses, 0 otherwise. Physical weapons only.
-// One reaver reverses and doubles the triangle; two reavers cancel the reversal.
+// Physical and magic triangles are independent. Reavers only alter the physical triangle.
 export function getTriangleAdvantage(weapon, opposing) {
-  if (!weapon || !opposing || weapon.damageType !== 'physical' || opposing.damageType !== 'physical') return 0;
-  const normal = triangle.beats[weapon.type] === opposing.type ? 1
-    : triangle.beats[opposing.type] === weapon.type ? -1 : 0;
-  if (!normal) return 0;
+  if (!weapon || !opposing || weapon.damageType !== opposing.damageType) return 0;
+  const beats = weapon.damageType === 'physical' ? triangle.beats
+    : weapon.damageType === 'magical' ? triangle.magicBeats : null;
+  if (!beats) return 0;
+  const normal = beats[weapon.type] === opposing.type ? 1
+    : beats[opposing.type] === weapon.type ? -1 : 0;
+  if (!normal || weapon.damageType !== 'physical') return normal;
   const reversals = Number(Boolean(weapon.reaves?.length)) + Number(Boolean(opposing.reaves?.length));
   return reversals === 1 ? normal * -2 : normal;
 }
@@ -82,6 +104,13 @@ export function rollHit(hitRate, random = Math.random) {
 
 export function rollCritical(criticalRate, random = Math.random) {
   return Math.floor(random() * 100) < criticalRate;
+}
+
+export function rollStrikeResult(attacker, hitRate, criticalRate, random = Math.random) {
+  const hit = rollHit(hitRate, random);
+  const critical = hit && rollCritical(criticalRate, random);
+  const chance = getClassAbilities(attacker).reduce((rate, ability) => Math.max(rate, ability.lethalityChance ?? 0), 0);
+  return { hit, critical, lethality: critical && chance > 0 && random() < chance };
 }
 
 export function getCombatDamage(attacker, defender, defenderTerrain = {}) {
@@ -161,10 +190,10 @@ export function getCombatStrikeOrder(attacker, counter, attackerVolleys, counter
 }
 
 // Fire Emblem-style scaling: fighting enemies below your level pays less, tougher ones pay more.
-// Every 1 level of difference shifts the reward by 10%, between 10% and 150% of the base amount.
+// Each level of difference shifts the reward by 10%, with a 10% floor but no catch-up ceiling.
 export function getExperienceMultiplier(attacker, defender) {
   if (!attacker?.level || !defender?.level) return 1;
-  return Math.min(1.5, Math.max(0.1, 1 + (defender.level - attacker.level) * 0.1));
+  return Math.max(0.1, 1 + (defender.level - attacker.level) * 0.1);
 }
 
 export function getCombatExperience(defender, defeated, attacker) {

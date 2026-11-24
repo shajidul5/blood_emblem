@@ -1,4 +1,6 @@
 import { STREET_CAMERA_PADDING } from '../game/camera-bounds.js';
+import { bellYardUnlocked } from '../game/bell-yard.js';
+import illustratedYardUrl from '../../assets/maps/bell-yard-hd.png?url';
 
 const urls = import.meta.glob('../../assets/tiles/Bell_Yard/*.png', {
   eager: true, query: '?url', import: 'default',
@@ -10,6 +12,7 @@ const loadImage = (key, url) => new Promise((resolve, reject) => {
   image.src = url;
 });
 const images = new Map(await Promise.all([
+  loadImage('illustrated', illustratedYardUrl),
   ...Object.entries(urls).map(([path, url]) => loadImage(path.split('/').pop().replace('.png', ''), url)),
 ]));
 
@@ -35,6 +38,52 @@ export function addBellYard(THREE, group, level) {
   const tile = (x, z) => level.tileIds[z]?.[x];
   const wx = (x) => x + 0.5 - level.width / 2;
   const wz = (z) => z + 0.5 - level.height / 2;
+  if (level.bellYard.locks) {
+    const surface = (width, height, mat, x, z, y) => {
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), mat);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(wx(x), y, wz(z));
+      group.add(mesh);
+      return mesh;
+    };
+    const painting = surface(level.width, level.height, material('illustrated'),
+      (level.width - 1) / 2, (level.height - 1) / 2, 0);
+    painting.name = 'bell-yard-illustration';
+    const padding = STREET_CAMERA_PADDING;
+    surface(level.width + 2 * padding, level.height + 2 * padding,
+      new THREE.MeshBasicMaterial({ color: 0x101a22 }), (level.width - 1) / 2, (level.height - 1) / 2, -0.07);
+    const closedTiles = [], bridgeTiles = [];
+    for (let z = 0; z < level.height; z++) for (let x = 0; x < level.width; x++) {
+      if (tile(x, z) === 'bell_divider') surface(1, 1, material('brick_wall'), x, z, .025);
+      if (tile(x, z) === 'bell_lock_gate') {
+        closedTiles.push(surface(1, 1, material('lock_gate', true), x, z, .025));
+        if (z === 4) bridgeTiles.push(surface(1, 1, material('lift_floor'), x, z, .026));
+      }
+      if (tile(x, z) === 'bell_service_bridge') {
+        if (z >= 10) bridgeTiles.push(surface(1, 1, material('bridge'), x, z, .025));
+        if (z === 7) closedTiles.push(surface(1, 1, material('lock_gate', true), x, z, .025));
+      }
+    }
+    const controls = level.bellYard.locks.map((lock) => {
+      const marker = new THREE.Mesh(new THREE.RingGeometry(.24, .33, 24),
+        new THREE.MeshBasicMaterial({ color: 0xe6b660 }));
+      marker.name = `bell-control-${lock.id}`;
+      marker.rotation.x = -Math.PI / 2;
+      marker.position.set(wx(lock.x), .035, wz(lock.z));
+      group.add(marker);
+      return { lock, marker };
+    });
+    const sync = () => {
+      const opened = bellYardUnlocked(level);
+      for (const mesh of closedTiles) mesh.visible = !opened;
+      for (const mesh of bridgeTiles) mesh.visible = opened;
+      for (const { lock, marker } of controls) marker.material.color.setHex(lock.opened ? 0x7bb498 : 0xe6b660);
+    };
+    sync();
+    group.userData.bellYard = { sync };
+    group.userData.streetCameraPadding = padding;
+    return;
+  }
   const isRail = (x, z) => ['bell_track', 'bell_track_bridge'].includes(tile(x, z));
   const isWater = (id) => id === 'bell_canal' || id === 'bell_bridge' || id === 'bell_track_bridge';
 

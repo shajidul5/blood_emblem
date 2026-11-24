@@ -1,0 +1,8 @@
+{
+  "id": "shore-general", "name": "Drowned Bulwark", "classId": "general", "type": "armor",
+  "spriteSet": "generalSeverin", "sprite": "assets/character/General_Severin/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "silver-lance", "weaponExp": { "Spear": 240 }, "ai": "guard",
+  "baseStats": { "hp": 76, "strength": 34, "magic": 0, "dexterity": 42, "speed": 17, "luck": 10, "defense": 34, "resistance": 16, "movement": 5, "build": 18 },
+  "currentStats": { "hp": 76, "strength": 34, "magic": 0, "dexterity": 42, "speed": 17, "luck": 10, "defense": 34, "resistance": 16, "movement": 5, "build": 18 },
+  "growthRates": { "hp": 45, "strength": 35, "magic": 0, "dexterity": 40, "speed": 20, "luck": 20, "defense": 35, "resistance": 20, "movement": 0, "build": 0 }
+}

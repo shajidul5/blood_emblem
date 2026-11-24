@@ -1,6 +1,13 @@
 export const CATHEDRAL_ELEVATIONS = Object.freeze([1.6, 1.35, 1.05, 0.8, 0.55, 0.25]);
 
-export function cathedralElevation(z) {
+// Coordinates here are tile edges; a tile's elevation samples its center.
+export function illustratedCathedralSurface(row) {
+  const ramp = (start) => Math.min(2, Math.max(0, start + 2 - row));
+  return (ramp(9) + ramp(22)) / 2.5;
+}
+
+export function cathedralElevation(z, artwork) {
+  if (artwork === 'illustrated') return illustratedCathedralSurface(z + 0.5);
   if (z <= 10) return 1.6;
   if (z === 11) return 1.35;
   if (z === 12) return 1.05;
@@ -16,6 +23,9 @@ export function validateCathedral(rules, level) {
       throw new Error('Cathedral terrain requires Cathedral battle rules.');
     }
     return null;
+  }
+  if (rules.artwork !== undefined && rules.artwork !== 'illustrated') {
+    throw new Error('Unknown Cathedral artwork.');
   }
   if (level.width !== 26 || level.height !== 36 ||
       level.tileIds.some((row) => row.some((id) => !id.startsWith('cathedral_'))) ||
@@ -34,10 +44,11 @@ export function validateCathedral(rules, level) {
     throw new Error('Cathedral requires Voss, three story thresholds, and two warned Paladin waves.');
   }
   // Saves made before the throne existed still carry carpet beneath Voss's seat.
-  if (!level.tileIds.some((row) => row.includes('cathedral_throne')) && level.tileIds[3][12] === 'cathedral_carpet') {
+  if (!rules.artwork && !level.tileIds.some((row) => row.includes('cathedral_throne')) && level.tileIds[3][12] === 'cathedral_carpet') {
     level.tileIds[3][12] = 'cathedral_throne';
   }
   return {
+    ...(rules.artwork && { artwork: rules.artwork }),
     bossId: rules.bossId,
     beats: rules.beats.map(({ id, thresholdZ, seen }) => ({ id, thresholdZ, seen })),
     triggers: rules.triggers.map(({ id, thresholdZ, warnedTurn }) => ({ id, thresholdZ, warnedTurn })),

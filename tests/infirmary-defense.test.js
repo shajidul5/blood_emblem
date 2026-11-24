@@ -18,7 +18,7 @@ before(async () => {
   progression = await server.ssrLoadModule('/src/characters/progression.js');
   saves = await server.ssrLoadModule('/src/game/save.js');
   grid = await server.ssrLoadModule('/src/battle/grid.js');
-  rawMap = JSON.parse(await readFile(new URL('../data/levels/map_12_infirmary.json', import.meta.url), 'utf8'));
+  rawMap = JSON.parse(await readFile(new URL('./fixtures/infirmary-legacy.json', import.meta.url), 'utf8'));
 });
 
 after(async () => {

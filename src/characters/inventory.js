@@ -1,4 +1,4 @@
-import ironKatana from '../../data/weapons/iron-katana.json';
+import ironSword from '../../data/weapons/iron-sword.json';
 import rapier from '../../data/weapons/rapier.json';
 import zanbato from '../../data/weapons/zanbato.json';
 import crowGreatsword from '../../data/weapons/crow-greatsword.json';
@@ -7,6 +7,7 @@ import ironSpear from '../../data/weapons/iron-spear.json';
 import steelSpear from '../../data/weapons/steel-spear.json';
 import steelLance from '../../data/weapons/steel-lance.json';
 import steelSword from '../../data/weapons/steel-sword.json';
+import beastKiller from '../../data/weapons/beast-killer.json';
 import steelAxe from '../../data/weapons/steel-axe.json';
 import killerAxe from '../../data/weapons/killer-axe.json';
 import killerBow from '../../data/weapons/killer-bow.json';
@@ -15,7 +16,15 @@ import silverLance from '../../data/weapons/silver-lance.json';
 import axereaver from '../../data/weapons/axereaver.json';
 import armorslayer from '../../data/weapons/armorslayer.json';
 import javelin from '../../data/weapons/javelin.json';
+import spear from '../../data/weapons/spear.json';
+import silverAxe from '../../data/weapons/silver-axe.json';
+import silverSword from '../../data/weapons/silver-sword.json';
+import tomahawk from '../../data/weapons/tomahawk.json';
 import fireTome from '../../data/weapons/fire-tome.json';
+import cinderVigil from '../../data/weapons/cinder-vigil.json';
+import lastBenediction from '../../data/weapons/last-benediction.json';
+import heavenfall from '../../data/weapons/heavenfall.json';
+import theLastHorizon from '../../data/weapons/the-last-horizon.json';
 import thunderTome from '../../data/weapons/thunder-tome.json';
 import windTome from '../../data/weapons/wind-tome.json';
 import bloodBeastClaws from '../../data/weapons/blood-beast-claws.json';
@@ -26,6 +35,7 @@ import lancereaver from '../../data/weapons/lancereaver.json';
 import tentacle from '../../data/weapons/tentacle.json';
 import wolfClaws from '../../data/weapons/wolf-claws.json';
 import wolfmanClaws from '../../data/weapons/wolfman-claws.json';
+import envoyClaws from '../../data/weapons/envoy-claws.json';
 import huntersHatchet from '../../data/weapons/hunters-hatchet.json';
 import pocketwatch from '../../data/items/pocketwatch.json';
 import lightTome from '../../data/weapons/light-tome.json';
@@ -46,6 +56,8 @@ import freezeStaff from '../../data/weapons/freeze-staff.json';
 import bloodrootTonic from '../../data/items/bloodroot-tonic.json';
 import alphaFang from '../../data/items/alpha-fang.json';
 import orsenJournal from '../../data/items/orsen-journal.json';
+import treatmentLedger from '../../data/items/treatment-ledger.json';
+import sealedTransitTag from '../../data/items/sealed-transit-tag.json';
 import crossingKeepsake from '../../data/items/crossing-keepsake.json';
 import giantsMarrow from '../../data/items/giants-marrow.json';
 import witchsEye from '../../data/items/witchs-eye.json';
@@ -103,8 +115,11 @@ function createWeaponItem(weapon) {
 }
 
 export const INVENTORY_ITEMS = new Map([
+  [heavenfall.id, createWeaponItem(heavenfall)],
+  [theLastHorizon.id, createWeaponItem(theLastHorizon)],
+  [envoyClaws.id, createWeaponItem(envoyClaws)],
   [mooringChains.id, createWeaponItem(mooringChains)],
-  [ironKatana.id, createWeaponItem(ironKatana)],
+  [ironSword.id, createWeaponItem(ironSword)],
   [rapier.id, createWeaponItem(rapier)],
   [zanbato.id, createWeaponItem(zanbato)],
   [crowGreatsword.id, createWeaponItem(crowGreatsword)],
@@ -113,12 +128,19 @@ export const INVENTORY_ITEMS = new Map([
   [steelSpear.id, createWeaponItem(steelSpear)],
   [steelLance.id, createWeaponItem(steelLance)],
   [steelSword.id, createWeaponItem(steelSword)],
+  [beastKiller.id, createWeaponItem(beastKiller)],
   [killerAxe.id, createWeaponItem(killerAxe)],
   [silverLance.id, createWeaponItem(silverLance)],
   [axereaver.id, createWeaponItem(axereaver)],
   [armorslayer.id, createWeaponItem(armorslayer)],
   [javelin.id, createWeaponItem(javelin)],
+  [spear.id, createWeaponItem(spear)],
+  [silverAxe.id, createWeaponItem(silverAxe)],
+  [silverSword.id, createWeaponItem(silverSword)],
+  [tomahawk.id, createWeaponItem(tomahawk)],
   [fireTome.id, createWeaponItem(fireTome)],
+  [cinderVigil.id, createWeaponItem(cinderVigil)],
+  [lastBenediction.id, createWeaponItem(lastBenediction)],
   [thunderTome.id, createWeaponItem(thunderTome)],
   [windTome.id, createWeaponItem(windTome)],
   [bloodBeastClaws.id, createWeaponItem(bloodBeastClaws)],
@@ -149,6 +171,8 @@ export const INVENTORY_ITEMS = new Map([
   [bloodrootTonic.id, createConsumableItem(bloodrootTonic)],
   [alphaFang.id, createConsumableItem(alphaFang)],
   [orsenJournal.id, createConsumableItem(orsenJournal)],
+  [treatmentLedger.id, createConsumableItem(treatmentLedger)],
+  [sealedTransitTag.id, createConsumableItem(sealedTransitTag)],
   [crossingKeepsake.id, createConsumableItem(crossingKeepsake)],
   ...[giantsMarrow, witchsEye, surgeonsThread, gravediggersCoin, gargoyleStone, saintsAsh, pilgrimsSpur, pallbearersBurden, huntersCodex]
     .map((booster) => [booster.id, createConsumableItem(booster)]),
@@ -163,7 +187,7 @@ export const INVENTORY_ITEMS = new Map([
 ]);
 
 // Item ids renamed since older saves were written.
-export const LEGACY_ITEM_IDS = { raikiri: bloodletter.id, eclipse: 'nosferatu' };
+export const LEGACY_ITEM_IDS = { raikiri: bloodletter.id, eclipse: 'nosferatu', 'iron-katana': ironSword.id };
 export const currentItemId = (id) => LEGACY_ITEM_IDS[id] ?? id;
 
 // Tome or staff id -> its unlockable spells, lowest tier first.
@@ -275,6 +299,7 @@ export function createMariaInventory() {
 
 export function createInventory(itemIds) {
   return itemIds.map((id) => {
+    id = currentItemId(id);
     const item = INVENTORY_ITEMS.get(id);
     if (!item) throw new Error(`Unknown inventory item ${id}.`);
     const entry = { id, uses: freshUses(item) };

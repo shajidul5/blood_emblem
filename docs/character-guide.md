@@ -153,6 +153,8 @@ Do not promise that ending the bargain immediately makes the sea safe. He is cho
 
 **Existing foundation:** an island hunter encountered in the Order's camp. His sister is ill; he is heading toward Aldermere in hope of treatment. Her red scarf and his beast-effective Hunter Bow already provide personal and gameplay anchors.
 
+**Visual continuity:** Stark keeps the red scarf in all three outfits. The map and battle sprites share the same class silhouettes: leather and steel for Archer, a split-tailed ivory coat for Sniper, and a dark cloth hood for Veilstalker. The supplied map sets have eight facings each, with eight walking frames and nine bow-attack frames per facing. Veilstalker's active map art lives in [Veilstalker_Stark](../assets/character/Veilstalker_Stark); the previous Covenant map art is archived.
+
 **Proposed background:** a household provider whose work became progressively less viable as game changed and roads closed. He is skilled at hunting, not the member of a secret hunter order or a bloodline connected to the ancient city.
 
 **Faction:** independent civilian hunter.
@@ -185,7 +187,7 @@ Do not promise that ending the bargain immediately makes the sea safe. He is cho
 
 **Knowledge boundary:** checkpoint orders, formations and escort procedure. He is not a junior officer who somehow knows the entire conspiracy.
 
-**Story through play:** durable cavalry can cover ground between vulnerable people; joining wounded records the cost of his refusal. A later Paladin can still use Order equipment without accepting Aurelan's or Severin's priorities.
+**Story through play:** durable cavalry can cover ground between vulnerable people; joining wounded records the cost of his refusal. A later Paladin masters swords, lances and axes without accepting Aurelan's or Severin's priorities. His personal Covenant alternative, Bloodsworn, keeps swords/lances but trades Axe access for stronger defensive promotion gains and HP-paid Blood Oath protection: Linus will go further to keep others safe.
 
 **Silent evidence and friction:** his lance faces the beasts while the checkpoint line faces the village. Keep a repaired service crest instead of replacing all his history with pirate colors. He can work beside Bartz without pretending piracy and soldiering are morally interchangeable.
 
@@ -295,7 +297,7 @@ Do not promise that ending the bargain immediately makes the sea safe. He is cho
 
 ### Corvis - Partial complicity, practical refusal
 
-**Existing foundation:** a Shaman guarding the Cathedral courtyard, previously assigned to the ward. Eveline alone recruits him; he keeps his existing HP and tome uses. He can remain an opponent if she is absent. Dark Sage advancement grants staff use and doubles spell and staff capacity.
+**Existing foundation:** a Shaman guarding the Cathedral courtyard, previously assigned to the ward. Eveline alone recruits him; he keeps his existing HP and tome uses. He can remain an opponent if she is absent. Dark Sage advancement adds Anima and staff use alongside Dark, and doubles spell and staff capacity.
 
 **Proposed background:** a junior Sanguine Covenant technician assigned to catalogue treatment reactions and maintain ward apparatus. His access was compartmentalized. He recorded failures under approved categories and accepted the claim that containment protected others, even when he had enough reason to question it.
 

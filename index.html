@@ -19,7 +19,7 @@
         gap: 8px; color: #e8d9d9; font: 12px ui-monospace, Menlo, Consolas, monospace;
       }
       #level-tools .actions { display: flex; gap: 8px; pointer-events: auto; }
-      #level-tools a, #level-tools button, #main-menu button, #options-dialog button {
+      #level-tools a, #level-tools button, #main-menu button, #options-dialog :is(button, a) {
         border: 1px solid #655467; border-radius: 5px; background: #17121d;
         color: #e8d9d9; padding: 8px 10px; font: inherit; text-decoration: none; cursor: pointer;
       }
@@ -1095,7 +1095,7 @@
 
       /* Vertical menu lists use the stone plate. */
       :is(#options-dialog, #enemy-menu-dialog) .menu-actions { gap: 2px; }
-      :is(#options-dialog, #enemy-menu-dialog) .menu-actions button,
+      :is(#options-dialog, #enemy-menu-dialog) .menu-actions :is(button, a),
       #main-menu .menu-actions button, #terminal-screen .terminal-actions button {
         min-height: 0; border: solid transparent; border-width: 11px 26px;
         border-image: url('./assets/ui/gothic_button.png') 28 64 fill / 11px 26px stretch;
@@ -1103,7 +1103,7 @@
         font: 14px var(--g-font); letter-spacing: 4px; text-transform: uppercase; color: var(--g-bone);
         text-shadow: 2px 2px 0 #000; image-rendering: pixelated; transition: filter .15s;
       }
-      :is(#options-dialog, #enemy-menu-dialog) .menu-actions button:is(:hover, :focus-visible):not(:disabled),
+      :is(#options-dialog, #enemy-menu-dialog) .menu-actions :is(button, a):is(:hover, :focus-visible):not(:disabled),
       #main-menu .menu-actions button:is(:hover, :focus-visible):not(:disabled),
       #terminal-screen .terminal-actions button:is(:hover, :focus-visible):not(:disabled) {
         background: none; border-color: transparent; filter: brightness(1.3); color: #fff; outline: none;
@@ -1112,6 +1112,7 @@
       :is(#options-dialog, #enemy-menu-dialog) .menu-actions button:disabled,
       #main-menu .menu-actions button:disabled { opacity: .4; }
       #options-dialog #return-to-menu { color: #e05a4f; }
+      #options-dialog #open-compendium { text-align: center; }
       #save-slots-dialog #save-slots-list button { text-transform: none; letter-spacing: 0; }
       #save-slots-dialog #save-slots-list button > :first-child { text-transform: uppercase; letter-spacing: 3px; }
 
@@ -1123,6 +1124,11 @@
         filter: drop-shadow(0 18px 40px #000); image-rendering: pixelated;
       }
       #main-menu #menu-status { color: var(--g-ash); font-family: var(--g-font); font-style: italic; }
+      #startup-progress { width: 100%; height: 10px; accent-color: #c78d52; }
+      #startup-percent { color: var(--g-ash); font-variant-numeric: tabular-nums; }
+      #chapter-loading-dialog { width: min(360px, calc(100% - 48px)); color: var(--g-ash); background: #160e14; border: 2px solid #c78d52; }
+      #chapter-loading-dialog::backdrop { background: #09070cf5; }
+      #chapter-loading-progress { width: 100%; accent-color: #c78d52; }
       #terminal-screen .terminal-card {
         border: 34px solid transparent; border-image: url('./assets/ui/gothic_panel.png') 44 fill / 34px stretch;
         border-radius: 0; background: none; box-shadow: none; padding: 4px 10px; image-rendering: pixelated;
@@ -1149,6 +1155,8 @@
         filter: brightness(1.3); color: #fff; text-shadow: 0 0 8px var(--g-blood), 2px 2px 0 #000;
       }
       #action-panel button:disabled:hover { padding-left: 6px; background: none; border-color: transparent; }
+      #action-panel #shore-trial-action { color: #d4b7ff; }
+      #action-panel #shore-trial-action:is(:hover, :focus-visible) { background: #382748; border-color: #b29ace; }
       #action-panel #visit-action, #action-panel #chest-action, #action-panel #unlock-action, #action-panel #steal-action, #action-panel #infirmary-action, #action-panel #beacon-action, #action-panel #mechanism-action { color: #d7ffd0; }
       #action-panel #visit-action:is(:hover, :focus-visible), #action-panel #chest-action:is(:hover, :focus-visible), #action-panel #unlock-action:is(:hover, :focus-visible), #action-panel #steal-action:is(:hover, :focus-visible), #action-panel #infirmary-action:is(:hover, :focus-visible), #action-panel #beacon-action:is(:hover, :focus-visible), #action-panel #mechanism-action:is(:hover, :focus-visible) {
         color: #d8f0cc; border-color: transparent; background: none; box-shadow: none;
@@ -1284,15 +1292,16 @@
     <section id="action-panel" aria-label="Unit actions" hidden>
       <strong>MARIA</strong>
       <div class="actions">
+        <button id="attack-action" type="button">Attack</button>
+        <button id="steal-action" type="button" hidden>Steal</button>
         <button id="visit-action" type="button" hidden>Visit</button>
         <button id="talk-action" type="button" hidden>Talk to Linus</button>
         <button id="chest-action" type="button" hidden>Open Chest</button>
         <button id="unlock-action" type="button" hidden>Unlock Cell</button>
-        <button id="steal-action" type="button" hidden>Steal</button>
         <button id="infirmary-action" type="button" hidden>Ward Objective</button>
         <button id="beacon-action" type="button" hidden>Extinguish Beacon</button>
+        <button id="shore-trial-action" type="button" hidden>Awaken Ancient Trial</button>
         <button id="mechanism-action" type="button" hidden>Activate Mechanism</button>
-        <button id="attack-action" type="button">Attack</button>
         <button id="heal-action" type="button" hidden>Heal</button>
         <button id="freeze-action" type="button" hidden>Freeze</button>
         <button id="blood-oath-action" type="button" hidden>Blood Oath (6 HP)</button>
@@ -1314,14 +1323,24 @@
         <img class="game-logo" src="./assets/items/Blood_Emblem/blood_emblem.png" alt="" />
         <h1 class="game-title"><span>Blood</span>Emblem</h1>
         <div class="menu-actions">
-          <button id="new-game" type="button">New Game</button>
+          <button id="new-game" type="button" disabled>New Game</button>
           <button id="continue-game" type="button" disabled>Continue</button>
-          <button id="load-game" type="button">Load Game</button>
-          <button id="title-options" type="button">Options</button>
+          <button id="load-game" type="button" disabled>Load Game</button>
+          <button id="title-options" type="button" disabled>Options</button>
         </div>
-        <div id="menu-status" role="status" aria-live="polite"></div>
+        <div id="menu-status" role="status" aria-live="polite">Loading game assets...</div>
+        <div id="startup-loading">
+          <progress id="startup-progress" aria-label="Game loading progress"></progress>
+          <span id="startup-percent" aria-hidden="true"></span>
+        </div>
       </div>
     </main>
+    <dialog id="chapter-loading-dialog" aria-labelledby="chapter-loading-heading">
+      <h2 id="chapter-loading-heading">Preparing chapter</h2>
+      <p id="chapter-loading-status" role="status">Restoring save...</p>
+      <progress id="chapter-loading-progress" max="100" value="0" aria-label="Chapter loading progress"></progress>
+      <span id="chapter-loading-percent" aria-hidden="true">0%</span>
+    </dialog>
     <dialog id="options-dialog" aria-labelledby="options-heading">
       <h2 id="options-heading">Options</h2>
       <p>Tap a unit or tile to select. Drag the map to look around. Next unit cycles available allies; Back cancels. Keyboard: arrows / WASD, Enter to select, Escape to go back.</p>
@@ -1335,6 +1354,7 @@
           <span id="rescue-destination" hidden></span>
         </aside>
         <button id="open-unit-list" type="button">Unit List</button>
+        <a id="open-compendium" href="./character-gallery.html" target="_blank" rel="noopener noreferrer" aria-label="Character Compendium (opens in a new tab)">Character Compendium</a>
         <button id="open-save-game" type="button">Save Game</button>
         <button id="toggle-ocean-sound" type="button" aria-pressed="true">Environmental Sounds: On</button>
         <button id="toggle-combat-animations" type="button" aria-pressed="true">Combat Animations: On</button>

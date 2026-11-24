@@ -1,0 +1,781 @@
+{
+  "name": "Chapter 12 - The House of Mercy",
+  "objective": "defend-infirmary",
+  "width": 24,
+  "height": 18,
+  "lighting": "night",
+  "extendEdges": false,
+  "noFence": true,
+  "leader": "rictor",
+  "requiredUnits": [
+    "rictor",
+    "lena",
+    "arlan"
+  ],
+  "spawn": {
+    "x": 12,
+    "z": 12
+  },
+  "exit": {
+    "x": 12,
+    "z": 10
+  },
+  "startingItems": [
+    "potion"
+  ],
+  "players": [
+    {
+      "id": "arlan",
+      "x": 6,
+      "z": 8
+    },
+    {
+      "id": "rictor",
+      "x": 17,
+      "z": 8
+    },
+    {
+      "id": "lena",
+      "x": 8,
+      "z": 11
+    },
+    {
+      "id": "serra",
+      "x": 14,
+      "z": 11
+    }
+  ],
+  "enemies": [
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 8,
+      "z": 2,
+      "ai": "mobile"
+    },
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 15,
+      "z": 2,
+      "ai": "mobile"
+    },
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 13,
+      "z": 3,
+      "ai": "mobile"
+    },
+    {
+      "id": "undead",
+      "level": 11,
+      "x": 13,
+      "z": 4,
+      "ai": "mobile"
+    }
+  ],
+  "reinforcements": [
+    {
+      "turn": 2,
+      "entranceId": "west",
+      "units": [
+        {
+          "id": "undead",
+          "level": 11,
+          "x": 7,
+          "z": 2,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 11,
+          "x": 8,
+          "z": 3,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "entranceId": "east",
+      "units": [
+        {
+          "id": "undead",
+          "level": 11,
+          "x": 16,
+          "z": 2,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 11,
+          "x": 15,
+          "z": 3,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "entranceId": "west",
+      "units": [
+        {
+          "id": "ward-knight",
+          "level": 12,
+          "x": 7,
+          "z": 2,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 8,
+          "z": 3,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "entranceId": "east",
+      "units": [
+        {
+          "id": "infirmary-rider",
+          "level": 14,
+          "x": 16,
+          "z": 2,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 15,
+          "z": 3,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "entranceId": "carriage",
+      "units": [
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 11,
+          "z": 16,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 12,
+          "z": 16,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 13,
+          "z": 16,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "entranceId": "theater",
+      "units": [
+        {
+          "id": "rotten",
+          "level": 15,
+          "x": 12,
+          "z": 3,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 11,
+          "z": 4,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 7,
+      "entranceId": "carriage",
+      "units": [
+        {
+          "id": "infirmary-rider",
+          "level": 14,
+          "x": 11,
+          "z": 16,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 12,
+          "z": 16,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 13,
+          "z": 16,
+          "ai": "mobile"
+        }
+      ]
+    },
+    {
+      "turn": 8,
+      "entranceId": "carriage",
+      "units": [
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 11,
+          "z": 16,
+          "ai": "mobile"
+        },
+        {
+          "id": "undead",
+          "level": 12,
+          "x": 13,
+          "z": 16,
+          "ai": "mobile"
+        }
+      ]
+    }
+  ],
+  "chests": [
+    {
+      "id": "treatment-ledger-chest",
+      "name": "Treatment Records",
+      "x": 3,
+      "z": 9,
+      "rewardId": "treatment-ledger",
+      "opened": false
+    }
+  ],
+  "objects": [],
+  "infirmary": {
+    "defendTurns": 8,
+    "defensePoint": {
+      "x": 12,
+      "z": 10
+    },
+    "gates": [],
+    "ledgerChestId": "treatment-ledger-chest",
+    "patientsVulnerable": true,
+    "patients": [
+      {
+        "id": "patient-elise",
+        "name": "Elise",
+        "x": 3,
+        "z": 3,
+        "rewardId": "javelin",
+        "rescued": false,
+        "lost": false
+      },
+      {
+        "id": "patient-mara",
+        "name": "Mara",
+        "x": 20,
+        "z": 3,
+        "rewardId": "saints-ash",
+        "rescued": false,
+        "lost": false
+      }
+    ],
+    "completionExp": 100,
+    "interactionExp": 60,
+    "survivedTurns": 0,
+    "rewardsClaimed": false,
+    "breached": false
+  },
+  "tiles": [
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_recovery",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_doorway",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_doorway",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_floor",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ],
+    [
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block",
+      "infirmary_block"
+    ]
+  ],
+  "villageScene": {
+    "version": 1,
+    "layout": "infirmary",
+    "artwork": "compact",
+    "cursorBounds": [
+      2,
+      2,
+      21,
+      16
+    ]
+  }
+}

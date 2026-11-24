@@ -25,7 +25,7 @@ after(async () => {
 });
 
 function promote(id) {
-  const unit = id === 'linus' ? characters.createLinusAlly() : characters.createStarkAlly();
+  const unit = characters[{ linus: 'createLinusAlly', stark: 'createStarkAlly', rictor: 'createRictorAlly' }[id]]();
   unit.level = 20;
   classes.promoteUnit(unit, 'covenant-emblem');
   return unit;
@@ -46,12 +46,14 @@ test('Covenant promotions are exclusive level-20 base branches, preserving Order
     const alternate = classes.promoteUnit(unit, 'covenant-emblem');
     assert.equal(unit.classId, target);
     assert.equal(orders.classId, original);
-    assert.deepEqual(alternate.gains, normal.gains);
+    assert.deepEqual(alternate.gains, target === 'bloodsworn'
+      ? { ...normal.gains, defense: normal.gains.defense + 2, resistance: normal.gains.resistance + 2 }
+      : { ...normal.gains, movement: 1 });
     assert.equal(unit.type, type);
     assert.equal(unit.spriteSet, sprite);
     assert.equal(unit.level, 20);
     assert.equal(unit.hp, unit.maxHp);
-    assert.equal(unit.movement, movement + (normal.gains.movement ?? 0));
+    assert.equal(unit.movement, movement + (alternate.gains.movement ?? 0));
     assert.deepEqual(unit.weaponExp, exp);
     assert.deepEqual(unit.inventory, items);
     assert.equal(classes.canPromote(unit, 'covenant-emblem'), false);
@@ -65,18 +67,62 @@ test('Covenant promotions are exclusive level-20 base branches, preserving Order
   for (const unit of [characters.createMaria(), characters.createCypherAlly(), characters.createTroyAlly()]) {
     unit.level = 20;
     const before = structuredClone(unit);
-    assert.equal(classes.promotionBlockReason(unit, 'covenant-emblem'), 'Only Cavalier Linus or Archer Stark');
+    assert.equal(classes.promotionBlockReason(unit, 'covenant-emblem'), 'Only Cavalier Linus, Archer Stark or Oathkeeper Rictor');
     assert.throws(() => classes.promoteUnit(unit, 'covenant-emblem'), /cannot/);
     assert.deepEqual(unit, before);
     assert.equal(classes.canPromote(unit), true);
   }
 });
 
-test('Bloodsworn keeps Spears, not Swords, magic or ordinary staves; Veilstalker does not inherit Deadeye', () => {
+test('Oathbound keeps Spears, gains D Swords and Dark without Light, and cannot switch promotion branches', () => {
+  const unit = characters.createRictorAlly(), orders = characters.createRictorAlly();
+  assert.equal(unit.sprite, 'assets/character/Rictor/rotations/south.png');
+  assert.equal(classes.promotionBlockReason(unit, 'covenant-emblem'), 'Needs level 20');
+  const before = structuredClone(unit);
+  assert.throws(() => classes.promoteUnit(unit, 'covenant-emblem'), /level 20/);
+  assert.deepEqual(unit, before);
+  unit.level = orders.level = 20;
+  unit.weaponExp.Sword = 90;
+  const inventoryBefore = structuredClone(unit.inventory), spearExp = unit.weaponExp.Spear;
+  const normal = classes.promoteUnit(orders);
+  const alternate = classes.promoteUnit(unit, 'covenant-emblem');
+  assert.equal(unit.classId, 'oathbound');
+  assert.equal(unit.type, 'infantry');
+  assert.deepEqual(alternate.gains, { ...normal.gains, movement: 1 });
+  assert.equal(unit.movement, 6);
+  assert.equal(orders.movement, 8);
+  assert.deepEqual(classes.getClass(unit.classId).weaponTypes, ['Spear', 'Sword', 'Dark']);
+  assert.equal(unit.weaponExp.Spear, spearExp);
+  assert.equal(unit.weaponExp.Sword, 90, 'higher existing rank is never reduced');
+  assert.equal(unit.weaponExp.Dark, 30);
+  assert.equal(unit.weaponExp.Light, undefined);
+  assert.equal(orders.weaponExp.Light, 30);
+  assert.equal(orders.weaponExp.Dark, undefined);
+  assert.equal(orders.type, 'cavalry');
+  assert.equal(orders.sprite, 'assets/character/Templar_Rictor/rotations/south.png');
+  assert.deepEqual(unit.inventory, inventoryBefore);
+  assert.equal(unit.weapon.id, 'vigil-lance');
+  for (const id of ['vigil-lance', 'iron-sword', 'dark-tome', 'luna'])
+    assert.ok(classes.canEquipWeapon(unit, inventory.INVENTORY_ITEMS.get(id)), id);
+  for (const id of ['light-tome', 'fire-tome', 'heal-staff', 'nosferatu'])
+    assert.equal(classes.canEquipWeapon(unit, inventory.INVENTORY_ITEMS.get(id)), false, id);
+  for (const [type, spriteSet] of [['Spear', 'oathboundRictor'], ['Sword', 'oathboundRictorSword'], ['Dark', 'oathboundRictorDark']])
+    assert.equal(classes.weaponSpriteSet({ ...unit, weapon: { type } }), spriteSet);
+  assert.ok(profile.portraitUrl(unit));
+  const once = structuredClone(unit);
+  classes.applyClass(unit, 'oathbound');
+  assert.deepEqual(unit, once);
+  for (const emblem of ['master-emblem', 'covenant-emblem']) {
+    assert.equal(classes.promotionBlockReason(unit, emblem), 'Already promoted');
+    assert.throws(() => classes.promoteUnit(unit, emblem), /cannot/);
+  }
+});
+
+test('Bloodsworn keeps Spears and Swords, not Axes, magic or ordinary staves; Veilstalker does not inherit Deadeye', () => {
   const linus = promote('linus'), stark = promote('stark');
-  for (const id of ['iron-spear', 'javelin'])
+  for (const id of ['iron-spear', 'javelin', 'iron-sword'])
     assert.ok(classes.canEquipWeapon(linus, inventory.INVENTORY_ITEMS.get(id)));
-  for (const id of ['iron-katana', 'heal-staff', 'fire-tome', 'light-tome'])
+  for (const id of ['iron-axe', 'heal-staff', 'fire-tome', 'light-tome'])
     assert.equal(classes.canEquipWeapon(linus, inventory.INVENTORY_ITEMS.get(id)), false);
   assert.ok(classes.canEquipWeapon(stark, inventory.INVENTORY_ITEMS.get('iron-bow')));
   const sniper = characters.createStarkAlly();
@@ -85,11 +131,11 @@ test('Bloodsworn keeps Spears, not Swords, magic or ordinary staves; Veilstalker
   assert.equal(combat.getCriticalRate(sniper, target) - combat.getCriticalRate(stark, target), 15);
   const swordLinus = characters.createLinusAlly();
   swordLinus.level = 20;
-  swordLinus.weapon = inventory.INVENTORY_ITEMS.get('iron-katana');
-  swordLinus.inventory.push(...inventory.createInventory(['iron-katana']));
+  swordLinus.weapon = inventory.INVENTORY_ITEMS.get('iron-sword');
+  swordLinus.inventory.push(...inventory.createInventory(['iron-sword']));
   classes.promoteUnit(swordLinus, 'covenant-emblem');
-  assert.equal(swordLinus.weapon, null);
-  assert.ok(swordLinus.inventory.some((entry) => entry.id === 'iron-katana'), 'unusable gear is retained');
+  assert.equal(swordLinus.weapon.id, 'iron-sword');
+  assert.ok(swordLinus.inventory.some((entry) => entry.id === 'iron-sword'), 'sword gear is retained');
 });
 
 test('Blood Oath costs 6 HP and an action; targeting rejects self, dead, distant, protected and low-HP cases', () => {
@@ -142,38 +188,34 @@ test('the first positive hit is halved once, rounded up before HP capping; misse
   assert.equal(combat.healDamageDealt(drainer, covenant.applyCombatDamage(warded, 19)), 5);
 });
 
-test('Blood Trail checks wounded living enemies within Manhattan 6 once, without stacking or changing base Movement', () => {
+test('Blood Trail immediately grants four Movement within Manhattan 10 of living wounded enemies', () => {
   const unit = { ...promote('stark'), x: 5, z: 5 };
   const baseMovement = unit.movement;
   for (const [x, z, hp, maxHp, expected] of [
-    [11, 5, 9, 10, 2], [8, 8, 9, 10, 2], [9, 8, 9, 10, 0],
+    [15, 5, 9, 10, 4], [10, 10, 9, 10, 4], [11, 10, 9, 10, 0],
     [6, 5, 10, 10, 0], [6, 5, 0, 10, 0],
   ]) {
     const enemy = { x, z, hp, maxHp };
-    covenant.startCovenantPlayerPhase([unit], [enemy]);
-    assert.equal(unit.bloodTrailBonus, expected);
-    assert.equal(covenant.movementAllowance(unit), baseMovement + expected);
+    assert.equal(covenant.movementAllowance(unit, [enemy]), baseMovement + expected);
     enemy.hp = 0;
     unit.x = 0;
-    assert.equal(covenant.movementAllowance(unit), baseMovement + expected, 'no mid-phase recalculation');
+    assert.equal(covenant.movementAllowance(unit, [enemy]), baseMovement);
     unit.x = 5;
     assert.equal(unit.movement, baseMovement);
   }
-  const wounded = { x: 5, z: 6, hp: 1, maxHp: 10 };
-  covenant.startCovenantPlayerPhase([unit], [wounded, { ...wounded }]);
-  covenant.startCovenantPlayerPhase([unit], [wounded]);
-  assert.equal(covenant.movementAllowance(unit), baseMovement + 2);
-  covenant.endCovenantPlayerPhase([unit]);
-  assert.equal(covenant.movementAllowance(unit), baseMovement);
+  assert.equal(baseMovement, 6);
+  const wounded = { x: 5, z: 6, hp: 10, maxHp: 10 };
+  assert.equal(covenant.movementAllowance(unit, [wounded]), 6);
+  wounded.hp--;
+  assert.equal(covenant.movementAllowance(unit, [wounded, { ...wounded }]), 10);
   unit.bloodOath = true;
   covenant.startCovenantPlayerPhase([unit], []);
   assert.equal(unit.bloodOath, undefined);
-  assert.equal(unit.bloodTrailBonus, 0);
   unit.hp = 0;
   covenant.startCovenantPlayerPhase([unit], [wounded]);
-  assert.equal(covenant.movementAllowance(unit), baseMovement);
+  assert.equal(covenant.movementAllowance(unit, [wounded]), baseMovement);
   const archer = { ...characters.createStarkAlly(), bloodTrailBonus: 2 };
-  assert.equal(covenant.movementAllowance(archer), archer.movement);
+  assert.equal(covenant.movementAllowance(archer, [wounded]), archer.movement);
 });
 
 test('Blood Trail expands real movement ranges while preserving terrain, obstacles and freeze restrictions', () => {
@@ -184,9 +226,10 @@ test('Blood Trail expands real movement ranges while preserving terrain, obstacl
   assert.equal(grid.getMovementRange(unit, level, []).has(`${1 + base + 2},1`), false);
   covenant.startCovenantPlayerPhase([unit], [enemy]);
   const range = grid.getMovementRange(unit, level, [enemy]);
-  assert.ok(range.has(`1,${1 + base + 2}`));
+  assert.ok(range.has(`1,${1 + base + 4}`));
   assert.equal(range.has('2,1'), false);
-  assert.equal(range.has(`1,${1 + base + 3}`), false);
+  assert.equal(range.has(`1,${1 + base + 5}`), false);
+  assert.equal(grid.getMovementRange(unit, level, [enemy], [], []).has('1,11'), false, 'neutral blockers are not prey');
   const rough = { ...level, tileIds: level.tileIds.map((row) => row.map(() => 'forest_undergrowth')) };
   assert.equal(grid.getMovementRange(unit, rough, []).has(`1,${1 + base + 2}`), false);
   const frozen = grid.getMovementRange({ ...unit, frozen: true }, level, []);
@@ -199,17 +242,24 @@ test('Covenant class and temporary effects survive real save/export parsing with
   const maria = Object.assign(characters.createMaria(), level.spawn);
   const linus = { ...promote('linus'), x: maria.x + 1, z: maria.z, bloodOath: true };
   const stark = { ...promote('stark'), x: maria.x + 2, z: maria.z, bloodTrailBonus: 2 };
+  const rictor = { ...promote('rictor'), x: maria.x + 3, z: maria.z };
   // Benched units still serialize, without imposing this test's positions on the authored map.
   const save = saves.createSaveData(level, maria, [], { phase: 'player', turn: 3, defeated: false },
-    { allies: [linus, stark], isBenched: () => true });
+    { allies: [linus, stark, rictor], isBenched: () => true });
   const restored = saves.parseSave(JSON.stringify(save));
   assert.equal(restored.allies[0].classId, 'bloodsworn');
   assert.equal(restored.allies[0].bloodOath, true);
   assert.equal(restored.allies[1].classId, 'veilstalker');
-  assert.equal(restored.allies[1].bloodTrailBonus, 2);
+  assert.equal(restored.allies[1].bloodTrailBonus, undefined);
   assert.equal(restored.allies[1].stats.movement, stark.movement);
+  assert.equal(restored.allies[2].classId, 'oathbound');
+  assert.deepEqual(restored.allies[2].weaponExp, rictor.weaponExp);
+  const resumedRictor = { ...rictor, ...restored.allies[2].stats };
+  classes.applyClass(resumedRictor, restored.allies[2].classId);
+  assert.equal(resumedRictor.spriteSet, 'oathboundRictor');
+  assert.equal(resumedRictor.movement, 6);
   const resume = { ...stark, ...restored.allies[1].stats, bloodTrailBonus: restored.allies[1].bloodTrailBonus };
-  assert.equal(covenant.movementAllowance(resume), stark.movement + 2);
+  assert.equal(covenant.movementAllowance({ ...resume, bloodTrailBonus: 2 }), stark.movement);
   const snapshot = saves.serializeUnit(stark);
   const chapterUnit = { ...stark, bloodOath: true };
   const snapshotContext = {
@@ -282,8 +332,8 @@ test('preparations use Covenant Emblems from inventory and convoy, consume exact
   const old = Object.getOwnPropertyDescriptor(globalThis, 'document');
   globalThis.document = { createElement: (tag) => new Element(tag) };
   t.after(() => old ? Object.defineProperty(globalThis, 'document', old) : delete globalThis.document);
-  for (const id of ['linus', 'stark']) for (const source of ['carried', 'convoy']) {
-    const unit = id === 'linus' ? characters.createLinusAlly() : characters.createStarkAlly();
+  for (const id of ['linus', 'stark', 'rictor']) for (const source of ['carried', 'convoy']) {
+    const unit = characters[{ linus: 'createLinusAlly', stark: 'createStarkAlly', rictor: 'createRictorAlly' }[id]]();
     unit.level = 20;
     const emblem = { id: 'covenant-emblem', uses: 1 }, convoy = source === 'convoy' ? [emblem] : [];
     if (source === 'carried') unit.inventory.push(emblem);
@@ -315,7 +365,7 @@ test('preparations use Covenant Emblems from inventory and convoy, consume exact
     unit.level = 20;
     menu.refresh();
     click('Use');
-    assert.equal(unit.classId, id === 'linus' ? 'bloodsworn' : 'veilstalker');
+    assert.equal(unit.classId, { linus: 'bloodsworn', stark: 'veilstalker', rictor: 'oathbound' }[id]);
     assert.equal(changes, 1);
     assert.equal(promotions, 1);
     assert.ok(![...unit.inventory, ...convoy].includes(emblem));
@@ -367,8 +417,8 @@ test('the real map Blood Oath action validates allies and cancellation, then app
 });
 
 test('the actual inventory promotion action accepts Covenant Emblems, blocks stale uses and spends the battle action', async () => {
-  for (const id of ['linus', 'stark']) {
-    const unit = id === 'linus' ? characters.createLinusAlly() : characters.createStarkAlly();
+  for (const id of ['linus', 'stark', 'rictor']) {
+    const unit = characters[{ linus: 'createLinusAlly', stark: 'createStarkAlly', rictor: 'createRictorAlly' }[id]]();
     unit.level = 20;
     const emblem = { id: 'covenant-emblem', uses: 1 };
     unit.inventory.push(emblem);
@@ -385,7 +435,7 @@ test('the actual inventory promotion action accepts Covenant Emblems, blocks sta
     const source = main.slice(main.indexOf('async function useMasterEmblem('), main.indexOf('async function useBoosterItem('));
     runInNewContext(`${source}\nglobalThis.use = useMasterEmblem;`, context);
     await context.use(emblem);
-    assert.equal(unit.classId, id === 'linus' ? 'bloodsworn' : 'veilstalker');
+    assert.equal(unit.classId, { linus: 'bloodsworn', stark: 'veilstalker', rictor: 'oathbound' }[id]);
     assert.ok(!unit.inventory.includes(emblem));
     assert.equal(finished, 1);
     await context.use(emblem);

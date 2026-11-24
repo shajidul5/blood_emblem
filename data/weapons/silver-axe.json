@@ -1,0 +1,16 @@
+{
+  "id": "silver-axe",
+  "name": "Silver Axe",
+  "type": "Axe",
+  "damageType": "physical",
+  "might": 14,
+  "weight": 14,
+  "hit": 70,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "effect": [],
+  "sound": "axe",
+  "lore": "A silver-edged execution axe from the Order's armory. Its weight is meant to end resistance in a single stroke.",
+  "sprite": "assets/weapons/Cathedral/steel_axe.png"
+}

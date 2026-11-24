@@ -1,0 +1,9 @@
+{
+  "id": "shore-bishop", "name": "Drowned Cantor", "classId": "bishop", "type": "infantry",
+  "spriteSet": "genericBishop", "sprite": "assets/character/Generic_Bishop/rotations/south.png",
+  "scale": 1, "level": 25, "experience": 0, "weaponId": "light-tome",
+  "weaponExp": { "Light": 180, "Staff": 300 }, "inventory": ["light-tome", "heal-staff"], "spellUses": { "physic": 6 }, "ai": "guard",
+  "baseStats": { "hp": 54, "strength": 0, "magic": 29, "dexterity": 40, "speed": 21, "luck": 12, "defense": 16, "resistance": 30, "movement": 6, "build": 11 },
+  "currentStats": { "hp": 54, "strength": 0, "magic": 29, "dexterity": 40, "speed": 21, "luck": 12, "defense": 16, "resistance": 30, "movement": 6, "build": 11 },
+  "growthRates": { "hp": 45, "strength": 0, "magic": 50, "dexterity": 40, "speed": 30, "luck": 20, "defense": 15, "resistance": 45, "movement": 0, "build": 0 }
+}

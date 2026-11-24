@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { createServer } from 'vite';
 import * as THREE from 'three';
 
-let server, levels, terrain, grid, characters, inventory, combat, mainSource;
+let server, levels, terrain, grid, characters, inventory, combat, mainSource, streets;
 const priorImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
 const priorDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
 const files = ['map_03_fishing_village', 'map_04_mansion', 'map_05_escape'];
@@ -22,10 +22,13 @@ before(async () => {
   globalThis.Image = class {
     set src(url) {
       const manor = url.includes('manor.png');
+      const manorHd = url.includes('manor-hd.png');
+      const villageHd = url.includes('village-hd.png');
+      const harbor = url.includes('harbor.png');
       const wide = url.includes('village.png');
       const forest = url.includes('forest.png') || url.includes('camp.png');
-      this.width = forest ? 1536 : wide ? 768 : manor ? 384 : 512;
-      this.height = forest ? 672 : wide ? 336 : manor ? 320 : 512;
+      this.width = villageHd ? 2304 : harbor || manorHd ? 1152 : forest ? 1536 : wide ? 768 : manor ? 384 : 512;
+      this.height = villageHd || harbor ? 1008 : manorHd ? 960 : forest ? 672 : wide ? 336 : manor ? 320 : 512;
       queueMicrotask(() => this.onload());
     }
   };
@@ -37,6 +40,7 @@ before(async () => {
     server.ssrLoadModule('/src/battle/combat.js'),
   ]);
   mainSource = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+  streets = await server.ssrLoadModule('/src/game/streets.js');
 });
 after(async () => {
   await server?.close();
@@ -60,6 +64,46 @@ function distances(level, start) {
   return result;
 }
 
+test('legacy embedded Chapter 5 saves still render the original full village artwork', async () => {
+  const raw = await readMap(files[2]);
+  delete raw.villageScene.artwork;
+  const group = new THREE.Group();
+  const level = levels.buildLevel(THREE, group, raw);
+  const artwork = group.getObjectByName('illustrated-village');
+  assert.equal(artwork.material.map.image.width, 768);
+  assert.equal(artwork.material.map.image.height, 336);
+  assert.equal(artwork.material.map.repeat.x, 1);
+  assert.deepEqual([artwork.geometry.parameters.width, artwork.geometry.parameters.height], [48, 21]);
+  assert.deepEqual(level.villageScene, raw.villageScene);
+});
+
+test('legacy embedded Chapter 4 manor saves still render their original tinted artwork', async () => {
+  const raw = await readMap(files[1]);
+  delete raw.villageScene.artwork;
+  const group = new THREE.Group();
+  const level = levels.buildLevel(THREE, group, raw);
+  const artwork = group.getObjectByName('illustrated-manor');
+  assert.equal(artwork.material.map.image.width, 384);
+  assert.equal(artwork.material.map.image.height, 320);
+  assert.ok(artwork.material.color.r < .6 && artwork.material.color.b < .7);
+  assert.equal(artwork.material.map.repeat.x, 1);
+  assert.deepEqual([artwork.geometry.parameters.width, artwork.geometry.parameters.height], [24, 20]);
+  assert.deepEqual(level.villageScene, raw.villageScene);
+});
+
+test('legacy embedded Chapter 3 saves still render the original shared village crop', async () => {
+  const raw = await readMap(files[0]);
+  delete raw.villageScene.artwork;
+  const group = new THREE.Group();
+  const level = levels.buildLevel(THREE, group, raw);
+  const artwork = group.getObjectByName('illustrated-harbor');
+  assert.equal(artwork.material.map.image.width, 768);
+  assert.equal(artwork.material.map.repeat.x, .5);
+  assert.equal(artwork.material.map.repeat.y, 1);
+  assert.equal(artwork.geometry.parameters.width, 24);
+  assert.deepEqual(level.villageScene, raw.villageScene);
+});
+
 for (const [index, file] of files.entries()) {
   test(`${file}: illustrated floor, all interactions and encounter placements are connected`, async () => {
     const raw = await readMap(file);
@@ -76,7 +120,7 @@ for (const [index, file] of files.entries()) {
     assert.ok(group.getObjectByName(`illustrated-${raw.villageScene.layout}`));
     const artwork = group.getObjectByName(`illustrated-${raw.villageScene.layout}`);
     assert.equal(artwork.material.map.magFilter, THREE.NearestFilter);
-    assert.equal(artwork.material.map.repeat.x, index === 0 ? .5 : 1, 'harbor includes the scenery beyond the playable boundary');
+    assert.equal(artwork.material.map.repeat.x, 1, 'the full artwork includes harbor scenery beyond the playable boundary');
     assert.equal(terrain.getTileElevation(level, level.spawn.x, level.spawn.z), 0);
     assert.equal(group.userData.houseMarkers.length, level.houses.length);
     assert.equal(group.children.filter((mesh) => mesh.isMesh).length,
@@ -103,10 +147,10 @@ for (const [index, file] of files.entries()) {
 test('all original rewards, recruitment, key supply and reinforcement roles remain', async () => {
   const [harbor, manor, village] = await Promise.all(files.map(readMap));
   assert.deepEqual(harbor.houses.map((h) => [h.id,h.rewardId]), [
-    ['fisher-cottage-1','potion'], ['fisher-cottage-2','thunder-tome'], ['fisher-cottage-3','zanbato'],
+    ['fisher-cottage-1','potion'], ['fisher-cottage-2','thunder-tome'], ['fisher-cottage-3','lancereaver'],
   ]);
   assert.deepEqual(manor.chests.map((c) => [c.id,c.rewardId]), [
-    ['chest-axe','hand-axe'], ['chest-emblem','master-emblem'], ['chest-lancereaver','lancereaver'],
+    ['chest-axe','hand-axe'], ['chest-emblem','master-emblem'], ['chest-lancereaver','zanbato'],
   ]);
   assert.equal(manor.enemies.filter((enemy) => enemy.drop === 'chest-key').length, 3);
   assert.ok(manor.enemies.some((enemy) => enemy.id === 'killian'));
@@ -195,8 +239,8 @@ test('village collision excludes painted roofs and doorstep equipment, and rewar
   assert.deepEqual(mage.door, { x: 17, z: 14 });
   assert.equal(mage.door.x, mage.x - 1, 'visit the visible side door of the right-hand cottage, not front windows');
   assert.ok(mage.door.z >= mage.z && mage.door.z < mage.z + mage.height);
-  const netmaker = harbor.houses.find((house) => house.rewardId === 'zanbato');
-  assert.deepEqual(netmaker.door, { x: 13, z: 7 }, 'Zanbato uses the northern visible front door');
+  const netmaker = harbor.houses.find((house) => house.rewardId === 'lancereaver');
+  assert.deepEqual(netmaker.door, { x: 13, z: 7 }, 'Lancereaver uses the northern visible front door');
   assert.equal(netmaker.door.z, netmaker.z + netmaker.height);
 });
 
@@ -230,6 +274,7 @@ test('right-edge arrivals queue at occupied tiles instead of teleporting, with n
     isWalkable: grid.isWalkable, infirmaryWaveSealed: () => false,
     enemyMovementType: characters.enemyMovementType,
     courtyardWaveEnabled: () => true, cathedralWaveEnabled: () => true,
+    streetWaveEnabled: streets.streetWaveEnabled,
     distanceBetween: (x,z,cx,cz) => Math.abs(x-cx)+Math.abs(z-cz),
     infirmarySpawnTile: (level, placement, units) =>
       units.some((unit) => unit.hp > 0 && key(unit) === key(placement)) ? null : placement,
@@ -298,10 +343,10 @@ test('defense duration, turn and partial waves persist in real saves; legacy Cha
   assert.equal(restored.level.reinforcements[0].spawnedCount,1);
   const legacy = {...restored,turn:15,level:{...restored.level,objective:'defeat-all-enemies'}};
   delete legacy.level.defendTurns;
-  const start = mainSource.indexOf('function continueGame()');
+  const start = mainSource.indexOf('function restoreGame(save)');
   const end = mainSource.indexOf('  activeLevel = buildLevel',start);
-  const upgraded = runInNewContext(`${mainSource.slice(start,end)} return save; }\ncontinueGame()`,
-    {refreshContinueButton:()=>legacy});
+  const upgraded = runInNewContext(`${mainSource.slice(start,end)} return save; }\nrestoreGame(save)`,
+    {save:legacy});
   assert.equal(upgraded.level.objective,'defend');
   assert.equal(upgraded.level.defendTurns,10);
   assert.equal(upgraded.turn,15,'turns and party state are not reset by migration');
@@ -314,8 +359,8 @@ test('restarting an illustrated Chapter 3 reloads the authored routes and waves 
     currentChapter:2, activeLevel:{villageScene:{layout:'harbor'},objective:'defeat-all-enemies'},
     chapterStart:originalParty,
     loadChapterLevel:async(chapter)=>{assert.equal(chapter,2);return updated;},
-    startLevel:(level,options)=>{
-      assert.equal(level,updated);
+    startLevel:async(level,options)=>{
+      assert.equal(await level(),updated);
       assert.equal(options.carry,originalParty);
       assert.equal(options.chapter,2);
       context.started=true;
@@ -335,6 +380,7 @@ function interactionContext(level, player) {
   const messages = [];
   return {
     activeLevel: level, player, gameState: { selected: true, phase: 'player' },
+    houseHasReward: streets.houseHasReward,
     playerTeam: [player], enemies: [], fullTeam: [player], roster: {},
     grantItem: inventory.grantItem, hasLockpick: () => false,
     setMessage: (message) => messages.push(message), messages,
@@ -436,7 +482,8 @@ test('Chapter 4 manor: stairs are the only way upstairs, chests are reachable an
   const level = levels.buildLevel(THREE, group, raw);
   const art = group.getObjectByName('illustrated-manor');
   assert.ok(group.getObjectByName('manor-night-surround').position.y < art.position.y, 'night surround sits beneath the artwork');
-  assert.ok(art.material.color.r < .6 && art.material.color.b < .7, 'the manor art is tinted darker than daylight');
+  assert.equal(art.material.color.getHex(), 0xffffff, 'HD art is authored for night, not double-tinted');
+  assert.equal(art.material.map.image.width, 1152);
   assert.equal(art.material.map.repeat.x, 1);
   const stairs = ['6,15','7,15','6,16','7,16','16,10','17,10','16,11','17,11'];
   for (const cell of stairs) {
@@ -458,7 +505,7 @@ test('Chapter 4 manor: stairs are the only way upstairs, chests are reachable an
   const steps = Object.fromEntries(level.chests.map((chest) => [chest.id, reach.get(key(chest))]));
   assert.ok(Object.values(steps).every(Number.isFinite), 'all three chests can be reached');
   assert.equal(level.chests.length, 3);
-  assert.ok(steps['chest-lancereaver'] <= 11, 'Lancereaver is two turns from the start');
+  assert.ok(steps['chest-lancereaver'] <= 11, 'Zanbato is two turns from the start');
   assert.ok(steps['chest-lancereaver'] < Math.min(steps['chest-axe'], steps['chest-emblem']));
   const keyCarrier = level.enemies.filter((enemy) => enemy.drop === 'chest-key')
     .map((enemy) => reach.get(key(enemy))).sort((a, b) => a - b)[0];
@@ -484,7 +531,7 @@ test('Chapter 3 cursor and units stop at column 21 while artwork extends to colu
   const level=levels.validateLevel(await readMap(files[0]));
   assert.equal(level.width,24);
   assert.equal(level.villageScene.playableWidth,21);
-  const context={activeLevel:level,cursor:{},cursorOutline:{},gameState:{mode:'move'},enemies:[],
+  const context={activeLevel:level,cursor:{},cursorOutline:{},gameState:{mode:'move'},enemies:[],draggingMap:false,
     showTileInspection:noop,updateUnitHoverCard:noop,updateMovementRoute:noop,
     findEnemyAt:()=>null};
   const source=mainFunction('function setCursor(', 'function showTileInspection(');

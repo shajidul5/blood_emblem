@@ -47,6 +47,26 @@ test('each stat booster is a one-use consumable that permanently adds 2 to its s
   }
 });
 
+test('Movement boosters work before or after either Rictor promotion and survive class restoration', async () => {
+  const spur = inventory.INVENTORY_ITEMS.get('pilgrims-spur');
+  const { applyClass, promoteUnit } = await server.ssrLoadModule('/src/characters/classes.js');
+  for (const [classId, movement, emblem] of [['templar', 8, 'master-emblem'], ['oathbound', 6, 'covenant-emblem']]) {
+    for (const boostFirst of [false, true]) {
+      const target = unit({ id: 'rictor', classId: 'oathkeeper', level: 20, weapon: null });
+      if (boostFirst) assert.equal(boosters.applyBooster(target, spur), 'Movement +2');
+      promoteUnit(target, emblem);
+      assert.equal(target.classId, classId);
+      assert.equal(target.movement, movement + (boostFirst ? 2 : 0));
+      if (!boostFirst) {
+        assert.equal(boosters.boosterBlockReason(target, spur), null);
+        assert.equal(boosters.applyBooster(target, spur), 'Movement +2');
+      }
+      applyClass(target, classId);
+      assert.equal(target.movement, movement + 2);
+    }
+  }
+});
+
 test('the HP booster raises current HP alongside max HP', () => {
   const target = unit({ hp: 12 });
   boosters.applyBooster(target, inventory.INVENTORY_ITEMS.get('bloodroot-tonic'));
@@ -77,6 +97,6 @@ test("the Hunter's Codex is blocked without a weapon, without weapon ranks, or a
 
 test('every Insight item grants 10 Insight', () => {
   const insightItems = [...inventory.INVENTORY_ITEMS.values()].filter((item) => item.insight);
-  assert.deepEqual(insightItems.map((item) => item.id).sort(), ['crossing-keepsake', 'orsen-journal', 'pocketwatch']);
+  assert.deepEqual(insightItems.map((item) => item.id).sort(), ['crossing-keepsake', 'orsen-journal', 'pocketwatch', 'treatment-ledger']);
   for (const item of insightItems) assert.equal(item.insight, 10, item.id);
 });

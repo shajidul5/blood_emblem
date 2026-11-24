@@ -55,6 +55,10 @@ for (const [file, layout, width] of [
   map.forestEdges = false;
   map.noFence = true;
   if (layout === 'harbor') {
+    map.villageScene.artwork = 'hd';
+    for (let z = 11; z <= 13; z++) tiles[z][13] = 'village_path';
+    for (let z = 11; z <= 12; z++)
+      for (let x = 7; x <= 11; x++) tiles[z][x] = 'village_path';
     map.villageScene.playableWidth = 21;
     for (const row of tiles) row.fill('village_block', 21);
     map.objective = 'defend';
@@ -68,7 +72,7 @@ for (const [file, layout, width] of [
     map.houses = [
       house('fisher-cottage-1', "Fisher's Cottage", 9, 4, 2, 3, 10, 7, 'potion'),
       house('fisher-cottage-2', "Harbor Mage's House", 18, 11, 3, 4, 17, 14, 'thunder-tome'),
-      house('fisher-cottage-3', "Netmaker's House", 12, 3, 3, 4, 13, 7, 'zanbato'),
+      house('fisher-cottage-3', "Netmaker's House", 12, 3, 3, 4, 13, 7, 'lancereaver'),
     ];
     const spots = [[7,8],[10,8],[13,8],[16,8],[17,8]];
     map.enemies = map.enemies.map((enemy, i) => ({ ...enemy, x: spots[i][0], z: spots[i][1] }));
@@ -81,6 +85,14 @@ for (const [file, layout, width] of [
       ],
     }));
   } else {
+    map.villageScene.artwork = 'hd';
+    for (let z = 11; z <= 13; z++) tiles[z][13] = 'village_path';
+    for (let z = 11; z <= 12; z++)
+      for (let x = 7; x <= 11; x++) tiles[z][x] = 'village_path';
+    for (let x = 34; x <= 37; x++) tiles[11][x] = 'village_path';
+    for (let z = 12; z <= 14; z++) tiles[z][36] = 'village_path';
+    for (let z = 16; z <= 17; z++)
+      for (let x = 34; x <= 35; x++) tiles[z][x] = 'village_path';
     map.spawn = { x: 35, z: 10 };
     map.exit = { x: 22, z: 0 };
     map.exitTiles = Array.from({ length: 5 }, (_, z) => ({ x: 22, z }));
@@ -138,7 +150,7 @@ for (const [file, layout, width] of [
   map.width = 24;
   map.height = 20;
   map.tiles = tiles;
-  map.villageScene = { version: 1, layout: 'manor' };
+  map.villageScene = { version: 1, layout: 'manor', artwork: 'hd' };
   map.lighting = 'night';
   map.spawn = { x: 11, z: 17 };
   map.exit = { x: 11, z: 18 };
@@ -156,7 +168,10 @@ for (const [file, layout, width] of [
     ? { ...enemy, x: 12, z: 3, level: 10 }
     : { ...enemy, x: spots[i][0], z: spots[i][1] });
   const treasures = { 'chest-axe': [18,2], 'chest-emblem': [20,2], 'chest-lancereaver': [2,17] };
-  map.chests = map.chests.map((chest) => ({ ...chest, x: treasures[chest.id][0], z: treasures[chest.id][1] }));
+  map.chests = map.chests.map((chest) => ({
+    ...chest, x: treasures[chest.id][0], z: treasures[chest.id][1],
+    ...(chest.id === 'chest-lancereaver' ? { rewardId: 'zanbato' } : {}),
+  }));
   map.objects = [];
   map.decorativeHouses = [];
   map.extendEdges = map.forestEdges = false;

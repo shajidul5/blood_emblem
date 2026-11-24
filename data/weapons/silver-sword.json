@@ -1,0 +1,17 @@
+{
+  "id": "silver-sword",
+  "name": "Silver Sword",
+  "type": "Sword",
+  "damageType": "physical",
+  "might": 12,
+  "weight": 9,
+  "hit": 80,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "B",
+  "effect": [],
+  "sound": "slash",
+  "sprite": "assets/weapons/Bell_Yard/silver_sword.svg",
+  "lore": "An officer's sword packed for the descent, its silver edge wrapped in oilcloth. The guard bears the Order's sun; the scabbard bears a freight number."
+}

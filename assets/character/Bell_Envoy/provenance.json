@@ -1,0 +1,12 @@
+{
+  "generator": "PixelLab",
+  "characterId": "1a76f71e-42f9-44a6-a1b5-208f0f771139",
+  "size": 64,
+  "directions": 8,
+  "walkingGroup": "8a1dd536-65af-4a12-befa-39a261211317",
+  "walkingFrames": 6,
+  "attackingGroup": "b67b7d4c-ccc2-49f0-a9ce-47aaee63fc3f",
+  "attackingFrames": 9,
+  "description": "Feather-covered feral crow beast with wings, bare clawed hands and taloned feet; no clothing, armor or held weapon.",
+  "processing": "Original generated rotations and animation frames, no resampling. Runtime uses the shared sprite-bounds normalization."
+}

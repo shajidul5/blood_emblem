@@ -12,7 +12,7 @@
   "weaponExp": { "Dark": 60 },
   "inventory": ["dark-tome"],
   "ai": "guard",
-  "baseStats": { "hp": 32, "strength": 2, "magic": 15, "dexterity": 12, "speed": 10, "luck": 7, "defense": 5, "resistance": 12, "movement": 5, "build": 7 },
-  "currentStats": { "hp": 32, "strength": 2, "magic": 15, "dexterity": 12, "speed": 10, "luck": 7, "defense": 5, "resistance": 12, "movement": 5, "build": 7 },
-  "growthRates": { "hp": 55, "strength": 5, "magic": 55, "dexterity": 45, "speed": 35, "luck": 30, "defense": 20, "resistance": 45, "movement": 0, "build": 5 }
+  "baseStats": { "hp": 32, "strength": 2, "magic": 17, "dexterity": 15, "speed": 10, "luck": 7, "defense": 10, "resistance": 12, "movement": 5, "build": 7 },
+  "currentStats": { "hp": 32, "strength": 2, "magic": 17, "dexterity": 15, "speed": 10, "luck": 7, "defense": 10, "resistance": 12, "movement": 5, "build": 7 },
+  "growthRates": { "hp": 55, "strength": 5, "magic": 55, "dexterity": 45, "speed": 35, "luck": 30, "defense": 30, "resistance": 50, "movement": 0, "build": 5 }
 }

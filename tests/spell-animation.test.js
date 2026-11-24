@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 import * as timing from '../src/battle/battle-animation.js';
+import { battleActorScale, scaledBattleClip } from '../src/battle/battle-sizing.js';
+import * as battleEffects from '../src/battle/battle-effects.js';
 import { ARROW_EFFECT, BULLET_EFFECT, STAFF_EFFECTS, rangedEffectFor, SPELL_EFFECTS, spellEffectFor,
   spellEffectPose, staffEffectFor, thrownEffectFor, thrownWeaponPose } from '../src/battle/spell-animation.js';
 
@@ -131,7 +133,7 @@ async function presenterHarness({ reducedMotion = false } = {}) {
   const calls = [];
   const context = new Proxy({}, { set: () => true, get: (_, key) => (...args) => {
     if (key === 'drawImage') calls.push(['image', args[0].src, ...args.slice(1)]);
-    if (key === 'translate' || key === 'scale') calls.push([key, ...args]);
+    if (key === 'translate' || key === 'scale' || key === 'fillText') calls.push([key, ...args]);
   } });
   class Element {
     constructor(tag) { this.tag = tag; this.children = []; this.events = {}; this.isConnected = true; }
@@ -146,16 +148,16 @@ async function presenterHarness({ reducedMotion = false } = {}) {
   const document = { body: new Element('body'), createElement: (tag) => new Element(tag), activeElement: null };
   const audio = (name) => (...args) => calls.push([name, ...args]);
   const filenames = [...Object.values(art.backgrounds), ...Object.values(art.spells).map((s) => s.file),
-    ...Object.values(art.fighters).flatMap((f) => [f.idle, f.attack.file, f.critical.file,
+    ...Object.values(art.fighters).flatMap((f) => [f.idle, f.attack?.file, f.critical?.file,
       ...(f.idleLoop ? [f.idleLoop.file] : []),
       ...(f.thrown ? [f.thrown.attack.file, f.thrown.critical.file] : []),
       ...(f.flurry ? [f.flurry.back.file, f.flurry.plunge.file] : []),
-      ...(f.staff ? [f.staff.idle, f.staff.cast.file] : [])])];
+      ...(f.staff ? [f.staff.idle, f.staff.cast.file] : [])]).filter(Boolean)];
   const source = (await readFile(new URL('../src/battle/battle-screen.js', import.meta.url), 'utf8'))
     .replace(/^import[\s\S]*?;\r?\n/gm, '')
     .replace(/^const urls = .*;\r?\n/m, '')
     .replace('export function createBattleScreen', 'function createBattleScreen');
-  const sandbox = { ...timing, art, STAFF_EFFECTS, rangedEffectFor, spellEffectFor, spellEffectPose,
+  const sandbox = { ...timing, ...battleEffects, art, battleActorScale, scaledBattleClip, STAFF_EFFECTS, rangedEffectFor, spellEffectFor, spellEffectPose,
     staffEffectFor, thrownWeaponPose, document, console,
     performance: { now: () => now }, matchMedia: () => ({ matches: reducedMotion }),
     requestAnimationFrame(fn) { callback = fn; return 1; }, cancelAnimationFrame() { callback = null; },
@@ -177,8 +179,16 @@ async function presenterHarness({ reducedMotion = false } = {}) {
 
 test('real presenter loops new fighter idles at native frame boundaries, including while opponents attack', async () => {
   for (const [id, classId, spriteSet, type, weaponId, key] of [
-    ['lena', 'thief', 'lena', 'Sword', 'iron-katana', 'lena-thief'],
-    ['lena', 'assassin', 'assassinLena', 'Sword', 'iron-katana', 'lena-assassin-sword'],
+    ['lena', 'thief', 'lena', 'Sword', 'iron-sword', 'lena-thief'],
+    ['leon', 'mercenary', 'leon', 'Sword', 'beast-killer', 'leon-mercenary'],
+    ['leon', 'hero', 'heroLeon', 'Sword', 'steel-sword', 'leon-hero-sword'],
+    ['leon', 'hero', 'heroLeonAxe', 'Axe', 'hand-axe', 'leon-hero-axe'],
+    ['serra', 'mage', 'serra', 'Anima', 'fire-tome', 'serra-mage'],
+    ['serra', 'sage', 'sageSerra', 'Anima', 'fire-tome', 'serra-sage'],
+    ['arlan', 'knight', 'arlan', 'Spear', 'iron-spear', 'arlan-knight'],
+    ['arlan', 'general', 'generalArlan', 'Spear', 'iron-spear', 'arlan-general-spear'],
+    ['arlan', 'general', 'generalArlan', 'Axe', 'iron-axe', 'arlan-general-axe'],
+    ['lena', 'assassin', 'assassinLena', 'Sword', 'iron-sword', 'lena-assassin-sword'],
     ['lena', 'assassin', 'assassinLena', 'Bow', 'iron-bow', 'lena-assassin-bow'],
     ['undead', 'undead', 'genericUndead', 'Claw', 'undead-claws', 'generic-undead'],
     ['rotten', 'rotten', 'rotten', 'Claw', 'blighted-tendrils', 'rotten'],
@@ -210,6 +220,46 @@ test('real presenter loops new fighter idles at native frame boundaries, includi
       harness.skip();
       harness.step(6000);
       await pending;
+      await harness.screen.end();
+    }
+  }
+});
+
+test('Lethality presenter delivers sword and bow executions at contact, mirrors, honors reduced motion and skips once', async () => {
+  for (const weaponType of ['Sword', 'Bow']) for (const side of [0, 1]) for (const reducedMotion of [false, true]) {
+    for (const skipAt of [null, 0, 'contact']) {
+      const harness = await presenterHarness({ reducedMotion });
+      const lena = { id: 'lena', name: 'Lena', classId: 'assassin', spriteSet: 'assassinLena',
+        x: 0, z: 0, hp: 30, maxHp: 30, weapon: { id: weaponType === 'Bow' ? 'iron-bow' : 'iron-sword',
+          name: weaponType, type: weaponType } };
+      const target = { ...merfolk(), x: weaponType === 'Bow' ? 2 : 1, hp: 240, maxHp: 240 };
+      const pair = side === 0 ? [lena, target] : [target, lena];
+      assert.equal(await harness.screen.begin(...pair, { enabled: true, chapter: 10 }), true);
+      let impacts = 0;
+      const pending = harness.screen.strike(lena, { hit: true, critical: true, lethality: true }, () => {
+        impacts++;
+        target.hp = 0;
+        harness.screen.result(target, '-240', 'lethality');
+      });
+      const spec = art.fighters[timing.battleSpriteKey(lena)];
+      const clip = weaponType === 'Bow' ? spec.critical : scaledBattleClip(spec, spec.critical, battleActorScale(spec, lena));
+      const contact = timing.battleImpactTime(clip, rangedEffectFor(lena.weapon));
+      harness.step(contact - 1);
+      assert.equal(impacts, 0);
+      assert.equal(target.hp, 240);
+      assert.ok(harness.calls.some(([name, text]) => name === 'fillText' && text === 'LETHALITY'));
+      if (skipAt === 0) harness.skip();
+      harness.step(contact);
+      assert.equal(impacts, 1);
+      assert.equal(target.hp, 0);
+      if (skipAt !== 0) {
+        assert.ok(harness.calls.some(([name, options]) => name === 'steel-hit' && options.critical && options.lethality));
+        assert.ok(harness.calls.some(([name, x, y]) => name === 'translate' && x === (side === 0 ? 350 : 130) && y === 167));
+      }
+      if (skipAt === 'contact') harness.skip();
+      harness.step(5000);
+      await pending;
+      assert.equal(impacts, 1);
       await harness.screen.end();
     }
   }
@@ -270,8 +320,16 @@ test('real presenter delays damage and elemental audio until contact, mirrors, a
   }
 });
 
-test('mounted Rictor casts Light on either side at both ranges, with holy audio, misses and safe skips', async () => {
-  for (const id of ['light-tome', 'lumen', 'aureole']) {
+test('Light, Dark and Anima casts mirror at both ranges with correct audio, misses and safe skips', async () => {
+  for (const [id, classId, key] of [['rictor', 'templar', 'rictor-templar-light'],
+    ['seymour', 'bishop', 'seymour-bishop'], ['rictor', 'oathbound', 'rictor-oathbound-dark'],
+    ['serra', 'mage', 'serra-mage'], ['serra', 'sage', 'serra-sage'],
+    ['eveline', 'valkyrie', 'eveline-valkyrie'], ['corvis', 'dark-sage', 'corvis-dark-sage']]) {
+  const identity = { id, classId };
+  for (const id of ['serra', 'eveline'].includes(identity.id) ? ['fire-tome', 'thunder-tome', 'wind-tome', 'blaze', 'inferno', 'gale', 'tempest', 'elthunder', 'bolting']
+    : identity.id === 'corvis' ? ['dark-tome', 'luna', 'nosferatu', 'last-testament', 'fire-tome', 'thunder-tome', 'wind-tome', 'blaze', 'inferno', 'gale', 'tempest', 'elthunder', 'bolting']
+    : classId === 'oathbound' ? ['dark-tome', 'luna', 'nosferatu', 'last-testament']
+    : ['light-tome', 'lumen', 'aureole']) {
     const weapon = JSON.parse(await readFile(new URL(`../data/weapons/${id}.json`, import.meta.url)));
     for (const range of [1, 2]) {
       for (const side of [0, 1]) {
@@ -279,7 +337,7 @@ test('mounted Rictor casts Light on either side at both ranges, with holy audio,
           for (const hit of [false, true]) {
             for (const skip of [false, true]) {
               const harness = await presenterHarness({ reducedMotion: skip });
-              const caster = { ...cyrus(), id: 'rictor', classId: 'templar', weapon };
+              const caster = { ...cyrus(), ...identity, weapon };
               const target = { ...merfolk(), x: range };
               const pair = side ? [target, caster] : [caster, target];
               assert.equal(await harness.screen.begin(...pair, { enabled: true, chapter: 9 }), true);
@@ -289,7 +347,7 @@ test('mounted Rictor casts Light on either side at both ranges, with holy audio,
                 if (hit) target.hp -= 7;
                 harness.screen.result(target, hit ? '7' : 'MISS', hit ? critical ? 'critical' : 'damage' : 'miss');
               });
-              const clip = art.fighters['rictor-templar-light'][critical ? 'critical' : 'attack'];
+              const clip = art.fighters[key][critical ? 'critical' : 'attack'];
               const impact = timing.battleImpactTime(clip, SPELL_EFFECTS[id]);
               harness.step(impact - 1);
               assert.equal(impacts, 0);
@@ -298,7 +356,8 @@ test('mounted Rictor casts Light on either side at both ranges, with holy audio,
               assert.equal(impacts, 1);
               assert.equal(target.hp, hit ? 23 : 30);
               if (!skip) {
-                assert.ok(harness.calls.some(([name, element]) => name === 'release' && element === 'holy'));
+                assert.ok(harness.calls.some(([name, file]) => name === 'image' && file === clip.file));
+                assert.ok(harness.calls.some(([name, element]) => name === 'release' && element === SPELL_EFFECTS[id].element));
                 assert.ok(harness.calls.some(([name]) => name === (hit ? 'spell-hit' : 'miss')));
                 assert.ok(harness.calls.some(([name, file]) => name === 'image' &&
                   file === art.spells[SPELL_EFFECTS[id].key].file));
@@ -315,6 +374,7 @@ test('mounted Rictor casts Light on either side at both ranges, with holy audio,
         }
       }
     }
+  }
   }
 });
 
@@ -341,16 +401,24 @@ test('Sage staff effects cover every tier without equipping a staff or enabling 
   }
 });
 
-test('Sage heals and freezes at staff contact; misses and skips resolve exactly once', async () => {
+test('Sages and mounted Eveline heal and freeze at staff contact; misses and skips resolve exactly once', async () => {
+  for (const [id, key, classId] of [['cypher', 'cyrus-sage', 'sage'], ['serra', 'serra-sage', 'sage'],
+    ['corvis', 'corvis-dark-sage', 'dark-sage'], ['eveline', 'eveline-troubadour', 'troubadour'],
+    ['eveline', 'eveline-valkyrie', 'valkyrie']]) {
   for (const kind of ['heal', 'freeze']) {
     for (const hit of kind === 'heal' ? [true] : [false, true]) {
       for (const skipAt of [null, 0, 650, 1000]) {
         const harness = await presenterHarness();
-        const sage = { ...cyrus(), classId: 'sage' };
+        const sage = { ...cyrus(), id, classId };
         const recipient = kind === 'heal' ? { ...cyrus(), hp: 10 } : merfolk();
         const staff = { type: 'Staff', name: kind, [kind]: kind === 'heal' ? 10 : true };
         assert.equal(await harness.screen.begin(sage, recipient, { enabled: false, chapter: 5, staff }), false);
         assert.equal(await harness.screen.begin(sage, recipient, { enabled: true, chapter: 5, staff }), true);
+        const spec = art.fighters[key], clip = spec.staff.cast;
+        harness.step(0);
+        assert.ok(harness.calls.some(([name, file]) => name === 'image' && file === spec.staff.idle));
+        if (spec.idleLoop) assert.equal(harness.calls.some(([name, file]) =>
+          name === 'image' && file === spec.idleLoop.file), false, 'staff ready never switches back to the tome breathing sheet');
         const initialHp = recipient.hp;
         let impacts = 0;
         const pending = harness.screen.strike(sage, { hit, critical: false }, () => {
@@ -359,7 +427,6 @@ test('Sage heals and freezes at staff contact; misses and skips resolve exactly 
           if (hit && kind === 'freeze') recipient.frozen = 2;
           harness.screen.result(recipient, hit ? kind === 'heal' ? '+10' : 'FROZEN' : 'MISS', hit ? kind : 'miss');
         });
-        const clip = art.fighters['cyrus-sage'].staff.cast;
         const impact = timing.battleImpactTime(clip, STAFF_EFFECTS[kind]);
         if (skipAt === null) {
           harness.step(impact - 1);
@@ -386,6 +453,126 @@ test('Sage heals and freezes at staff contact; misses and skips resolve exactly 
         assert.equal(harness.screen.active, false);
       }
     }
+  }
+  }
+});
+
+test('Seymour routes staff and Bishop Light without granting Priest attacks or changing equipment', async () => {
+  for (const classId of ['priest', 'bishop']) {
+    const caster = { ...cyrus(), id: 'seymour', classId };
+    for (const id of ['heal-staff', 'mend', 'physic', 'freeze-staff', 'hold', 'stasis']) {
+      const staff = JSON.parse(await readFile(new URL(`../data/weapons/${id}.json`, import.meta.url)));
+      const equipped = { ...caster, weapon: staff };
+      assert.equal(timing.staffBattleKey(caster, staff), `seymour-${classId}`);
+      assert.equal(timing.battleSpriteKey(equipped), null);
+      assert.equal(timing.battleIdleKey(equipped), `seymour-${classId}`);
+      assert.equal(timing.supportsStaffScene(caster, equipped, staff), true);
+      assert.equal(timing.supportsBattleScene(equipped, equipped), false);
+      assert.equal(timing.supportsBattleScene({ ...merfolk(), x: 1 }, equipped), true);
+      assert.equal(timing.supportsBattleScene({ ...cyrus(), x: 2 }, equipped), true);
+    }
+    for (const id of ['light-tome', 'lumen', 'aureole']) {
+      const weapon = { id, type: 'Light' };
+      assert.equal(timing.battleSpriteKey({ ...caster, weapon }),
+        classId === 'bishop' ? 'seymour-bishop' : null);
+    }
+    assert.equal(timing.staffBattleKey({ ...caster, id: 'other' }, { type: 'Staff', heal: 10 }), null);
+    assert.equal(timing.staffBattleKey({ ...caster, classId: 'sage' }, { type: 'Staff', heal: 10 }), null);
+    assert.equal(timing.staffBattleKey(caster, { type: 'Anima', heal: 10 }), null);
+    assert.equal(timing.battleSpriteKey({ ...caster, weapon: { id: 'unknown', type: 'Light' } }), null);
+  }
+});
+
+test('young Seymour staff casts heal or freeze exactly once, including misses, skips and Seymour recipients', async () => {
+  for (const classId of ['priest', 'bishop']) for (const kind of ['heal', 'freeze']) {
+    for (const hit of kind === 'heal' ? [true] : [false, true]) for (const skipAt of [null, 0, 650]) {
+      const harness = await presenterHarness();
+      const staff = { type: 'Staff', name: kind, [kind]: kind === 'heal' ? 10 : true };
+      const caster = { ...cyrus(), id: 'seymour', name: 'Seymour', classId, weapon: staff };
+      const recipient = { ...cyrus(), id: 'seymour', classId: 'priest', hp: 10, weapon: staff };
+      assert.equal(await harness.screen.begin(caster, recipient, { enabled: true, chapter: 5, staff }), true);
+      let impacts = 0;
+      const pending = harness.screen.strike(caster, { hit, critical: false }, () => {
+        impacts++;
+        if (hit && kind === 'heal') recipient.hp += 10;
+        if (hit && kind === 'freeze') recipient.frozen = 2;
+      });
+      const spec = art.fighters[`seymour-${classId}`];
+      const impact = timing.battleImpactTime(spec.staff.cast, STAFF_EFFECTS[kind]);
+      if (skipAt === null) {
+        harness.step(impact - 1);
+        assert.equal(impacts, 0);
+        harness.step(impact);
+        assert.equal(impacts, 1);
+        assert.ok(harness.calls.some(([name, file]) => name === 'image' && file === spec.staff.cast.file));
+        assert.ok(harness.calls.some(([name, file]) => name === 'image' &&
+          file === art.fighters['seymour-priest'].idle));
+      } else {
+        harness.step(skipAt);
+        harness.skip();
+      }
+      harness.step(5000);
+      await pending;
+      assert.equal(impacts, 1);
+      assert.equal(recipient.hp, 10 + (kind === 'heal' && hit ? 10 : 0));
+      assert.equal(Boolean(recipient.frozen), kind === 'freeze' && hit);
+      assert.equal(caster.weapon, staff);
+      assert.equal(harness.calls.some(([name]) => name.startsWith('steel')), false);
+      await harness.screen.end();
+    }
+  }
+});
+
+test('Troy can complete both close-up strikes against an unarmed Freight Yard Bishop', async () => {
+  const harness = await presenterHarness();
+  const troy = { id: 'troy', name: 'Troy', classId: 'paladin', spriteSet: 'paladinTroy',
+    x: 0, z: 0, hp: 40, maxHp: 40, weapon: { id: 'iron-spear', type: 'Spear', name: 'Iron Spear' } };
+  const bishop = { id: 'bell-bishop', name: 'Freight Yard Bishop', classId: 'bishop',
+    spriteSet: 'genericBishop', x: 1, z: 0, hp: 35, maxHp: 35, weapon: null };
+
+  assert.equal(await harness.screen.begin(troy, bishop, { enabled: true, chapter: 16 }), true);
+  harness.step(0);
+  assert.ok(harness.calls.some(([kind, label]) => kind === 'fillText' && label === 'Unarmed'));
+  assert.ok(harness.calls.some(([kind, label]) => kind === 'fillText' && label === 'Iron Spear'));
+  let impacts = 0;
+  for (const start of [0, 6000]) {
+    const pending = harness.screen.strike(troy, { hit: true, critical: false }, () => {
+      impacts++;
+      bishop.hp -= 10;
+    });
+    harness.step(start + 3000);
+    harness.step(start + 6000);
+    await pending;
+  }
+  assert.equal(impacts, 2);
+  assert.equal(bishop.hp, 15);
+  await assert.rejects(harness.screen.strike(bishop, { hit: true }, () => assert.fail('Unarmed counter')),
+    /no offensive battle animation/);
+  await harness.screen.end();
+  assert.equal(harness.screen.active, false);
+});
+
+test('staff-equipped healers can defend but cannot play an offensive strike or counter animation', async () => {
+  for (const [id, classId, key] of [['seymour', 'priest', 'seymour-priest'],
+    ['seymour', 'bishop', 'seymour-bishop'], ['serra', 'sage', 'serra-sage'],
+    ['eveline', 'troubadour', 'eveline-troubadour'], ['eveline', 'valkyrie', 'eveline-valkyrie'],
+    ['corvis', 'dark-sage', 'corvis-dark-sage']]) for (const distance of [1, 2]) {
+    const harness = await presenterHarness();
+    const attacker = cyrus();
+    const target = { ...cyrus(), id, classId, x: distance,
+      weapon: { type: 'Staff', heal: 10, maxRange: 10 } };
+    assert.equal(await harness.screen.begin(attacker, target, { enabled: true, chapter: 4 }), true);
+    let impacts = 0;
+    const pending = harness.screen.strike(attacker, { hit: true, critical: false }, () => impacts++);
+    harness.step(5000);
+    await pending;
+    assert.equal(impacts, 1);
+    await assert.rejects(
+      harness.screen.strike(target, { hit: true }, () => { throw new Error('Invalid staff damage'); }),
+      /no offensive battle animation/);
+    assert.ok(harness.calls.some(([name, file]) => name === 'image' &&
+      file === art.fighters[key].staff.idle));
+    await harness.screen.end();
   }
 });
 
@@ -546,16 +733,23 @@ test('Bartz and generic lancers throw at range 2, catch the weapon, and keep mel
   for (const [classId, key, id, spriteSet, type] of [
     ['pirate', 'bartz-pirate', 'bartz', undefined, 'Axe'],
     ['berserker', 'bartz-berserker', 'bartz', undefined, 'Axe'],
+    ['hero', 'leon-hero-axe', 'leon', 'heroLeonAxe', 'Axe'],
     ['knight', 'generic-knight', 'ward-knight', 'genericKnight', 'Spear'],
-    ['general', 'generic-knight', 'orsen', 'genericKnight', 'Spear'],
+    ['general', 'generic-general-spear', 'orsen', 'genericKnight', 'Spear'],
     ['cavalier', 'generic-cavalier', 'bridge-captain', 'genericCavalier', 'Spear'],
     ['soldier', 'generic-soldier', 'ward-soldier', 'genericSoldier', 'Spear'],
     ['cavalier', 'linus-cavalier-lance', 'linus', 'linus', 'Spear'],
     ['paladin', 'linus-paladin-lance', 'linus', 'paladinLinus', 'Spear'],
+    ['paladin', 'linus-paladin-axe', 'linus', 'paladinLinus', 'Axe'],
+    ['paladin', 'troy-paladin-axe', 'troy', 'paladinTroy', 'Axe'],
     ['paladin', 'generic-paladin', 'golden-captain', 'genericPaladin', 'Spear'],
     ['bloodsworn', 'linus-bloodsworn', 'linus', 'bloodswornLinus', 'Spear'],
     ['oathkeeper', 'rictor-oathkeeper', 'rictor', 'rictor', 'Spear'],
     ['templar', 'rictor-templar-lance', 'rictor', 'templarRictor', 'Spear'],
+    ['oathbound', 'rictor-oathbound-lance', 'rictor', 'oathboundRictor', 'Spear'],
+    ['knight', 'arlan-knight', 'arlan', 'arlan', 'Spear'],
+    ['general', 'arlan-general-spear', 'arlan', 'generalArlan', 'Spear'],
+    ['general', 'arlan-general-axe', 'arlan', 'generalArlan', 'Axe'],
   ]) {
   const axe = thrownEffectFor({ type, maxRange: 2 });
   for (const kind of ['attack', 'critical']) {
@@ -637,6 +831,8 @@ test('generic cavalry and both Linus forms slash with sword art, mirrored, resol
     ['order-cavalier', 'cavalier', 'genericCavalier', 'generic-cavalier-sword'],
     ['linus', 'cavalier', 'linus', 'linus-cavalier-sword'],
     ['linus', 'paladin', 'paladinLinus', 'linus-paladin-sword'],
+    ['leon', 'mercenary', 'leon', 'leon-mercenary'],
+    ['leon', 'hero', 'heroLeon', 'leon-hero-sword'],
   ]) {
   for (const side of [0, 1]) {
     for (const critical of [false, true]) {
@@ -687,8 +883,9 @@ test('generic cavalry and both Linus forms slash with sword art, mirrored, resol
 test('wolfman, Lena sword sets and undead attacks mirror, miss and skip with exactly one physical impact', async () => {
   for (const [id, classId, spriteSet, type, weaponId, key] of [
     ['root-warden', 'wolfman', 'genericWolfman', 'Claw', 'wolfman-claws', 'generic-wolfman'],
-    ['lena', 'thief', 'lena', 'Sword', 'iron-katana', 'lena-thief'],
-    ['lena', 'assassin', 'assassinLena', 'Sword', 'iron-katana', 'lena-assassin-sword'],
+    ['lena', 'thief', 'lena', 'Sword', 'iron-sword', 'lena-thief'],
+    ['lena', 'assassin', 'assassinLena', 'Sword', 'iron-sword', 'lena-assassin-sword'],
+    ['rictor', 'oathbound', 'oathboundRictor', 'Sword', 'iron-sword', 'rictor-oathbound-sword'],
     ['undead', 'undead', 'genericUndead', 'Claw', 'undead-claws', 'generic-undead'],
   ]) {
   for (const side of [0, 1]) for (const critical of [false, true]) {

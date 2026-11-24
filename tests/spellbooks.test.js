@@ -162,8 +162,8 @@ test('authored enemy spells do not require player Insight unlocks or rank progre
 
 test('carried physical weapons use the same choices and rank does not bypass locked spells', () => {
   const maria = characters.createMaria();
-  maria.inventory.push(...inventory.createInventory(['iron-katana']));
-  assert.deepEqual(inventory.carriedWeapons(maria).map((weapon) => weapon.id), ['rapier', 'iron-katana']);
+  maria.inventory.push(...inventory.createInventory(['iron-sword']));
+  assert.deepEqual(inventory.carriedWeapons(maria).map((weapon) => weapon.id), ['rapier', 'iron-sword']);
   for (const weapon of inventory.carriedWeapons(maria)) {
     assert.equal(inventory.weaponUseBlockReason(maria, weapon), undefined);
   }
@@ -274,7 +274,7 @@ test('mounted Templars are weak to anti-cavalry weapons but Oathkeepers remain i
   assert.equal(combat.isWeaponEffective(rictor, undead), true);
 });
 
-test('old foot-Templar saves restore mounted with eight movement, without stacking gains', () => {
+test('Templar saves restore mounted with at least eight movement, preserving booster gains', () => {
   const rictor = characters.createRictorAlly();
   const oldStats = { ...saves.serializeUnit(rictor).stats, movement: 6 };
   Object.assign(rictor, oldStats);

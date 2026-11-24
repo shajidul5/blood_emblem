@@ -32,7 +32,11 @@ export function validateRescueRules(value, level) {
       Array.isArray(reward.items) && reward.items.every((id) => INVENTORY_ITEMS.has(id)))
   ) throw new Error('Rescue chapter needs three unique villagers and houses, a captain, Linus, refuge tiles, and valid rewards.');
   const occupied = new Set([...level.players, ...level.enemies].map((unit) => tileKey(unit.x, unit.z)));
-  const positions = [value.recruit, ...value.villagers.map((villager) =>
+  const linus = level.players.find((unit) => unit.id === 'linus');
+  if (linus && (linus.x !== value.recruit.x || linus.z !== value.recruit.z)) {
+    throw new Error('Allied Linus must start at his rescue-rule position.');
+  }
+  const positions = [...(linus ? [] : [value.recruit]), ...value.villagers.map((villager) =>
     level.houses.find((house) => house.id === villager.houseId).door)];
   for (const tile of positions) {
     const key = tileKey(tile.x, tile.z);
@@ -88,7 +92,7 @@ export function freshRescueState(level) {
   const rules = level.rescue;
   if (!rules) return null;
   return {
-    recruited: false,
+    recruited: level.players.some((unit) => unit.id === 'linus'),
     rewardsClaimed: false,
     linus: { x: rules.recruit.x, z: rules.recruit.z, hp: rules.recruit.hp },
     villagers: rules.villagers.map(({ id, houseId }) => ({

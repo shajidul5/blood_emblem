@@ -1,0 +1,8 @@
+{
+  "id": "shore-horizon-keeper", "name": "Horizon Keeper", "classId": "sage", "type": "infantry",
+  "spriteSet": "shoreHorizonKeeper", "sprite": "assets/character/Shore_Horizon_Keeper/rotations/south.png",
+  "scale": 1, "level": 28, "experience": 0, "weaponId": "the-last-horizon", "weaponExp": { "Anima": 300 }, "inventory": ["the-last-horizon"], "ai": "mobile",
+  "baseStats": { "hp": 74, "strength": 0, "magic": 33, "dexterity": 44, "speed": 29, "luck": 16, "defense": 18, "resistance": 31, "movement": 6, "build": 12 },
+  "currentStats": { "hp": 74, "strength": 0, "magic": 33, "dexterity": 44, "speed": 29, "luck": 16, "defense": 18, "resistance": 31, "movement": 6, "build": 12 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

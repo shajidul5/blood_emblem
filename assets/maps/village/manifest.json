@@ -3,6 +3,294 @@
   "generator": "PixelLab Pixen",
   "pixelCellSize": 16,
   "images": {
+    "courtyard-redrawn": {
+      "file": "courtyard-redrawn.png",
+      "generator": "Whole-map AI redraw guided by the finalized 26 by 30 collision blueprint",
+      "sourceFile": "courtyard-passage.png",
+      "sourceImage": "sha256:db4c60a25da009eb545fb7ee3c811605a422434e068093915650fb2147c891e0",
+      "geometryRefinement": "sha256:51930a167fa8d42c7647237d3d824e0fac85cc48b56d554512f54382c7350396",
+      "sourceDimensions": [1168, 1347],
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "collisionSha256": "e0374940f687a2975d33ad00656ebed04d13108fa948754780847af0a39c2d54",
+      "processing": "One complete coherent illustration, uniformly fitted at 1.069042316258352 with a centered 0.3-source-pixel horizontal crop; no regional stretching. A second whole-map pass opens the eastern gateway and refines the hedge crossings. Final collision-constrained native-scale paving gradient synthesis removes foreground spill from walkable cells, with stone coping inset entirely inside blocked hedge cells. Paving texture comes only from this same redraw, not the older patched map. No units, UI or reward chests are painted into the art.",
+      "facade": { "rows": 4, "rise": 5.6, "northCameraExtension": 8 },
+      "fountainFootprint": [528, 528, 192, 144],
+      "entrances": {
+        "cathedral": [576, 192, 48, 48],
+        "southGate": [576, 1200, 48, 48],
+        "northwestGarden": [144, 384, 48, 48],
+        "corvisGarden": [240, 720, 48, 48],
+        "deliveryCourt": [960, 672, 48, 48],
+        "eastCourt": [1056, 528, 48, 48],
+        "westFountainCrossing": [432, 576, 48, 48],
+        "eastFountainCrossing": [768, 576, 48, 48]
+      },
+      "notes": "Visual-only revision: collision, units, AI, finite waves, rewards, chests and chapter mechanics are unchanged from the finalized passage layout. The full 48 by 48 footprint of every walkable cell is checked for foliage and rooftops. Older embedded saves retain their artwork; Restart Chapter selects this redraw."
+    },
+    "courtyard-passage": {
+      "file": "courtyard-passage.png",
+      "generator": "Local fountain redraw with an exact one-cell perimeter loop",
+      "sourceFile": "courtyard-depth.png",
+      "fountainRedraw": "sha256:d704798d57f6cca99894fbe3c2de318a16ac60f9b0802284428cfc1ac3dc67c3",
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "repairRegions": [[480, 480, 288, 240], [432, 576, 48, 48], [768, 576, 48, 48]],
+      "fountainFootprint": [528, 528, 192, 144],
+      "processing": "The complete generated dry basin and rim are uniformly fitted inside the blocked four-by-three footprint. A native-scale patch of clear courtyard paving from [480,864,288,240] opens the full 48px perimeter on all four sides. Four-pixel outside-edge feathering matches the existing paving. Two additional 48px hedge crossings at (9,12) and (16,12) use native pixels from adjacent loop cells (10,12) and (15,12), without resizing. Every pixel outside the three repair regions is unchanged from courtyard-depth.png.",
+      "facade": { "rows": 4, "rise": 5.6, "northCameraExtension": 8 },
+      "entrances": {
+        "cathedral": [576, 192, 48, 48],
+        "southGate": [576, 1200, 48, 48],
+        "northwestGarden": [144, 384, 48, 48],
+        "corvisGarden": [240, 720, 48, 48],
+        "deliveryCourt": [960, 672, 48, 48],
+        "eastCourt": [1056, 528, 48, 48]
+      },
+      "notes": "The clear fountain loop is x=10 and x=15 for z=10..14, joined by z=10 and z=14 for x=10..15. Only x=11..14,z=11..13 remains blocked fountain. Older concept/aligned/repaired/depth saves keep their own art and collision; Restart Chapter adopts the loop and revised rewards."
+    },
+    "courtyard-depth": {
+      "file": "courtyard-depth.png",
+      "generator": "Localized AI architecture redraws with a raised continuous cathedral facade",
+      "sourceFile": "courtyard-repaired.png",
+      "eastRedraw": "sha256:5199d82af445328086b16930d8f6482a0a0c3342e7938b23d2edb042d6039b99",
+      "townRedraw": "sha256:d925c4643cef3a8b72a5744f7863ae1d6800feeb7f207eabaf62d49f8c283a70",
+      "gardenRedraw": "sha256:28dbf22346849fda9bdaeae65b1e0f2c17da4550e8b64e3633c3971e11ab550d",
+      "eastGateRedraw": "sha256:24190bdb945fb0f95af8301cbe150feaa6557212980b8fbc446c46db9c1fba99",
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "repairRegions": [[816, 240, 432, 960], [0, 1200, 1248, 240], [144, 624, 240, 192]],
+      "processing": "Uniform native-aspect fits of complete regional redraws; no piecewise coordinate stretching. Town letterboxing is excluded before fitting. The Corvis garden has naturally finished hedge ends and stairs. A new lateral court gateway is repainted within the eastern redraw; its lingering narrow wall cap is replaced with adjacent floor at native scale. The isolated planter across the perimeter connection is replaced with adjacent plaza from that same redraw, without stretching. The eastern redraw is gently warmth-matched with a 32px feather at the retained central paving. All pixels outside the listed regions remain identical to courtyard-repaired.png.",
+      "facade": { "rows": 4, "rise": 5.6, "northCameraExtension": 8 },
+      "entrances": {
+        "cathedral": [576, 192, 48, 48],
+        "southGate": [576, 1200, 48, 48],
+        "northwestGarden": [144, 384, 48, 48],
+        "corvisGarden": [240, 720, 48, 48],
+        "deliveryCourt": [960, 672, 48, 48],
+        "eastCourt": [1056, 528, 48, 48]
+      },
+      "notes": "Only blocked cathedral rows 0..3 rise above the ground, on the same textured mesh; all gameplay cells and the row-4 threshold retain their original world coordinates. The editor displays the unlifted source grid. The southern court approach connects columns 17..23 across rows 15 and 16. The eastern perimeter passage at column 23, rows 6..16 connects to the court through (22,11). The two live chest rewards, all unit positions, reserves, warnings and court leash are unchanged. Earlier artwork variants remain available to embedded saves."
+    },
+    "courtyard-repaired": {
+      "file": "courtyard-repaired.png",
+      "generator": "Localized AI redraw with grid-masked walking surface repairs",
+      "sourceFile": "courtyard-aligned.png",
+      "westRedraw": "sha256:78e47c2358b1b60f57091b0b51447e88665ba84972568a477895681b3a11506d",
+      "pavingRedraw": "sha256:1bce520b41b2406093e6f57d96f8e6bd44e090096e724edc45311bf5cbaaafd0",
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "repairRegions": [[0, 240, 432, 960], [960, 816, 96, 288]],
+      "processing": "Redrawn western masonry, gardens and passages replace the visibly stretched strip. Unique patches from a newly generated fine paving surface clear whole walkable cells without recycling a tile or warping the original paths. Short native-scale treads replace distorted stairs. Unaffected pixels are preserved exactly from courtyard-aligned.png.",
+      "entrances": {
+        "cathedral": [576, 192, 48, 48],
+        "southGate": [576, 1200, 48, 48],
+        "northwestGarden": [144, 384, 48, 48],
+        "corvisGarden": [240, 720, 48, 48],
+        "deliveryCourt": [960, 672, 48, 48]
+      },
+      "notes": "Western crosswalks on rows 9, 12 and 16 now connect columns 2..8. Lower side passages use western columns 4..5 and eastern columns 20..21, connecting across rows 19 and 22. The northeastern crate court contains live Light tome and Orders Emblem chests at (20,9) and (21,11), not painted treasure. Previous variants retain their own artwork and collision in embedded saves; Restart Chapter adopts the repairs and chests."
+    },
+    "courtyard-aligned": {
+      "file": "courtyard-aligned.png",
+      "generator": "Grid registration of the approved original concept",
+      "sourceFile": "courtyard-concept.png",
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "processing": "Continuous nearest-pixel coordinate registration of the complete concept, widening narrow walks and centering entrances on whole cells. No generated replacement architecture or repeated terrain stamps. Leaf encroachment is cleared only inside the Corvis stair cell using adjacent pixels from the same tread.",
+      "entrances": {
+        "cathedral": [576, 192, 48, 48],
+        "southGate": [576, 1200, 48, 48],
+        "corvisGarden": [240, 720, 48, 48],
+        "deliveryCourt": [960, 672, 48, 48]
+      },
+      "sourceEntranceBounds": {
+        "cathedral": [579, 192, 76, 48],
+        "southGate": [583, 1246, 72, 44],
+        "corvisGarden": [268, 659, 13, 54],
+        "deliveryCourt": [930, 660, 43, 55]
+      },
+      "notes": "All entrances are one cell and centered on a unit, including the southern arch and staircase in column 12. The western Sage stands on the crosswalk at (7,12), not the enclosed flower bed. Corvis uses the cleared garden interior at (5,14), approached from (5,15). Crates, hedges, statues, fountain rim and scenic side passages are blocked. The delivery doorway is (20,14), with column 17 as the safe bypass. Earlier concept and illustrated embedded saves retain their original image and collision; Restart Chapter adopts the registered layout."
+    },
+    "courtyard-concept": {
+      "file": "courtyard-concept.png",
+      "generator": "Original approved concept with planning-overlay cleanup",
+      "conceptImage": "sha256:73ee8273e25bdf5cded2c9278526571624885163e1da66da2e51e4c6227c88c2",
+      "sourceImage": "sha256:c2ceb1fb6f6e3d8a74a926a0cc169262387a3e66f831162be9c4b84ef2ec9189",
+      "sourceDimensions": [1137, 1383],
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "processing": "Full-image nearest-pixel fit; no patch assembly, repeated textures, regional warping or architecture overlays.",
+      "entrances": {
+        "cathedral": [576, 192, 96, 48],
+        "southGate": [576, 1248, 96, 48],
+        "corvisGarden": [240, 672, 48, 48],
+        "sageEast": [336, 480, 48, 48],
+        "deliveryCourt": [912, 624, 48, 48]
+      },
+      "notes": "Preserves the approved concept's complete cathedral, dimensional garden masonry, lanterns, raised perimeter, stairs and burning city. Cleanup removes only title/legend borders, yellow grid, planning tokens, arrows and labels, and dries the existing basin. Collision and placements follow the existing painting rather than rebuilding the painting from terrain tiles. Court entry is on its southern edge; the west aisle bypasses it. Older embedded courtyard layouts continue to use courtyard.png."
+    },
+    "courtyard": {
+      "file": "courtyard.png",
+      "generator": "AI image generation with nearest-pixel collision registration",
+      "sourceImage": "sha256:af04017e0c5448e59861dd6d5534f64ee918562a2209e9318df6f6908a1378d6",
+      "width": 1248,
+      "height": 1440,
+      "pixelCellSize": 48,
+      "entrances": {
+        "cathedral": [576, 144, 96, 48],
+        "southGate": [576, 1392, 96, 48],
+        "corvisGarden": [240, 864, 48, 48],
+        "sageSouth": [240, 624, 48, 48],
+        "sageEast": [336, 528, 48, 48],
+        "deliveryCourt": [912, 576, 48, 48]
+      },
+      "notes": "One baked 26x30 illustration with a dry four-by-three fountain, untouched cathedral frontage, clipped hedges and walkable lawns. Generated paving, gardens and architecture are registered to authored collision masks. Garden openings are one cell (48px); cathedral and southern ceremonial entrances are two cells (96px), centered at x=13. No separate runtime building, fountain or hedge props. Legacy non-illustrated courtyards retain their original renderer."
+    },
+    "streets-depth": {
+      "file": "streets-depth.png",
+      "generator": "AI image generation with nearest-pixel layout registration",
+      "sourceImage": "sha256:cfdedeb286747e9e9e2b8aa99c450250260085d60b2f309ba233d6b46d7e5e4a",
+      "width": 1232,
+      "height": 1496,
+      "playableCrop": [0, 264, 1232, 1232],
+      "pixelCellSize": 44,
+      "northBackdropCells": 6,
+      "styleReference": "harbor.png",
+      "compositionReference": "streets.png",
+      "entrances": {
+        "coachman": [308, 1145, 44, 65],
+        "bellkeeper": [308, 837, 44, 65],
+        "apothecary": [924, 529, 44, 65]
+      },
+      "notes": "One complete city illustration: raised Gothic facades, visible side walls, footprint shadows and a monumental distant clocktower in six inaccessible northern rows. Generated 1254x1254 source is nearest-pixel registered to the 28x28 tactical district; exact authored walkable cells and one-cell visit portals retain approved road/door pixels from streets.png. No extra walkable cells or separate house/tower assets. The game draws the skyline and district together; the editor crops to playable cells. Original streets.png remains available to embedded legacy HD maps."
+    },
+    "streets": {
+      "file": "streets.png",
+      "generator": "AI image generation with native-pixel doorway registration",
+      "sourceImage": "sha256:07339c5ebddf57629d0b645783ee4c58ff32967fb022129bb8bc57c19673b268",
+      "width": 1232,
+      "height": 1232,
+      "sourceCrop": [11, 11, 1232, 1232],
+      "pixelCellSize": 44,
+      "styleReference": "infirmary-compact.png",
+      "entrances": {
+        "coachman": [308, 881, 44, 65],
+        "bellkeeper": [308, 573, 44, 65],
+        "apothecary": [924, 265, 44, 65]
+      },
+      "notes": "One complete generated Chapter 13 district: all roofs, shops, clocktower, lamps and cobblestones are baked into the same illustration. Native crop without resampling on the unchanged 28x28 grid. Integrated stone portals are registered to the three visit-cell centers; dark openings are exactly one 44px cell wide. No separate building sprites or procedural town border are drawn. Visit, seize and quarantine markers remain live. Old embedded street maps without villageScene retain their original presentation."
+    },
+    "village-hd": {
+      "file": "village-hd.png",
+      "generator": "AI image generation with PixelLab path clearance repairs",
+      "sourceImage": "sha256:a08105ff80e3fe207289522b925cad476cb20cf3b6aa52ec67d7212d3124ba3c",
+      "width": 2304,
+      "height": 1008,
+      "pixelCellSize": 48,
+      "easternSourceCrop": [96, 8, 1344, 1008],
+      "easternDestination": [960, 0],
+      "compositionReference": "village.png, eastern columns 20..47",
+      "styleReference": "harbor.png",
+      "overlap": { "preservedWesternColumns": [0, 20], "blendPixels": [1008, 1104] },
+      "repairs": [
+        { "job": "9b41de4f-3c90-42d2-a95e-e9a295b82beb", "sourceCrop": [1296, 240, 256, 256], "mask": "walkable cells x28..30,z7..9" },
+        { "job": "e3fb2bb8-f29e-4908-8537-16c0daedb18f", "sourceCrop": [1440, 480, 256, 400], "mask": "walkable cells x31,z11..17 and x33,z11..15" },
+        { "job": "017dcc3f-9b49-414c-8b14-099653a14997", "sourceCrop": [1632, 672, 512, 192], "mask": "walkable cells x34..44,z15 within crop" },
+        { "job": "c7b89459-c0d6-4a0f-a1b6-b8d0e941a64b", "sourceCrop": [1776, 480, 256, 256], "mask": "walkable cells x38..40,z11..14" }
+      ],
+      "notes": "Full Chapter 5 village at the same native 48px/cell scale as Chapter 3, assembled without resizing either image. Western playable district is copied pixel-identically from harbor.png; only the former scenic overlap is blended. Exact 48x21 tactical size, doors, rewards, recruitment, exit and encounter placements are unchanged. Collision now opens the western Chapter 3 road correction, x34..37,z11, x36,z12..14 and x34..35,z16..17 to match clear roads and stairs; roofs, walls, planters and water remain blocked. Eastern path repairs affect only masked walkable cells. Southern walkway was finished with native main-road cobbles over retained painted masonry on x34..44,z15. Legacy village.png is preserved."
+    },
+    "manor-hd": {
+      "file": "manor-hd.png",
+      "generator": "AI image generation with PixelLab desk clearance repairs",
+      "sourceImage": "sha256:34137315d7e824c820d3763c8b09055d330677dc6603d871dc59b1f64d086b2f",
+      "width": 1152,
+      "height": 960,
+      "pixelCellSize": 48,
+      "sourceCrop": [192, 32, 1152, 960],
+      "compositionReference": "manor.png",
+      "styleReference": "infirmary.png",
+      "repairs": [
+        { "job": "56e43a73-f2d8-4194-904d-a36ddd7309c7", "sourceCrop": [32, 96, 288, 192], "mask": [76, 44, 156, 80] },
+        { "job": "a42abb78-8964-42ba-86e8-81c90c0796bb", "sourceCrop": [32, 400, 256, 192], "mask": [48, 64, 128, 80] }
+      ],
+      "notes": "Native crop without resampling or map expansion: unchanged 24x20 tactical grid, square 48px cells and approximately 47px infantry silhouettes. Human-scale open door frames and 2x2 side stair footprints. Night palette is authored into the image; no second tint. Desk clearance repaired without changing collision; decorative stool under the live western chest replaced by adjacent native carpet. All three treasure chests remain live sprites at their original coordinates, not baked scenery. Legacy manor.png is preserved."
+    },
+    "harbor": {
+      "file": "harbor.png",
+      "generator": "AI image generation with PixelLab path and doorway repairs",
+      "sourceImage": "sha256:9ff7f64bbb6c53063f83918a187edee2dddc11ecbe0b2d7e4635683cb15f83dd",
+      "width": 1152,
+      "height": 1008,
+      "pixelCellSize": 48,
+      "sourceCrop": [192, 8, 1152, 1008],
+      "compositionReference": "village.png, western 384x336 crop",
+      "styleReference": "heart.png",
+      "repairs": [
+        { "job": "fb996c66-565f-4a12-b677-02459453e006", "sourceCrop": [64, 96, 256, 384], "mask": [80, 48, 96, 288] },
+        { "job": "0efdac0f-3cda-41a4-a4a7-b60bce41149c", "sourceCrop": [816, 576, 192, 192], "mask": [48, 48, 56, 88] }
+      ],
+      "notes": "Dedicated Chapter 3 detail enhancement, native crop without resampling. Square 48px cells match the unchanged 24x21 collision grid; infantry silhouettes are about 47px high before floor projection. Western-path inpaint was retouched with native dirt samples from the same image to remove its stray cart and match the palette. The Harbor Mage has a visible west-side entrance. Shared Chapter 5 and legacy harbor art is unchanged."
+    },
+    "infirmary": {
+      "file": "infirmary.png",
+      "generator": "AI image generation with PixelLab doorway repair",
+      "sourceImage": "sha256:24be38a11eed9c6dd32ebdd19a983f7ecf15288be17f551f501047b15a00fed2",
+      "width": 1536,
+      "height": 1024,
+      "styleReference": "ward.png",
+      "doorwayRepair": { "job": "94ba4171-5ea8-4132-9898-79e7324d8bd0", "sourceCrop": [300, 660, 400, 280], "mask": [310, 125, 46, 68] },
+      "notes": "Native pixels installed without resampling on a 36x24 tactical grid. Open northern west/east ward thresholds, central theatre, connected southern recovery loop and records alcove. Furniture is painted; patients, ledger status and evacuation marker remain live overlays. No locks, gates or chests."
+    },
+    "infirmary-compact": {
+      "file": "infirmary-compact.png",
+      "generator": "AI image generation with native-pixel floorplan assembly",
+      "sourceImage": "sha256:52035f99445375f4d39a7144335ccf3e9102caf7378c5020a1c2347ca0ecdfe0",
+      "width": 1152,
+      "height": 864,
+      "pixelCellSize": 48,
+      "styleReference": "infirmary.png",
+      "entranceBounds": [[288, 288, 48, 96], [816, 288, 48, 96], [576, 288, 48, 96], [240, 528, 48, 48], [576, 672, 48, 96]],
+      "notes": "Generated native masonry, floor, beds, carpets, operating table and stairs assembled without resampling into the exact 24x18 floorplan. All five entrances have exactly 48px of clear floor centered on collision cells. Three optional chests and the defense marker are live overlays; previous embedded compact saves retain patient overlays. Original infirmary.png retained for embedded older saves."
+    },
+    "ward-compact": {
+      "file": "ward-compact.png",
+      "generator": "AI image generation, compact four-room redesign",
+      "sourceImage": "sha256:9c74eeb3fb536674711b0ab2e1453ee3bc8c0a790b43766d871441e4e964838c",
+      "width": 1512,
+      "height": 1008,
+      "sourceCrop": [12, 8, 1512, 1008],
+      "pixelCellSize": 42,
+      "entranceBounds": [[294, 316, 42, 76], [714, 316, 42, 76], [1176, 316, 42, 76], [714, 646, 42, 76], [1176, 646, 42, 182]],
+      "cellGate": {
+        "file": "../../tiles/Quarantine_Ward/gate-hd.png",
+        "generator": "PixelLab Pro",
+        "jobId": "cb436f4d-cf18-42fe-83fd-2032de2e3a11",
+        "assetId": "6acaf9ec-8ba1-5a04-a2ac-a477748b8751",
+        "nativeCanvas": [128, 192],
+        "sourceCrop": [10, 12, 106, 168],
+        "notes": "Transparent padding trimmed only; dark forged iron and brass latch match the HD prison. Transparent gaps retain the painted floor. Visible gate fills exactly one collision tile; legacy maps keep the old atlas gate."
+      },
+      "styleReference": "ward.png",
+      "notes": "Native 1512x1008 crop, no image resampling: exactly 42px per tile on the unchanged 36x24 grid. Door jambs moved using native masonry/floor strips; every cell, intake, stair-room and alcove opening is exactly 42px wide and aligned to its collision column. Two live HD gates, two live chests and captive undead in the evidence cell. Original ward.png retained for embedded legacy saves."
+    },
+    "ward": {
+      "file": "ward.png",
+      "generator": "AI image generation",
+      "sourceImage": "sha256:c3b93067ba6bd80cdf7b127f4e2dd3fcc332eac97cf189d711b68911e6d26e11",
+      "width": 1536,
+      "height": 1024,
+      "pixelCellSize": 32,
+      "styleReference": "crossing.png",
+      "notes": "Native cutaway prison below the infirmary, installed without resampling. Collision is traced to the generated art, not the coarse generation guide. Two corridor loops, confiscated-equipment intake, quarantine cells and one evidence room. No painted treasure chests; live bars and chest sprites are overlays."
+    },
     "threshold": {
       "file": "threshold.png",
       "generator": "AI image generation",
@@ -80,6 +368,15 @@
     }
   },
   "layouts": {
+    "streets-depth": { "chapter": 13, "layout": "streets", "artwork": "depth", "source": "streets-depth", "crop": [0, 264, 1232, 1232], "grid": [28, 28], "pixelCellSize": 44, "lighting": "night" },
+    "streets": { "chapter": 13, "layout": "streets", "source": "streets", "crop": [0, 0, 1232, 1232], "grid": [28, 28], "pixelCellSize": 44, "lighting": "night" },
+    "village-hd": { "chapter": 5, "layout": "village", "artwork": "hd", "source": "village-hd", "crop": [0, 0, 2304, 1008], "grid": [48, 21], "pixelCellSize": 48, "lighting": "night" },
+    "manor-hd": { "chapter": 4, "layout": "manor", "artwork": "hd", "source": "manor-hd", "crop": [0, 0, 1152, 960], "grid": [24, 20], "pixelCellSize": 48, "lighting": "night", "stairBounds": [[288, 720, 96, 96], [768, 480, 96, 96]] },
+    "harbor-hd": { "chapter": 3, "layout": "harbor", "artwork": "hd", "source": "harbor", "crop": [0, 0, 1152, 1008], "grid": [24, 21], "playableGrid": [21, 21], "pixelCellSize": 48, "lighting": "night" },
+    "infirmary-compact": { "chapter": 12, "layout": "infirmary", "artwork": "compact", "source": "infirmary-compact", "crop": [0, 0, 1152, 864], "grid": [24, 18], "pixelCellSize": 48, "lighting": "night" },
+    "infirmary": { "chapter": 12, "source": "infirmary", "crop": [0, 0, 1536, 1024], "grid": [36, 24], "lighting": "night", "legacy": true },
+    "ward-compact": { "chapter": 11, "layout": "ward", "artwork": "compact", "source": "ward-compact", "crop": [0, 0, 1512, 1008], "grid": [36, 24], "pixelCellSize": 42, "lighting": "night" },
+    "ward": { "chapter": 11, "source": "ward", "crop": [0, 0, 1536, 1024], "grid": [48, 32], "pixelCellSize": 32, "lighting": "night", "legacy": true },
     "threshold": { "chapter": 10, "source": "threshold", "crop": [21, 0, 982, 1536], "grid": [23, 36], "lighting": "dusk" },
     "crossing": { "chapter": 9, "source": "crossing", "crop": [0, 0, 1024, 1024], "grid": [32, 32], "pixelCellSize": 32, "lighting": "sunset" },
     "harbor": { "chapter": 3, "source": "village", "crop": [0, 0, 384, 336], "grid": [24, 21], "playableGrid": [21, 21] },
@@ -94,8 +391,8 @@
     "Source PNGs are installed losslessly without resampling.",
     "Chapter 3 retains 24x21 artwork cells with a 21x21 playable/cursor area. The last three columns remain visible scenery, not traversable tiles. Cyrus starts at zero-based (17,18), next to Bartz; Thunder remains at (17,14).",
     "Five Merfolk start across the northern lanes. Two arrive every even turn through turn 10 at displayed tiles (21,11) and (21,21); the Merfolk Chieftain boss joins turn 6 at (20,11); no upper-left waves.",
-    "The northern roofs, southern cottage roof, and equipment at (14..16,15..16) are blocked in both village collision grids. Potion and Zanbato use northern front approaches.",
-    "Chapter 4 uses the 24x20 manor: central hall (start zero-based 11,17), stairs at (6..7,15..16) and (16..17,10..11) up to the raised wings, gallery on row 6, vault and throne room above. The red dais is a dead end from the hall. Chests: Lancereaver (2,17) in the lower-left room, Hand Axe (18,2) and Orders Emblem (20,2) in the vault. The art is tinted for night. manor.png is the PixelLab output with its three painted vault chests replaced by flagstone and its five closed doors (wing, lower-room and vault) repainted as open doorways, so only the gameplay chests show. Stair cells use manor_stairs (+20 Avoid). The 32x32 mansion layout remains only for older embedded saves.",
+    "The northern roofs, southern cottage roof, and equipment at (14..16,15..16) are blocked in both village collision grids. Potion and Lancereaver use Chapter 3's northern front approaches; Lancereaver and Chapter 4's Zanbato reward were swapped without moving their interactions.",
+    "Chapter 4 uses the 24x20 manor: central hall (start zero-based 11,17), stairs at (6..7,15..16) and (16..17,10..11) up to the raised wings, gallery on row 6, vault and throne room above. The red dais is a dead end from the hall. Chests: Zanbato (2,17) in the lower-left room, Hand Axe (18,2) and Orders Emblem (20,2) in the vault. The art is tinted for night. manor.png is the PixelLab output with its three painted vault chests replaced by flagstone and its five closed doors (wing, lower-room and vault) repainted as open doorways, so only the gameplay chests show. Stair cells use manor_stairs (+20 Avoid). The 32x32 mansion layout remains only for older embedded saves.",
     "Chapter 5's turn-10 Deep Merfolk enter at zero-based (45,10) and (44,15), the east ends of the eastern lanes.",
     "Chapter 5 exits through the visible northbound forest lane, with five exit cells for the surviving party.",
     "Chapter 6 (Hollow Wood) uses the 48x21 forest: hunters' camp start at zero-based (7,10), a north-south channel at x15..16 crossed only by log bridges on rows 4..5 (two wide), 10 and 16, three lanes split by tree bands, and a ridge entered through the north (row 6) and south (row 13) gaps into the bone den, where the Great Wolf guards (38,10). The monolith lane (rows 8..11) continues east through a bramble thicket (forest_thicket: +30 Avoid, 2 move) at rows 9..11, x28..35 into the den; that patch was inpainted with PixelLab. North and south trail wolves are mobile; the rest guard. Wolf waves: turn 3 north (21,3),(28,3); turn 5 south (18,17),(21,17); turn 8 rear (6,16),(6,17) and north (24,3). All walkable cells sit inside the camera trapezoid.",

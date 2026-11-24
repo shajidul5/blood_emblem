@@ -1,0 +1,7 @@
+{
+  "id": "the-last-horizon", "name": "The Last Horizon", "type": "Anima", "damageType": "magical",
+  "might": 16, "weight": 10, "hit": 95, "critical": 15, "maxUses": 8,
+  "minRange": 1, "maxRange": 2, "requiredRank": "S", "effect": ["flying"], "sound": "magic",
+  "sprite": "assets/weapons/Wind_tome/rotations/Wind_tome.png",
+  "lore": "Before there was a ceiling, there was a sky. The observatory's last keeper charted the wind that passes between worlds, and bound its final horizon in these pages."
+}

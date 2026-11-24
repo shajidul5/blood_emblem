@@ -130,3 +130,46 @@ test('ordinary item receipts still show sequentially, including items without sp
   await receipts;
   assert.equal(popup.open, false);
 });
+
+test('reading any Insight item shows its own lore and reward until dismissed, resetting previous popup fields', async (t) => {
+  installDom(t);
+  const dialog = new Element(), fields = new Map();
+  dialog.querySelector = (selector) => {
+    if (!fields.has(selector)) fields.set(selector, new Element());
+    return fields.get(selector);
+  };
+  const popup = createItemPopup(dialog);
+  const text = (id) => fields.get(`#item-popup-${id}`).textContent;
+  for (const item of [
+    { name: 'Treatment Ledger', insight: 10, lore: 'Pulse absent. Movement resumed.', spriteUrl: '/ledger.svg' },
+    { name: "Orsen's Journal", insight: 10, lore: 'Hold the road.' },
+    { name: 'Keepsake', insight: 5, lore: 'A fading memory.' },
+  ]) {
+    let dismissed = false;
+    const reading = popup.showRead(item, 25).then(() => { dismissed = true; });
+    assert.ok(popup.open);
+    assert.equal(text('heading'), 'Item Read');
+    assert.equal(text('recipient'), `+${item.insight} Insight`);
+    assert.equal(text('name'), item.name);
+    assert.equal(text('description'), 'Total Insight: 25');
+    assert.equal(text('lore'), item.lore);
+    assert.equal(text('continue'), 'Continue');
+    assert.equal(fields.get('#item-popup-icon').children.length, item.spriteUrl ? 1 : 0);
+    await Promise.resolve();
+    assert.equal(dismissed, false);
+    fields.get('#item-popup-continue').dispatchEvent(new Event('click'));
+    await reading;
+    assert.equal(dismissed, true);
+  }
+});
+
+test('Chapter 12 opens with one short story summary without reward locations, wave schedules or build advice', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const script = JSON.parse(await readFile(new URL('../data/tutorials/chapter-12.json', import.meta.url), 'utf8'));
+  assert.equal(script.infirmary.pages.length, 1);
+  const text = script.infirmary.pages[0].paragraphs.join(' ');
+  assert.ok(text.split(/\s+/).length <= 85);
+  assert.match(text, /eight enemy phases/);
+  assert.match(text, /Rictor, Lena and Arlan must survive/);
+  assert.doesNotMatch(text, /Insight|Javelin|Saint's Ash|turn (three|five|six|seven)|growth|EXP|extract|emblem/i);
+});

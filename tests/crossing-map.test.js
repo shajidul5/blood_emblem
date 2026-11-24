@@ -34,6 +34,11 @@ after(async () => {
   }
 });
 
+function villageDefenders(level) {
+  return [characters.createLinusAlly(), characters.createLeonAlly()]
+    .map((unit) => Object.assign(unit, level.players.find((placement) => placement.id === unit.id)));
+}
+
 test('Chapter 9 renders native 32px sunset art without duplicate buildings or forest ambience', async () => {
   const png = await readFile(new URL('../assets/maps/village/crossing.png', import.meta.url));
   assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1024, 1024]);
@@ -71,7 +76,7 @@ test('all village lanes, rescue positions and wave entrances share one connected
     const [minX, minZ, maxX, maxZ] = level.villageScene.cursorBounds;
     assert.ok(x >= minX && x <= maxX && z >= minZ && z <= maxZ);
   }
-  const units = [...level.players, ...level.enemies, level.rescue.recruit, ...level.houses.map((house) => house.door)];
+  const units = [...level.players, ...level.enemies, ...level.houses.map((house) => house.door)];
   assert.equal(new Set(units.map(key)).size, units.length);
   for (const point of [...units, level.exit, ...level.rescue.refuge, ...level.reinforcements.flatMap((wave) => wave.units)])
     assert.ok(seen.has(key(point)), `${point.id ?? 'goal'} ${key(point)} connected`);
@@ -94,7 +99,7 @@ test('escorts can complete all routes and real saves retain map, reward and recr
   const enemies = level.enemies.map((unit) => characters.createEnemyUnit(unit.id, unit.x, unit.z, { ...unit, chapter: 8 }));
   const state = rescue.freshRescueState(level);
   const data = saves.createSaveData(level, player, enemies,
-    { turn: 1, phase: 'player', defeated: false }, { chapter: 8, rescue: state });
+    { turn: 1, phase: 'player', defeated: false }, { chapter: 8, rescue: state, allies: villageDefenders(level) });
   const save = saves.parseSave(JSON.stringify(data));
   assert.deepEqual(save.level.villageScene, raw.villageScene);
   assert.deepEqual(save.level.rescue.rewards, raw.rescue.rewards);
@@ -110,7 +115,7 @@ test('advancing guards retain mobile AI and positions through saves, and blocked
   advancing[0].z = 14;
   advancing[0].x = 17;
   const data = saves.createSaveData(level, player, enemies,
-    { turn: 5, phase: 'player', defeated: false }, { chapter: 8, rescue: rescue.freshRescueState(level) });
+    { turn: 5, phase: 'player', defeated: false }, { chapter: 8, rescue: rescue.freshRescueState(level), allies: villageDefenders(level) });
   const saved = saves.parseSave(JSON.stringify(data));
   assert.equal(saved.enemies.filter((unit) => unit.id === 'bridge-knight' && unit.ai === 'mobile').length, 2);
   assert.ok(saved.enemies.some((unit) => unit.x === 17 && unit.z === 14 && unit.ai === 'mobile'));

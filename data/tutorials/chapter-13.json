@@ -23,10 +23,10 @@
         "kicker": "Open the Cathedral Approach",
         "title": "Supplies, Proof and a Way Forward",
         "paragraphs": [
-          "Any controllable ally can Visit the three marked south-facing house doors, once each. The coachman offers an Axereaver, the bellkeeper an Armorslayer, and the apothecary two Potions. These rewards remain available even if Eveline is lost.",
+          "Any controllable ally can Visit the three marked south-facing house doors, once each. The coachman offers an Axereaver, the bellkeeper an Armorslayer, and the top-right apothecary a Silver Lance. Two axe raiders arrive on turn 7, warned on turn 5: they rush unvisited houses and destroy their entrances, permanently losing the rewards. Visit first or intercept them. Eveline's fate does not affect the rewards.",
           "An undead attendant in the western service pocket carries an Orders Emblem that can only be stolen. Lena must be adjacent and faster than the attendant. Killing it awards nothing. Veyr drops a separate Orders Emblem when defeated.",
           "More undead roam the middle streets, and a Rotten guards the western market near the bellkeeper. Its tendrils strike at range 1-2; draw it away from the other undead rather than fighting the whole alley at once.",
-          "Defeating every enemy does not end the chapter. Defeat Veyr and have Rictor seize the northern controls. Options > Objective records the recruitment, houses, theft and quarantine warning."
+          "Defeating every enemy does not end the chapter. Defeat Veyr and have Rictor seize the northern controls. Rescuing Eveline draws a finite mounted pursuit from the south and sends a northern patrol forward. If you delay, the pursuit is warned on turn 8 anyway. Options > Objective records the warnings and arrival turns."
         ],
         "button": "Take the Streets"
       }
@@ -53,7 +53,7 @@
         "title": "A Voice Lost to the Ashes",
         "paragraphs": [
           "Eveline falls beside the people she refused to abandon. Her staff slips from her hand.",
-          "\"They will answer for her too,\" Rictor says. Recruitment is lost, but the chapter continues. Defeat Veyr and seize the gate controls; the three house rewards remain available."
+          "\"They will answer for her too,\" Rictor says. Recruitment is lost, but the chapter continues. Defeat Veyr and seize the gate controls; any houses not yet raided can still be visited."
         ],
         "button": "Keep Moving"
       }
@@ -72,6 +72,44 @@
         "button": "Prepare the Rear Guard"
       }
     ]
+  },
+  "streetPursuitWarning": {
+    "pages": [{
+      "kicker": "Southern Avenue",
+      "title": "Hooves Behind the Smoke",
+      "paragraphs": [
+        "Two Golden Order Cavaliers are approaching the marked southern avenue. They arrive at the start of player turn {arrival}; you can act before they attack. Occupied arrival tiles delay them, not move them behind your line.",
+        "At the same time, a soldier and archer will leave the northern patrol to advance. The gate knights and Veyr remain at their posts. Arlan's Ridersbane can cover the rear while the others push toward the gate. A second and final mounted wave follows three turns later."
+      ],
+      "button": "Keep Moving"
+    }]
+  },
+  "streetRaiderWarning": {
+    "pages": [{
+      "kicker": "Turn 5 - Lower Side Streets",
+      "title": "Axes at the Shutters",
+      "paragraphs": [
+        "Two axe-wielding raiders arrive at the marked lower west (3,22) and east (22,22) streets at the start of player turn {arrival}. You can act before they move. Occupied entrances queue them; this is one finite pair.",
+        "They head straight for unvisited houses and smash an entrance on reaching it, permanently losing that reward. Visit first to secure it, or block and defeat them. The coachman's Axereaver lance has advantage against their axes. Wreckage marks a raided doorway, but does not block the street."
+      ],
+      "button": "Secure the Houses"
+    }]
+  },
+  "streetPatrolAdvance": {
+    "pages": [{
+      "kicker": "Northern Cross Street",
+      "title": "The Patrol Advances",
+      "paragraphs": ["The northern patrol leaves its posts as the southern pursuit reaches the district. You have this player phase to respond. Veyr and the gate knights still hold the controls."],
+      "button": "Face the Patrol"
+    }]
+  },
+  "streetOfficerWarning": {
+    "pages": [{
+      "kicker": "The Last Pursuit",
+      "title": "A Mounted Officer Follows",
+      "paragraphs": ["A Cavalier and a Paladin officer approach from the same marked southern avenue. They arrive at the start of player turn {arrival}, before you act. The officer carries a Steel Lance. This is the final pursuit wave; there are no endless reinforcements."],
+      "button": "Prepare the Rear Guard"
+    }]
   },
   "coachman": {
     "pages": [
@@ -106,9 +144,9 @@
         "title": "Medicine for the Cathedral",
         "paragraphs": [
           "The apothecary opens the door only a crack. \"The Church requisitioned the medicine for the Cathedral. Eveline stayed outside to treat the people they left behind.\"",
-          "Two Potions pass through the gap. \"These are all I could hide. Whatever they are doing beyond that gate, it is not healing.\""
+          "A Silver Lance passes through the gap. \"A wounded watch officer left this here. I hid it from the requisitioners. Whatever they are doing beyond that gate, it is not healing. Take it, and reach the Cathedral.\""
         ],
-        "button": "Take the Potions"
+        "button": "Take the Silver Lance"
       }
     ]
   },

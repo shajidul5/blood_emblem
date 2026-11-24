@@ -8,6 +8,20 @@ const tileAt = (level, x, z) => level.tileIds?.[z]?.[x];
 export const isLiftTile = (level, x, z) => tileAt(level, x, z) === BELL_LIFT_TILE;
 export const isTrackTile = (level, x, z) => BELL_TRACK_TILES.has(tileAt(level, x, z));
 const isTurn = (value) => Number.isInteger(value) && value >= 1;
+export const bellYardUnlocked = (level) => level.bellYard?.locks?.every((lock) => lock.opened) ?? true;
+
+export function availableBellLock(level, unit, enemies) {
+  if (!unit || unit.hp <= 0 || unit.acted) return undefined;
+  return level.bellYard?.locks?.find((lock) => !lock.opened && unit.x === lock.x && unit.z === lock.z &&
+    !enemies.some((enemy) => enemy.id === lock.guardId && enemy.hp > 0));
+}
+
+export function openBellLock(level, unit, enemies) {
+  const lock = availableBellLock(level, unit, enemies);
+  if (!lock) return false;
+  lock.opened = true;
+  return true;
+}
 
 export function validateBellYard(rules, level) {
   if (!rules) {
@@ -15,17 +29,36 @@ export function validateBellYard(rules, level) {
     return undefined;
   }
   const onTrack = (entry) => Number.isInteger(entry?.x) && Number.isInteger(entry?.z) && isTrackTile(level, entry.x, entry.z);
+  const split = rules.locks !== undefined;
   if (level.objective !== 'bell-lift' || typeof rules.bossId !== 'string' ||
       !level.enemies.some((unit) => unit.id === rules.bossId) ||
-      typeof rules.wagonId !== 'string' || typeof rules.cargo?.id !== 'string' ||
       !level.tileIds.some((row) => row.includes(BELL_LIFT_TILE)) ||
+      (!split && (typeof rules.wagonId !== 'string' || typeof rules.cargo?.id !== 'string' ||
       !level.enemies.filter((unit) => unit.id === rules.wagonId).every(onTrack) ||
-      !Array.isArray(rules.departures) || !rules.departures.every((entry) => onTrack(entry) && isTurn(entry.turn)) ||
+      !Array.isArray(rules.departures) || !rules.departures.every((entry) => onTrack(entry) && isTurn(entry.turn)))) ||
       !Array.isArray(rules.beats) || rules.beats.length !== BEAT_IDS.length ||
       !rules.beats.every((beat, index) => beat.id === BEAT_IDS[index] && typeof beat.seen === 'boolean' &&
         (beat.turn === null || isTurn(beat.turn)) &&
         (beat.thresholdZ === null || Number.isInteger(beat.thresholdZ) && beat.thresholdZ >= 0 && beat.thresholdZ < level.height))) {
     throw new Error('Bell Yard needs its Lift-Keeper, lift tiles, wagons on the rails, departures and two story beats.');
+  }
+  if (split) {
+    if (!Array.isArray(rules.locks) || rules.locks.length !== 2 ||
+        !rules.locks.every((lock, i) => lock?.id === ['winch', 'brake'][i] &&
+          Number.isInteger(lock.x) && Number.isInteger(lock.z) &&
+          tileAt(level, lock.x, lock.z) === 'bell_cobble' && typeof lock.opened === 'boolean' &&
+          lock.guardId === ['bell-winch-guard', 'bell-brake-guard'][i] &&
+          level.enemies.some((enemy) => enemy.id === lock.guardId)) ||
+        !level.tileIds.some((row) => row.includes('bell_lock_gate')) ||
+        !level.tileIds.some((row) => row.includes('bell_service_bridge')) ||
+        (rules.reunited && !rules.locks.every((lock) => lock.opened))) {
+      throw new Error('The split Bell Yard requires two guarded locks and sealed crossings.');
+    }
+    return {
+      bossId: rules.bossId, reunited: rules.reunited === true, departures: [],
+      locks: rules.locks.map(({ id, x, z, guardId, opened }) => ({ id, x, z, guardId, opened })),
+      beats: rules.beats.map(({ id, turn, thresholdZ, seen }) => ({ id, turn, thresholdZ, seen })),
+    };
   }
   const count = (value) => (Number.isInteger(value) && value >= 0 ? value : 0);
   return {
@@ -44,7 +77,8 @@ export function freshBellYard(rules) {
   if (!rules) return undefined;
   return {
     ...rules,
-    cargo: { ...rules.cargo },
+    ...(rules.cargo && { cargo: { ...rules.cargo } }),
+    ...(rules.locks && { locks: rules.locks.map((lock) => ({ ...lock, opened: false })) }),
     reunited: false,
     escaped: 0,
     released: 0,
@@ -92,14 +126,14 @@ export function dueDepartures(level, turn) {
 
 export function canReunite(level, unit, other) {
   const rules = level?.bellYard;
-  if (!rules || rules.reunited || !unit || !other || unit.hp <= 0 || other.hp <= 0) return false;
+  if (!rules || !bellYardUnlocked(level) || rules.reunited || !unit || !other || unit.hp <= 0 || other.hp <= 0) return false;
   const pair = [unit.id, other.id].sort().join('+');
   return pair === 'maria+rictor' && Math.abs(unit.x - other.x) + Math.abs(unit.z - other.z) === 1;
 }
 
 export function bellYardVictoryReady(level, enemies, maria, rictor) {
   const rules = level.bellYard;
-  return Boolean(rules && !enemies.some((enemy) => enemy.id === rules.bossId) &&
+  return Boolean(rules && bellYardUnlocked(level) && !enemies.some((enemy) => enemy.id === rules.bossId) &&
     [maria, rictor].every((unit) => unit?.hp > 0 && isLiftTile(level, unit.x, unit.z)));
 }
 

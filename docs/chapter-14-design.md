@@ -1,53 +1,92 @@
-# Chapter 14 — The Silent Courtyard
+# Chapter 14 - The Silent Courtyard
 
-Narrative revision: the [story bible](story-bible.md) governs future environmental storytelling and silent recruitment. Dialogue and lore assumptions below describe the older presentation, not the revised narrative direction.
+The [story bible](story-bible.md) governs this chapter: the city burns while the institution protects its immaculate ceremonial approach. A dry fountain, untouched flowers, military healers and an expected bell delivery carry the implication. No speech or optional item explains the scourge or takes Chapter 15's revelations.
 
-An intact, dreadful Cathedral forecourt, 26 × 30 tiles. South is the deployment edge; the Cathedral doors are north. This is a single battle, not a rescue or city-exploration chapter. **Defeat General Severin** is the sole victory condition.
+**Defeat General Severin** is the sole victory condition. Recruitment, theft, supply chests and the Envoy are optional. Victory ends the battle immediately, so finish desired side objectives first.
 
-## Layout
+## Whole-map layout
 
-- Rictor `(12,27)`, Lena `(11,28)`, Arlan `(13,28)` and Troy `(14,27)` are the four authored placements. Eveline deploys only through the carried, previously recruited party. No automatic starting items.
-- A dry fountain occupies `x=11..14, z=15..17`. Connected west/east bypasses and crosswalks link the six formal garden beds. Pale paving has no terrain bonuses; walkable lawns give +10 Avoid and +1 Defense. Clipped hedges and low limestone walls block ground movement.
-- The Cathedral frontage blocks `x=10..15, z=0..2`, with the tall door facade rising into the northern scenic border (`z=-2..2`); Severin stands at `(12,4)`. Its doors are scenery, not a seize action. Upright frontage and compact fountain art do not cover neighboring walkable rows. No houses, civilians, chests or side objectives.
-- Corvis, a level-17 guard Shaman, waits at `(5,17)`. Eveline alone can Talk while adjacent. Recruitment/loss does not gate victory, and recruitment preserves his HP and remaining tome uses.
+- 26 by 30 cells, each 48 pixels in the single 1248 by 1440 [courtyard illustration](../assets/maps/village/courtyard-redrawn.png), selected by `villageScene.artwork: "redrawn"`. A cohesive whole-map redraw replaces the accumulated regional patches while preserving the approved composition and finalized collision. Cathedral masonry, blue slate roofs, gardens, paving and burning town share one detailed style and lighting treatment. The image is uniformly fitted, never stretched in regional bands. Collision-constrained native paving gradients clear foreground spill, and trimmed hedge ends receive inset stone coping. The full 48px footprint of every walkable tile is checked for foliage and rooftops. Chests remain live sprites, not painted rewards. No encounter data changes with this visual revision.
+- The same continuous textured mesh lifts only inaccessible Cathedral rows `0..3` to a height of 5.6 world units. The row-4 threshold and every gameplay cell remain at their original coordinates, with no detached building overlay or 3D box. Eight scenery-only camera-framing units allow northward panning to reveal the raised facade; they do not add tactical tiles. The editor retains the flat source grid for exact collision authoring.
+- Rictor `(12,24)`, Lena `(11,24)`, Arlan `(13,24)` and Troy `(14,24)` deploy inside the south gate. Other living carried allies, including Serra and previously recruited Eveline, use the normal party/deployment system. No free recruits or automatic supplies.
+- Cathedral scenery fills northern rows `0..4`; Severin waits at `(12,5)`, centered below the one-cell Cathedral steps. The southern arch and staircase form a one-cell lane in column `12`, rows `25..29`; the surrounding lower city is blocked scenery.
+- The western Sage stands on the paved garden crosswalk at `(7,12)`, not inside its enclosed flowers. Corvis's garden opens south at `(5,15)`. The eastern delivery court opens south at `(20,14)` and east at `(22,11)`. Columns `17..23` connect across rows `15..16`, giving access to the eastern perimeter corridor at column `23`, rows `6..16`. The east gateway provides a second approach if the southern doorway is occupied. Column 17 and the outer corridor bypass the court-bound guards safely. Each opening is one cell (48 pixels) across its direction of passage.
+- Western crosswalks on rows `9`, `12` and `16` connect columns `2..8`. The northwestern garden has a usable entrance at `(3,8)` and inner ground at `(3,7)`. Lower passages use columns `4..5` in the west and `20..21` in the east, rows `17..22`, with connections across rows `19` and `22`. These are real movement routes, not blocked painted gaps.
+- The blocked dry fountain, including its whole rim, occupies `x=11..14, z=11..13`. A continuous **one-cell-wide loop** follows columns `10` and `15`, rows `10..14`, joined across rows `10` and `14`. Each side has a full 48px paved standing footprint and connects to the broader road network. Outer walks also reconnect around the raised garden walls. After the opening screen is defeated, `x=11..14, z=16..17` provides regrouping space, not automatic healing.
+- Two full-width paved hedge crossings at zero-based `(9,12)` and `(16,12)` (displayed as `(10,13)` and `(17,13)`) join the western/eastern side lanes directly to the fountain loop. Neighboring hedge cells remain blocked.
+- Paving has no cover bonus. Corvis's cleared inner garden ground gives +10 Avoid and +1 Defense. Enclosed flowers, hedges, crates, statues, perimeter walls, the Cathedral and fountain are blocked, including for flyers.
 
-## Defenders
+## Three stages of pressure
 
-Six mobile cavaliers (levels 18–20), five guard knights (14–16), four guard mages (18), two guard Inferno Sages (20), two stationary priests (16) and stationary Severin (20). All six spellcasters hold the central lanes: mages at `(15,20)`, `(10,13)`, `(15,9)` and `(10,5)`, Sages at `(10,8)` and `(15,11)`. Their overlapping coverage makes a direct northern rush dangerous; connected outer garden walks provide flanking approaches outside overlapping initial move-plus-attack ranges. None can attack the starting deployment, and Corvis retains a safe southern Talk approach. The western Freeze priest is `(9,6)`, behind a knight at `(9,7)`, with a five-tile staff reach. Keeping him at his base level preserves Magic 5 instead of scaling his staff reach upward. The healer at `(13,4)` can heal adjacent Severin.
+1. **Opening screen:** two level-18 mobile Cavaliers at `(9,16)` and `(17,16)`, a guard Knight at `(12,18)` and a guard Mage at `(13,16)`. The Mage moved one tile north so its new movement-plus-attack range does not reach deployment. No initial defender can reach a starting party tile with its real movement plus weapon/staff range.
+2. **Fountain and side routes:** reserve level-20 Cavaliers at `(8,8)` and `(17,8)` initially guard. They advance together when a living ally reaches `z <= 14`, either rider is attacked/damaged/lost, or either can actually engage. Western theft and recruitment split attention without requiring both.
+3. **Northern guard:** offset Knights, guard-mode Inferno Sages and Mages, and stationary staff support defend multiple approaches. Guard casters hold against distant targets, then move and attack when someone enters their movement-plus-weapon range. Severin can be attacked from the west, east and south without a forced one-tile duel. Remove or isolate the adjacent healer.
 
-Priests cast in place: Freeze targets the nearest unfrozen ally, and Heal targets the adjacent injured defender with the lowest current HP. Lena steals the actual staff inventory entry with its remaining uses, not a fresh reward copy; losing that entry removes the priest's ability to cast it.
+There are four initial Cavaliers, five Knights, two Mages, two Sages, two stationary priests, Corvis and Severin. This replaces the old overlapping six-Cavalier/four-Mage opening rather than adding optional enemies on top of it.
 
-Both priests use the supplied `Generic_Priest` rotations, Walking and Healing animations. The supplied pack lacks northwest Healing, so that direction uses its north cast. Severin uses a separate `General_Severin` palette copy of General Arlan's rotations and animations: red cloth becomes violet while armor, silhouette and transparency remain unchanged. Arlan's original sprites are untouched.
+The Freeze priest stays level 16 at `(9,5)` with Magic 5 and five-tile reach. The Sage theft approach `(8,12)` lies outside Freeze. The healer at `(13,5)` heals adjacent injured defenders. Staff theft preserves remaining uses and removes the actual casting entry.
 
-## Corvis and the dark spellbook
+Severin remains stationary but carries **Spear**, **Silver Axe** and **Silver Lance**. Spear has 12 Might, 12 Weight, 85 Hit and range 1-2, versus Javelin's 7/8/70 at the same range. Silver Axe has 14 Might, 14 Weight, 70 Hit and range 1. On his turn he selects the usable weapon with the most total noncritical damage against his chosen target, including triangle, defenses, effectiveness and doubling; Hit breaks ties. At range 2 he must use Spear. Threat tiles include every carried weapon. He keeps his selected weapon for counters, and it survives saves. His fixed drop is Spear, even if he dies holding the axe. Existing embedded maps keep their authored drop; Restart Chapter adopts the new drop.
 
-Corvis begins as a level-17 Shaman with HP 32, Magic 15, Defense 5, Resistance 12 and Movement 5. At level 20 he can promote to Dark Sage, gaining Staff D and using the supplied `Dark_Sage_Corvis` art. His base tome retains the `dark-tome` item ID, displayed as **Flux**. Spellbook unlocks cost 6 and then 12 Insight and still require the stated ranks.
+Wind, Gale and Tempest use the existing flying effectiveness: **triple weapon Might**, not triple total damage, against flying enemies including Ravens and the Envoy. Weapon rank UI calls the weapon family **Lance**; the internal `Spear` key remains compatible with existing saves and class rules.
 
-| Spell | Rank | Might / Hit / Weight | Range | Uses | Effect |
-| --- | --- | --- | --- | --- | --- |
-| Flux (`dark-tome`) | E | 10 / 80 / 10 | 1–2 | 20 | Standard dark attack |
-| Luna | D | 8 / 75 / 10 | 1–2 | 8 | Halves Resistance |
-| Eclipse | B | 0 / 30 / 14 | 3–5 | 4 | Removes `floor(current HP / 2)`, nonlethally; cannot critical or double |
+## Optional objectives and rewards
 
-## Finite progress waves
-
-`level.courtyard` contains `bossId`, `recruit` (`id`, `name`, `recruiterId`, `recruited`, `dead`) and two ordered `triggers` (`id`, `thresholdZ`, `warnedTurn`). Each reinforcement wave uses the matching `entranceId`, initial `turn:999`, `spawned:false`, `spawnedCount:0` and explicit `units`.
-
-| Trigger | First living ally at | Next-turn arrivals |
+| Objective | Location / condition | Reward |
 | --- | --- | --- |
-| `courtyard-cavalry` | `z <= 15` | Three level-20 cavaliers at `(11,29)`, `(12,29)`, `(14,29)` |
-| `courtyard-ravens` | `z <= 8` | Four level-18 ravens at `(1,3)`, `(2,3)`, `(23,3)`, `(24,3)` |
+| Defeat Severin | `(12,5)`; ends chapter | Spear through the normal boss-drop flow, regardless of his currently equipped weapon |
+| Defeat opening Mage | `(13,16)`, guard | Wind tome |
+| Steal from western Sage | Initially `(7,12)`, guard Inferno; Lena must be faster and adjacent | Giant's Marrow, permanent +2 Strength; **not** a death drop |
+| Recruit Corvis | `(5,14)`; only living adjacent Eveline can Talk with an action available | Corvis retains current HP and tome uses; no free heal |
+| Open Consecrated Supply Chest | `(20,9)` in eastern court; Lockpick or Chest Key | Light tome (holy Light magic, effective against undead) |
+| Open Officer's Supply Chest | `(21,11)` in eastern court; Lockpick or Chest Key | Orders Emblem (`master-emblem`) |
+| Defeat Bell Envoy | Optional eastern delivery court after the bell | Covenant Emblem and **5 Insight immediately on defeat**, no Read action |
 
-Gameplay records the warning turn and schedules `turn + 1`. The two warnings occur on separate turns even if a fast unit crosses both thresholds in one turn. The player phase precedes each wave's first enemy attack. Occupied arrival tiles retain queued units at their authored coordinates; never relocate them. The final bell summons a Church envoy, and the defenders expect it. No story reveals the scourge's explanation; the Bishop remains inside for Chapter 15.
+Both chests use the normal one-time chest flow. Lena can pick either lock without a key; other units consume a Chest Key. Full inventories send rewards to the convoy. Opened states survive saves, and restarting restores the authored unopened chests. Escort arrival tiles are distinct from the treasure.
 
-Older saves with a scheduled arrival but a missing warning recover the warning as `arrival turn - 1`, only when that warning is within the saved timeline. Other timing and wave-order validation remains enforced. Slot writes validate the current save first; successful slot loads persist normalized state in autosave, leaving the original slot intact.
+Earlier embedded saves may still contain the Sealed Transit Tag: it remains readable once for its original lore and 10 Insight. The revised encounter no longer drops it. Reward and Insight state are saved before notifications, using the normal enemy-death flow.
 
-## Art and camera
+The Bell Envoy has its own feral crow-beast sprites: wings, bare clawed hands and taloned feet, no clothing or held weapon. Its Covenant Envoy class uses physical **Claws**, with the previous Steel Sword's combat values (8 Might, 8 Weight, 80 Hit, 0 Crit, range 1). The Envoy is **stationary** at `(20,12)` and attacks adjacent targets; it has no Maria-hunting behavior or boss flag. Its explicit 5-Insight reward does not change ordinary boss rewards. **Six mobile Ravens in three pairs** pursue freely beyond the delivery court: one pair arrives with the Envoy, two more pairs are scheduled two and four turns after its actual appearance. The finite schedule continues if the Envoy is defeated. Crate-lined margins remain blocked; arrivals stand on clear central paving.
 
-PixelLab-generated assets live in `assets/tiles/Cathedral_Courtyard`: dry fountain object `27e064c9-0a8b-451e-aea0-b70cd4f1ea78`, Cathedral doors object `b499e553-8e75-46d0-924a-7b0afc4d4813`, detailed 64×64 terrain group `1a645d2b-0bbb-4311-abb1-6b4af5b9d02d`, and topiary sprite job `c042b681-0cb9-4a91-9da9-b001f728e1d3`. The sixteen terrain files use the `detail_` prefix: paving, mossy paving, medallion, steps, lawn, flowering lawn, flowerbed, hedge canopy, alternate hedge canopy, hedge side, wall cap, wall side, basin, masonry, soil and aisle border, in generated tile order.
+The revised **battle** design follows the approved lost-humanity concept: a rough, gaunt human torso and elongated bare arms beneath a vicious crow's head, a small bloodshot eye and ragged dragging wings. A nine-frame uneven-breathing/head-twitch idle, thirteen-frame feral claw rake and seventeen-frame mindless frenzy replace the rounded bird-body animation. Native generated pixels are padded and translated, never resampled; feet stay grounded and the entire silhouette clears the battle HUD. The Omen is a more advanced, purposeful transformation that retains some humanity and a mission, not this mindless creature. His existing greatsword art, pursuit, stats and drops are unchanged. This revision is battle-art-only; existing map sprites remain, and reloading applies the new battle art without restarting the chapter.
 
-Every ground tile and every hedge/wall face uses generated art, not solid-color garden blocks. Paving variants and engraved aisle accents break up the central court. Lawn edges become flowerbeds while keeping the same walkability and cover bonuses. Twenty-four topiary planters sit entirely on blocked hedge corners; no new scenery blocks routes, covers neighboring playable cells or changes terrain rules. Existing PixelLab Cathedral street lamps provide additional details; there are no exterior houses.
+## Finite, warned arrivals
 
-Rendering exports `userData.courtyardCameraPadding` and `userData.courtyardGeometry.cameraPadding`, both using `STREET_CAMERA_PADDING`, plus scenery geometry and marked entrances. The map does **not** set `streets`, avoiding Chapter 13 house/seize rules.
+| Trigger | First living ally reaches | Delay | Exact arrivals |
+| --- | --- | --- | --- |
+| `courtyard-cavalry` | `z <= 13` | 2 turns | Three level-20 Cavaliers at `(12,29)`, `(12,27)`, `(12,28)` |
+| `courtyard-ravens` | `z <= 10` | 1 turn | Bell Envoy `(20,12)`, escort Ravens `(20,11)` and `(21,12)` |
+| `courtyard-ravens-2` | Actual Envoy appearance | 2 turns | Two mobile Ravens at `(20,11)` and `(21,12)` |
+| `courtyard-ravens-3` | Actual Envoy appearance | 4 turns | Final two mobile Ravens at `(20,11)` and `(21,12)` |
 
-Validate with `node --test tests/chapter-14-map.test.js`. Use `?chapter=14` on a separate browser origin for a fresh test, or `?chapter=14&save=1` to carry that origin's current party.
+Warnings run at the end of the player phase. Arrivals happen before the scheduled player phase, never as immediate enemy attacks: the rear warning gives two player phases before first attacks; the bell gives one. Warnings must occur on different turns even after a fast advance. Each wave happens once. Occupied tiles queue the remaining units at their exact authored coordinates without relocation or duplication.
+
+## Party roles
+
+- Rictor breaches physical formations.
+- Arlan uses Ridersbane against the opening and finite rear cavalry.
+- Troy supports either flank and relocates after the screen breaks.
+- Lena steals the Strength booster or removes exposed support.
+- Serra attacks armor and gains catch-up experience.
+- Eveline heals or approaches Corvis after the western guard Sage is managed.
+- Corvis contributes magic and resistance if recruited.
+
+No promotion or optional recruit is required for victory. The Covenant Emblem represents an available character-specific choice, not a forced transformation.
+
+## Persistence, art and compatibility
+
+`courtyard.tactics` opts the map into coordinated reserves. Its optional `ravenReinforcements` rules opt the current encounter into mobile Ravens, a planted Envoy, and two follow-up pairs anchored to the persisted actual `arrivalTurn`. Earlier tactical saves without those rules retain court-bound guards and their original waves. Formation activation, recruitment, warned turns, explicit wave delays, partial arrivals, enemy AI, staff uses, stolen items and drops survive saves. Restart clears tactical state and reloads authored Chapter 14 data while retaining the chapter-start party and supplies.
+
+Existing embedded maps without tactics keep their old encounter and procedural scenery. Earlier illustrated saves without artwork retain their original `courtyard.png`; `artwork: "concept"`, `"aligned"`, `"repaired"`, `"depth"` and `"passage"` keep their corresponding images, geometry, collision and authored drops. Earlier passage saves retain any old blocked hedge-crossing collision; Restart Chapter adopts the cohesive redraw, new openings, guard casters and finite pursuing flock. Envoys are re-created with the new sprite/profile on Continue and award 5 Insight on defeat, including in older embedded encounters; their saved positions, HP, AI and drops remain intact. Omitted trigger delays retain the legacy one-turn schedule. Missing warning turns can be recovered as `arrival - delay` only within the saved timeline. Invalid timing and court/formation states are rejected without replacing the current save.
+
+The [art manifest](../assets/maps/village/manifest.json) records redraw provenance, repair regions, dimensions and entrance rectangles. Tests retain previous variants' pixel registration checks and unchanged-pixel checks outside each repair's regions. The cohesive redraw additionally checks the collision fingerprint and scans every pixel of each full 48 by 48 walkable cell for foliage/rooftops, with positive controls on actual blocked hedges and city roofs. Geometry checks verify actual facade height and unchanged gameplay coordinates; camera projection checks cover portrait, square and landscape northern framing. Separate checks cover western through-routes, both treasure entrances (including an occupied south door), blocked props, chest rendering, real key/Lockpick rewards, convoy overflow, persistence, real movement/staff threat, safe recruitment, theft and queued arrivals. Game and editor share the same source artwork, nearest filtering and collision terrain. Inland city ambience replaces ocean surf.
+
+Legacy assets in `assets/tiles/Cathedral_Courtyard` remain for old saves, including the dry fountain, Cathedral, topiary and textured procedural terrace. Priests retain their Generic Priest animation pack; Severin retains his separate General palette.
+
+Validate:
+
+```powershell
+node --test tests\chapter-14-map.test.js tests\courtyard-mechanics.test.js
+```
+
+Fresh isolated playtest: `?chapter=14` on a separate origin. Existing saves preserve their current battle; use Restart Chapter to adopt the redesign.

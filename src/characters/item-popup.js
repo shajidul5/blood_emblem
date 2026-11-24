@@ -59,6 +59,18 @@ export function createItemPopup(dialog) {
     });
   }
 
+  function showRead(item, total) {
+    return present({
+      title: 'Item Read',
+      recipientText: `+${item.insight} Insight`,
+      nameText: item.name,
+      descriptionText: `Total Insight: ${total}`,
+      loreText: item.lore ?? '',
+      spriteUrl: item.spriteUrl,
+      buttonText: 'Continue',
+    });
+  }
+
   // Shows each { unit, item } receipt in turn, waiting for the player to dismiss each one.
   async function show(receipts) {
     for (const { unit, item, toConvoy } of receipts) {
@@ -66,5 +78,5 @@ export function createItemPopup(dialog) {
     }
   }
 
-  return { show, showInsight, get open() { return dialog.open; } };
+  return { show, showInsight, showRead, get open() { return dialog.open; } };
 }

@@ -1,10 +1,11 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
+import { runInNewContext } from 'node:vm';
 import { createServer } from 'vite';
 import * as THREE from 'three';
 import {
-  advanceBellYardStory, bellYardVictoryReady, canReunite, dueDepartures, freshBellYard, isLiftTile, isTrackTile,
+  advanceBellYardStory, bellYardVictoryReady, canReunite, dueDepartures, freshBellYard, isLiftTile, isTrackTile, openBellLock,
   planWagonMove, wagonRoute,
 } from '../src/game/bell-yard.js';
 
@@ -40,6 +41,316 @@ after(async () => {
   }
 });
 const fresh = () => levels.validateLevel(structuredClone(raw));
+
+test('The illustrated Bell Yard stays split in all three locked states, including for flyers', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const { findPath } = await server.ssrLoadModule('/src/battle/grid.js');
+  const [west, east] = ['maria', 'rictor'].map((id) => level.players.find((unit) => unit.id === id));
+  const [winch, brake] = level.bellYard.locks;
+  for (const type of ['infantry', 'flying']) {
+    const path = (start, end) => findPath(start, [end], new Set(), level, { type });
+    for (const state of [[false, false], [true, false], [false, true], [true, true]]) {
+      [winch.opened, brake.opened] = state;
+      const unlocked = state.every(Boolean);
+      assert.equal(Boolean(path(west, east).length), unlocked, `${type}: ${state}`);
+      assert.equal(Boolean(path(west, level.exit).length), unlocked);
+      assert.equal(Boolean(path(east, level.exit).length), unlocked);
+      assert.ok(path(west, winch).length);
+      assert.ok(path(east, brake).length);
+      if (!unlocked) {
+        assert.equal(path(west, brake).length, 0);
+        assert.equal(path(east, winch).length, 0);
+      }
+    }
+  }
+  winch.opened = brake.opened = false;
+  const actor = { ...winch, hp: 1 };
+  assert.equal(openBellLock(level, actor, [{ id: winch.guardId, hp: 1 }]), false);
+  assert.equal(openBellLock(level, actor, []), true);
+  assert.equal(canReunite(level, { id: 'maria', x: 5, z: 5, hp: 1 }, { id: 'rictor', x: 6, z: 5, hp: 1 }), false);
+  const leaders = [{ ...west, x: 19, z: 1, hp: 1 }, { ...east, x: 20, z: 1, hp: 1 }];
+  assert.equal(bellYardVictoryReady(level, [], ...leaders), false);
+  assert.deepEqual(freshBellYard(level.bellYard).locks.map(({ opened }) => opened), [false, false]);
+  assert.deepEqual(levels.validateLevel(JSON.parse(JSON.stringify(level))).bellYard.locks.map(({ opened }) => opened), [true, false]);
+  assert.equal(openBellLock(level, { ...brake, hp: 1 }, []), true);
+  assert.equal(canReunite(level, ...leaders), true);
+  assert.equal(bellYardVictoryReady(level, [{ id: 'crowman' }], ...leaders), true);
+  assert.equal(bellYardVictoryReady(level, [{ id: level.bellYard.bossId }], ...leaders), false);
+  for (const placement of [...level.enemies, ...level.reinforcements.flatMap((wave) => wave.units)]) {
+    assert.ok(characters.createEnemyUnit(placement.id, placement.x, placement.z, placement));
+  }
+});
+
+test('Split Bell Yard saves keep Halloran on the platform and restore the correct visual lock state', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const maria = Object.assign(characters.createMaria(), level.players.find(({ id }) => id === 'maria'));
+  const enemies = level.enemies.filter(({ id }) => id !== 'bell-winch-guard')
+    .map((p) => characters.createEnemyUnit(p.id, p.x, p.z, p));
+  const { findWeaponEntry, spellUses, spendWeaponUse } = await server.ssrLoadModule('/src/characters/inventory.js');
+  for (const sage of enemies.filter(({ id }) => id === 'bell-bolting')) spendWeaponUse(sage);
+  level.bellYard.locks[0].opened = true;
+  const data = saves.createSaveData(level, maria, enemies, { turn: 3, phase: 'player', defeated: false }, { chapter: 15 });
+  const loaded = saves.parseSave(JSON.stringify(data));
+  assert.ok(loaded.enemies.some(({ id }) => id === level.bellYard.bossId));
+  const siegeSages = loaded.enemies.filter(({ id }) => id === 'bell-bolting');
+  assert.equal(siegeSages.length, 2);
+  for (const saved of siegeSages) {
+    const sage = characters.createEnemyUnit(saved.id, saved.x, saved.z, saved);
+    sage.inventory = structuredClone(saved.inventory);
+    assert.equal(spellUses(findWeaponEntry(sage), sage.weapon), 3);
+  }
+  assert.deepEqual(loaded.level.bellYard.locks.map(({ opened }) => opened), [true, false]);
+  const group = new THREE.Group();
+  renderer.addBellYard(THREE, group, loaded.level);
+  assert.ok(group.getObjectByName('bell-yard-illustration'));
+  const closed = group.children.filter(({ visible }) => visible).length;
+  loaded.level.bellYard.locks[1].opened = true;
+  group.userData.bellYard.sync();
+  assert.notEqual(group.children.filter(({ visible }) => visible).length, closed);
+  const [wave] = loaded.level.reinforcements;
+  assert.equal(wave.turn, 4);
+  assert.deepEqual(wave.units[0].drop, ['covenant-emblem', 'crow-greatsword']);
+});
+
+test('Illustrated Halloran wields and drops the unique S-rank fire tome, and all requested defenders have close-up art', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const { battleSpriteKey, supportsBattleScene, supportsStaffScene } = await server.ssrLoadModule('/src/battle/battle-animation.js');
+  const { INVENTORY_ITEMS, weaponUseBlockReason } = await server.ssrLoadModule('/src/characters/inventory.js');
+  const { getWeaponRank } = await server.ssrLoadModule('/src/characters/weapon-levels.js');
+  const { canEquipWeapon } = await server.ssrLoadModule('/src/characters/classes.js');
+  const placement = level.enemies.find(({ id }) => id === level.bellYard.bossId);
+  const boss = characters.createEnemyUnit(placement.id, placement.x, placement.z, placement);
+  assert.equal(boss.classId, 'sage');
+  assert.equal(boss.weapon.id, 'cinder-vigil');
+  assert.equal(boss.weapon.requiredRank, 'S');
+  assert.equal(getWeaponRank(boss, boss.weapon).id, 'S');
+  assert.equal(weaponUseBlockReason(boss, boss.weapon), undefined);
+  assert.equal(canEquipWeapon({ ...boss, weaponExp: { Anima: 180 } }, boss.weapon), false);
+  assert.deepEqual(characters.enemyDropIds(boss), ['cinder-vigil']);
+  const adjacentRictor = (unit) => Object.assign(characters.createRictorAlly(), { x: unit.x + 1, z: unit.z });
+  assert.equal(battleSpriteKey(boss), 'generic-sage');
+  assert.ok(supportsBattleScene(boss, adjacentRictor(boss)));
+  for (const [id, key] of [['bell-brake-guard', 'generic-halberdier'], ['bell-halberdier', 'generic-halberdier'],
+    ['bell-berserker', 'generic-berserker'], ['crowman', 'crowman']]) {
+    const unit = characters.createEnemyUnit(id, 0, 0);
+    assert.equal(battleSpriteKey(unit), key);
+    assert.ok(supportsBattleScene(unit, adjacentRictor(unit)));
+  }
+  const bishop = characters.createEnemyUnit('bell-bishop', 0, 0);
+  assert.ok(supportsStaffScene(bishop, adjacentRictor(bishop), INVENTORY_ITEMS.get('heal-staff')));
+});
+
+test('Six promoted pressure units cover both routes without attacking opening deployment tiles', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const { getMovementRange, distanceBetween, findPath } = await server.ssrLoadModule('/src/battle/grid.js');
+  const { findWeaponEntry, spellUses, spendWeaponUse } = await server.ssrLoadModule('/src/characters/inventory.js');
+  const { battleThrow, supportsBattleScene } = await server.ssrLoadModule('/src/battle/battle-animation.js');
+  const positions = [[6, 16], [32, 16], [4, 24], [26, 21], [18, 24], [24, 23]];
+  const weapons = ['bolting', 'bolting', 'silver-lance', 'silver-lance', 'tomahawk', 'silver-axe'];
+  assert.equal(level.enemies.length, 31);
+  const west = level.players.find(unit => unit.id === 'maria');
+  const east = level.players.find(unit => unit.id === 'rictor');
+  const routes = [];
+  for (const [index, [x, z]] of positions.entries()) {
+    const placement = level.enemies.find(unit => unit.x === x && unit.z === z);
+    const enemy = characters.createEnemyUnit(placement.id, x, z, placement);
+    assert.ok(['sage', 'paladin', 'berserker'].includes(enemy.classId));
+    assert.ok(combat.canAttack(enemy));
+    assert.equal(enemy.weapon.id, weapons[index]);
+    assert.deepEqual(characters.enemyDropIds(enemy), []);
+    const reach = enemy.ai === 'stationary' ? new Map([[`${x},${z}`, 0]]) : getMovementRange(enemy, level, []);
+    for (const key of reach.keys()) {
+      const [fromX, fromZ] = key.split(',').map(Number);
+      assert.ok(level.players.every(unit => !combat.isInWeaponRange(enemy, unit,
+        distanceBetween(fromX, fromZ, unit.x, unit.z))), `${enemy.id}@${x},${z}: opening response turn`);
+    }
+    const reaches = leader => findPath(enemy, [leader], new Set(), level).length > 0;
+    assert.notEqual(reaches(west), reaches(east), 'new enemies cannot cross sealed routes');
+    routes.push(reaches(west) ? 'west' : 'east');
+    if (enemy.id === 'bell-bolting') {
+      assert.equal(enemy.ai, 'stationary');
+      assert.deepEqual([enemy.weapon.minRange, enemy.weapon.maxRange], [3, 10]);
+      const lock = level.bellYard.locks.find(lock => (lock.id === 'winch') === reaches(west));
+      assert.ok(combat.isInWeaponRange(enemy, lock, distanceBetween(x, z, lock.x, lock.z)));
+      assert.equal(combat.isInWeaponRange(enemy, west, 2), false);
+      assert.equal(spellUses(findWeaponEntry(enemy), enemy.weapon), 4);
+      for (let i = 0; i < 4; i++) spendWeaponUse(enemy);
+      assert.equal(combat.canAttack(enemy), false);
+    } else {
+      assert.equal(enemy.ai, 'mobile');
+      assert.ok([...reach.values()].some(cost => cost > 0));
+    }
+    if (enemy.weapon.id === 'tomahawk') {
+      assert.equal(battleThrow(enemy, 2).key, 'thrown-axe');
+      const target = Object.assign(characters.createMaria(), { x: x + 2, z });
+      assert.ok(supportsBattleScene(enemy, target));
+    }
+  }
+  assert.deepEqual(routes, ['west', 'east', 'west', 'east', 'west', 'east']);
+});
+
+test('The illustrated freight Berserker attacks with and drops the Killer Axe', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const [placement] = level.enemies.filter(({ id }) => id === 'bell-berserker');
+  const unit = characters.createEnemyUnit(placement.id, placement.x, placement.z, placement);
+  assert.equal(unit.weapon.id, 'killer-axe');
+  assert.equal(unit.weapon.critical, 30);
+  assert.ok(combat.canAttack(unit));
+  assert.deepEqual(characters.enemyDropIds(unit), ['killer-axe']);
+  assert.equal(level.chests.find(({ id }) => id === 'yard-seal').rewardId, 'pallbearers-burden');
+});
+
+test('Four pairs of crows pressure both routes from valid fixed entrances without bypassing the locks', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const { findPath } = await server.ssrLoadModule('/src/battle/grid.js');
+  const { infirmarySpawnTile } = await server.ssrLoadModule('/src/game/infirmary.js');
+  const units = [...level.players, ...level.enemies].map((unit) => ({ ...unit, hp: 1 }));
+  const [west, east] = ['maria', 'rictor'].map((id) => level.players.find((unit) => unit.id === id));
+  assert.deepEqual(level.reinforcements.map(({ turn }) => turn), [4, 7, 10, 13]);
+  assert.equal(level.reinforcements[0].units[0].id, 'crowman');
+  const routes = [];
+  for (const wave of level.reinforcements) {
+    const crows = wave.units.filter(({ id }) => id === 'bell-raven');
+    assert.equal(crows.length, 2);
+    routes.push(crows.map((placement) => {
+      const crow = characters.createEnemyUnit(placement.id, placement.x, placement.z, placement);
+      assert.equal(crow.type, 'flying');
+      const spawn = infirmarySpawnTile(level, { ...placement, type: crow.type }, units);
+      assert.deepEqual(spawn, { x: placement.x, z: placement.z });
+      const reaches = (leader) => Boolean(findPath(spawn, [leader], new Set(), level, crow).length);
+      assert.notEqual(reaches(west), reaches(east));
+      return reaches(west) ? 'west' : 'east';
+    }));
+  }
+  assert.deepEqual(routes, [['west', 'west'], ['east', 'east'], ['west', 'west'], ['west', 'east']]);
+});
+
+test('The Omen attacks Maria first, takes another reachable target next, and otherwise pursues Maria', async () => {
+  const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+  const start = main.indexOf('function chooseEnemyTarget(');
+  const end = main.indexOf('\n// Thrones', start);
+  const choose = runInNewContext(`${main.slice(start, end)}\nchooseEnemyTarget`, {
+    activeLevel: {}, courtyardDeliveryCourt: () => null,
+    getEnemyReach: () => new Map([['0,0', 0]]),
+    enemyAttackWeapons: (enemy) => [enemy.weapon],
+    isInWeaponRange: (_attacker, _target, range) => range === 1,
+    distanceBetween: (ax, az, bx, bz) => Math.abs(ax - bx) + Math.abs(az - bz),
+  });
+  const omen = { id: 'crowman', hunts: 'maria', ai: 'mobile', weapon: {} };
+  const maria = { id: 'maria', x: 0, z: 1 }, ally = { id: 'rictor', x: 1, z: 0 };
+  const distantMaria = { ...maria, z: 4 };
+  assert.equal(choose(omen, [ally, maria]), maria);
+  assert.equal(choose(omen, [distantMaria, ally]), ally);
+  assert.equal(choose(omen, [distantMaria, { ...ally, x: 3 }]), distantMaria);
+  assert.equal(choose(omen, [distantMaria, { ...ally, x: 3 }], true), null, 'let the Bell Yard planner pick a route');
+});
+
+test('Bell Yard pursuers keep advancing toward reachable allies even with prey across a closed crossing', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  const { planPursuit } = await server.ssrLoadModule('/src/battle/pursuit.js');
+  const { distanceBetween, terrainMoveCost } = await server.ssrLoadModule('/src/battle/grid.js');
+  const west = { id: 'troy', x: 4, z: 5, hp: 30 };
+  const east = { id: 'maria', x: 30, z: 33, hp: 30 };
+  const targets = [east, west];
+  for (const id of ['crowman', 'bell-raven']) {
+    const enemy = characters.createEnemyUnit(id, 16, 28);
+    const canHit = (target) => combat.isInWeaponRange(enemy, target, distanceBetween(enemy.x, enemy.z, target.x, target.z));
+    assert.equal(planPursuit(enemy, [east], level, targets, [enemy]), null, 'sealed crossings still block pursuit');
+    let moves = 0;
+    while (!canHit(west) && moves < 12) {
+      const plan = planPursuit(enemy, targets, level, targets, [enemy]);
+      assert.equal(plan?.target, west, `${id} pursues the western ally`);
+      const steps = plan.path.slice(1);
+      assert.ok(steps.length && steps.every(({ x, z }) => tiles.isLevelTileWalkable(level, x, z, enemy)));
+      assert.ok(steps.reduce((cost, { x, z }) => cost + terrainMoveCost(level, x, z, enemy), 0) <= enemy.movement);
+      Object.assign(enemy, steps.at(-1));
+      moves++;
+    }
+    assert.ok(moves > 1 && canHit(west), `${id} closes the distance and can attack`);
+  }
+  const omen = characters.createEnemyUnit('crowman', 16, 28);
+  for (const lock of level.bellYard.locks) lock.opened = true;
+  assert.equal(planPursuit(omen, targets, level, targets, [omen])?.target, east, 'the Omen resumes hunting Maria');
+  omen.frozen = true;
+  assert.equal(planPursuit(omen, targets, level, targets, [omen]), null, 'Freeze still prevents movement');
+});
+
+test('The illustrated Bell Yard loot list matches all authored chests and enemy drops', async () => {
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
+  assert.deepEqual(Object.fromEntries(level.chests.map(({ name, rewardId }) => [name, rewardId])), {
+    'Western Commission': 'master-emblem', 'Freight Guard Armory': 'tomahawk',
+    'Amber Reliquary': 'witchs-eye', "Officer's Armory": 'silver-sword', "Pallbearer's Cache": 'pallbearers-burden',
+  });
+  const enemies = [...level.enemies, ...level.reinforcements.flatMap(({ units }) => units)].map(placement =>
+    characters.createEnemyUnit(placement.id, placement.x, placement.z, placement));
+  const drops = enemies.flatMap(characters.enemyDropIds);
+  assert.deepEqual(drops.sort(), ['chest-key', 'chest-key', 'chest-key', 'chest-key',
+    'cinder-vigil', 'covenant-emblem', 'crow-greatsword', 'killer-axe', 'wind-tome']);
+  const { stealableItems } = await server.ssrLoadModule('/src/game/stealing.js');
+  assert.deepEqual(enemies.flatMap(enemy => stealableItems(enemy).filter(id => id === 'heal-staff')), ['heal-staff']);
+});
+
+test('New Bell Yard weapons have B-rank requirements, usable icons, and matching sword and throwing art', async () => {
+  const { INVENTORY_ITEMS, createInventory, weaponUseBlockReason } = await server.ssrLoadModule('/src/characters/inventory.js');
+  const { canEquipWeapon, promoteUnit } = await server.ssrLoadModule('/src/characters/classes.js');
+  const { battleThrow, battleSpriteKey, supportsBattleScene } = await server.ssrLoadModule('/src/battle/battle-animation.js');
+  const { applyBooster } = await server.ssrLoadModule('/src/characters/boosters.js');
+  const sword = INVENTORY_ITEMS.get('silver-sword'), axe = INVENTORY_ITEMS.get('tomahawk');
+  const relic = INVENTORY_ITEMS.get('starless-edge'), handAxe = INVENTORY_ITEMS.get('hand-axe');
+  assert.deepEqual([sword.might, sword.hit, sword.weight, sword.requiredRank], [12, 80, 9, 'B']);
+  assert.ok(sword.might < relic.might && sword.hit < relic.hit && sword.weight > relic.weight);
+  assert.deepEqual([axe.might, axe.hit, axe.weight, axe.requiredRank, axe.minRange, axe.maxRange], [12, 65, 14, 'B', 1, 2]);
+  assert.ok(axe.might > handAxe.might && axe.weight > handAxe.weight && axe.hit < handAxe.hit);
+  for (const [factory, weapon] of [[characters.createLenaAlly, sword], [characters.createBartzAlly, axe]]) {
+    const unit = factory();
+    unit.level = 20;
+    promoteUnit(unit);
+    unit.inventory = createInventory([weapon.id]);
+    unit.weapon = weapon;
+    unit.weaponExp[weapon.type] = 70;
+    assert.equal(canEquipWeapon(unit, weapon), false);
+    unit.weaponExp[weapon.type] = 120;
+    assert.equal(canEquipWeapon(unit, weapon), true);
+    assert.equal(weaponUseBlockReason(unit, weapon), undefined);
+    assert.ok(weapon.spriteUrl);
+    assert.ok(battleSpriteKey(unit));
+    const target = characters.createEnemyUnit('bell-undead', weapon === axe ? 2 : 1, 0);
+    Object.assign(unit, { x: 0, z: 0 });
+    assert.ok(combat.isInWeaponRange(unit, target, target.x));
+    assert.ok(supportsBattleScene(unit, target));
+    if (weapon === axe) assert.equal(battleThrow(unit, 2).key, 'thrown-axe');
+  }
+  const unit = characters.createBartzAlly();
+  const originalMagic = unit.magic, originalBuild = unit.build;
+  assert.equal(applyBooster(unit, INVENTORY_ITEMS.get('witchs-eye')), 'Magic +2');
+  assert.equal(applyBooster(unit, INVENTORY_ITEMS.get('pallbearers-burden')), 'Build +2');
+  assert.equal(unit.magic, originalMagic + 2);
+  assert.equal(unit.build, originalBuild + 2);
+});
+
+test('Loading an older split Bell Yard updates unopened original rewards without replacing claimed or customized loot', async () => {
+  const source = JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url)));
+  const expected = Object.fromEntries(source.chests.map(chest => [chest.id, chest.rewardId]));
+  for (const chest of source.chests) {
+    chest.rewardId = chest.id === 'yard-seal' ? 'killer-axe' : 'master-emblem';
+  }
+  source.chests.find(chest => chest.id === 'plaza-commission').rewardId = 'orders-emblem';
+  source.chests.find(chest => chest.id === 'east-commission').opened = true;
+  source.chests.find(chest => chest.id === 'yard-elixir').rewardId = 'potion';
+  const level = levels.validateLevel(source);
+  assert.equal(level.chests.find(chest => chest.id === 'east-commission').rewardId, 'master-emblem');
+  assert.equal(level.chests.find(chest => chest.id === 'yard-elixir').rewardId, 'potion');
+  for (const id of ['west-commission', 'plaza-commission', 'yard-seal']) {
+    assert.equal(level.chests.find(chest => chest.id === id).rewardId, expected[id]);
+  }
+  const maria = Object.assign(characters.createMaria(), level.players.find(({ id }) => id === 'maria'));
+  const enemies = level.enemies.map(p => characters.createEnemyUnit(p.id, p.x, p.z, p));
+  const data = saves.createSaveData(level, maria, enemies, { turn: 9, phase: 'player', defeated: false }, { chapter: 15 });
+  const loaded = saves.parseSave(JSON.stringify(data));
+  assert.deepEqual(loaded.level.chests, level.chests);
+  assert.deepEqual(levels.validateLevel(JSON.parse(JSON.stringify(level))).chests, level.chests);
+  assert.equal(fresh().chests.filter(chest => chest.rewardId === 'master-emblem').length, 4, 'legacy wagon map is unchanged');
+});
 const wagonsOf = (level) => level.enemies.filter((unit) => unit.id === level.bellYard.wagonId);
 
 function reachable(level, start) {
@@ -61,8 +372,8 @@ test('Chapter 16 deploys both parties, requires Maria and Rictor and registers i
   assert.equal(levels.CHAPTER_COUNT, 19);
   assert.equal(level.objective, 'bell-lift');
   assert.deepEqual(level.requiredUnits, ['maria', 'rictor']);
-  assert.equal(level.players.length, 12);
-  assert.equal(new Set(level.players.map((unit) => unit.id)).size, 12);
+  assert.equal(level.players.length, 14);
+  assert.equal(new Set(level.players.map((unit) => unit.id)).size, 14);
   assert.throws(() => levels.validateLevel({ ...structuredClone(raw), bellYard: null }), /Bell Yard rules/);
   const enemies = level.enemies.map((unit) => characters.createEnemyUnit(unit.id, unit.x, unit.z, unit));
   const boss = enemies.find((unit) => unit.isBoss && unit.id === level.bellYard.bossId);
@@ -384,7 +695,7 @@ test('The Bell Yard renderer builds terrain before clearing depth for both armie
   }
 });
 
-test('Campaign supplies twelve Orders Emblems by Chapter 16, with four reachable yard rewards', async () => {
+test('Campaign supplies ten Orders Emblems by Chapter 16, with one in the redesigned Bell Yard', async () => {
   const files = await readdir(new URL('../data/levels/', import.meta.url));
   const counts = new Map();
   const countEmblems = (value) => {
@@ -397,18 +708,18 @@ test('Campaign supplies twelve Orders Emblems by Chapter 16, with four reachable
   };
   for (const file of files) {
     const match = /^map_(\d+)_/.exec(file);
-    if (!match || Number(match[1]) > 16) continue;
+    if (!match || Number(match[1]) > 16 || file === 'map_16_bell_yard.json') continue;
     counts.set(Number(match[1]), countEmblems(JSON.parse(await readFile(new URL(`../data/levels/${file}`, import.meta.url), 'utf8'))));
   }
-  assert.equal([...counts.values()].reduce((sum, count) => sum + count, 0), 12);
-  assert.equal(counts.get(16), 4);
-  const level = fresh();
+  assert.equal([...counts.values()].reduce((sum, count) => sum + count, 0), 10);
+  assert.equal(counts.get(16), 1);
+  const level = levels.validateLevel(JSON.parse(await readFile(new URL('../data/levels/map_16_bell_yard_hd.json', import.meta.url))));
   assert.equal(level.chests.length, 5);
   for (const chest of level.chests) {
     assert.ok(chest.z <= 8, `${chest.id} is beyond the canal`);
     assert.ok(!level.enemies.some((unit) => unit.x === chest.x && unit.z === chest.z), `${chest.id} is not occupied`);
   }
-  assert.equal(level.chests.find((chest) => chest.id === 'yard-seal').rewardId, 'killer-axe');
+  assert.equal(level.chests.find((chest) => chest.id === 'yard-seal').rewardId, 'pallbearers-burden');
 });
 
 test('Boss accuracy stays high while regular troops respect promoted allies and cover', async () => {
@@ -490,7 +801,7 @@ test('Southern pressure is finite, uses nonboss Rotten and waits at blocked entr
     }
   }
   const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /activeLevel\.cathedral \|\| activeLevel\.bellYard \|\| activeLevel\.shore \|\| activeLevel\.waitingCity\s*\? infirmarySpawnTile/);
+  assert.match(main, /const fixedEntrance = [\s\S]*?activeLevel\.bellYard[\s\S]*?const spawnTile = fixedEntrance\s*\? infirmarySpawnTile/);
   assert.match(story.bellYard.pages[1].paragraphs.join(' '), /turns 4 and 7/);
 });
 

@@ -1,0 +1,8 @@
+{
+  "id": "bell-brake-guard", "name": "Brake Marshal", "classId": "halberdier", "type": "infantry",
+  "spriteSet": "genericHalberdier", "sprite": "assets/character/Generic_Halberdier/rotations/south.png",
+  "scale": 1.19, "level": 26, "weaponId": "silver-lance", "weaponExp": { "Spear": 180 }, "ai": "stationary",
+  "baseStats": { "hp": 62, "strength": 25, "magic": 0, "dexterity": 24, "speed": 18, "luck": 9, "defense": 19, "resistance": 14, "movement": 6, "build": 13 },
+  "currentStats": { "hp": 62, "strength": 25, "magic": 0, "dexterity": 24, "speed": 18, "luck": 9, "defense": 19, "resistance": 14, "movement": 6, "build": 13 },
+  "growthRates": {}
+}

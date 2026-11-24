@@ -1,0 +1,16 @@
+{
+  "id": "bell-envoy",
+  "name": "The Bell Envoy",
+  "classId": "bell-envoy",
+  "type": "flying",
+  "spriteSet": "bellEnvoy",
+  "sprite": "assets/character/Bell_Envoy/rotations/south.png",
+  "scale": 1,
+  "level": 20,
+  "experience": 0,
+  "weaponId": "envoy-claws",
+  "ai": "guard",
+  "baseStats": { "hp": 46, "strength": 18, "magic": 0, "dexterity": 17, "speed": 12, "luck": 5, "defense": 12, "resistance": 12, "movement": 4, "build": 12 },
+  "currentStats": { "hp": 46, "strength": 18, "magic": 0, "dexterity": 17, "speed": 12, "luck": 5, "defense": 12, "resistance": 12, "movement": 4, "build": 12 },
+  "growthRates": { "hp": 50, "strength": 35, "magic": 0, "dexterity": 30, "speed": 20, "luck": 10, "defense": 25, "resistance": 25, "movement": 0, "build": 0 }
+}

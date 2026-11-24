@@ -1,3 +1,5 @@
+import { resumeAudioContext } from './audio-context.js';
+
 const MASTER_VOLUME = 0.5;
 const FOCUS_SUPPRESS_MS = 160;
 const MENU_SELECTOR = 'button, [role="button"]';
@@ -9,7 +11,7 @@ let lastConfirmAt = 0;
 let lastTickAt = 0;
 
 export function ensureContext() {
-  if (!context) {
+  if (!context || context.state === 'closed') {
     const AudioContextClass = window.AudioContext ?? window.webkitAudioContext;
     if (!AudioContextClass) return false;
     context = new AudioContextClass();
@@ -20,7 +22,9 @@ export function ensureContext() {
     const data = noiseBuffer.getChannelData(0);
     for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
   }
-  if (context.state === 'suspended') context.resume();
+  if (context.state !== 'running') {
+    void resumeAudioContext(context).catch((error) => console.error('Could not resume sound effects:', error));
+  }
   return true;
 }
 
@@ -148,6 +152,8 @@ function menuButtonFrom(target) {
 }
 
 export function initializeUiSounds() {
+  window.addEventListener('pointerdown', ensureContext, true);
+  window.addEventListener('keydown', ensureContext, true);
   document.addEventListener('click', (event) => {
     const button = menuButtonFrom(event.target);
     if (!button) return;

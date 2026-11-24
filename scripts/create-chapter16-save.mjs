@@ -25,6 +25,7 @@ try {
   const factories = {
     maria: characters.createMaria, bartz: characters.createBartzAlly, cypher: characters.createCypherAlly,
     seymour: characters.createSeymourAlly, stark: characters.createStarkAlly, linus: characters.createLinusAlly,
+    leon: characters.createLeonAlly, serra: characters.createSerraAlly,
     rictor: characters.createRictorAlly, lena: characters.createLenaAlly, arlan: characters.createArlanAlly,
     troy: characters.createTroyAlly, eveline: characters.createEvelineAlly, corvis: characters.createCorvisAlly,
   };

@@ -8,6 +8,7 @@
   "lighting": "night",
   "extendEdges": false,
   "noFence": true,
+  "villageScene": { "version": 1, "layout": "streets", "artwork": "depth" },
   "spawn": { "x": 14, "z": 24 },
   "exit": { "x": 13, "z": 2 },
   "startingItems": [],
@@ -52,7 +53,7 @@
     {
       "id": "apothecary", "name": "Shuttered Apothecary", "x": 19, "z": 3,
       "width": 4, "height": 4, "door": { "x": 21, "z": 7 },
-      "style": "apothecary", "rewardId": "potion", "rewardCount": 2, "visited": false
+      "style": "apothecary", "rewardId": "silver-lance", "visited": false
     }
   ],
   "decorativeHouses": [
@@ -86,11 +87,43 @@
         { "id": "rotten", "level": 15, "x": 3, "z": 18, "ai": "mobile" },
         { "id": "undead", "level": 12, "x": 4, "z": 17, "ai": "mobile" }
       ]
+    },
+    {
+      "turn": 999, "entranceId": "southern-pursuit", "spawned": false, "spawnedCount": 0,
+      "units": [
+        { "id": "golden-cavalier", "level": 18, "x": 12, "z": 26, "ai": "mobile" },
+        { "id": "golden-cavalier", "level": 18, "x": 15, "z": 26, "ai": "mobile" }
+      ]
+    },
+    {
+      "turn": 999, "entranceId": "southern-officer", "spawned": false, "spawnedCount": 0,
+      "units": [
+        { "id": "golden-cavalier", "level": 18, "x": 12, "z": 26, "ai": "mobile" },
+        { "id": "cathedral-paladin", "level": 20, "x": 15, "z": 26, "ai": "mobile", "weaponId": "steel-lance" }
+      ]
+    },
+    {
+      "turn": 7, "entranceId": "street-raiders", "spawned": false, "spawnedCount": 0,
+      "units": [
+        { "id": "street-raider", "level": 14, "x": 3, "z": 22, "ai": "mobile" },
+        { "id": "street-raider", "level": 14, "x": 22, "z": 22, "ai": "mobile" }
+      ]
     }
   ],
   "streets": {
     "seizePoint": { "x": 13, "z": 2 },
     "bossId": "veyr",
+    "raiders": { "warningTurn": 5, "warned": false },
+    "pressure": {
+      "fallbackTurn": 8,
+      "triggeredTurn": null,
+      "officerWarned": false,
+      "patrolReleased": false,
+      "patrol": [
+        { "id": "ward-soldier", "x": 12, "z": 8 },
+        { "id": "golden-archer", "x": 17, "z": 9 }
+      ]
+    },
     "recruit": {
       "id": "eveline", "name": "Eveline", "x": 20, "z": 16,
       "recruiterId": "rictor", "recruited": false, "dead": false, "hp": 28

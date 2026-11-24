@@ -1,6 +1,8 @@
-import { getClass } from '../characters/classes.js';
+import { getClass, getClassAbilities, getPromotionBonuses } from '../characters/classes.js';
 import { battleSpriteKey, staffBattleKey } from '../battle/battle-animation.js';
 import { createBattleScreen } from '../battle/battle-screen.js';
+import { battleActorScale } from '../battle/battle-sizing.js';
+import { weaponTypeLabel } from '../characters/weapon-levels.js';
 import { adversaries, art, battleSetsFor, branchesFor, clipsFor, directions, effectsFor, mapClipsFor, roster,
   unitFor, weaponsFor } from './catalog.js';
 import './character-gallery.css';
@@ -8,7 +10,11 @@ import './character-gallery.css';
 const urls = import.meta.glob([
   '../../assets/character/{Maria,Ravager_Maria,Bartz,Berserker_Bartz,Cyrus,Seymour,Bishop_Seymour,Stark,Sniper_Stark,Linus,Paladin_Linus,Rictor_Templar,Rictor_Mounted_Templar,Lena,Assassin_Lena,Arlan,General_Arlan,Troy,Paladin_Troy,Eveline_Troubadour,Eveline_Valkyrie,Corvis,Dark_Sage_Corvis}/**/*.png',
   '../../assets/{battle,covenant}/**/*.png',
-  '../../assets/character/{Generic_Undead,Rotten}/**/*.png',
+  '../../assets/character/{Generic_Undead,Rotten,Rictor,Templar_Rictor,Outhbound_Rictor}/**/*.png',
+  '../../assets/character/{Leon,Hero_Leon,Serra,Sage_Serra}/**/*.png',
+  '../../assets/character/Veilstalker_Stark/**/*.png',
+  '../../assets/character/Shore_*/**/*.png',
+  '!../../assets/character/Stark/animations/The_character_pulls_back_the_bowstring_with_the_ri/**/*.png',
 ], { eager: true, query: '?url', import: 'default' });
 const $ = (id) => document.getElementById(id);
 const screen = createBattleScreen();
@@ -71,25 +77,31 @@ function canvas(size, label) {
   return result;
 }
 
-function sheetDrawer(stage, img, clip, size, offset = elapsed) {
+function sheetDrawer(stage, img, clip, size, fighter = null, offset = elapsed) {
   const ctx = stage.getContext('2d');
+  const scale = 2 * (fighter ? battleActorScale(fighter, profile) : 1);
+  const width = fighter ? size * scale : stage.width;
+  const height = fighter ? size * scale : stage.height;
+  const x = (stage.width - width) / 2;
+  const y = fighter ? 233 - fighter.baseline * scale : 0;
   return (time) => {
     const frame = Math.floor(Math.max(0, time - offset) / clip.frameMs) % clip.frames;
     ctx.clearRect(0, 0, stage.width, stage.height);
-    ctx.drawImage(img, frame * size, 0, size, size, 0, 0, stage.width, stage.height);
+    ctx.drawImage(img, frame * size, 0, size, size, x, y, width, height);
   };
 }
 
 async function battleCard(set, token) {
   const card = node('article', undefined, 'card');
-  card.append(node('h3', `${profile.name} / ${set.weapon.type}`));
+  card.append(node('h3', `${profile.name} / ${weaponTypeLabel(set.weapon.type)}`));
   const stage = canvas(256, `${profile.name} ${getClass(classId).name} battle animation`);
   stage.className = 'stage';
   const label = node('label', 'Animation');
   const select = node('select');
   const clips = clipsFor(set.spec);
   options(select, clips.map((clip, index) => ({ value: index, label: clip.name })));
-  select.value = String(clips.findIndex((clip) => clip.name === (set.spec.idleLoop ? 'Breathing idle' : 'Attack')));
+  const defaultClip = set.spec.supportOnly ? 'Support cast' : set.spec.idleLoop ? 'Breathing idle' : 'Attack';
+  select.value = String(clips.findIndex((clip) => clip.name === defaultClip));
   label.append(select);
   card.append(stage, label, node('p', 'Original sheets and frame timings. Use Play combat for movement, impacts and effects.', 'subtle'));
   $('battle-art').append(card);
@@ -99,7 +111,7 @@ async function battleCard(set, token) {
     const clip = clips[Number(select.value)];
     const img = await image(battleUrl(clip.file));
     if (token !== generation || request !== selection) return;
-    draw = sheetDrawer(stage, img, clip, set.spec.size);
+    draw = sheetDrawer(stage, img, clip, set.spec.size, set.spec);
     draw(elapsed);
   };
   select.addEventListener('change', () => void update().catch(report));
@@ -190,6 +202,14 @@ function updateCombat() {
     .map((range) => ({ value: range, label: range === 1 ? 'Adjacent' : `${range} tiles` })));
   if ([...$('range').options].some((option) => option.value === previous)) $('range').value = previous;
   $('play').disabled = busy || !supported;
+  const previousResult = $('result').value;
+  const results = [{ value: 'normal', label: 'Normal hit' }, { value: 'critical', label: 'Critical hit' },
+    { value: 'miss', label: 'Miss' }];
+  if (!support && getClassAbilities(unit).some(ability => ability.lethalityChance > 0)) {
+    results.push({ value: 'lethality', label: 'Lethality' });
+  }
+  options($('result'), results);
+  if (results.some(result => result.value === previousResult)) $('result').value = previousResult;
   $('result').disabled = support && !weapon.freeze;
   $('side').disabled = support;
   $('combat-note').textContent = !supported
@@ -227,10 +247,10 @@ async function render() {
   }));
   $('class-name').textContent = branch.definition.name;
   $('branch-label').textContent = branch.label;
-  $('weapons').textContent = `${unitFor(profile, classId).type} / ${branch.definition.weaponTypes.join(' + ')}`;
+  $('weapons').textContent = `${unitFor(profile, classId).type} / ${branch.definition.weaponTypes.map(weaponTypeLabel).join(' + ')}`;
   $('abilities').replaceChildren(...(branch.definition.abilities ?? []).map((ability) =>
     node('li', `${ability.name}: ${ability.description}`)));
-  const gains = Object.entries(getClass(profile.classId).promotionBonuses ?? {}).filter(([, value]) => value);
+  const gains = Object.entries(getPromotionBonuses(profile.classId, classId)).filter(([, value]) => value);
   $('promotion-note').textContent = adversaries.includes(profile) ? 'Enemy battle art. Chapter layouts, enemy stats and encounter rules are unchanged.'
     : classId === profile.classId
     ? 'Choose an emblem branch above to compare its outfit, weapons, abilities and animations.'
@@ -252,7 +272,7 @@ async function render() {
     card.append(node('h3', ability.name), node('p', ability.description));
     $('effects').append(card);
   }
-  options($('weapon'), weaponsFor(profile, classId).map((weapon) => ({ value: weapon.id, label: `${weapon.name} / ${weapon.type}` })));
+  options($('weapon'), weaponsFor(profile, classId).map((weapon) => ({ value: weapon.id, label: `${weapon.name} / ${weaponTypeLabel(weapon.type)}` })));
   updateCombat();
   await Promise.all([showMap(clips, token), ...sets.map((set) => battleCard(set, token)),
     ...effects.map((effect) => effectCard(effect, token))]);
@@ -271,14 +291,16 @@ async function play() {
     hp: 40, maxHp: 80, x: Number($('range').value), z: 0,
     weapon: { id: 'rapier', name: 'Rapier', type: 'Sword' } };
   const hit = (support && !weapon.freeze) || $('result').value !== 'miss';
-  const critical = !support && $('result').value === 'critical';
+  const lethality = !support && $('result').value === 'lethality' &&
+    getClassAbilities(unit).some(ability => ability.lethalityChance > 0);
+  const critical = !support && ($('result').value === 'critical' || lethality);
   try {
     const pair = !support && $('side').value === 'right' ? [target, unit] : [unit, target];
     const opened = await screen.begin(...pair, {
       enabled: true, chapter: Number($('backdrop').value), staff: support ? weapon : null,
     });
     if (!opened) throw new Error('This character / weapon does not have a supported battle animation.');
-    await screen.strike(unit, { hit, critical }, () => {
+    await screen.strike(unit, { hit, critical, lethality }, () => {
       let text = 'MISS', type = 'miss';
       if (hit && weapon.type === 'Blood Rite') {
         unit.hp -= 6;
@@ -290,9 +312,9 @@ async function play() {
       } else if (hit && weapon.freeze) {
         text = 'FROZEN'; type = 'freeze';
       } else if (hit) {
-        const damage = critical ? 24 : 12;
+        const damage = lethality ? target.hp : critical ? 24 : 12;
         target.hp -= damage;
-        text = `-${damage}`; type = critical ? 'critical' : 'hit';
+        text = `-${damage}`; type = lethality ? 'lethality' : critical ? 'critical' : 'hit';
       }
       screen.result(target, text, type);
     });
@@ -311,7 +333,7 @@ function updatePause() {
 $('pause').addEventListener('click', () => { paused = !paused; updatePause(); });
 $('weapon').addEventListener('change', updateCombat);
 $('play').addEventListener('click', () => void play().catch(report));
-for (const [label, entries] of [['Playable company', roster], ['Chapter 11 adversaries', adversaries]]) {
+for (const [label, entries] of [['Playable company', roster], ['Adversaries', adversaries]]) {
   const group = node('optgroup');
   group.label = label;
   for (const entry of entries) {

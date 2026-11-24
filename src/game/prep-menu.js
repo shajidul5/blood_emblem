@@ -10,6 +10,7 @@ import { rescaleMagicUses, spellsOf } from '../characters/inventory.js';
 import { getUsesMultiplier, promoteUnit, promotionBlockReason } from '../characters/classes.js';
 import { applyBooster, boosterBlockReason, isBooster } from '../characters/boosters.js';
 import { snapshotForPromotion } from '../characters/promotion-dialog.js';
+import { weaponTypeLabel } from '../characters/weapon-levels.js';
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -49,6 +50,7 @@ export function createPrepMenu({
   isDeployed, setDeployed, getInfo, portrait, onProfile, onSave, onOptions, onViewMap, onChange,
   isRequired = (unit) => unit.id === 'maria',
   onPromote = () => {},
+  getMaxDeployed = () => maxDeployed,
 }) {
   let view = 'hub';
   let subjectId = null;
@@ -238,7 +240,7 @@ export function createPrepMenu({
     const insightButton = button('', () => go('insight'));
     renderInsightLabel(insightButton, `Insight (${getInsight()})`);
     menu.append(
-      button(`Unit Select (${deployed}/${maxDeployed})`, () => go('units')),
+      button(`Unit Select (${deployed}/${getMaxDeployed()})`, () => go('units')),
       button('Inventory', () => go('inventory')),
       insightButton,
       button('Save', () => { flash = onSave() ? 'Game saved.' : 'Could not save the game.'; render(); }),
@@ -252,14 +254,14 @@ export function createPrepMenu({
   const renderUnits = (body) => {
     const deployed = team().filter(isDeployed).length;
     const requiredNames = team().filter(isRequired).map((unit) => unit.name).join(' and ');
-    body.append(el('p', 'prep-note', `Choose who fights this chapter: ${deployed}/${maxDeployed} deployed. ${requiredNames} always deploy${team().filter(isRequired).length === 1 ? 's' : ''}.`));
+    body.append(el('p', 'prep-note', `Choose who fights this chapter: ${deployed}/${getMaxDeployed()} deployed. ${requiredNames} always deploy${team().filter(isRequired).length === 1 ? 's' : ''}.`));
     const grid = el('div', 'prep-grid prep-units-grid');
     for (const unit of team()) {
       const on = isDeployed(unit);
       const required = isRequired(unit);
       grid.append(card(unit, () => { setDeployed(unit, !on); render(); }, {
         selected: on,
-        disabled: required || (!on && deployed >= maxDeployed),
+        disabled: required || (!on && deployed >= getMaxDeployed()),
         note: required ? 'Required' : on ? 'Deployed' : 'Benched',
       }));
     }
@@ -413,7 +415,7 @@ export function createPrepMenu({
     else stats = `Mt ${item.might} · Wt ${item.weight} · Hit ${item.hit} · Crit ${item.critical}`
       + (item.maxRange > 2 || item.minRange > 1 ? ` · Range ${item.minRange}-${item.maxRange}` : '');
     const extra = item.description ?? (item.effect?.length ? `Effective vs ${item.effect.join(', ')}.` : '');
-    const rank = item.requiredRank ? ` · Requires ${item.type} rank ${item.requiredRank}` : '';
+    const rank = item.requiredRank ? ` · Requires ${weaponTypeLabel(item.type)} rank ${item.requiredRank}` : '';
     return `${item.name} · ${stats}${rank}${uses}${extra ? `. ${extra}` : ''}`;
   };
 

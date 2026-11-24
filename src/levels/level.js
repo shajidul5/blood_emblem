@@ -1,4 +1,5 @@
 import initialMapUrl from '../../data/levels/map_01_two_ships.json?url&no-inline';
+import { citySpriteOrder, createCityOcclusion } from './city-occlusion.js';
 import chapterTwoMapUrl from '../../data/levels/map_02_boarders_from_the_deep.json?url&no-inline';
 import chapterThreeMapUrl from '../../data/levels/map_03_fishing_village.json?url&no-inline';
 import chapterFourMapUrl from '../../data/levels/map_04_mansion.json?url&no-inline';
@@ -13,7 +14,7 @@ import chapterTwelveMapUrl from '../../data/levels/map_12_infirmary.json?url&no-
 import chapterThirteenMapUrl from '../../data/levels/map_13_procession.json?url&no-inline';
 import chapterFourteenMapUrl from '../../data/levels/map_14_courtyard.json?url&no-inline';
 import chapterFifteenMapUrl from '../../data/levels/map_15_cathedral.json?url&no-inline';
-import chapterSixteenMapUrl from '../../data/levels/map_16_bell_yard.json?url&no-inline';
+import chapterSixteenMapUrl from '../../data/levels/map_16_bell_yard_hd.json?url&no-inline';
 import chapterSeventeenMapUrl from '../../data/levels/map_17_starless_shore.json?url&no-inline';
 import chapterEighteenMapUrl from '../../data/levels/map_18_waiting_city.json?url&no-inline';
 import chapterNineteenMapUrl from '../../data/levels/map_19_abyssal_throne.json?url&no-inline';
@@ -25,13 +26,29 @@ import loneShipUrl from '../../assets/maps/ships/lone-ship.png?url';
 import shipFlagUrl from '../../assets/maps/ships/pennant.png?url';
 import { addVillageScene, VILLAGE_TILE_IDS, validateVillageScene, villageLayout } from './village-scene.js';
 import villageArtUrl from '../../assets/maps/village/village.png?url';
+import villageHdArtUrl from '../../assets/maps/village/village-hd.png?url';
+import harborArtUrl from '../../assets/maps/village/harbor.png?url';
 import mansionArtUrl from '../../assets/maps/village/mansion.png?url';
 import manorArtUrl from '../../assets/maps/village/manor.png?url';
+import manorHdArtUrl from '../../assets/maps/village/manor-hd.png?url';
 import forestArtUrl from '../../assets/maps/village/forest.png?url';
 import campArtUrl from '../../assets/maps/village/camp.png?url';
 import heartArtUrl from '../../assets/maps/village/heart.png?url';
 import crossingArtUrl from '../../assets/maps/village/crossing.png?url';
 import thresholdArtUrl from '../../assets/maps/village/threshold.png?url';
+import wardArtUrl from '../../assets/maps/village/ward.png?url';
+import compactWardArtUrl from '../../assets/maps/village/ward-compact.png?url';
+import compactInfirmaryArtUrl from '../../assets/maps/village/infirmary-compact.png?url';
+import infirmaryArtUrl from '../../assets/maps/village/infirmary.png?url';
+import streetsArtUrl from '../../assets/maps/village/streets.png?url';
+import streetsDepthArtUrl from '../../assets/maps/village/streets-depth.png?url';
+import courtyardArtUrl from '../../assets/maps/village/courtyard.png?url';
+import courtyardConceptArtUrl from '../../assets/maps/village/courtyard-concept.png?url';
+import courtyardAlignedArtUrl from '../../assets/maps/village/courtyard-aligned.png?url';
+import courtyardRepairedArtUrl from '../../assets/maps/village/courtyard-repaired.png?url';
+import courtyardDepthArtUrl from '../../assets/maps/village/courtyard-depth.png?url';
+import courtyardPassageArtUrl from '../../assets/maps/village/courtyard-passage.png?url';
+import courtyardRedrawnArtUrl from '../../assets/maps/village/courtyard-redrawn.png?url';
 import { validateWaitingCity } from '../game/waiting-city.js';
 import { addWaitingCity } from './waiting-city.js';
 import { validateShore } from '../game/starless-shore.js';
@@ -70,6 +87,7 @@ import infirmaryDoorFrontUrl from '../../assets/tiles/Infirmary/infirmary_door_f
 import infirmaryDoorSideUrl from '../../assets/tiles/Infirmary/infirmary_door_side.png?url';
 import infirmaryDoorClosedUrl from '../../assets/tiles/Infirmary/infirmary_door_closed.png?url';
 import wardOpenCellUrl from '../../assets/tiles/Quarantine_Ward/open_cell.png?url';
+import wardHdGateUrl from '../../assets/tiles/Quarantine_Ward/gate-hd.png?url';
 import infirmaryWallFaceUrl from '../../assets/tiles/Infirmary/infirmary_wall_face.png?url';
 import infirmaryWallCapUrl from '../../assets/tiles/Infirmary/infirmary_wall_cap.png?url';
 import streetLampUrl from '../../assets/tiles/Cathedral_Streets/gas_lamp_front.png?url';
@@ -91,7 +109,7 @@ import { enemyMovementType, validEnemyDrop } from '../characters/characters.js';
 
 const LEVEL_TILES = new Set(['.', 'h', 'd', 'b', 'q', 'w', 'p', 'c', 'r', 'm', 's', 'e', 'a', 'v', 'k', 'f', 'o', 'g', 'G', 'j', 'n', 'B', 'C', 'L', 'u', 'i', 'l', 't', 'x', 'y', 'z', 'P', 'A', 'H', 'W', 'F', 'D']);
 for (const id of ['Q', 'R', 'E', 'O', 'T', 'V', 'U', 'I', 'N']) LEVEL_TILES.add(id);
-for (const id of ['Y', '4', 'K', '2', 'J', 'Z', 'X', 'S', '0', '3', 'M', '1']) LEVEL_TILES.add(id);
+for (const id of ['Y', '4', 'K', '2', 'J', 'Z', 'X', 'S', '0', '3', 'M', '1', '=', '^', '~']) LEVEL_TILES.add(id);
 export const LEVEL_OBJECTIVES = new Set(['defeat-all-enemies', 'defeat-boss', 'defend', 'escape', 'rescue-villagers', 'seize-gate', 'defend-infirmary', 'seize-streets', 'defeat-courtyard-general', 'bell-lift', 'silence-beacons', 'awaken-city']);
 
 const TILE_SIZE = shipTileset.tileSize;
@@ -245,6 +263,9 @@ const LEGACY_ATLAS_TILES = {
   3: 'bell_winch',
   M: 'bell_warehouse',
   1: 'bell_tower',
+  '=': 'bell_divider',
+  '^': 'bell_lock_gate',
+  '~': 'bell_service_bridge',
   h: 'hull_n',
   d: 'deck_a',
   a: 'deck_b',
@@ -291,14 +312,30 @@ const [twoShipsImage, loneShipImage, shipFlagImage] = await Promise.all([
   loadImage(twoShipsUrl), loadImage(loneShipUrl), loadImage(shipFlagUrl),
 ]);
 const villageImages = {
+  'village-hd': await loadImage(villageHdArtUrl),
+  harbor: await loadImage(harborArtUrl),
   village: await loadImage(villageArtUrl),
   mansion: await loadImage(mansionArtUrl),
   manor: await loadImage(manorArtUrl),
+  'manor-hd': await loadImage(manorHdArtUrl),
   forest: await loadImage(forestArtUrl),
   camp: await loadImage(campArtUrl),
   heart: await loadImage(heartArtUrl),
   crossing: await loadImage(crossingArtUrl),
   threshold: await loadImage(thresholdArtUrl),
+  ward: await loadImage(wardArtUrl),
+  'ward-compact': await loadImage(compactWardArtUrl),
+  'infirmary-compact': await loadImage(compactInfirmaryArtUrl),
+  infirmary: await loadImage(infirmaryArtUrl),
+  streets: await loadImage(streetsArtUrl),
+  'streets-depth': await loadImage(streetsDepthArtUrl),
+  courtyard: await loadImage(courtyardArtUrl),
+  'courtyard-concept': await loadImage(courtyardConceptArtUrl),
+  'courtyard-aligned': await loadImage(courtyardAlignedArtUrl),
+  'courtyard-repaired': await loadImage(courtyardRepairedArtUrl),
+  'courtyard-depth': await loadImage(courtyardDepthArtUrl),
+  'courtyard-passage': await loadImage(courtyardPassageArtUrl),
+  'courtyard-redrawn': await loadImage(courtyardRedrawnArtUrl),
 };
 const infirmaryObjectImages = new Map(await Promise.all([
   ['infirmary_bed', infirmaryBedUrl],
@@ -337,6 +374,7 @@ const [cityGateImage, victorianCityImage, cityEmbankmentImage] = await Promise.a
   loadImage(cityEmbankmentUrl),
 ]);
 const wardOpenCellImage = await loadImage(wardOpenCellUrl);
+const wardHdGateImage = await loadImage(wardHdGateUrl);
 const [streetLampImage, streetRowHouseImage, streetShopImage, streetClocktowerImage,
   streetCompleteShopImage, streetApothecaryImage] = await Promise.all([
   loadImage(streetLampUrl),
@@ -424,7 +462,7 @@ function readCoordinate(value, width, height, label) {
 }
 
 function validateInfirmary(value, context) {
-  const { width, height, tileIds, objective, players, enemies, objects } = context;
+  const { width, height, tileIds, objective, players, enemies, objects, chests } = context;
   if (value === undefined || value === null) {
     if (objective === 'defend-infirmary') {
       throw new Error('Defend infirmary objective requires infirmary rules.');
@@ -448,7 +486,7 @@ function validateInfirmary(value, context) {
   if (!Number.isInteger(defendTurns) || defendTurns < 1 || defendTurns > 99) {
     throw new Error('Infirmary defendTurns must be an integer from 1 to 99.');
   }
-  if (!Array.isArray(value.gates) || value.gates.length < 2 || !value.gates.every((gate) => {
+  if (!Array.isArray(value.gates) || value.gates.length === 1 || !value.gates.every((gate) => {
     if (!gate || !addId(gate.id) || typeof gate.name !== 'string' || !gate.name.trim() ||
         typeof gate.entranceId !== 'string' || !gate.entranceId.trim() ||
         (gate.closed !== undefined && typeof gate.closed !== 'boolean') ||
@@ -463,7 +501,7 @@ function validateInfirmary(value, context) {
     }
     return true;
   })) {
-    throw new Error('Infirmary gates need unique IDs, names, entrance IDs, a walkable control, and adjacent walkable blocks.');
+    throw new Error('Infirmary gates must be empty or contain at least two gates with unique IDs, names, entrance IDs, a walkable control, and adjacent walkable blocks.');
   }
   const occupiedGates = new Set(value.gates.flatMap((gate) =>
     gate.blocks.map(({ x, z }) => `${x},${z}`)));
@@ -472,22 +510,27 @@ function validateInfirmary(value, context) {
       objects.some((object) => occupiedGates.has(`${object.x},${object.z ?? object.y}`))) {
     throw new Error('Infirmary gate blocks cannot overlap each other, units, or objects.');
   }
-  if (!value.ledger || !addId(value.ledger.id) || typeof value.ledger.name !== 'string' ||
-      !value.ledger.name.trim() || (value.ledger.collected !== undefined && typeof value.ledger.collected !== 'boolean')) {
+  const ledgerChest = value.ledgerChestId === undefined ? undefined
+    : chests.find((chest) => chest.id === value.ledgerChestId && chest.rewardId === 'treatment-ledger');
+  if (value.ledgerChestId !== undefined && (!ledgerChest || value.ledger)) {
+    throw new Error('Infirmary ledgerChestId must reference its Treatment Ledger chest instead of a ledger interaction.');
+  }
+  if (!ledgerChest && (!value.ledger || !addId(value.ledger.id) || typeof value.ledger.name !== 'string' ||
+      !value.ledger.name.trim() || (value.ledger.collected !== undefined && typeof value.ledger.collected !== 'boolean'))) {
     throw new Error('Infirmary ledger needs a unique ID, a name, and a collected state.');
   }
-  const ledger = {
+  const ledger = ledgerChest ? undefined : {
     id: value.ledger.id,
     name: value.ledger.name,
     ...inside(value.ledger, 'ledger'),
     collected: value.ledger.collected ?? false,
   };
   const defensePoint = inside(value.defensePoint, 'defense point');
-  if (!Array.isArray(value.patients) || !value.patients.length || !value.patients.every((patient) =>
+  if (!Array.isArray(value.patients) || !value.patients.every((patient) =>
     patient && addId(patient.id) && typeof patient.name === 'string' && patient.name.trim() &&
     typeof patient.rewardId === 'string' && patient.rewardId.trim() &&
     (patient.rescued === undefined || typeof patient.rescued === 'boolean') &&
-    (patient.lost === undefined || typeof patient.lost === 'boolean'))) {
+    (patient.lost === undefined || typeof patient.lost === 'boolean') && !(patient.rescued && patient.lost))) {
     throw new Error('Infirmary patients need unique IDs, names, reward IDs, and valid rescue states.');
   }
   const patients = value.patients.map((patient) => ({
@@ -498,6 +541,9 @@ function validateInfirmary(value, context) {
     rescued: patient.rescued ?? false,
     ...(patient.lost === undefined ? {} : { lost: patient.lost }),
   }));
+  if (value.patientsVulnerable !== undefined && typeof value.patientsVulnerable !== 'boolean') {
+    throw new Error('Infirmary patientsVulnerable must be a boolean.');
+  }
   const survivedTurns = value.survivedTurns ?? 0;
   if (!Number.isInteger(survivedTurns) || survivedTurns < 0 || survivedTurns > defendTurns ||
       (value.rewardsClaimed !== undefined && typeof value.rewardsClaimed !== 'boolean') ||
@@ -521,7 +567,8 @@ function validateInfirmary(value, context) {
       entranceId: gate.entranceId,
       closed: gate.closed ?? false,
     })),
-    ledger,
+    ...(ledger ? { ledger } : { ledgerChestId: ledgerChest.id }),
+    ...(value.patientsVulnerable === undefined ? {} : { patientsVulnerable: value.patientsVulnerable }),
     patients,
     completionExp,
     interactionExp,
@@ -551,10 +598,12 @@ export function validateLevel(value) {
   const { name, width, height } = value;
   const objective = value.objective ?? 'defeat-all-enemies';
   const sourceTiles = value.tiles;
+  const maxHeight = objective === 'bell-lift' && Array.isArray(value.bellYard?.locks) ||
+    objective === 'silence-beacons' && Array.isArray(value.shore?.beacons) ? 40 : 36;
   if (typeof name !== 'string' || !name.trim() ||
       !Number.isInteger(width) || width < 8 || width > 48 ||
-      !Number.isInteger(height) || height < 8 || height > 36) {
-    throw new Error('Level needs a name and dimensions between 8×8 and 48×36 tiles.');
+      !Number.isInteger(height) || height < 8 || height > maxHeight) {
+    throw new Error(`Level needs a name and dimensions between 8×8 and 48×${maxHeight} tiles.`);
   }
 
   const atlasGrid = Array.isArray(sourceTiles) && Array.isArray(sourceTiles[0]);
@@ -661,7 +710,9 @@ export function validateLevel(value) {
         (entry.stealable === undefined || Array.isArray(entry.stealable) &&
           entry.stealable.every((id) => typeof id === 'string' && id.trim()) &&
           new Set(entry.stealable).size === entry.stealable.length) &&
-        (entry.weaponId === undefined || typeof entry.weaponId === 'string');
+        (entry.weaponId === undefined || typeof entry.weaponId === 'string') &&
+        (entry.startingItems === undefined || label === 'players' && Array.isArray(entry.startingItems) &&
+          entry.startingItems.every((id) => typeof id === 'string' && id.trim()));
     })) {
       throw new Error(`Level ${label} need an ID and must be placed on walkable tiles.`);
     }
@@ -674,6 +725,7 @@ export function validateLevel(value) {
       ...(entry.drop === undefined ? {} : { drop: Array.isArray(entry.drop) ? [...entry.drop] : entry.drop }),
       ...(entry.stealable === undefined ? {} : { stealable: [...entry.stealable] }),
       ...(entry.weaponId === undefined ? {} : { weaponId: entry.weaponId }),
+      ...(entry.startingItems === undefined ? {} : { startingItems: [...entry.startingItems] }),
     }));
   };
   const players = readPlacements(value.players, 'players');
@@ -699,7 +751,9 @@ export function validateLevel(value) {
         : value.streets ? house.width !== 4 || ![3, 4].includes(house.height) : house.width !== 3 || house.height !== 2) ||
       (house.rewardCount !== undefined && (!Number.isInteger(house.rewardCount) || house.rewardCount < 1 || house.rewardCount > 9)) ||
       (typeof house.rewardId !== 'string' && typeof house.recruitId !== 'string' && typeof house.villagerId !== 'string') ||
-      (house.visited !== undefined && typeof house.visited !== 'boolean')
+      (house.visited !== undefined && typeof house.visited !== 'boolean') ||
+      (house.destroyed !== undefined && typeof house.destroyed !== 'boolean') ||
+      (house.destroyed === true && house.visited === true)
     ) return false;
     houseIds.add(house.id);
     const door = house.door ?? house.entrance;
@@ -746,6 +800,7 @@ export function validateLevel(value) {
     ...(house.style === 'tent' ? { style: 'tent' } : {}),
     ...(value.streets && ['town-house', 'apothecary'].includes(house.style) ? { style: house.style } : {}),
     visited: house.visited ?? false,
+    ...(house.destroyed === undefined ? {} : { destroyed: house.destroyed }),
   }));
   const decorativeHouses = value.decorativeHouses ?? [];
   if (!Array.isArray(decorativeHouses) || !decorativeHouses.every((house) => {
@@ -832,15 +887,25 @@ export function validateLevel(value) {
   })) {
     throw new Error('Level chests need unique IDs, a name, a reward, and a walkable tile.');
   }
-  const normalizedChests = chests.map((chest) => ({
-    id: chest.id,
-    name: chest.name,
-    x: chest.x,
-    z: chest.z ?? chest.y,
-    // Early Chapter 15 saves embedded a misspelled Orders Emblem item ID.
-    rewardId: chest.rewardId === 'orders-emblem' ? 'master-emblem' : chest.rewardId,
-    opened: chest.opened ?? false,
-  }));
+  const bellChestReplacements = value.bellYard?.locks ? {
+    'east-commission': { previous: 'master-emblem', rewardId: 'silver-sword', name: "Officer's Armory" },
+    'plaza-commission': { previous: 'master-emblem', rewardId: 'tomahawk', name: 'Freight Guard Armory' },
+    'yard-elixir': { previous: 'master-emblem', rewardId: 'witchs-eye', name: 'Amber Reliquary' },
+    'yard-seal': { previous: 'killer-axe', rewardId: 'pallbearers-burden', name: "Pallbearer's Cache" },
+  } : {};
+  const normalizedChests = chests.map((chest) => {
+    const rewardId = chest.rewardId === 'orders-emblem' ? 'master-emblem' : chest.rewardId;
+    const replacement = bellChestReplacements[chest.id];
+    const upgrade = !chest.opened && replacement?.previous === rewardId ? replacement : null;
+    return {
+      id: chest.id,
+      name: upgrade?.name ?? chest.name,
+      x: chest.x,
+      z: chest.z ?? chest.y,
+      rewardId: upgrade?.rewardId ?? rewardId,
+      opened: chest.opened ?? false,
+    };
+  });
   const reinforcements = value.reinforcements ?? [];
   if (!Array.isArray(reinforcements) || !reinforcements.every((wave) =>
     wave &&
@@ -911,6 +976,7 @@ export function validateLevel(value) {
     players,
     enemies: enemyPlacements,
     objects,
+    chests: normalizedChests,
   });
   const occupied = new Set();
   for (const unit of [...players, ...enemyPlacements]) {
@@ -1007,19 +1073,72 @@ function validateCourtyard(value, level) {
         !Number.isInteger(trigger.thresholdZ) || trigger.thresholdZ < 0 || trigger.thresholdZ >= level.height ||
         (trigger.warnedTurn !== undefined && trigger.warnedTurn !== null &&
           (!Number.isInteger(trigger.warnedTurn) || trigger.warnedTurn < 1)) ||
+        (trigger.delay !== undefined && ![1, 2].includes(trigger.delay)) ||
         level.reinforcements.filter((wave) => wave.entranceId === trigger.id).length !== 1) {
       throw new Error('Courtyard triggers need unique IDs, in-map thresholds, valid warning turns and matching waves.');
     }
     ids.add(trigger.id);
-    return { id: trigger.id, thresholdZ: trigger.thresholdZ, warnedTurn: trigger.warnedTurn ?? null };
+    return { id: trigger.id, thresholdZ: trigger.thresholdZ, warnedTurn: trigger.warnedTurn ?? null,
+      ...(trigger.delay === undefined ? {} : { delay: trigger.delay }) };
   });
   if (triggers[0].thresholdZ <= triggers[1].thresholdZ) {
     throw new Error('Courtyard triggers must progress from the fountain toward the Cathedral.');
+  }
+  let tactics;
+  if (value.tactics !== undefined) {
+    const court = value.tactics?.deliveryCourt;
+    const formations = value.tactics?.formations;
+    const memberKeys = new Set();
+    if (!court || !['minX', 'maxX', 'minZ', 'maxZ'].every((key) => Number.isInteger(court[key])) ||
+        court.minX < 0 || court.maxX >= level.width || court.minZ < 0 || court.maxZ >= level.height ||
+        court.minX >= court.maxX || court.minZ >= court.maxZ ||
+        !Array.isArray(formations) || formations.length !== 1 || !formations.every((formation) => {
+          if (!formation || typeof formation.id !== 'string' || !formation.id.trim() ||
+              typeof formation.active !== 'boolean' || !Number.isInteger(formation.thresholdZ) ||
+              formation.thresholdZ < 1 || formation.thresholdZ >= level.height ||
+              !Array.isArray(formation.members) || formation.members.length !== 2) return false;
+          return formation.members.every((member) => {
+            const key = `${member?.id}:${member?.x},${member?.z}`;
+            if (memberKeys.has(key) || !level.enemies.some((enemy) => enemy.id === member?.id &&
+                enemy.x === member.x && enemy.z === member.z && enemy.ai === 'guard')) return false;
+            memberKeys.add(key);
+            return true;
+          });
+        })) {
+      throw new Error('Courtyard tactics require an in-map delivery court and one persistent two-unit reserve formation.');
+    }
+    const wave = level.reinforcements.find((entry) => entry.entranceId === 'courtyard-ravens');
+    const ravens = value.tactics.ravenReinforcements;
+    if (ravens !== undefined && (!ravens || typeof ravens !== 'object' || Array.isArray(ravens) ||
+        (ravens.arrivalTurn !== null && (!Number.isInteger(ravens.arrivalTurn) || ravens.arrivalTurn < 1)) ||
+        !Array.isArray(ravens.waves) || ravens.waves.length !== 2 || new Set(ravens.waves).size !== 2 ||
+        !ravens.waves.every((id) => typeof id === 'string' && !ids.has(id) &&
+          level.reinforcements.filter((entry) => entry.entranceId === id).length === 1 &&
+          level.reinforcements.find((entry) => entry.entranceId === id).units.length === 2 &&
+          level.reinforcements.find((entry) => entry.entranceId === id).units.every((unit) =>
+            unit.id === 'envoy-raven' && unit.ai === 'mobile' &&
+            unit.x >= court.minX && unit.x <= court.maxX && unit.z >= court.minZ && unit.z <= court.maxZ)))) {
+      throw new Error('Courtyard raven reinforcements require two finite mobile pairs and a valid Envoy arrival turn.');
+    }
+    if (!wave || wave.units.length !== 3 || wave.units[0].id !== 'bell-envoy' ||
+        !['sealed-transit-tag', 'covenant-emblem'].includes(wave.units[0].drop) || wave.units.slice(1).some((unit) => unit.id !== 'envoy-raven') ||
+        wave.units.some((unit, index) => unit.ai !== (ravens ? index === 0 ? 'stationary' : 'mobile' : 'guard') ||
+          unit.x < court.minX || unit.x > court.maxX ||
+          unit.z < court.minZ || unit.z > court.maxZ)) {
+      throw new Error('Courtyard delivery needs one optional reward-bearing Envoy and two matching raven escorts.');
+    }
+    tactics = { deliveryCourt: { ...court },
+      ...(ravens ? { ravenReinforcements: { arrivalTurn: ravens.arrivalTurn, waves: [...ravens.waves] } } : {}),
+      formations: formations.map((formation) => ({
+      id: formation.id, thresholdZ: formation.thresholdZ, active: formation.active,
+      members: formation.members.map(({ id, x, z }) => ({ id, x, z })),
+    })) };
   }
   return {
     bossId: value.bossId,
     recruit: { ...recruit, recruited: recruit.recruited ?? false, dead: recruit.dead ?? false },
     triggers,
+    ...(tactics ? { tactics } : {}),
   };
 }
 
@@ -1055,9 +1174,47 @@ function validateStreets(value, level) {
   if (coordinate.x === seizePoint.x && coordinate.z === seizePoint.z) {
     throw new Error('Streets recruit and seize point must use different tiles.');
   }
+  const pressure = value.pressure;
+  const raiders = value.raiders;
+  if (raiders !== undefined) {
+    const waves = level.reinforcements.filter((wave) => wave.entranceId === 'street-raiders');
+    if (!raiders || raiders.warningTurn !== 5 || typeof raiders.warned !== 'boolean' ||
+        waves.length !== 1 || waves[0].turn !== 7 || waves[0].units.length !== 2 ||
+        waves[0].units.some((unit, index) => unit.id !== 'street-raider' || unit.ai !== 'mobile' ||
+          unit.x !== [3, 22][index] || unit.z !== 22) ||
+        (!raiders.warned && (waves[0].spawned || waves[0].spawnedCount > 0))) {
+      throw new Error('Street raiders need a turn-five warning and two finite turn-seven arrivals on the lower side streets.');
+    }
+  }
+  if (pressure !== undefined) {
+    if (!pressure || !Number.isInteger(pressure.fallbackTurn) || pressure.fallbackTurn < 2 ||
+        !(pressure.triggeredTurn === null || Number.isInteger(pressure.triggeredTurn) && pressure.triggeredTurn >= 1) ||
+        typeof pressure.officerWarned !== 'boolean' || typeof pressure.patrolReleased !== 'boolean' ||
+        !Array.isArray(pressure.patrol) || pressure.patrol.length !== 2 ||
+        !pressure.patrol.every((unit) => unit && typeof unit.id === 'string' &&
+          level.enemies.some((entry) => entry.id === unit.id && entry.x === unit.x && entry.z === unit.z && entry.ai === 'guard')) ||
+        new Set(pressure.patrol.map((unit) => `${unit.id}:${unit.x},${unit.z}`)).size !== pressure.patrol.length ||
+        (pressure.triggeredTurn === null && (pressure.officerWarned || pressure.patrolReleased)) ||
+        !['southern-pursuit', 'southern-officer'].every((id) =>
+          level.reinforcements.filter((wave) => wave.entranceId === id).length === 1)) {
+      throw new Error('Street pressure needs a fallback turn, persistent warning state, two guard placements and both finite pursuit waves.');
+    }
+    for (const [id, delay] of [['southern-pursuit', 2], ['southern-officer', 5]]) {
+      const wave = level.reinforcements.find((entry) => entry.entranceId === id);
+      if (wave.units.length !== 2 || wave.turn !== (pressure.triggeredTurn === null ? 999 : pressure.triggeredTurn + delay) ||
+          (pressure.triggeredTurn === null && (wave.spawned || wave.spawnedCount)) ||
+          wave.units.some((unit) => unit.z !== 26 || ![12, 15].includes(unit.x) || unit.ai !== 'mobile')) {
+        throw new Error('Street cavalry must use two queued southern placements and the warned arrival turn.');
+      }
+    }
+  }
   return {
     seizePoint,
     bossId: value.bossId,
+    ...(raiders ? { raiders: { warningTurn: raiders.warningTurn, warned: raiders.warned } } : {}),
+    ...(pressure ? { pressure: { fallbackTurn: pressure.fallbackTurn, triggeredTurn: pressure.triggeredTurn,
+      officerWarned: pressure.officerWarned, patrolReleased: pressure.patrolReleased,
+      patrol: pressure.patrol.map(({ id, x, z }) => ({ id, x, z })) } } : {}),
     recruit: {
       id: recruit.id, name: recruit.name, ...coordinate, recruiterId: recruit.recruiterId,
       recruited: recruit.recruited ?? false, dead: recruit.dead ?? false, hp: recruit.hp,
@@ -1095,11 +1252,20 @@ function validateCells(value, level) {
 const CHAPTER_URLS = [initialMapUrl, chapterTwoMapUrl, chapterThreeMapUrl, chapterFourMapUrl, chapterFiveMapUrl, chapterSixMapUrl, chapterSevenMapUrl, chapterEightMapUrl, chapterNineMapUrl, chapterTenMapUrl, chapterElevenMapUrl, chapterTwelveMapUrl, chapterThirteenMapUrl, chapterFourteenMapUrl];
 CHAPTER_URLS.push(chapterFifteenMapUrl, chapterSixteenMapUrl, chapterSeventeenMapUrl, chapterEighteenMapUrl, chapterNineteenMapUrl);
 export const CHAPTER_COUNT = CHAPTER_URLS.length;
+const loadedChapters = new Map();
 
-export async function loadChapterLevel(index) {
+export async function loadChapterLevel(index, { reuseLoaded = false } = {}) {
+  if (reuseLoaded && loadedChapters.has(index)) {
+    return structuredClone(loadedChapters.get(index));
+  }
   const response = await fetch(CHAPTER_URLS[index]);
   if (!response.ok) throw new Error(`Could not load chapter ${index + 1} (${response.status}).`);
-  return validateLevel(await response.json());
+  if (response.headers?.get('content-type')?.includes('text/html')) {
+    throw new Error('This game tab is from an older build. Reload the page before restarting the chapter.');
+  }
+  const level = validateLevel(await response.json());
+  loadedChapters.set(index, structuredClone(level));
+  return level;
 }
 
 export async function loadInitialLevel(setStatus) {
@@ -1363,6 +1529,43 @@ function infirmarySign(THREE, levelGroup, level, text, x, z, color = '#c8dbcf', 
   return mesh;
 }
 
+function addInfirmaryPatient(THREE, levelGroup, level, patient) {
+  const illustrated = Boolean(level.villageScene);
+  const texture = new THREE.Texture(infirmaryObjectImages.get('infirmary_patient'));
+  texture.magFilter = texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  const geometry = new THREE.PlaneGeometry(0.85, 0.85);
+  if (illustrated) geometry.translate(0, 0.425, 0);
+  const figure = new THREE.Mesh(geometry,
+    new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.08, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
+  figure.rotation.x = -OBJECT_TILT;
+  figure.position.set(patient.x + 0.5 - level.width / 2 + (illustrated ? 0 : 0.35),
+    illustrated ? 0.12 : 0.8, patient.z + 0.5 - level.height / 2 + (illustrated ? 0.15 : 0.45));
+  figure.renderOrder = 5;
+  const sign = infirmarySign(THREE, levelGroup, level, `RESCUE ${patient.name.toUpperCase()}`, patient.x, patient.z, '#8ff0b3', 1.65);
+  const group = new THREE.Group();
+  group.name = `infirmary-${patient.id}`;
+  group.add(figure, sign);
+  levelGroup.add(group);
+  Object.defineProperty(patient, 'mesh', { value: group, writable: true, configurable: true });
+  group.visible = !patient.rescued && !patient.lost;
+}
+
+function addIllustratedInfirmaryObjectives(THREE, group, level) {
+  for (const patient of level.infirmary.patients) addInfirmaryPatient(THREE, group, level, patient);
+  const ledger = level.infirmary.ledger;
+  if (ledger) {
+    const sign = infirmarySign(THREE, group, level, 'TREATMENT LEDGER', ledger.x, ledger.z, '#e8cc83', 2);
+    sign.material.transparent = true;
+    sign.material.opacity = ledger.collected ? 0.35 : 1;
+    Object.defineProperty(ledger, 'mesh', { value: sign, writable: true, configurable: true });
+  }
+  const point = level.infirmary.defensePoint;
+  infirmarySign(THREE, group, level, 'DEFEND / EVACUATION', point.x, point.z, '#8ff0b3', 3);
+}
+
 function addInfirmaryTown(THREE, levelGroup, level) {
   const padding = 8;
   const geometry = new THREE.PlaneGeometry(1, 1);
@@ -1419,13 +1622,17 @@ function addInfirmaryTown(THREE, levelGroup, level) {
   levelGroup.userData.infirmaryTown = town;
 }
 
-function streetMaterial(THREE, image, color = 0xffffff) {
+function streetTexture(THREE, image) {
   const texture = new THREE.Texture(image);
   texture.magFilter = texture.minFilter = THREE.NearestFilter;
   texture.generateMipmaps = false;
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
-  return new THREE.MeshBasicMaterial({ map: texture, color, alphaTest: 0.1, side: THREE.DoubleSide });
+  return texture;
+}
+
+function streetMaterial(THREE, image, color = 0xffffff) {
+  return new THREE.MeshBasicMaterial({ map: streetTexture(THREE, image), color, alphaTest: 0.1, side: THREE.DoubleSide });
 }
 
 function streetFacade(THREE, material, image, width, x, z, upright = true) {
@@ -1494,8 +1701,9 @@ function addStreetTown(THREE, levelGroup, level) {
   }
   paving.instanceMatrix.needsUpdate = true;
   town.add(paving);
-  const facadeMaterial = streetMaterial(THREE, streetCompleteShopImage, 0x818591);
-  const addHouse = (x, z) => town.add(streetFacade(THREE, facadeMaterial, streetCompleteShopImage, 2.8, x, z));
+  const borderImage = streetCompleteShopImage;
+  const facadeMaterial = streetMaterial(THREE, borderImage, 0x818591);
+  const addHouse = (x, z) => town.add(streetFacade(THREE, facadeMaterial, borderImage, 2.8, x, z));
   for (let z = -level.height / 2 - 2; z <= level.height / 2 + 6; z += 4) {
     for (const side of [-1, 1]) {
       addHouse(side * (level.width / 2 + 3), z);
@@ -1511,12 +1719,13 @@ function addStreetTown(THREE, levelGroup, level) {
   levelGroup.userData.streetTown = town;
   levelGroup.userData.streetCameraPadding = STREET_CAMERA_PADDING;
 
-  const lampMaterial = streetMaterial(THREE, streetLampImage);
+  const lampImage = streetLampImage;
+  const lampMaterial = streetMaterial(THREE, lampImage);
   const lamps = [];
   for (let z = 0; z < level.height; z++) {
     for (let x = 0; x < level.width; x++) {
       if (level.tileIds[z][x] !== 'street_lamp') continue;
-      const lamp = streetFacade(THREE, lampMaterial, streetLampImage, 0.48,
+      const lamp = streetFacade(THREE, lampMaterial, lampImage, 0.48,
         x + 0.5 - level.width / 2, z + 0.75 - level.height / 2, false);
       lamp.name = `curb-lamp-${x}-${z}`;
       levelGroup.add(lamp);
@@ -1534,6 +1743,10 @@ function addStreetTown(THREE, levelGroup, level) {
     }
   }
   levelGroup.userData.streetLamps = lamps;
+  addStreetObjectives(THREE, levelGroup, level);
+}
+
+function addStreetObjectives(THREE, levelGroup, level) {
   const seizeGeometry = new THREE.PlaneGeometry(0.94, 0.94);
   seizeGeometry.rotateX(-Math.PI / 2);
   const seize = new THREE.Mesh(seizeGeometry, new THREE.MeshBasicMaterial({
@@ -1545,6 +1758,16 @@ function addStreetTown(THREE, levelGroup, level) {
   levelGroup.add(seize);
   const marker = infirmarySign(THREE, levelGroup, level, 'QUARANTINE', 2, 17, '#e6bf70', 1.5);
   marker.name = 'western-quarantine-warning-marker';
+  if (level.streets.pressure) {
+    const pursuit = infirmarySign(THREE, levelGroup, level, 'PURSUIT', 13.5, 26.4, '#e58d65', 1.8);
+    pursuit.name = 'southern-pursuit-warning-marker';
+  }
+  if (level.streets.raiders) {
+    for (const x of [3, 22]) {
+      const sign = infirmarySign(THREE, levelGroup, level, 'RAIDERS', x, 22.4, '#e58d65', 1.5);
+      sign.name = `street-raider-warning-${x}`;
+    }
+  }
 }
 
 function courtyardTexture(THREE, key) {
@@ -1740,24 +1963,7 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
     lamp.name = `courtyard-lamp-${x}-${z}`;
     courtyard.add(lamp);
   }
-  const entrances = [];
-  for (const trigger of level.courtyard.triggers) {
-    const wave = level.reinforcements.find((entry) => entry.entranceId === trigger.id);
-    const entrance = new THREE.Group();
-    entrance.name = `${trigger.id}-entrance`;
-    entrance.userData.entranceId = trigger.id;
-    for (const unit of wave.units) {
-      const marker = new THREE.Mesh(pavingGeometry, new THREE.MeshBasicMaterial({
-        color: trigger.id === 'courtyard-ravens' ? 0x777196 : 0xc0ad76,
-        transparent: true, opacity: 0.4, depthWrite: false,
-      }));
-      marker.position.set(unit.x + 0.5 - level.width / 2, 0.045, unit.z + 0.5 - level.height / 2);
-      marker.userData.arrivalTile = { x: unit.x, z: unit.z };
-      entrance.add(marker);
-    }
-    courtyard.add(entrance);
-    entrances.push(entrance);
-  }
+  const entrances = addCourtyardEntrances(THREE, courtyard, level);
   levelGroup.add(courtyard);
   levelGroup.userData.courtyardCameraPadding = STREET_CAMERA_PADDING;
   levelGroup.userData.courtyardGeometry = {
@@ -1767,6 +1973,30 @@ function addCourtyardArchitecture(THREE, levelGroup, level) {
     entrances,
     cameraPadding: STREET_CAMERA_PADDING,
   };
+}
+
+function addCourtyardEntrances(THREE, parent, level) {
+  const entrances = [];
+  const geometry = new THREE.PlaneGeometry(0.9, 0.9);
+  geometry.rotateX(-Math.PI / 2);
+  for (const trigger of level.courtyard.triggers) {
+    const wave = level.reinforcements.find((entry) => entry.entranceId === trigger.id);
+    const entrance = new THREE.Group();
+    entrance.name = `${trigger.id}-entrance`;
+    entrance.userData.entranceId = trigger.id;
+    for (const unit of wave.units) {
+      const marker = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        color: trigger.id === 'courtyard-ravens' ? 0x777196 : 0xc0ad76,
+        transparent: true, opacity: 0.4, depthWrite: false,
+      }));
+      marker.position.set(unit.x + 0.5 - level.width / 2, 0.045, unit.z + 0.5 - level.height / 2);
+      marker.userData.arrivalTile = { x: unit.x, z: unit.z };
+      entrance.add(marker);
+    }
+    parent.add(entrance);
+    entrances.push(entrance);
+  }
+  return entrances;
 }
 
 function addInfirmaryArchitecture(THREE, levelGroup, level) {
@@ -1840,7 +2070,9 @@ function addInfirmaryArchitecture(THREE, levelGroup, level) {
     infirmarySign(THREE, levelGroup, level, `RECOVERY WARD ${index ? 'B' : 'A'}`, patient.x, patient.z - 2, '#c7cbb8');
   }
   infirmarySign(THREE, levelGroup, level, 'OPERATING THEATRE', 12, 3);
-  infirmarySign(THREE, levelGroup, level, 'TREATMENT RECORDS', level.infirmary.ledger.x, level.infirmary.ledger.z - 1, '#e8cc83');
+  if (level.infirmary.ledger) {
+    infirmarySign(THREE, levelGroup, level, 'TREATMENT RECORDS', level.infirmary.ledger.x, level.infirmary.ledger.z - 1, '#e8cc83');
+  }
   const door = level.infirmary.defensePoint;
   infirmarySign(THREE, levelGroup, level, 'DEFEND / EVACUATION', door.x, door.z, '#8ff0b3', 3);
   infirmarySign(THREE, levelGroup, level, 'CARRIAGE ENTRANCE', 12, 19, '#ecb0a0', 3);
@@ -1857,6 +2089,8 @@ export function buildLevel(THREE, levelGroup, value) {
   levelGroup.userData.waitingCity?.dispose();
   levelGroup.userData.abyssalThrone?.dispose();
   levelGroup.userData.shipScene?.dispose();
+  levelGroup.userData.cellOcclusion?.dispose();
+  delete levelGroup.userData.cellOcclusion;
   levelGroup.traverse((object) => {
     if (!object.isMesh) return;
     object.geometry.dispose();
@@ -1871,6 +2105,7 @@ export function buildLevel(THREE, levelGroup, value) {
   delete levelGroup.userData.streetTown;
   delete levelGroup.userData.streetLamps;
   delete levelGroup.userData.streetCameraPadding;
+  delete levelGroup.userData.bellYard;
   delete levelGroup.userData.infirmaryTown;
   delete levelGroup.userData.shore;
   delete levelGroup.userData.waitingCity;
@@ -1887,6 +2122,9 @@ export function buildLevel(THREE, levelGroup, value) {
 
   if (level.villageScene) {
     addVillageScene(THREE, levelGroup, level, villageImages[villageLayout(level).image]);
+    if (level.infirmary) addIllustratedInfirmaryObjectives(THREE, levelGroup, level);
+    if (level.streets) addStreetObjectives(THREE, levelGroup, level);
+    if (level.courtyard) levelGroup.userData.courtyardEntrances = addCourtyardEntrances(THREE, levelGroup, level);
   } else {
   const tileGroups = new Map();
   const elevatedCells = [];
@@ -2102,29 +2340,14 @@ export function buildLevel(THREE, levelGroup, value) {
       sprite.rotation.x = -OBJECT_TILT;
       sprite.position.set(centerX, 0.12 + lift, centerZ + 0.25);
       sprite.renderOrder = 3;
-      if (level.infirmary?.ledger.x === object.x && level.infirmary.ledger.z === object.z &&
+      if (level.infirmary?.ledger?.x === object.x && level.infirmary.ledger.z === object.z &&
           object.id === 'infirmary_records_cabinet') {
         Object.defineProperty(level.infirmary.ledger, 'mesh', { value: sprite, writable: true, configurable: true });
         sprite.visible = !level.infirmary.ledger.collected;
       }
       for (const patient of level.infirmary?.patients ?? []) {
         if (patient.x === object.x && patient.z === object.z && object.id === 'infirmary_bed') {
-          const figureTexture = new THREE.Texture(infirmaryObjectImages.get('infirmary_patient'));
-          figureTexture.magFilter = figureTexture.minFilter = THREE.NearestFilter;
-          figureTexture.generateMipmaps = false;
-          figureTexture.colorSpace = THREE.SRGBColorSpace;
-          figureTexture.needsUpdate = true;
-          const figure = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.85),
-            new THREE.MeshBasicMaterial({ map: figureTexture, transparent: true, alphaTest: 0.08, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
-          figure.rotation.x = -OBJECT_TILT;
-          figure.position.set(centerX + 0.35, 0.8, centerZ + 0.45);
-          figure.renderOrder = 5;
-          const sign = infirmarySign(THREE, levelGroup, level, `RESCUE ${patient.name.toUpperCase()}`, patient.x, patient.z, '#8ff0b3', 1.65);
-          const group = new THREE.Group();
-          group.add(figure, sign);
-          levelGroup.add(group);
-          Object.defineProperty(patient, 'mesh', { value: group, writable: true, configurable: true });
-          group.visible = !patient.rescued;
+          addInfirmaryPatient(THREE, levelGroup, level, patient);
         }
       }
     } else if (upright) {
@@ -2280,12 +2503,12 @@ export function buildLevel(THREE, levelGroup, value) {
   for (const house of level.houses) {
     const image = house.style === 'apothecary' ? streetApothecaryImage : streetRowHouseImage;
     const streetWidth = Math.min(
-      2 * Math.min(house.door.x + 0.5 - house.x, house.x + house.width - house.door.x - 0.5),
-      house.height * 0.98 / (image.height / image.width * Math.sin(OBJECT_TILT)),
+      2 * Math.min(house.door.x + .5 - house.x, house.x + house.width - house.door.x - .5),
+      house.height * .98 / (image.height / image.width * Math.sin(OBJECT_TILT)),
     );
     const houseSprite = level.streets
       ? streetFacade(THREE, streetMaterial(THREE, image), image,
-        streetWidth, house.door.x + 0.5 - level.width / 2, house.z + house.height - level.height / 2)
+        streetWidth, house.door.x + .5 - level.width / 2, house.door.z - level.height / 2)
       : new THREE.Mesh(house.style === 'tent' ? tentGeometry : houseGeometry, house.style === 'tent' ? orderTentMaterial : greyHouseMaterial);
     if (!level.streets) houseSprite.rotation.x = -OBJECT_TILT;
     if (!level.streets) houseSprite.position.set(
@@ -2383,24 +2606,59 @@ export function buildLevel(THREE, levelGroup, value) {
         }
       }
     }
-    const barsTexture = atlasTexture(THREE, shipTilesImage, shipTileset.tiles, 'mans_gate');
+    const hdGate = level.villageScene?.layout === 'ward' && level.villageScene.artwork === 'compact';
+    const barsTexture = hdGate ? new THREE.Texture(wardHdGateImage)
+      : atlasTexture(THREE, shipTilesImage, shipTileset.tiles, 'mans_gate');
+    if (hdGate) {
+      barsTexture.colorSpace = THREE.SRGBColorSpace;
+      barsTexture.magFilter = barsTexture.minFilter = THREE.NearestFilter;
+      barsTexture.generateMipmaps = false;
+      barsTexture.needsUpdate = true;
+    }
     const barsGeometry = new THREE.PlaneGeometry(1, 1.15);
     barsGeometry.translate(0, 0.575, 0);
     for (const cell of level.cells) {
-      const bars = new THREE.Mesh(barsGeometry, new THREE.MeshBasicMaterial({
-        map: barsTexture, transparent: true, alphaTest: 0.1, side: THREE.DoubleSide, color: 0xb8b0a8,
+      const layout = level.villageScene ? villageLayout(level) : null;
+      const bounds = layout?.cellDoorBounds?.[`${cell.door.x},${cell.door.z}`];
+      const pixelWidth = layout ? layout.crop[2] / level.width : 1;
+      const pixelHeight = layout ? layout.crop[3] / level.height : 1;
+      const cameraSlope = 10 / 14;
+      const height = bounds
+        ? bounds[3] / pixelHeight / cameraSlope
+        : 1.15;
+      const geometry = bounds ? new THREE.PlaneGeometry(bounds[2] / pixelWidth, height) : barsGeometry;
+      if (bounds) geometry.translate(0, height / 2, 0);
+      const bars = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        map: barsTexture, transparent: true, alphaTest: 0.1, side: THREE.DoubleSide, color: hdGate ? 0xffffff : 0xb8b0a8,
       }));
-      bars.rotation.x = -OBJECT_TILT;
-      bars.position.set(
-        cell.door.x + 0.5 - level.width / 2,
-        0.05 + getTileDef(level.tileIds[cell.door.z][cell.door.x]).elevation,
-        cell.door.z + 0.5 - level.height / 2,
-      );
-      bars.renderOrder = 3;
+      if (bounds) {
+        // Anchor at the threshold and compensate for the raised sprite's camera projection.
+        bars.rotation.x = 0;
+        bars.position.set(
+          (bounds[0] + bounds[2] / 2) / pixelWidth - level.width / 2,
+          0.05,
+          (bounds[1] + bounds[3]) / pixelHeight - level.height / 2 + 0.05 * cameraSlope,
+        );
+      } else {
+        bars.rotation.x = -OBJECT_TILT;
+        bars.position.set(
+          cell.door.x + 0.5 - level.width / 2,
+          0.05 + getTileDef(level.tileIds[cell.door.z][cell.door.x]).elevation,
+          cell.door.z + 0.5 - level.height / 2,
+        );
+      }
+      if (level.villageScene?.layout === 'ward') {
+        bars.material.depthTest = bars.material.depthWrite = false;
+        bars.renderOrder = citySpriteOrder(bars.position.z);
+      } else {
+        bars.renderOrder = 3;
+      }
       bars.visible = !cell.opened;
       Object.defineProperty(cell, 'mesh', { value: bars, enumerable: false, configurable: true });
       levelGroup.add(bars);
     }
+    if (level.villageScene?.layout === 'ward')
+      levelGroup.userData.cellOcclusion = createCityOcclusion(THREE, level.cells.map((cell) => cell.mesh));
   }
   const doorGeometry = new THREE.PlaneGeometry(0.94, 0.94);
   doorGeometry.rotateX(-Math.PI / 2);
@@ -2419,9 +2677,29 @@ export function buildLevel(THREE, levelGroup, value) {
     );
     marker.renderOrder = 2;
     marker.userData.houseId = house.id;
-    marker.visible = !house.visited;
+    marker.visible = !house.visited && !house.destroyed;
     levelGroup.userData.houseMarkers.push(marker);
     levelGroup.add(marker);
+    if (level.streets?.raiders) {
+      const ruin = new THREE.Group();
+      ruin.name = `house-ruin-${house.id}`;
+      ruin.userData.houseId = house.id;
+      ruin.position.copy(marker.position);
+      const ash = new THREE.Mesh(new THREE.PlaneGeometry(0.94, 0.94),
+        new THREE.MeshBasicMaterial({ color: 0x201916, transparent: true, opacity: 0.85, depthWrite: false }));
+      ash.rotation.x = -Math.PI / 2;
+      ruin.add(ash);
+      for (let index = 0; index < 5; index++) {
+        const plank = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.045, 0.1),
+          new THREE.MeshBasicMaterial({ color: index % 2 ? 0x56352a : 0x302722 }));
+        plank.position.set((index % 2 ? 1 : -1) * 0.09, 0.035 + index * 0.012, (index - 2) * 0.14);
+        plank.rotation.y = index % 2 ? 0.65 : -0.5;
+        ruin.add(plank);
+      }
+      ruin.visible = Boolean(house.destroyed);
+      (levelGroup.userData.houseRuins ??= []).push(ruin);
+      levelGroup.add(ruin);
+    }
   }
   if (level.gateEncounter?.pressure) {
     levelGroup.userData.bridgeSquadMarkers = level.gateEncounter.pressure.squads.map((squad) => {
@@ -2498,7 +2776,7 @@ export function buildLevel(THREE, levelGroup, value) {
     levelGroup.add(darkness);
     levelGroup.add(gate);
   }
-  if (level.objective === 'escape' || level.objective === 'seize-gate') {
+  if (level.objective === 'escape' || level.objective === 'seize-gate' || level.villageScene?.layout === 'infirmary') {
     const exitGeometry = new THREE.PlaneGeometry(0.94, 0.94);
     exitGeometry.rotateX(-Math.PI / 2);
     const exitMaterial = new THREE.MeshBasicMaterial({
@@ -2507,7 +2785,7 @@ export function buildLevel(THREE, levelGroup, value) {
       opacity: 0.38,
       depthWrite: false,
     });
-    for (const tile of level.exitTiles) {
+    for (const tile of level.infirmary ? [level.infirmary.defensePoint] : level.exitTiles) {
       const marker = new THREE.Mesh(exitGeometry, exitMaterial);
       marker.position.set(
         tile.x + 0.5 - level.width / 2,

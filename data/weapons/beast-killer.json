@@ -1,0 +1,17 @@
+{
+  "id": "beast-killer",
+  "name": "Beast Killer",
+  "type": "Sword",
+  "damageType": "physical",
+  "might": 7,
+  "weight": 7,
+  "hit": 85,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 1,
+  "requiredRank": "D",
+  "effect": ["beast"],
+  "sound": "slash",
+  "lore": "Leon's broad hunting blade, carried to keep the forest's beasts from the village doors.",
+  "sprite": "assets/weapons/Beast_Killer/beast-killer.png"
+}

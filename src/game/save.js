@@ -8,11 +8,12 @@ import { validateRescueState } from './rescue.js';
 import { validateGateEncounterState } from './gate-encounter.js';
 import { validateInfirmaryState } from './infirmary.js';
 import { validCovenantState } from './covenant.js';
+import { shoreVictoryReady, validateShoreSave } from './starless-shore.js';
 
 const validClassId = (classId) => classId === undefined || CLASSES.has(classId);
 
 const SAVE_KEY = 'blood-emblem-save';
-const ALLY_IDS = ['bartz', 'cypher', 'seymour', 'stark', 'linus', 'rictor', 'lena', 'arlan', 'troy', 'eveline', 'corvis'];
+const ALLY_IDS = ['bartz', 'cypher', 'seymour', 'stark', 'linus', 'leon', 'rictor', 'lena', 'arlan', 'serra', 'troy', 'eveline', 'corvis'];
 const PLAYER_STATS = [
   'hp',
   'maxHp',
@@ -53,7 +54,6 @@ export function serializeUnit(player) {
     ...(player.frozen ? { frozen: player.frozen } : {}),
     ...(player.ravaging ? { ravaging: true } : {}),
     ...(player.bloodOath ? { bloodOath: true } : {}),
-    ...(player.bloodTrailBonus !== undefined ? { bloodTrailBonus: player.bloodTrailBonus } : {}),
     inventory: player.inventory.map(copyEntry),
     equippedWeaponId: player.weapon?.id ?? null,
     stats: Object.fromEntries(PLAYER_STATS.map((stat) => [stat, player[stat]])),
@@ -375,12 +375,12 @@ export function parseSave(rawSave) {
   }
   if (level.courtyard) {
     // Older slots could retain a scheduled arrival but omit its warning turn.
-    // The arrival is always exactly one turn after that warning.
     for (const trigger of level.courtyard.triggers) {
       const wave = level.reinforcements.find((entry) => entry.entranceId === trigger.id);
+      const delay = trigger.delay ?? 1;
       if (trigger.warnedTurn === null && wave.turn !== 999 &&
-        wave.turn >= 2 && wave.turn <= save.turn + 1) {
-        trigger.warnedTurn = wave.turn - 1;
+        wave.turn >= 1 + delay && wave.turn <= save.turn + delay) {
+        trigger.warnedTurn = wave.turn - delay;
         console.warn(`Recovered missing ${trigger.id} warning from saved arrival turn ${wave.turn}.`);
       }
     }
@@ -396,10 +396,37 @@ export function parseSave(rawSave) {
       save.enemies.some((unit) => unit.id === level.courtyard.bossId))) {
       throw new Error('Saved courtyard victory requires Severin to be defeated.');
     }
+    if (level.courtyard.tactics) {
+      const { deliveryCourt, formations, ravenReinforcements } = level.courtyard.tactics;
+      if (save.enemies.some((unit) => !ravenReinforcements && ['bell-envoy', 'envoy-raven'].includes(unit.id) &&
+          (unit.x < deliveryCourt.minX || unit.x > deliveryCourt.maxX ||
+            unit.z < deliveryCourt.minZ || unit.z > deliveryCourt.maxZ)) ||
+          formations.some((formation) => !formation.active && formation.members.some((member) =>
+            !save.enemies.some((unit) => unit.id === member.id && unit.x === member.x &&
+              unit.z === member.z && unit.ai === 'guard')))) {
+        throw new Error('Saved courtyard formation or delivery guard state is inconsistent.');
+      }
+      if (ravenReinforcements) {
+        const { arrivalTurn, waves } = ravenReinforcements;
+        const delivery = level.reinforcements.find((wave) => wave.entranceId === 'courtyard-ravens');
+        if ((arrivalTurn === null ? delivery.spawnedCount > 0
+          : arrivalTurn > save.turn || arrivalTurn < delivery.turn || delivery.spawnedCount < 1) ||
+          waves.some((id, index) => {
+            const wave = level.reinforcements.find((entry) => entry.entranceId === id);
+            return arrivalTurn === null ? wave.turn !== 999 || wave.spawned || wave.spawnedCount > 0
+              : wave.turn !== arrivalTurn + 2 * (index + 1) || wave.spawnedCount > 0 && wave.turn > save.turn;
+          }) ||
+          save.enemies.some((unit) => unit.id === 'bell-envoy' &&
+            (arrivalTurn === null || unit.ai !== 'stationary' || unit.x !== delivery.units[0].x || unit.z !== delivery.units[0].z)) ||
+          save.enemies.some((unit) => unit.id === 'envoy-raven' && (arrivalTurn === null || unit.ai !== 'mobile'))) {
+          throw new Error('Saved courtyard raven arrival or finite-wave timing is inconsistent.');
+        }
+      }
+    }
     for (const [index, trigger] of level.courtyard.triggers.entries()) {
       const wave = level.reinforcements.find((entry) => entry.entranceId === trigger.id);
       if (trigger.warnedTurn === null ? wave.spawned || wave.spawnedCount > 0 || wave.turn !== 999
-        : trigger.warnedTurn > save.turn || wave.turn !== trigger.warnedTurn + 1 ||
+        : trigger.warnedTurn > save.turn || wave.turn !== trigger.warnedTurn + (trigger.delay ?? 1) ||
           wave.spawnedCount > 0 && save.turn < wave.turn ||
           index > 0 && (level.courtyard.triggers[index - 1].warnedTurn === null ||
             level.courtyard.triggers[index - 1].warnedTurn >= trigger.warnedTurn)) {
@@ -408,6 +435,12 @@ export function parseSave(rawSave) {
     }
   }
   if (level.streets) {
+    const raiders = level.streets.raiders;
+    const raidWave = level.reinforcements.find((wave) => wave.entranceId === 'street-raiders');
+    if (raiders && (raiders.warned && save.turn < raiders.warningTurn ||
+        save.turn < raidWave.turn && (raidWave.spawnedCount > 0 || level.houses.some((house) => house.destroyed)))) {
+      throw new Error('Saved street raiding state is ahead of its warning or arrival turn.');
+    }
     const recruit = level.streets.recruit;
     const ally = allies.find((unit) => unit.id === recruit.id);
     if (recruit.recruited !== Boolean(ally) || (!recruit.recruited && recruit.dead !== (recruit.hp === 0)) || (recruit.recruited && recruit.dead) ||
@@ -435,6 +468,14 @@ export function parseSave(rawSave) {
     if (save.phase === 'victory' && level.requiredUnits.some((id) =>
       ![player, ...allies].some((unit) => unit.id === id && unit.stats.hp > 0 && !unit.benched && !unit.reserve))) {
       throw new Error('Saved throne victory requires Maria and Rictor to survive.');
+    }
+  }
+  validateShoreSave(level, save.enemies, save.turn);
+  if (level.shore && save.phase === 'victory') {
+    const leaders = [player, ...allies].filter((unit) => !unit.benched && !unit.reserve)
+      .map((unit) => ({ ...unit.stats, id: unit.id, x: unit.x, z: unit.z }));
+    if (!shoreVictoryReady(level, leaders.find((unit) => unit.id === 'maria'), leaders.find((unit) => unit.id === 'rictor'))) {
+      throw new Error('Saved Shore victory requires all flames out and both living leaders at the sea gate.');
     }
   }
   const rescue = validateRescueState(save.rescue, level, occupiedTiles, allies);

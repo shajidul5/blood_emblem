@@ -39,7 +39,7 @@ export function playWeaponSwing(weapon) {
 }
 
 // A short blade transient over a damped body impact, rather than a ringing anvil.
-export function playHitImpact({ critical = false } = {}) {
+export function playHitImpact({ critical = false, lethality = false } = {}) {
   if (!ensureContext()) return;
   noise({ type: 'highpass', frequency: 6200, to: 1800, q: 0.7, decay: 0.035, volume: 0.32 });
   tone({ type: 'triangle', from: 2100, to: 520, decay: 0.045, volume: 0.16 });
@@ -50,6 +50,10 @@ export function playHitImpact({ critical = false } = {}) {
   if (critical) {
     tone({ type: 'sine', from: 82, to: 29, start: 0.025, decay: 0.42, volume: 0.55 });
     noise({ type: 'bandpass', frequency: 3300, to: 700, q: 0.9, start: 0.018, decay: 0.16, volume: 0.25 });
+  }
+  if (lethality) {
+    tone({ type: 'sine', from: 55, to: 22, decay: .55, volume: .4 });
+    noise({ type: 'highpass', frequency: 9000, to: 2000, start: .04, decay: .16, volume: .2 });
   }
 }
 
@@ -90,7 +94,7 @@ export function playCrowOmen() {
 export function playSpellRelease(element) {
   if (!ensureContext()) return;
   const frequency = element === 'fire' ? 620 : element === 'thunder' ? 1900 : element === 'holy' ? 880 :
-    element === 'ice' ? 1500 : 1100;
+    element === 'ice' ? 1500 : element === 'dark' ? 280 : 1100;
   tone({ type: 'triangle', from: frequency / 2, to: frequency, attack: .03, decay: .24, volume: .12 });
   noise({ frequency, to: frequency * 2, q: .8, decay: .3, volume: .2 });
 }
@@ -113,6 +117,10 @@ export function playSpellImpact(element, { critical = false } = {}) {
     [523, 659, 784, 1047].forEach((frequency, index) =>
       tone({ type: 'sine', from: frequency, to: frequency, start: index * .07, attack: .01, decay: .5, volume: .1 }));
     noise({ type: 'highpass', frequency: 7000, decay: .4, volume: .06 });
+  } else if (element === 'dark') {
+    tone({ type: 'sawtooth', from: 220, to: 45, attack: .02, decay: .45, volume: volume * .35 });
+    tone({ type: 'sine', from: 110, to: 35, decay: .5, volume });
+    noise({ type: 'lowpass', frequency: 1400, to: 120, q: 1.4, decay: .48, volume });
   } else if (element === 'ice') {
     noise({ type: 'highpass', frequency: 5200, to: 2600, decay: .16, volume });
     for (let index = 0; index < 4; index++)

@@ -43,6 +43,13 @@ for (const [id, name, walkable, extras] of [
   ['manor_floor', 'Manor Floor', true, {}],
   ['manor_block', 'Manor Wall / Furnishings', false, {}],
   ['manor_stairs', 'Manor Stairs', true, { avoid: 20 }],
+  ['ward_floor', 'Prison Flagstones', true, {}],
+  ['ward_block', 'Prison Wall / Fittings', false, {}],
+  ['ward_stairs', 'Stairs to the Infirmary', true, {}],
+  ['infirmary_floor', 'Infirmary Flagstones', true, {}],
+  ['infirmary_block', 'Infirmary Wall / Furnishings', false, {}],
+  ['infirmary_doorway', 'Open Ward Threshold', true, {}],
+  ['infirmary_recovery', 'Recovery Ward', true, {}],
   ['forest_trail', 'Hunting Trail', true, {}],
   ['forest_undergrowth', 'Dense Undergrowth', true, { avoid: 20, defense: 2, moveCost: 2 }],
   ['forest_thicket', 'Bramble Thicket', true, { avoid: 30, moveCost: 2 }],
@@ -75,6 +82,9 @@ for (const [id, name, walkable, bonuses] of [
   ['bell_winch', 'Lift Winch', false, {}],
   ['bell_warehouse', 'Bonded Warehouse', false, {}],
   ['bell_tower', 'Clocktower', false, {}],
+  ['bell_divider', 'Stone Divider', false, {}],
+  ['bell_lock_gate', 'Bell Yard Gate', true, {}],
+  ['bell_service_bridge', 'Service Bridge', true, {}],
   ['shore_stone', 'Ancient Quay', true, {}],
   ['shore_bridge', 'Drowned Causeway', true, {}],
   ['shore_lift', 'Lower Lift Landing', true, {}],
@@ -83,6 +93,7 @@ for (const [id, name, walkable, bonuses] of [
   ['shore_sea', 'Starless Sea', false, {}],
   ['shore_ruin', 'Ancient Armory', false, {}],
   ['shore_beacon', 'Offering Beacon', false, {}],
+  ['shore_trial', 'Ancient Trial Instrument', false, {}],
   ['shore_mooring', 'Ancient Mooring', false, {}],
 ]) TILE_DEFS.set(id, buildDefinition({ id, name, walkable, ...bonuses }));
 for (const [id, label, walkable, extras] of [
@@ -177,8 +188,14 @@ export function infirmaryDoorOrientation(level, x, z) {
 export function isLevelTileWalkable(level, x, z, unit) {
   const tileId = level?.tileIds?.[z]?.[x];
   const flying = unit?.type === 'flying';
+  if (level?.bellYard?.locks) {
+    if (!isTileWalkable(tileId)) return false;
+    if (['bell_lock_gate', 'bell_service_bridge'].includes(tileId) &&
+        !level.bellYard.locks.every((lock) => lock.opened)) return false;
+  }
+  if (level?.cathedral?.artwork === 'illustrated' && !isTileWalkable(tileId)) return false;
   return Boolean(tileId) && (flying
-    ? TILE_DEFS.has(tileId) && !['threshold_scenery', 'throne_building', 'throne_statue', 'city_wall', 'city_building', 'city_statue', 'city_rampart', 'city_mechanism', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch', 'shore_ruin', 'shore_beacon', 'shore_mooring'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
+    ? TILE_DEFS.has(tileId) && !['infirmary_block', 'ward_block', 'threshold_scenery', 'throne_building', 'throne_statue', 'city_wall', 'city_building', 'city_statue', 'city_rampart', 'city_mechanism', 'village_building', 'courtyard_cathedral', 'courtyard_fountain', 'cathedral_wall', 'cathedral_pillar', 'bell_warehouse', 'bell_tower', 'bell_winch', 'shore_ruin', 'shore_beacon', 'shore_trial', 'shore_mooring'].includes(tileId) && !STREET_TILE_IDS.has(tileId) && !tileId.startsWith('mans_wall')
     : isTileWalkable(tileId)) &&
     !(level?.waitingCity && !level.waitingCity.opened && tileId === 'city_seal') &&
     !(level?.gateEncounter && !level.gateEncounter.spawned &&

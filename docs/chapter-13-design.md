@@ -10,7 +10,7 @@ Rictor, Lena and Arlan leave the burning infirmary. Troy, a city-watch cavalier,
 
 The party must open the gatehouse controlling the Cathedral approach. Church soldiers are holding the avenue while undead spill out of quarantine streets. This is an advancing chapter, not another survival chapter.
 
-The clocktower stands in a blocked northern building plot beside the gate approach. Its illuminated face and distinctive spire are recurring landmarks, not an interactable objective here. Individual Gothic houses and shops follow the original panorama's architecture; the panorama itself is not rendered. The Cathedral remains distant: Chapter 13 opens the route, Chapter 14 can expose the Church's machinery, and the Part Three finale belongs inside the Cathedral. These later chapter beats are proposals, not implemented commitments.
+The clocktower dominates the misty northern skyline beyond the playable district. Its illuminated face and distinctive spire are recurring landmarks, not an interactable objective here. The city is one complete illustrated composition with raised Gothic facades and clear blocked footprints. The Cathedral remains distant: Chapter 13 opens the route, Chapter 14 can expose the Church's machinery, and the Part Three finale belongs inside the Cathedral. These later chapter beats are proposals, not implemented commitments.
 
 ## Eveline - recruitable mounted healer
 
@@ -81,9 +81,13 @@ All doors face south into a street. Door tiles are accessible, with two adjacent
 |---|---|---|---|
 | Coachman's home | x 5-8, z 18-20 | (7,21) | Axereaver; Troy's old watch route |
 | Bellkeeper's home | x 5-8, z 11-13 | (7,14) | Armorslayer; bells summon watch officers rather than worshippers |
-| Apothecary | x 19-22, z 3-6 | (21,7) | Two Potions; the Church requisitioned medicine for the Cathedral |
+| Apothecary | x 19-22, z 3-6 | (21,7) | Silver Lance hidden from Church requisitioners |
 
-Eveline is outside farther south, not recruited through the apothecary Visit. Every house remains useful even if she is lost. Match the apothecary's footprint to its actual art; its south-facing frontage must never float on a road tile.
+Eveline is outside farther south, not recruited through the apothecary Visit. Houses remain visitable regardless of her fate, unless raided. Match the apothecary's footprint to its actual art; its south-facing frontage must never float on a road tile.
+
+Turn 5 warns of one finite pair of level-14 Street Raiders with Steel Axes. They arrive before player actions on turn 7 at `(3,22)` and `(22,22)`; occupied entrances queue arrivals. They prioritize the nearest reachable unvisited, undestroyed house using actual street paths, ignoring nearby combat distractions. Defenders sealing all house routes become combat targets. Reaching a door consumes the raider's action to destroy it and permanently forfeit that reward. Visited houses are safe. Raiders retarget surviving rewards on later phases and revert to ordinary mobile combat when no targets remain. The Axereaver gives the coachman's reward an immediate purpose against their axes.
+
+House `destroyed` state is distinct from `visited`, survives validation/editor/save round-trips, and resets on Restart Chapter. Raided doors lose their green Visit marker and show charred broken planks; the street remains walkable. Objective information counts visited and raided houses separately. Old embedded encounters without the optional `streets.raiders` rules remain unchanged.
 
 ### Axereaver and reaver triangle rules
 
@@ -110,13 +114,21 @@ Provisional placements to tune during playable implementation:
 
 The final map must test combined move-plus-attack ranges, not just adjacent enemy placement. Give visible range overlays and alternatives; no unavoidable multi-attacker trap on the recruitment approach.
 
-### One finite reinforcement event
+### Finite quarantine and mounted pursuit
 
 On enemy phase 5, announce that the Church is opening the western quarantine barrier. At the start of player turn 6, three undead arrive through the marked west entrance near (3,17), provided the route is clear. The party can respond before those enemies act. Queue occupied spawn locations; never move a reinforcement behind a defender to make room.
 
 Show the warning under **Options > Objective**, with a brief mandatory first announcement and an in-world entrance marker. No same-turn surprise attacks. No repeat wave farming.
 
-## Art and camera rules
+Recruiting Eveline triggers the southern pursuit warning. The first pair of level-18 Golden Order Cavaliers arrives at `(12,26)` and `(15,26)` two player turns after the warning. At the same time, only the guard soldier at `(12,8)` and guard archer at `(17,9)` become mobile. Veyr, the gate knights and the other northern defenders retain their existing AI. The party always gets that player phase before any newly arriving or released enemy acts.
+
+Three turns after the first pair, the final wave arrives at the same southern placements: one level-18 Cavalier and a level-20 Paladin officer with a **Steel Lance**, not a Silver Lance. Its own warning occurs two turns before arrival. Arlan's Ridersbane is effective against all four pursuers. If Eveline remains neutral or dies, turn 8 triggers the first warning instead, yielding turn-10/13 arrivals. Recruitment after the fallback does not reschedule anything. There are no further pursuit waves.
+
+The south entrance is marked in-world. Blocked placement tiles queue each unit at its exact entrance; no relocation behind a defender. Warning flags, dynamically scheduled turns, partial arrivals and released patrol AI survive save/load; restart resets them. Older embedded encounters without pressure metadata keep their original single-wave rules.
+
+## Art and camera rules (legacy separate-building renderer)
+
+The following placement rules remain for older embedded maps. Current HD presentation is described below.
 
 - Houses: flat front elevations, consistent south-facing doors; roof gables may slope, but building footprints and perspective must not be diagonal.
 - All street houses, visitable shops and exterior town houses align their facade planes to the camera before rendering, keeping screen edges vertical and bases level without off-center perspective skew. The clocktower and lamp presentation remain unchanged; house sizing retains the conservative footprint budget.
@@ -133,7 +145,21 @@ Show the warning under **Options > Objective**, with a brief mandatory first ann
 
 ## Generated art
 
-Both mounted classes have registered eight-direction rotations and four-frame walking animations. Five-frame healing animations cover the four cardinal directions used by adjacent Heal casting. All frames normalize together with the idle sprites. New town facades, lamps and the standalone clocktower are used by the chapter renderer. New architectural sprites were generated using the original panorama as a reference and cropped to their transparent bounds without resampling.
+### HD presentation
+
+The authored map opts into `villageScene: { version: 1, layout: "streets", artwork: "depth" }`, using the same single-illustration renderer as previous chapters. All 28x28 terrain, routes, footprints, visit cells and initial placements are preserved. The Apothecary now gives a Silver Lance, and reinforcement timing includes finite pursuit and house raiders. Older embedded maps keep their existing art and encounter; Restart Chapter loads this authored revision with chapter-start carry intact.
+
+The [map manifest](../assets/maps/village/manifest.json) records the generated source and layout registration. The [complete illustration](../assets/maps/village/streets-depth.png) is 1232x1496: a 1232x1232 tactical district at 44 pixels per square cell, below 264 pixels of inaccessible northern skyline. The larger clocktower is in that skyline, never covering a road. Raised facades, visible side walls and contact shadows follow Chapter 3's architectural depth. Nearest-pixel registration retains the original walkable road pixels and exact door thresholds. No individual building, lamp, paving mesh or tower is drawn over it. Collision remains the existing street terrain.
+
+The three integrated portals have exactly 44px-wide clear openings. Within the playable crop, bottom-center thresholds remain at `(door.x + 0.5, door.z + 0.5)`: Coachman (7,21), Bellkeeper (7,14), Apothecary (21,7). Nearest filtering and disabled mipmaps preserve crisp pixels. Visit markers, gate controls and quarantine/pursuit warnings remain live overlays. A dark surround covers exposed illustration edges. The game draws the district and skyline in one extended plane, without adding selectable terrain; the editor crops the same image to the tactical district.
+
+### Inland city ambience
+
+The existing Environmental Sounds preference controls alley wind, irregular iron-sign/shutter creaks, distant fire crackles and restrained undead groans. A low inharmonic clock bell rings at sparse 45-70 second intervals. A finite approaching-hoof sequence plays only on the two cavalry warnings. Original Web Audio synthesis needs no external recording and suppresses ocean surf immediately in the city. Muting, tab hiding, audio interruption and leaving Chapter 13 cancel city schedulers; reactivation starts only one of each.
+
+### Legacy and character assets
+
+Both mounted classes have registered eight-direction rotations and four-frame walking animations. Five-frame healing animations cover the four cardinal directions used by adjacent Heal casting. All frames normalize together with the idle sprites. The following architectural sprites are retained only for older embedded maps. They were generated using the original panorama as a reference and cropped to their transparent bounds without resampling.
 
 | Asset | Local file | PixelLab job |
 |---|---|---|
@@ -155,14 +181,14 @@ Design-stage checks passed: all three house doors, the gate controls, Eveline an
 
 1. Recruit Eveline through Rictor's Talk; Troy cannot trigger recruitment. Healing works immediately with her own staff.
 2. Protect/recruit, miss recruitment, and lose Eveline scenarios all persist and restart correctly.
-3. All three houses can be visited exactly once, with inventory overflow handled normally.
+3. Each intact house can be visited exactly once, with inventory overflow handled normally. Raiders ignore visited houses; destroyed houses cannot grant rewards. Verify turn-five warning, turn-seven arrivals, path priorities, blocked routes, finite waves, wreckage, persistence and restart.
 4. Boss drops one emblem; attendant awards none on death. Stealing awards exactly one and cannot be repeated after save/load.
 5. Walkable routes connect all objectives and houses without crossing a footprint. Lamps never alter routes.
 6. Verify Troy's turn-two interception and Rictor's turn-three recruitment using actual shortest paths and enemy attack ranges.
-7. Verify the finite turn-six wave warning, occupied entrances and save/restore.
+7. Verify the finite turn-six wave warning, rescue-triggered cavalry at +2/+5 turns (fallback turn-eight warning), northern patrol advance, occupied entrances and save/restore.
 8. Clear every enemy without seizing: no premature victory. Seize with Rictor after the commander falls: victory.
 9. Validate authored, validated and serialized maps; failed starts must not mutate roster or autosave.
-10. Camera tests cover all walkable tiles, mounted silhouettes and the actual clocktower face/spire; visually inspect all three house entrances, Eveline's horse and edge spawns. Layout tests cap roads at 280 tiles, require at least 400 building tiles, prohibit empty 5 x 5 plazas and verify two-tile market alleys. Rendering tests require at least forty individual facades with no projected overlap onto roads.
+10. Camera tests cover all walkable tiles and mounted silhouettes; visually inspect all three house entrances, Eveline's horse and edge spawns. Layout tests cap roads at 280 tiles, require at least 400 building tiles, prohibit empty 5 x 5 plazas and verify two-tile market alleys. HD rendering requires one complete illustration and no duplicate buildings or lamps; legacy rendering retains its individual facades.
 11. Coachman's Visit awards an Axereaver, not a tonic. Test Axereaver versus Axe (+2), Sword (-2) and ordinary Spear (0), and Lancereaver versus ordinary Spear (+2), Axe (-2) and Sword (0); opposing combatants receive the inverse modifiers. Verify doubled damage, hit and avoid triangle modifiers without doubling total damage.
 
 Saved battles retain their embedded map data. Verify this redesign from a fresh Chapter 13 on an isolated browser origin; never replace an existing save's terrain just to apply the visual update.

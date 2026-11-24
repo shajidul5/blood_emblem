@@ -2,7 +2,17 @@
   "shore": {
     "pages": [
       { "title": "The Shore Beneath the World", "paragraphs": ["The lift settles inside a harbor older than the city above. A black ocean stretches beyond the ruins. Stars hang where the cavern ceiling should be.", "Rictor: How far did we descend?", "Maria: Far enough that it stopped mattering."] },
-      { "title": "Keepers of the First Covenant", "paragraphs": ["Dark Sages tend three offering beacons. Ravens circle them as envoys, carrying the marks of victims chosen on the surface. The treatment bells were copied from this place.", "The Covenant fields promoted Halberdiers, Inferno-wielding Deep Sages and Dark Sages. The beasts are stronger, tougher and more accurate than the undead above. Bring a promoted party; use magic against the durable Drowned Beasts, physical attacks against the sages, and bows or wind against Gloam Ravens.", "Extinguish all three beacons with an adjacent unit, then bring Maria AND Rictor onto the northern sea-gate tiles. Extinguishing a beacon uses that unit's action and stops its remaining summons.", "Each active beacon summons one creature at the start of player turns 5 and 9. Occupied arrivals queue. Two optional ancient armories contain four relic weapons; four Drowned Beasts visibly carry Chest Keys."] }
+      { "title": "Keepers of the First Covenant", "paragraphs": ["Three connected fronts open beyond the lift: drowned docks, the Covenant plaza and observatory terraces. Split the company if you wish; the crossings let your squads support one another.", "The Unmoored Duelist guards the western flame; the Tidebound Sentinel and Keelbreaker guard the central flame; the Horizon Watcher guards the eastern flame. Each wields an ancient weapon that drops upon defeat. Kill a flame's named guardians before an adjacent ally can extinguish it.", "Grounded Hollow Crowmen bear human bodies and crow heads. They advance alongside cavalry and Tide Stalkers while Drowned Cantors heal the defenders. Use magic against armor and Drowned Beasts, physical attacks against sages, and bows or wind against flying Gloam Ravens.", "Each active flame calls a Stalker and Raven on player turns 5, 9 and 13. Arrivals are marked and occupied cells queue. Extinguishing a flame spends an action and cancels only its future waves. Extinguish all three, then bring Maria AND Rictor onto the northern sea-gate tiles.", "The drowned bell in the northwest and first-sky instrument in the northeast are OPTIONAL trials. Any adjacent unacted ally may confirm activation. A keeper and two escorts arrive next player turn, giving you a full response before they attack. The Storm Custodian carries Heavenfall, an S-rank Thunder tome; the Horizon Keeper carries The Last Horizon, an S-rank Wind tome. Trials have no deadline and are not required to leave."] }
+    ]
+  },
+  "shore-storm-trial": {
+    "pages": [
+      { "title": "The Bell That Calls the Storm", "paragraphs": ["The bronze bell has no clapper. The sound rises from somewhere beneath the platform, and a pale flash crosses the drowned sky.", "Corvis: The Church did not teach the bell to answer. They learned how to wake what was already listening.", "The Storm Custodian and two Drowned guardians arrive at the marked tiles next player turn. You will have a full player phase to respond before they attack. Defeat the custodian to claim Heavenfall; this trial is not required to leave."] }
+    ]
+  },
+  "shore-horizon-trial": {
+    "pages": [
+      { "title": "Observatory of the First Sky", "paragraphs": ["An inscription circles the instrument: Before there was a ceiling, there was a sky. Its rings align with stars the ocean refuses to reflect.", "Cyrus: Those constellations cannot be above us.", "Serra: Then perhaps we are no longer beneath them.", "The Horizon Keeper and two Gloam Ravens arrive at the marked tiles next player turn. You will have a full player phase to respond before they attack. Defeat the keeper to claim The Last Horizon; this trial is not required to leave."] }
     ]
   },
   "shore-silhouette": {
@@ -12,7 +22,7 @@
   },
   "shore-ending": {
     "pages": [
-      { "title": "The Road Below the Stars", "paragraphs": ["The last offering flame dies. Maria and Rictor pass beneath the sea gate together. Behind them, the Bell-Drowned sinks into water that reflects a different sky.", "The armories were not built by the Church. Neither were the bells. Whatever covenant began here is older than the city, and its god is still beneath the sea.", "Ahead lies the ancient civilization. The Bell-Drowned will meet them again."] }
+      { "title": "The Road Below the Stars", "paragraphs": ["The last offering flame dies. Maria and Rictor pass beneath the sea gate together. Behind them, the Bell-Drowned sinks into water that reflects a different sky.", "The guardians' weapons were not forged by the Church. Neither were the bells. Whatever covenant began here is older than the city, and its god is still beneath the sea.", "Ahead lies the ancient civilization. The Bell-Drowned will meet them again."] }
     ]
   }
 }

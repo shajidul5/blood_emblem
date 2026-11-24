@@ -9,6 +9,7 @@
   "level": 25,
   "experience": 0,
   "weaponId": "crow-greatsword",
+  "weaponExp": { "Sword": 180 },
   "isBoss": false,
   "hunts": "maria",
   "ai": "mobile",

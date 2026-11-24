@@ -10,6 +10,7 @@
     },
     { "id": "crowned-raven", "name": "Crowned Raven", "tier": "monster", "type": "flying", "weaponTypes": ["Claw"] },
     { "id": "crowman", "name": "Omen", "tier": "monster", "type": "flying", "weaponTypes": ["Sword"] },
+    { "id": "bell-envoy", "name": "Covenant Envoy", "tier": "monster", "type": "flying", "weaponTypes": ["Claw"] },
     { "id": "ancient-guardian", "name": "Ancient Guardian", "tier": "advanced", "type": "armor", "weaponTypes": ["Spear"] },
     { "id": "bell-drowned", "name": "Bell-Drowned", "tier": "monster", "type": "beast", "weaponTypes": ["Claw"] },
     { "id": "drowned-beast", "name": "Drowned Beast", "tier": "monster", "weaponTypes": ["Claw"] },
@@ -31,7 +32,8 @@
       "id": "dark-sage",
       "name": "Dark Sage",
       "tier": "advanced",
-      "weaponTypes": ["Dark", "Staff"],
+      "weaponTypes": ["Dark", "Staff", "Anima"],
+      "promotionWeaponRanks": { "Staff": "D", "Anima": "D" },
       "abilities": [
         { "id": "dark-mastery", "name": "Dark Mastery", "description": "Doubles the uses of all spells and staves.", "usesMultiplier": 2 }
       ],
@@ -119,6 +121,27 @@
       ]
     },
     {
+      "id": "mercenary",
+      "name": "Mercenary",
+      "tier": "base",
+      "type": "infantry",
+      "weaponTypes": ["Sword"],
+      "promotesTo": "hero",
+      "promotionWeaponRanks": { "Axe": "D" },
+      "promotionBonuses": {
+        "hp": 4, "strength": 2, "magic": 0, "dexterity": 2, "speed": 2,
+        "luck": 1, "defense": 2, "resistance": 1, "movement": 1, "build": 1
+      }
+    },
+    {
+      "id": "hero",
+      "name": "Hero",
+      "tier": "advanced",
+      "type": "infantry",
+      "weaponTypes": ["Sword", "Axe"],
+      "sprites": { "leon": { "spriteSet": "heroLeon", "sprite": "assets/character/Hero_Leon/rotations/south.png" } }
+    },
+    {
       "id": "mage",
       "name": "Mage",
       "tier": "base",
@@ -142,7 +165,10 @@
       "id": "sage",
       "name": "Sage",
       "tier": "advanced",
-      "weaponTypes": ["Anima", "Staff"], "sprites": { "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Cyrus/Idle/rotations/south.png" } },
+      "weaponTypes": ["Anima", "Staff"], "sprites": {
+        "cypher": { "spriteSet": "sageCypher", "sprite": "assets/character/Cyrus/Idle/rotations/south.png" },
+        "serra": { "spriteSet": "sageSerra", "sprite": "assets/character/Sage_Serra/rotations/south.png" }
+      },
       "abilities": [
         {
           "id": "arcane-mastery",
@@ -256,6 +282,7 @@
       "name": "Paladin",
       "tier": "advanced",
       "weaponTypes": ["Spear", "Sword", "Axe"],
+      "promotionWeaponRanks": { "Axe": "D" },
       "sprites": {
         "default": {
           "spriteSet": "genericPaladin",
@@ -279,7 +306,8 @@
       "name": "Bloodsworn",
       "tier": "advanced",
       "type": "cavalry",
-      "weaponTypes": ["Spear"],
+      "weaponTypes": ["Spear", "Sword"],
+      "promotionBonusAdjustments": { "defense": 2, "resistance": 2 },
       "sprites": { "linus": { "spriteSet": "bloodswornLinus", "sprite": "assets/covenant/bloodsworn-linus/map/rotations/south.png", "scale": 1.2 } },
       "abilities": [
         { "id": "blood-oath", "name": "Blood Oath", "description": "Spend an action and 6 HP to protect an adjacent living ally. Halves their next damaging combat hit (damage rounded up), until next player phase. Requires at least 7 HP. Cannot stack; misses and zero damage do not consume it.", "bloodOath": true }
@@ -290,10 +318,12 @@
       "name": "Veilstalker",
       "tier": "advanced",
       "type": "infantry",
+      "minimumMovement": 6,
       "weaponTypes": ["Bow"],
-      "sprites": { "stark": { "spriteSet": "veilstalkerStark", "sprite": "assets/covenant/veilstalker-stark/map/rotations/south.png", "scale": 1 } },
+      "promotionBonusAdjustments": { "movement": 1 },
+      "sprites": { "stark": { "spriteSet": "veilstalkerStark", "sprite": "assets/character/Veilstalker_Stark/rotations/south.png", "scale": 1 } },
       "abilities": [
-        { "id": "blood-trail", "name": "Blood Trail", "description": "+2 Movement for the player phase if a living wounded enemy is within 6 tiles at phase start (Manhattan distance, ignoring terrain). Checked once; does not stack or recalculate mid-phase.", "bloodTrail": true }
+        { "id": "blood-trail", "name": "Blood Trail", "description": "+4 Movement while any living wounded enemy is within 10 tiles (Manhattan distance, ignoring terrain). Updates immediately and does not stack.", "bloodTrail": true }
       ]
     },
     {
@@ -353,8 +383,9 @@
       "tier": "base",
       "type": "infantry",
       "weaponTypes": ["Spear"],
-      "sprites": { "rictor": { "spriteSet": "rictor", "sprite": "assets/character/Rictor_Templar/rotations/south.png", "scale": 1 } },
+      "sprites": { "rictor": { "spriteSet": "rictor", "sprite": "assets/character/Rictor/rotations/south.png", "scale": 1 } },
       "promotesTo": "templar",
+      "covenantPromotions": { "rictor": "oathbound" },
       "promotionWeaponRanks": { "Light": "D" },
       "promotionBonuses": { "hp": 4, "strength": 2, "magic": 3, "dexterity": 2, "speed": 1, "luck": 1, "defense": 2, "resistance": 3, "movement": 3, "build": 1 }
     },
@@ -365,10 +396,21 @@
       "type": "cavalry",
       "minimumMovement": 8,
       "weaponTypes": ["Spear", "Light"],
-      "sprites": { "rictor": { "spriteSet": "templarRictor", "sprite": "assets/character/Rictor_Mounted_Templar/rotations/south.png", "scale": 1.2 } },
+      "sprites": { "rictor": { "spriteSet": "templarRictor", "sprite": "assets/character/Templar_Rictor/rotations/south.png", "scale": 1.2 } },
       "abilities": [
         { "id": "vigil", "name": "Vigil", "description": "Deals effective damage against undead units.", "effectiveAgainst": ["undead"] }
       ]
+    },
+    {
+      "id": "oathbound",
+      "name": "Oathbound",
+      "tier": "advanced",
+      "type": "infantry",
+      "minimumMovement": 6,
+      "promotionBonusAdjustments": { "movement": -2 },
+      "weaponTypes": ["Spear", "Sword", "Dark"],
+      "promotionWeaponRanks": { "Sword": "D", "Dark": "D" },
+      "sprites": { "rictor": { "spriteSet": "oathboundRictor", "sprite": "assets/character/Outhbound_Rictor/rotations/south.png", "scale": 1 } }
     },
     {
       "id": "thief",
@@ -392,7 +434,7 @@
       "abilities": [
         { "id": "lockpick", "name": "Lockpick", "description": "Opens chests and cell doors without a key.", "lockpick": true },
         { "id": "pickpocket", "name": "Pickpocket", "description": "Steals an adjacent enemy's carried item when faster than the target.", "steal": true },
-        { "id": "lethality", "name": "Lethality", "description": "+15% critical chance in combat.", "critBonus": 15 }
+        { "id": "lethality", "name": "Lethality", "description": "+15% critical chance. Each landed critical has a 50% chance to instantly kill its target, including bosses. Works with swords, bows, and counterattacks.", "critBonus": 15, "lethalityChance": 0.5 }
       ]
     },
     {

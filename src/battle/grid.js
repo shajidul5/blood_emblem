@@ -36,9 +36,10 @@ export function terrainMoveCost(level, x, z, unit) {
 }
 
 // `enemies` block movement; `allies` can be passed through but not stopped on.
-export function getMovementRange(unit, level, enemies, allies = []) {
+export function getMovementRange(unit, level, enemies, allies = [], prey = enemies) {
   const distances = new Map([[tileKey(unit.x, unit.z), 0]]);
   if (unit.frozen) return distances;
+  const budget = movementAllowance(unit, prey);
   const open = [{ x: unit.x, z: unit.z, cost: 0 }];
   while (open.length) {
     open.sort((a, b) => a.cost - b.cost);
@@ -51,7 +52,7 @@ export function getMovementRange(unit, level, enemies, allies = []) {
       if (!isWalkable(level, x, z, unit) || !canTraverseEdge(level, current, { x, z }, unit) ||
           findEnemyAt(enemies, x, z)) continue;
       const cost = current.cost + terrainMoveCost(level, x, z, unit);
-      if (cost > movementAllowance(unit) || cost >= (distances.get(key) ?? Infinity)) continue;
+      if (cost > budget || cost >= (distances.get(key) ?? Infinity)) continue;
       distances.set(key, cost);
       open.push({ x, z, cost });
     }

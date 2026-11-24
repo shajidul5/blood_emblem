@@ -28,6 +28,48 @@ before(async () => {
 });
 after(async () => { await server?.close(); });
 
+test('a reused preparation menu reads the current chapter deployment limit for both labels and unit toggles', async (t) => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  globalThis.document = { createElement: (tag) => new Element(tag) };
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else delete globalThis.document;
+  });
+  let limit = 12;
+  const team = Array.from({ length: 14 }, (_, i) => ({
+    id: `unit-${i}`, name: `Unit ${i}`, classId: 'hero', level: 20,
+    hp: 40, maxHp: 40, inventory: [],
+  }));
+  const deployed = new Set(team.slice(0, 12));
+  const dialog = new Element('dialog');
+  const menu = createPrepMenu({
+    dialog, getTeam: () => team, getConvoy: () => [], items: new Map(),
+    maxSize: 5, maxDeployed: 12, getMaxDeployed: () => limit,
+    isDeployed: unit => deployed.has(unit), isRequired: () => false,
+    setDeployed(unit, on) { if (on) deployed.add(unit); else deployed.delete(unit); },
+    portrait: () => null, getInfo: () => ({ chapter: 'Chapter 17', objective: 'Flames' }),
+  });
+  const closed = menu.show();
+  const hub = () => dialog.all().find(node => node.tag === 'button' && node.textContent.startsWith('Unit Select'));
+  assert.equal(hub().textContent, 'Unit Select (12/12)');
+  limit = 14;
+  menu.refresh();
+  assert.equal(hub().textContent, 'Unit Select (12/14)');
+  hub().dispatchEvent(new Event('click'));
+  const cards = () => dialog.all().filter(node => node.className === 'prep-card');
+  assert.equal(cards()[12].disabled, false);
+  cards()[12].dispatchEvent(new Event('click'));
+  cards()[13].dispatchEvent(new Event('click'));
+  assert.equal(deployed.size, 14);
+  assert.ok(dialog.all().some(node => node.textContent.includes('14/14 deployed')));
+  limit = 12;
+  deployed.delete(team[13]);
+  menu.refresh();
+  assert.equal(cards()[13].disabled, true, 'other chapters retain the original cap');
+  dialog.close();
+  await closed;
+});
+
 test('universal preparation Back matches button and Escape navigation in every subview', async (t) => {
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
   globalThis.document = { createElement: (tag) => new Element(tag) };

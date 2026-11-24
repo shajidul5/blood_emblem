@@ -1,0 +1,8 @@
+{
+  "id": "shore-storm-custodian", "name": "Storm Custodian", "classId": "sage", "type": "infantry",
+  "spriteSet": "shoreStormCustodian", "sprite": "assets/character/Shore_Storm_Custodian/rotations/south.png",
+  "scale": 1, "level": 28, "experience": 0, "weaponId": "heavenfall", "weaponExp": { "Anima": 300 }, "inventory": ["heavenfall"], "ai": "mobile",
+  "baseStats": { "hp": 78, "strength": 0, "magic": 35, "dexterity": 44, "speed": 24, "luck": 14, "defense": 20, "resistance": 30, "movement": 6, "build": 14 },
+  "currentStats": { "hp": 78, "strength": 0, "magic": 35, "dexterity": 44, "speed": 24, "luck": 14, "defense": 20, "resistance": 30, "movement": 6, "build": 14 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

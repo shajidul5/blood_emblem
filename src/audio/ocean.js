@@ -1,5 +1,9 @@
 import { createForestAmbience } from './forest-ambience.js';
 import { createShipAmbience } from './ship-ambience.js';
+import { createCityAmbience } from './city-ambience.js';
+import { createCathedralAmbience } from './cathedral-ambience.js';
+import { createShoreAmbience } from './shore-ambience.js';
+import { resumeAudioContext } from './audio-context.js';
 
 const STORAGE_KEY = 'blood-emblem-ocean-sound';
 const MASTER_VOLUME = 0.35;
@@ -12,8 +16,15 @@ let surf = null;
 let ambienceGain = 1;
 let shipChapter = false;
 let forestChapter = false;
+let cityChapter = false;
+let cathedralChapter = false;
+let shoreChapter = false;
+let shoreBeacons = [true, true, true];
 let shipAmbience;
 let forestAmbience;
+let cityAmbience;
+let cathedralAmbience;
+let shoreAmbience;
 let enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
 const listeners = new Set();
 
@@ -66,6 +77,12 @@ function addWaveLayer(audioContext, destination, buffer, { frequency, swellSecon
 function build() {
   const AudioContextClass = window.AudioContext ?? window.webkitAudioContext;
   if (!AudioContextClass) return false;
+  shipAmbience?.setActive(false);
+  forestAmbience?.setActive(false);
+  cityAmbience?.setActive(false);
+  cathedralAmbience?.setActive(false);
+  shoreAmbience?.setActive(false);
+  context?.removeEventListener('statechange', applyState);
   context = new AudioContextClass();
   master = context.createGain();
   master.gain.value = 0;
@@ -81,6 +98,9 @@ function build() {
   });
   shipAmbience = createShipAmbience(context, master, buffer);
   forestAmbience = createForestAmbience(context, master, buffer);
+  cityAmbience = createCityAmbience(context, master, buffer);
+  cathedralAmbience = createCathedralAmbience(context, master);
+  shoreAmbience = createShoreAmbience(context, master);
   context.addEventListener('statechange', applyState);
   return true;
 }
@@ -90,8 +110,13 @@ function applyState() {
   const audible = enabled && ambienceGain > 0 && !document.hidden && context.state === 'running';
   shipAmbience.setActive(shipChapter && audible);
   forestAmbience.setActive(forestChapter && audible);
-  // Inland forest chapters have no surf at all.
-  surf.gain.setTargetAtTime(forestChapter ? 0 : shipChapter ? .42 : 1, context.currentTime, .35);
+  cityAmbience.setActive(cityChapter && audible);
+  cathedralAmbience.setActive(cathedralChapter && audible);
+  shoreAmbience.setActive(shoreChapter && audible, shoreBeacons);
+  // Inland chapters have no surf at all.
+  surf.gain.cancelScheduledValues(context.currentTime);
+  if (forestChapter || cityChapter || cathedralChapter || shoreChapter) surf.gain.setValueAtTime(0, context.currentTime);
+  else surf.gain.setTargetAtTime(shipChapter ? .42 : 1, context.currentTime, .35);
   master.gain.cancelScheduledValues(context.currentTime);
   master.gain.setTargetAtTime(enabled ? MASTER_VOLUME * ambienceGain : 0, context.currentTime, FADE_SECONDS / 3);
 }
@@ -106,6 +131,29 @@ export function setForestAmbienceActive(value) {
   applyState();
 }
 
+export function setCityAmbienceActive(value) {
+  cityChapter = Boolean(value);
+  applyState();
+}
+
+export function setCathedralAmbienceActive(value) {
+  cathedralChapter = Boolean(value);
+  applyState();
+}
+
+export function setShoreAmbienceActive(value, beacons = [true, true, true]) {
+  if (!Array.isArray(beacons) || beacons.length !== 3 || !beacons.every((lit) => typeof lit === 'boolean')) {
+    throw new Error('Shore ambience needs three beacon states.');
+  }
+  shoreChapter = Boolean(value);
+  shoreBeacons = [...beacons];
+  applyState();
+}
+
+export function playCityPursuitWarning() {
+  cityAmbience?.warnPursuit();
+}
+
 export function setOceanAmbienceGain(value) {
   if (!Number.isFinite(value) || value < 0 || value > 1) throw new Error('Ocean ambience gain must be between zero and one.');
   ambienceGain = value;
@@ -114,8 +162,8 @@ export function setOceanAmbienceGain(value) {
 
 async function start() {
   if (!enabled) return;
-  if (!context && !build()) return;
-  if (context.state !== 'running' && context.state !== 'closed') await context.resume();
+  if ((!context || context.state === 'closed') && !build()) return;
+  await resumeAudioContext(context);
   applyState();
 }
 

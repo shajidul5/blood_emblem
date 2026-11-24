@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createShipAmbience, playTimberCreak } from '../src/audio/ship-ambience.js';
+import { resumeAudioContext } from '../src/audio/audio-context.js';
 
 function audioContext() {
   const nodes = [];
@@ -82,6 +83,7 @@ test('Environmental toggle, ship transitions, audio interruption and visibility 
   const context = audioContext();
   const audioHandlers = {};
   context.addEventListener = (name, callback) => { audioHandlers[name] = callback; };
+  context.removeEventListener = (name) => { delete audioHandlers[name]; };
   context.resume = async () => { context.state = 'running'; audioHandlers.statechange(); };
   const originals = new Map(['window', 'document', 'localStorage'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   t.after(() => {
@@ -126,6 +128,7 @@ test('Environmental toggle, ship transitions, audio interruption and visibility 
   audioHandlers.statechange();
   assert.equal(pending.size, 0);
   handlers.pointerdown();
+  await resumeAudioContext(context);
   await Promise.resolve();
   assert.equal(context.state, 'running', 'later gestures retry unlocking interrupted audio');
   assert.equal(pending.size, 1);
@@ -162,6 +165,37 @@ test('Environmental toggle, ship transitions, audio interruption and visibility 
   assert.equal(pending.size, 3, 'resuming audio restores only one forest scheduler');
   audio.setForestAmbienceActive(false);
   assert.equal(pending.size, 0, 'leaving the forest cancels the calls');
+  audio.setCityAmbienceActive(true);
+  assert.equal(pending.size, 4, 'city wind has four restrained episodic sound schedulers');
+  const surf = context.nodes[1];
+  assert.equal(surf.gain.events.at(-1)[1], 0, 'inland city has no ocean surf');
+  document.hidden = true;
+  handlers.visibilitychange();
+  assert.equal(pending.size, 0, 'hidden city stops scheduled sounds');
+  document.hidden = false;
+  handlers.visibilitychange();
+  assert.equal(pending.size, 4);
+  await audio.setOceanSoundEnabled(false);
+  assert.equal(pending.size, 0, 'environmental mute includes all city sounds');
+  await audio.setOceanSoundEnabled(true);
+  assert.equal(pending.size, 4);
+  context.state = 'suspended';
+  audioHandlers.statechange();
+  assert.equal(pending.size, 0);
+  context.state = 'running';
+  audioHandlers.statechange();
+  assert.equal(pending.size, 4, 'audio resume does not multiply city schedules');
+  audio.setCityAmbienceActive(false);
+  assert.equal(pending.size, 0);
+  assert.equal(surf.gain.events.at(-1)[1], 1, 'leaving the city restores other chapters');
+  context.state = 'closed';
+  audio.setCityAmbienceActive(true);
+  assert.equal(pending.size, 0);
+  await audio.setOceanSoundEnabled(true);
+  assert.equal(context.state, 'running', 'ambience rebuilds a closed device context');
+  assert.equal(pending.size, 4, 'rebuilt city has only one copy of each scheduler');
+  audio.setCityAmbienceActive(false);
+  assert.equal(pending.size, 0);
   assert.equal(storage.get('save-slot-1'), 'untouched');
   assert.equal(storage.size, 2, 'only the existing ocean preference was written');
 });

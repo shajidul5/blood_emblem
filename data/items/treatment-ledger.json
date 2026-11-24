@@ -1,0 +1,11 @@
+{
+  "id": "treatment-ledger",
+  "name": "Treatment Ledger",
+  "type": "consumable",
+  "effect": "insight",
+  "description": "A concealed register from the House of Mercy. Read it to uncover the experiments and gain 10 Insight.",
+  "lore": "Fever remedies fill the public register. Between its covers lies a second list: patient numbers, rising doses of crimson extract, discharge dates crossed out. Beside one number: 'Pulse absent. Movement resumed. Continue observation.' Later entries mention an emblem removed from the ward; after that, the handwriting grows hurried. A crest in the margin looks familiar to Rictor.",
+  "maxUses": 1,
+  "insight": 10,
+  "sprite": "assets/items/Treatment_Ledger/treatment-ledger.svg"
+}

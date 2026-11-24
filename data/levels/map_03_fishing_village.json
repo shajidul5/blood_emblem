@@ -101,7 +101,7 @@
         "x": 13,
         "z": 7
       },
-      "rewardId": "zanbato"
+      "rewardId": "lancereaver"
     }
   ],
   "decorativeHouses": [],
@@ -210,9 +210,9 @@
     ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
     ["village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
     ["village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block"],
-    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
-    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
-    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
+    ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
     ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
     ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
     ["village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block", "village_path", "village_path", "village_block", "village_block", "village_path", "village_block", "village_block", "village_block", "village_block", "village_block", "village_block"],
@@ -225,6 +225,7 @@
   "villageScene": {
     "version": 1,
     "layout": "harbor",
+    "artwork": "hd",
     "playableWidth": 21
   },
   "lighting": "night",

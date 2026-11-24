@@ -149,14 +149,11 @@ test('the Quarantine Ward is a guarded Rictor and Lena escape with locked cells 
   assert.equal(ward.objective, 'escape');
   assert.equal(ward.leader, 'rictor');
   assert.deepEqual(ward.requiredUnits, ['rictor', 'lena']);
-  assert.ok(ward.enemies.every((enemy) => enemy.ai === 'guard'));
-  assert.ok(ward.enemies.some((enemy) => enemy.id === 'ward-warden'));
+  assert.ok(ward.enemies.filter((enemy) => enemy.id === 'ward-soldier').every((enemy) => enemy.ai === 'guard'));
+  assert.ok(ward.enemies.some((enemy) => enemy.id === 'rotten' && enemy.ai === 'guard'));
+  assert.ok(ward.enemies.some((enemy) => enemy.id === 'undead' && enemy.ai === 'mobile'));
   assert.ok(ward.cells.some((cell) => cell.prisoners.length));
-  const jailerReward = inventory.INVENTORY_ITEMS.get(ward.chests.find((chest) => chest.id === 'chest-ward-key').rewardId);
-  assert.equal(jailerReward.id, 'pocketwatch');
-  assert.equal(jailerReward.effect, 'insight');
-  assert.equal(jailerReward.insight, 10);
-  assert.equal(jailerReward.maxUses, 1);
+  assert.deepEqual(ward.chests.map((chest) => chest.rewardId), ['bloodroot-tonic', 'hunters-codex']);
   assert.ok(!ward.chests.some((chest) => chest.rewardId === 'chest-key'));
   const tiles = await server.ssrLoadModule('/src/levels/tiles.js');
   const cell = ward.cells[0];

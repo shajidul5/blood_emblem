@@ -18,6 +18,8 @@ import rootWardenProfile from '../../data/characters/root-warden.json';
 import heartrootProfile from '../../data/characters/heartroot.json';
 import starkProfile from '../../data/characters/stark.json';
 import linusProfile from '../../data/characters/linus.json';
+import leonProfile from '../../data/characters/leon.json';
+import serraProfile from '../../data/characters/serra.json';
 import bridgeCaptainProfile from '../../data/characters/bridge-captain.json';
 import bridgeKnightProfile from '../../data/characters/bridge-knight.json';
 import villagerProfile from '../../data/characters/villager.json';
@@ -45,6 +47,9 @@ import troyProfile from '../../data/characters/troy.json';
 import evelineProfile from '../../data/characters/eveline.json';
 import veyrProfile from '../../data/characters/veyr.json';
 import streetUndeadProfile from '../../data/characters/street-undead.json';
+import streetRaiderProfile from '../../data/characters/street-raider.json';
+import bellEnvoyProfile from '../../data/characters/bell-envoy.json';
+import envoyRavenProfile from '../../data/characters/envoy-raven.json';
 import corvisProfile from '../../data/characters/corvis.json';
 import churchSageProfile from '../../data/characters/church-sage.json';
 import churchFreezerProfile from '../../data/characters/church-freezer.json';
@@ -166,6 +171,15 @@ export function createVillager(id, name) {
   return { ...createCharacter(villagerProfile), id, name, civilian: true, neutral: true, facing: 'south', inventory: [] };
 }
 
+export function createLeonAlly() {
+  return {
+    ...createCharacter(leonProfile),
+    facing: 'south',
+    moveOrigin: null,
+    inventory: createInventory(leonProfile.inventory),
+  };
+}
+
 // Part 3 opens on Rictor's party, a separate squad that fights without Maria.
 function createPartThreeAlly(profile) {
   return {
@@ -180,6 +194,7 @@ function createPartThreeAlly(profile) {
 export const createRictorAlly = () => createPartThreeAlly(rictorProfile);
 export const createLenaAlly = () => createPartThreeAlly(lenaProfile);
 export const createArlanAlly = () => createPartThreeAlly(arlanProfile);
+export const createSerraAlly = () => createPartThreeAlly(serraProfile);
 export const createTroyAlly = () => createPartThreeAlly(troyProfile);
 export const createEvelineAlly = () => createPartThreeAlly(evelineProfile);
 export const createCorvisAlly = () => createPartThreeAlly(corvisProfile);
@@ -228,7 +243,7 @@ const ENEMY_PROFILES = new Map([
   [rootWardenProfile.id, rootWardenProfile],
 ]);
 
-for (const profile of [...cathedralProfiles, ...shoreProfiles, vossProfile]) ENEMY_PROFILES.set(profile.id, profile);
+for (const profile of [...cathedralProfiles, ...shoreProfiles, vossProfile, streetRaiderProfile, bellEnvoyProfile, envoyRavenProfile]) ENEMY_PROFILES.set(profile.id, profile);
 export const ENEMY_IDS = new Set(ENEMY_PROFILES.keys());
 export const enemyMovementType = (id) => ENEMY_PROFILES.get(id)?.type;
 

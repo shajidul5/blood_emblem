@@ -3,8 +3,8 @@
   "name": "Covenant Emblem",
   "type": "consumable",
   "effect": "promote",
-  "description": "Promotes level 20+ Cavalier Linus to Bloodsworn or Archer Stark to Veilstalker. Cannot change an already-promoted class.",
-  "lore": "A raven seal pried from the Omen's breast. Survey hands sworn to the Sanguine Covenant wore it on the descent that found the Blood Emblem. Ansel Wren kept his oath long after he stopped being a man.",
+  "description": "Promotes level 20+ Cavalier Linus to Bloodsworn, Archer Stark to Veilstalker or Oathkeeper Rictor to Oathbound (Spears, Swords and Dark). Cannot change an already-promoted class.",
+  "lore": "A raven seal of the Sanguine Covenant, worn beneath armor and expedition coats alike. Survey hands wore the same mark on the descent that found the Blood Emblem. Ansel Wren kept his oath long after he stopped being a man.",
   "maxUses": 1,
   "sprite": "assets/items/Covenant_Emblem/covenant_emblem.png"
 }

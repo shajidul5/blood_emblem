@@ -14,6 +14,31 @@ const cases = [
   ['rotten', 'rotten', 'rotten', 'Claw', 'rotten'],
 ];
 
+test('Steal is the second action directly after Attack, including keyboard order', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const actions = html.slice(html.indexOf('<section id="action-panel"'));
+  const buttons = [...actions.slice(0, actions.indexOf('</section>')).matchAll(/<button id="([^"]+)"/g)];
+  assert.deepEqual(buttons.slice(0, 2).map((match) => match[1]), ['attack-action', 'steal-action']);
+  assert.equal(buttons.filter((match) => match[1] === 'steal-action').length, 1);
+});
+
+test('Lena and the first ward soldier both have supported battle art and existing clip files', async () => {
+  const load = async (path) => JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
+  const units = await Promise.all(['lena', 'ward-soldier'].map(async (id, x) => {
+    const profile = await load(`../data/characters/${id}.json`);
+    return { ...profile, x, z: 0, weapon: await load(`../data/weapons/${profile.weaponId}.json`) };
+  }));
+  assert.equal(supportsBattleScene(...units), true);
+  assert.equal(supportsBattleScene(...units.toReversed()), true);
+  for (const unit of units) {
+    const spec = art.fighters[battleSpriteKey(unit)];
+    for (const file of [spec.idle, spec.attack.file, spec.critical.file, spec.idleLoop?.file].filter(Boolean)) {
+      const png = await readFile(new URL(`../assets/battle/${file}`, import.meta.url));
+      assert.equal(png.toString('ascii', 1, 4), 'PNG');
+    }
+  }
+});
+
 test('jailbreak actors choose their own class and weapon sets without granting new combat abilities', () => {
   for (const [id, classId, spriteSet, type, key] of cases) {
     const ranged = type === 'Bow' || id === 'rotten';

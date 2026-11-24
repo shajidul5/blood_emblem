@@ -1,0 +1,17 @@
+{
+  "id": "tomahawk",
+  "name": "Tomahawk",
+  "type": "Axe",
+  "damageType": "physical",
+  "might": 12,
+  "weight": 14,
+  "hit": 65,
+  "critical": 0,
+  "minRange": 1,
+  "maxRange": 2,
+  "requiredRank": "B",
+  "effect": [],
+  "sound": "axe",
+  "sprite": "assets/weapons/Bell_Yard/tomahawk.svg",
+  "lore": "A heavy throwing axe from the freight guards' armory. Its iron-bound haft balances the broad silver edge, but only a practiced arm sends it straight."
+}

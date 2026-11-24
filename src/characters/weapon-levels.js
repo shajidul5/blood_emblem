@@ -2,6 +2,7 @@ import data from '../../data/weapon-levels.json';
 
 export const WEAPON_RANKS = data.ranks;
 export const MAX_WEAPON_EXP = WEAPON_RANKS[WEAPON_RANKS.length - 1].exp;
+export const weaponTypeLabel = (type) => type === 'Spear' ? 'Lance' : type;
 
 export function rankForExp(exp) {
   let rank = WEAPON_RANKS[0];

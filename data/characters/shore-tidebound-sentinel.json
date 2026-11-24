@@ -1,0 +1,8 @@
+{
+  "id": "shore-tidebound-sentinel", "name": "Tidebound Sentinel", "classId": "general", "type": "armor",
+  "spriteSet": "shoreTideboundSentinel", "sprite": "assets/character/Shore_Tidebound_Sentinel/rotations/south.png",
+  "scale": 1, "level": 28, "experience": 0, "weaponId": "tidepiercer", "weaponExp": { "Spear": 300 }, "ai": "guard",
+  "baseStats": { "hp": 90, "strength": 36, "magic": 0, "dexterity": 42, "speed": 18, "luck": 12, "defense": 36, "resistance": 18, "movement": 5, "build": 20 },
+  "currentStats": { "hp": 90, "strength": 36, "magic": 0, "dexterity": 42, "speed": 18, "luck": 12, "defense": 36, "resistance": 18, "movement": 5, "build": 20 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

@@ -5,8 +5,8 @@ import { throneTileElevation } from '../levels/throne-terraces.js';
 export function getTerrain(level, x, z) {
   const tile = getTileDef(level?.tileIds?.[z]?.[x]);
   if (level?.abyssalThrone && tile.id !== 'unknown' && tile.id !== 'shore_sea') return { ...tile, elevation: throneTileElevation(level, x, z) };
-  if (level?.cathedral && tile.id !== 'unknown') return { ...tile, elevation: cathedralElevation(z) };
-  if (!level?.infirmary || tile.id === 'unknown') return tile;
+  if (level?.cathedral && tile.id !== 'unknown') return { ...tile, elevation: cathedralElevation(z, level.cathedral.artwork) };
+  if (!level?.infirmary || level.villageScene || tile.id === 'unknown') return tile;
   return {
     ...tile,
     name: tile.id.startsWith('mans_wall') ? 'Infirmary Wall'

@@ -223,7 +223,7 @@
       "name": "Treasure Chest",
       "x": 2,
       "z": 17,
-      "rewardId": "lancereaver"
+      "rewardId": "zanbato"
     }
   ],
   "objects": [],
@@ -254,7 +254,8 @@
   "forestEdges": false,
   "villageScene": {
     "version": 1,
-    "layout": "manor"
+    "layout": "manor",
+    "artwork": "hd"
   },
   "lighting": "night",
   "decorativeHouses": []

@@ -1,0 +1,8 @@
+{
+  "id": "bell-yard-rotten", "name": "Yard Rotten", "classId": "rotten", "type": "undead",
+  "spriteSet": "rotten", "sprite": "assets/character/Rotten/rotations/south.png",
+  "scale": 1.19, "level": 24, "weaponId": "blighted-tendrils", "ai": "mobile",
+  "baseStats": { "hp": 62, "strength": 25, "magic": 0, "dexterity": 22, "speed": 5, "luck": 1, "defense": 13, "resistance": 6, "movement": 4, "build": 16 },
+  "currentStats": { "hp": 62, "strength": 25, "magic": 0, "dexterity": 22, "speed": 5, "luck": 1, "defense": 13, "resistance": 6, "movement": 4, "build": 16 },
+  "growthRates": {}
+}

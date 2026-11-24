@@ -1,0 +1,7 @@
+{
+  "id": "heavenfall", "name": "Heavenfall", "type": "Anima", "damageType": "magical",
+  "might": 18, "weight": 14, "hit": 85, "critical": 10, "maxUses": 8,
+  "minRange": 1, "maxRange": 3, "requiredRank": "S", "effect": ["armor"], "sound": "magic",
+  "sprite": "assets/weapons/Thunder_tome/rotations/Thunder_tome.png",
+  "lore": "The first storm was called from beneath the sea. A cracked bronze bell still remembers the words, and its custodian will surrender them only to one who endures the answer."
+}

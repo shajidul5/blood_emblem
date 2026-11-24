@@ -1,0 +1,16 @@
+{
+  "id": "serra",
+  "name": "Serra",
+  "classId": "mage",
+  "type": "infantry",
+  "spriteSet": "serra",
+  "sprite": "assets/character/Serra/rotations/south.png",
+  "level": 3,
+  "experience": 0,
+  "weaponId": "fire-tome",
+  "weaponExp": { "Anima": 0 },
+  "inventory": ["fire-tome", "potion"],
+  "baseStats": { "hp": 21, "strength": 1, "magic": 8, "dexterity": 8, "speed": 8, "luck": 5, "defense": 3, "resistance": 7, "movement": 5, "build": 4 },
+  "currentStats": { "hp": 21, "strength": 1, "magic": 8, "dexterity": 8, "speed": 8, "luck": 5, "defense": 3, "resistance": 7, "movement": 5, "build": 4 },
+  "growthRates": { "hp": 80, "strength": 10, "magic": 80, "dexterity": 75, "speed": 75, "luck": 60, "defense": 30, "resistance": 65, "movement": 0, "build": 5 }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "shore-crowman", "name": "Hollow Crowman", "classId": "hero", "type": "infantry",
+  "spriteSet": "shoreCrowman", "sprite": "assets/character/Shore_Crowman/rotations/south.png",
+  "scale": 1, "level": 27, "experience": 0, "weaponId": "crow-greatsword", "weaponExp": { "Sword": 240 }, "ai": "mobile",
+  "baseStats": { "hp": 70, "strength": 32, "magic": 0, "dexterity": 42, "speed": 27, "luck": 14, "defense": 25, "resistance": 22, "movement": 7, "build": 16 },
+  "currentStats": { "hp": 70, "strength": 32, "magic": 0, "dexterity": 42, "speed": 27, "luck": 14, "defense": 25, "resistance": 22, "movement": 7, "build": 16 },
+  "growthRates": { "hp": 0, "strength": 0, "magic": 0, "dexterity": 0, "speed": 0, "luck": 0, "defense": 0, "resistance": 0, "movement": 0, "build": 0 }
+}

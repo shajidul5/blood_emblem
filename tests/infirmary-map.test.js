@@ -16,7 +16,7 @@ before(async () => {
   server = await createServer({ server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom' });
   levels = await server.ssrLoadModule('/src/levels/level.js');
   tiles = await server.ssrLoadModule('/src/levels/tiles.js');
-  rawMap = JSON.parse(await readFile(new URL('../data/levels/map_12_infirmary.json', import.meta.url), 'utf8'));
+  rawMap = JSON.parse(await readFile(new URL('./fixtures/infirmary-legacy.json', import.meta.url), 'utf8'));
 });
 
 after(async () => {
